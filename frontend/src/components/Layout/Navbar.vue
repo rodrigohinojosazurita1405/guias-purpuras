@@ -1,355 +1,343 @@
+<!-- frontend/src/components/Layout/Navbar.vue -->
 <template>
-  <!-- 
-    Navbar.vue - Barra de navegación principal
-    
-    Propósito: Navegación principal del sitio con logo, menú y acciones
-    Conecta con: MainLayout.vue (componente padre)
-    Emite: change-location (cuando se hace clic en ubicación)
-    Ubicación: Sticky debajo del TopBar
-  -->
-  <nav class="main-navbar" :class="{ 'scrolled': isScrolled }">
-    <div class="navbar-container">
+  <nav class="navbar">
+    <div class="navbar-content">
       <!-- Logo -->
       <router-link to="/" class="logo">
-        <div class="logo-icon">
-          <VaIcon name="bookmark" size="large" />
-        </div>
-        <div class="logo-text">
-          <h1>Guías Púrpuras</h1>
-          <span>Bolivia</span>
-        </div>
+        <va-icon name="book" color="yellow-primary" size="large" />
+        <span class="logo-text">Guías Púrpuras</span>
+        <span class="logo-country">Bolivia</span>
       </router-link>
 
-      <!-- Selector de Ubicación -->
-      <div class="location-display" @click="$emit('change-location')">
-        <VaIcon name="location_on" color="var(--color-orange-primary)" />
-        <div class="location-text">
-          <span class="location-label">Tu ubicación</span>
-          <span class="location-value">{{ currentLocation }}</span>
-        </div>
-        <VaIcon name="expand_more" size="small" />
-      </div>
-
-      <!-- Menú Principal -->
-      <div class="main-menu" :class="{ 'mobile-open': mobileMenuOpen }">
-        <a href="#" class="menu-item" :class="{ active: activeMenu === 'inicio' }">
-          <VaIcon name="home" size="small" />
+      <!-- Desktop Navigation -->
+      <div class="nav-links desktop-only">
+        <router-link 
+          to="/" 
+          class="nav-link"
+          exact-active-class="active"
+        >
+          <va-icon name="home" size="small" />
           Inicio
-        </a>
-        <a href="#" class="menu-item" :class="{ active: activeMenu === 'profesionales' }">
-          <VaIcon name="business_center" size="small" />
+        </router-link>
+        
+        <router-link 
+          to="/guias/profesionales" 
+          class="nav-link"
+          active-class="active"
+        >
+          <va-icon name="work" size="small" />
           Profesionales
-        </a>
-        <a href="#" class="menu-item" :class="{ active: activeMenu === 'gastronomia' }">
-          <VaIcon name="restaurant" size="small" />
+        </router-link>
+        
+        <router-link 
+          to="/guias/gastronomia" 
+          class="nav-link"
+          active-class="active"
+        >
+          <va-icon name="restaurant" size="small" />
           Gastronomía
-        </a>
-        <a href="#" class="menu-item" :class="{ active: activeMenu === 'trabajos' }">
-          <VaIcon name="work" size="small" />
+        </router-link>
+        
+        <router-link 
+          to="/guias/trabajos" 
+          class="nav-link"
+          active-class="active"
+        >
+          <va-icon name="business_center" size="small" />
           Trabajos
-        </a>
-        <a href="#" class="menu-item" :class="{ active: activeMenu === 'servicios' }">
-          <VaIcon name="build" size="small" />
+        </router-link>
+        
+        <router-link 
+          to="/guias/servicios" 
+          class="nav-link"
+          active-class="active"
+        >
+          <va-icon name="build" size="small" />
           Servicios
-        </a>
+        </router-link>
       </div>
 
-      <!-- Botones de Acción -->
+      <!-- Botón Publicar -->
       <div class="nav-actions">
-        <VaButton 
-          preset="plain" 
-          icon="person" 
-          class="login-btn"
-          @click="handleLogin"
-        >
-          Ingresar
-        </VaButton>
-        <VaButton 
+        <va-button
+          @click="goToPublish"
+          color="yellow-primary"
           class="publish-btn"
-          icon="add_circle"
-          @click="handlePublish"
         >
+          <va-icon name="add_circle" />
           Publicar Gratis
-        </VaButton>
-      </div>
+        </va-button>
 
-      <!-- Toggle Mobile Menu -->
-      <button class="mobile-toggle" @click="mobileMenuOpen = !mobileMenuOpen">
-        <VaIcon :name="mobileMenuOpen ? 'close' : 'menu'" />
-      </button>
+        <!-- Mobile Menu Toggle -->
+        <va-button
+          @click="toggleMobileMenu"
+          icon="menu"
+          color="purple"
+          class="mobile-menu-btn"
+          flat
+        />
+      </div>
     </div>
+
+    <!-- Mobile Menu -->
+    <transition name="slide">
+      <div v-if="mobileMenuOpen" class="mobile-menu">
+        <router-link 
+          to="/" 
+          class="mobile-link"
+          @click="closeMobileMenu"
+          exact-active-class="active"
+        >
+          <va-icon name="home" />
+          Inicio
+        </router-link>
+        
+        <router-link 
+          to="/guias/profesionales" 
+          class="mobile-link"
+          @click="closeMobileMenu"
+          active-class="active"
+        >
+          <va-icon name="work" />
+          Profesionales
+        </router-link>
+        
+        <router-link 
+          to="/guias/gastronomia" 
+          class="mobile-link"
+          @click="closeMobileMenu"
+          active-class="active"
+        >
+          <va-icon name="restaurant" />
+          Gastronomía
+        </router-link>
+        
+        <router-link 
+          to="/guias/trabajos" 
+          class="mobile-link"
+          @click="closeMobileMenu"
+          active-class="active"
+        >
+          <va-icon name="business_center" />
+          Trabajos
+        </router-link>
+        
+        <router-link 
+          to="/guias/servicios" 
+          class="mobile-link"
+          @click="closeMobileMenu"
+          active-class="active"
+        >
+          <va-icon name="build" />
+          Servicios
+        </router-link>
+      </div>
+    </transition>
   </nav>
 </template>
 
-<script>
-/**
- * Navbar Component
- * 
- * Props:
- * - currentLocation: String (ubicación actual del usuario)
- * 
- * Emits:
- * - change-location: cuando se hace clic en el selector de ubicación
- * 
- * State:
- * - isScrolled: detecta si el usuario hizo scroll
- * - mobileMenuOpen: estado del menú móvil
- * - activeMenu: item activo del menú
- */
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-export default {
-  name: 'Navbar',
-  props: {
-    currentLocation: {
-      type: String,
-      default: 'Cochabamba, Bolivia'
-    }
-  },
-  emits: ['change-location'],
-  data() {
-    return {
-      isScrolled: false,
-      mobileMenuOpen: false,
-      activeMenu: 'inicio'
-    }
-  },
-  mounted() {
-    window.addEventListener('scroll', this.handleScroll)
-  },
-  beforeUnmount() {
-    window.removeEventListener('scroll', this.handleScroll)
-  },
-  methods: {
-    handleScroll() {
-      this.isScrolled = window.scrollY > 50
-    },
-    handleLogin() {
-      console.log('Login clicked')
-      // TODO: Conectar con sistema de autenticación Django
-    },
-    handlePublish() {
-      console.log('Publish clicked')
-      // TODO: Redirigir a PublishView.vue
-    }
-  }
+// ==========================================
+// COMPOSABLES
+// ==========================================
+const router = useRouter()
+const mobileMenuOpen = ref(false)
+
+// ==========================================
+// MÉTODOS
+// ==========================================
+const goToPublish = () => {
+  router.push('/publicar')
+  closeMobileMenu()
+}
+
+const toggleMobileMenu = () => {
+  mobileMenuOpen.value = !mobileMenuOpen.value
+}
+
+const closeMobileMenu = () => {
+  mobileMenuOpen.value = false
 }
 </script>
 
 <style scoped>
-/**
- * Estilos del Navbar
- * Usa variables CSS de App.vue
- */
-
-.main-navbar {
-  background: #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+/* ==========================================
+   NAVBAR PRINCIPAL
+   ========================================== */
+.navbar {
+  background-color: var(--color-purple);
+  color: white;
   position: sticky;
   top: 0;
   z-index: 1000;
-  transition: all 0.3s;
-  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.main-navbar.scrolled {
-  box-shadow: 0 4px 20px rgba(26, 11, 61, 0.15);
-}
-
-.navbar-container {
-  max-width: 100%;
-  padding: 1rem 3rem;
+.navbar-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 2rem;
 }
 
-/* Logo */
+/* ==========================================
+   LOGO
+   ========================================== */
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   text-decoration: none;
-  flex-shrink: 0;
-}
-
-.logo-icon {
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, var(--color-purple-dark) 0%, var(--color-purple) 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-}
-
-.logo-text h1 {
-  font-size: 1.4rem;
-  color: var(--color-purple-dark);
-  margin: 0;
+  color: white;
   font-weight: 700;
-  line-height: 1;
+  font-size: 1.25rem;
+  white-space: nowrap;
 }
 
-.logo-text span {
-  font-size: 0.75rem;
-  color: var(--color-purple);
-  display: block;
-  margin-top: 2px;
+.logo-text {
+  color: white;
 }
 
-/* Location Display */
-.location-display {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1.25rem;
-  background: #FEF3C7;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s;
-  flex-shrink: 0;
-}
-
-.location-display:hover {
-  background: #FDE68A;
-  transform: translateY(-2px);
-}
-
-.location-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.location-label {
-  font-size: 0.7rem;
-  color: #92400E;
-  font-weight: 500;
-}
-
-.location-value {
+.logo-country {
+  color: var(--color-yellow-primary);
   font-size: 0.9rem;
-  color: var(--color-gray-900);
-  font-weight: 600;
 }
 
-/* Main Menu */
-.main-menu {
+/* ==========================================
+   NAVEGACIÓN DESKTOP
+   ========================================== */
+.nav-links {
   display: flex;
   gap: 0.5rem;
   flex: 1;
   justify-content: center;
 }
 
-.menu-item {
+.nav-link {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  color: var(--color-gray-600);
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  color: white;
   text-decoration: none;
-  font-weight: 500;
   border-radius: 8px;
-  transition: all 0.3s;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
   white-space: nowrap;
 }
 
-.menu-item:hover,
-.menu-item.active {
-  background: var(--color-gray-100);
-  color: var(--color-purple-dark);
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
 }
 
-/* Action Buttons */
+.nav-link.active {
+  background-color: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
+}
+
+/* ==========================================
+   BOTÓN PUBLICAR
+   ========================================== */
 .nav-actions {
   display: flex;
   gap: 1rem;
   align-items: center;
-  flex-shrink: 0;
-}
-
-.login-btn {
-  color: var(--color-gray-600) !important;
-  font-weight: 500 !important;
 }
 
 .publish-btn {
-  background: linear-gradient(135deg, var(--color-orange-primary) 0%, var(--color-orange-light) 100%) !important;
-  color: #ffffff !important;
-  font-weight: 600 !important;
-  padding: 0.75rem 1.5rem !important;
-  box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);
-  border-radius: 10px !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(253, 197, 0, 0.3);
+  transition: all 0.3s ease;
 }
 
 .publish-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 140, 0, 0.4);
+  box-shadow: 0 6px 16px rgba(253, 197, 0, 0.4);
 }
 
-/* Mobile Toggle */
-.mobile-toggle {
+.mobile-menu-btn {
   display: none;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: var(--color-purple-dark);
-  cursor: pointer;
 }
 
-/* Responsive */
-@media (max-width: 1200px) {
-  .main-menu {
-    display: none;
-  }
+/* ==========================================
+   MENÚ MÓVIL
+   ========================================== */
+.mobile-menu {
+  background-color: var(--color-purple-dark);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
-  .mobile-toggle {
-    display: block;
-  }
+.mobile-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
 
-  .main-menu.mobile-open {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: #ffffff;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
-    gap: 0;
-  }
+.mobile-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
 
-  .menu-item {
-    padding: 1rem;
-    border-radius: 0;
-    border-bottom: 1px solid var(--color-gray-100);
+.mobile-link.active {
+  background-color: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
+}
+
+/* ==========================================
+   TRANSICIONES
+   ========================================== */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 1024px) {
+  .nav-links {
+    gap: 0.25rem;
+  }
+  
+  .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
   }
 }
 
 @media (max-width: 768px) {
-  .navbar-container {
-    padding: 1rem 1.5rem;
-    flex-wrap: wrap;
-  }
-
-  .location-display {
-    order: 3;
-    width: 100%;
-    margin-top: 1rem;
-  }
-
-  .nav-actions {
-    gap: 0.5rem;
-  }
-
-  .login-btn span {
+  .desktop-only {
     display: none;
   }
-
-  .publish-btn {
-    padding: 0.75rem 1rem !important;
-    font-size: 0.9rem !important;
+  
+  .mobile-menu-btn {
+    display: flex;
+  }
+  
+  .publish-btn span {
+    display: none;
   }
 }
 </style>

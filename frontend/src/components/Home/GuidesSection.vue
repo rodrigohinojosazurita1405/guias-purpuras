@@ -1,305 +1,232 @@
+<!-- frontend/src/components/Home/GuidesSection.vue -->
 <template>
-  <!-- 
-    GuidesSection.vue - Grid de las 4 guías principales
-    
-    Propósito: Mostrar las 4 categorías principales con estadísticas
-    Conecta con: HomeView.vue (componente padre)
-    Emite: guide-click (cuando se hace clic en una guía)
-    Datos: Array de guías (mock, después desde Django)
-  -->
   <section class="guides-section">
-    <div class="section-container">
-      <!-- Header de la Sección -->
+    <div class="container">
+      <!-- Encabezado -->
       <div class="section-header">
-        <div class="section-title-block">
-          <h2 class="section-title">Explora Nuestras Guías</h2>
-          <p class="section-subtitle">Encuentra lo que necesitas en las mejores categorías</p>
-        </div>
+        <h2 class="section-title">Explora Nuestras Guías</h2>
+        <p class="section-subtitle">
+          Encuentra lo que necesitas en cuatro categorías principales
+        </p>
       </div>
 
       <!-- Grid de Guías -->
       <div class="guides-grid">
-        <div 
-          v-for="guide in guides" 
+        <div
+          v-for="guide in guides"
           :key="guide.id"
+          @click="goToGuide(guide.route)"
           class="guide-card"
-          @click="handleGuideClick(guide)"
         >
-          <!-- Ícono de la Guía -->
-          <div class="guide-icon" :style="{ background: guide.gradient }">
-            <VaIcon :name="guide.icon" size="60px" color="#ffffff" />
+          <div class="guide-icon-wrapper">
+            <va-icon :name="guide.icon" size="3rem" :color="guide.color" />
+          </div>
+          
+          <h3 class="guide-title">{{ guide.title }}</h3>
+          <p class="guide-description">{{ guide.description }}</p>
+          
+          <div class="guide-stats">
+            <span class="guide-count">{{ guide.count }} anuncios</span>
           </div>
 
-          <!-- Contenido -->
-          <div class="guide-content">
-            <h3>{{ guide.name }}</h3>
-            <p>{{ guide.description }}</p>
-
-            <!-- Estadísticas -->
-            <div class="guide-stats">
-              <span class="stat-badge">
-                <VaIcon name="article" size="small" />
-                {{ guide.count }} anuncios
-              </span>
-              <span class="stat-badge">
-                <VaIcon name="trending_up" size="small" />
-                +{{ guide.growth }}% esta semana
-              </span>
-            </div>
-
-            <!-- Footer con enlace -->
-            <div class="guide-footer">
-              <span class="explore-link">
-                Explorar
-                <VaIcon name="arrow_forward" size="small" />
-              </span>
-            </div>
+          <div class="guide-cta">
+            <span>Ver guía</span>
+            <va-icon name="arrow_forward" size="small" />
           </div>
-
-          <div class="guide-overlay"></div>
         </div>
       </div>
     </div>
   </section>
 </template>
 
-<script>
-/**
- * GuidesSection Component
- * 
- * Props: Ninguno (datos locales por ahora)
- * 
- * Emits:
- * - guide-click: { guide } cuando se hace clic en una guía
- * 
- * State:
- * - guides: array de 4 guías principales
- * 
- * TODO: 
- * - Obtener guías desde Django API /api/guides/
- * - Obtener estadísticas reales (count, growth)
- */
+<script setup>
+import { useRouter } from 'vue-router'
 
-export default {
-  name: 'GuidesSection',
-  emits: ['guide-click'],
-  data() {
-    return {
-      // Guías principales (mock - solo 4 para ejemplo)
-      // TODO: Obtener desde Django /api/guides/
-      guides: [
-        {
-          id: 1,
-          slug: 'profesionales',
-          name: 'Guías Profesionales',
-          description: 'Abogados, Contadores, Arquitectos y más profesionales certificados',
-          icon: 'business_center',
-          gradient: 'linear-gradient(135deg, var(--color-purple-dark) 0%, var(--color-purple) 100%)',
-          count: 1245,  // TODO: Desde Django
-          growth: 12    // TODO: Calcular en Django
-        },
-        {
-          id: 2,
-          slug: 'gastronomicas',
-          name: 'Guías Gastronómicas',
-          description: 'Restaurantes, Cafeterías y lugares para disfrutar',
-          icon: 'restaurant',
-          gradient: 'linear-gradient(135deg, var(--color-orange-primary) 0%, var(--color-orange-light) 100%)',
-          count: 892,
-          growth: 18
-        },
-        {
-          id: 3,
-          slug: 'trabajos',
-          name: 'Guías de Trabajos',
-          description: 'Empleos formales, ofertas laborales y oportunidades',
-          icon: 'work',
-          gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-          count: 678,
-          growth: 25
-        },
-        {
-          id: 4,
-          slug: 'servicios',
-          name: 'Guías de Servicios',
-          description: 'Plomeros, Electricistas, Diseñadores y servicios varios',
-          icon: 'build',
-          gradient: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
-          count: 1523,
-          growth: 15
-        }
-      ]
-    }
+// ==========================================
+// COMPOSABLES
+// ==========================================
+const router = useRouter()
+
+// ==========================================
+// DATA
+// ==========================================
+const guides = [
+  {
+    id: 'profesionales',
+    title: '📋 Guías Profesionales',
+    description: 'Encuentra abogados, doctores, contadores y más profesionales certificados',
+    icon: 'work',
+    color: 'purple',
+    count: '3,245',
+    route: 'guias-profesionales'
   },
-  methods: {
-    handleGuideClick(guide) {
-      // Emitir evento al componente padre
-      this.$emit('guide-click', guide)
-      
-      console.log('Guía seleccionada:', guide.slug)
-      
-      // TODO: Redirigir a /guia/:slug usando Vue Router
-      // this.$router.push(`/guia/${guide.slug}`)
-    }
+  {
+    id: 'gastronomia',
+    title: '🍽️ Guías Gastronómicas',
+    description: 'Descubre los mejores restaurantes, cafeterías y opciones de comida',
+    icon: 'restaurant',
+    color: 'yellow-primary',
+    count: '2,189',
+    route: 'guias-gastronomia'
+  },
+  {
+    id: 'trabajos',
+    title: '💼 Guías de Trabajos',
+    description: 'Encuentra ofertas laborales y oportunidades de empleo en tu ciudad',
+    icon: 'business_center',
+    color: 'purple-dark',
+    count: '4,512',
+    route: 'guias-trabajos'
+  },
+  {
+    id: 'servicios',
+    title: '🛠️ Guías de Servicios',
+    description: 'Plomeros, electricistas, carpinteros y servicios para tu hogar',
+    icon: 'build',
+    color: 'yellow-light',
+    count: '2,510',
+    route: 'guias-servicios'
   }
+]
+
+// ==========================================
+// MÉTODOS
+// ==========================================
+const goToGuide = (routeName) => {
+  router.push({ name: routeName })
 }
 </script>
 
 <style scoped>
-/**
- * Estilos de Guides Section
- * Full width, cards interactivas con hover effects
- */
-
+/* ==========================================
+   SECTION
+   ========================================== */
 .guides-section {
-  width: 100%;
-  padding: 6rem 3rem;
-  background: var(--color-gray-50);
+  padding: 5rem 1rem;
+  background-color: #FAFAFA;
 }
 
-.section-container {
-  max-width: 100%;
+.container {
+  max-width: 1200px;
   margin: 0 auto;
 }
 
+/* ==========================================
+   ENCABEZADO
+   ========================================== */
 .section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  text-align: center;
   margin-bottom: 3rem;
 }
 
-.section-title-block {
-  text-align: center;
-  width: 100%;
-}
-
 .section-title {
-  font-size: 2.75rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  color: var(--color-gray-900);
-  margin-bottom: 0.5rem;
+  color: var(--color-purple-darkest);
+  margin-bottom: 1rem;
 }
 
 .section-subtitle {
-  font-size: 1.2rem;
-  color: var(--color-gray-500);
+  font-size: 1.125rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-/* Guides Grid */
+/* ==========================================
+   GRID DE GUÍAS
+   ========================================== */
 .guides-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
 }
 
 .guide-card {
-  position: relative;
-  background: #ffffff;
-  border-radius: 20px;
-  overflow: hidden;
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  border: 2px solid transparent;
-  min-height: 350px;
+  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  gap: 1rem;
 }
 
 .guide-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(26, 11, 61, 0.2);
-  border-color: var(--color-purple-dark);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(92, 0, 153, 0.15);
 }
 
-.guide-icon {
-  width: 100%;
-  height: 180px;
+/* ==========================================
+   CONTENIDO DE TARJETA
+   ========================================== */
+.guide-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-purple-dark) 100%);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  overflow: hidden;
+  margin-bottom: 0.5rem;
 }
 
-.guide-icon::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.1);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.guide-card:hover .guide-icon::before {
-  opacity: 1;
-}
-
-.guide-content {
-  padding: 2rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.guide-content h3 {
+.guide-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-gray-900);
-  margin-bottom: 0.75rem;
+  color: var(--color-purple-darkest);
+  margin: 0;
 }
 
-.guide-content p {
-  color: var(--color-gray-500);
+.guide-description {
+  color: #666;
   line-height: 1.6;
-  margin-bottom: 1.5rem;
   flex: 1;
+  margin: 0;
 }
 
 .guide-stats {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.stat-badge {
-  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: var(--color-gray-100);
-  border-radius: 8px;
-  font-size: 0.9rem;
-  color: var(--color-gray-600);
-  font-weight: 500;
-}
-
-.guide-footer {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.explore-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--color-purple-dark);
-  font-weight: 600;
-  transition: gap 0.3s;
-}
-
-.guide-card:hover .explore-link {
   gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E0E0E0;
 }
 
-/* Responsive */
+.guide-count {
+  font-weight: 600;
+  color: var(--color-purple);
+  font-size: 0.95rem;
+}
+
+.guide-cta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-yellow-primary);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* ==========================================
+   HOVER EFFECTS
+   ========================================== */
+.guide-card:hover .guide-icon-wrapper {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.guide-card:hover .guide-cta {
+  gap: 0.75rem;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
 @media (max-width: 768px) {
   .guides-section {
-    padding: 4rem 1.5rem;
+    padding: 3rem 1rem;
   }
 
   .section-title {
@@ -308,6 +235,7 @@ export default {
 
   .guides-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 }
 </style>

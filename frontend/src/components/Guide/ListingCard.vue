@@ -1,184 +1,293 @@
+<!-- frontend/src/components/Guide/ListingCard.vue -->
 <template>
-  <!-- 
-    ═══════════════════════════════════════════════════════════
-    ListingCard.vue - Tarjeta de anuncio
-    ═══════════════════════════════════════════════════════════
-    
-    Propósito: Card reutilizable para mostrar un anuncio
-    Props: listing (objeto con datos del anuncio)
-    Emits: click (cuando se hace clic en la card)
-  -->
-  <div class="listing-card" @click="$emit('click', listing)">
+  <div 
+    @click="goToDetail"
+    class="listing-card"
+    :class="{ 'is-featured': listing.featured, 'is-top': listing.top }"
+  >
+    <!-- Badge Premium -->
+    <div v-if="listing.top || listing.featured" class="premium-badge">
+      <va-icon :name="listing.top ? 'stars' : 'star'" size="small" />
+      {{ listing.top ? 'TOP' : 'DESTACADO' }}
+    </div>
+
     <!-- Imagen -->
     <div class="listing-image">
       <img :src="listing.image" :alt="listing.title" />
-      <div class="listing-badges">
-        <VaBadge v-if="listing.plan === 'top'" text="TOP" color="danger" />
-        <VaBadge v-if="listing.verified" text="Verificado" color="success" />
+      
+      <!-- Badge de Categoría -->
+      <div class="category-badge">
+        <va-icon :name="getCategoryIcon(listing.category)" size="small" />
+        {{ listing.category }}
       </div>
     </div>
 
     <!-- Contenido -->
     <div class="listing-content">
-      <div class="listing-category">{{ listing.category }}</div>
+      <!-- Título -->
       <h3 class="listing-title">{{ listing.title }}</h3>
 
-      <!-- Rating -->
-      <div class="listing-rating" v-if="listing.rating">
-        <div class="stars">
-          <VaIcon 
-            v-for="star in 5" 
-            :key="star"
-            :name="star <= listing.rating ? 'star' : 'star_border'"
-            size="small"
-            :color="star <= listing.rating ? 'var(--color-yellow-primary)' : 'var(--color-gray-300)'"
-          />
-        </div>
-        <span>({{ listing.reviews }})</span>
-      </div>
+      <!-- Descripción -->
+      <p class="listing-description">{{ listing.description }}</p>
 
-      <!-- Metadata -->
-      <div class="listing-meta">
-        <div class="meta-item">
-          <VaIcon name="location_on" size="small" />
-          <span>{{ listing.location }}</span>
+      <!-- Info -->
+      <div class="listing-info">
+        <div class="info-item">
+          <va-icon name="location_on" size="small" color="purple" />
+          <span>{{ listing.city }}</span>
         </div>
-        <div class="meta-item">
-          <VaIcon name="schedule" size="small" />
-          <span>{{ listing.timeAgo }}</span>
+
+        <div v-if="listing.phone" class="info-item">
+          <va-icon name="phone" size="small" color="purple" />
+          <span>{{ listing.phone }}</span>
         </div>
       </div>
 
       <!-- Footer -->
       <div class="listing-footer">
-        <span class="views">{{ listing.views }} vistas</span>
-        <VaButton size="small" color="var(--color-purple-dark)" @click.stop>
-          Ver Detalles
-        </VaButton>
+        <div class="listing-meta">
+          <va-icon name="schedule" size="small" />
+          <span>{{ listing.publishedDate }}</span>
+        </div>
+
+        <va-button
+          @click.stop="goToDetail"
+          color="purple"
+          size="small"
+          class="view-btn"
+        >
+          Ver detalles
+          <va-icon name="arrow_forward" size="small" />
+        </va-button>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-/**
- * ListingCard Component
- * 
- * Props:
- * - listing: Object con { id, title, image, category, rating, etc. }
- * 
- * Emits:
- * - click: (listing) cuando se hace clic en la card
- */
+<script setup>
+import { useRouter } from 'vue-router'
 
-export default {
-  name: 'ListingCard',
-  props: {
-    listing: {
-      type: Object,
-      required: true
-    }
-  },
-  emits: ['click']
+// ==========================================
+// PROPS
+// ==========================================
+const props = defineProps({
+  listing: {
+    type: Object,
+    required: true
+  }
+})
+
+// ==========================================
+// COMPOSABLES
+// ==========================================
+const router = useRouter()
+
+// ==========================================
+// MÉTODOS
+// ==========================================
+const goToDetail = () => {
+  router.push({
+    name: 'listing-detail',
+    params: { id: props.listing.id }
+  })
+}
+
+const getCategoryIcon = (category) => {
+  const icons = {
+    'Profesionales': 'work',
+    'Gastronomía': 'restaurant',
+    'Trabajos': 'business_center',
+    'Servicios': 'build'
+  }
+  return icons[category] || 'category'
 }
 </script>
 
 <style scoped>
+/* ==========================================
+   LISTING CARD
+   ========================================== */
 .listing-card {
-  background: #ffffff;
+  background: white;
   border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
   cursor: pointer;
-  transition: all 0.3s;
-  border: 2px solid var(--color-gray-100);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .listing-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  border-color: var(--color-purple-dark);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(92, 0, 153, 0.15);
 }
 
+/* ==========================================
+   PREMIUM STYLES
+   ========================================== */
+.listing-card.is-top {
+  border: 2px solid var(--color-yellow-primary);
+  box-shadow: 0 4px 16px rgba(253, 197, 0, 0.3);
+}
+
+.listing-card.is-featured {
+  border: 2px solid var(--color-purple);
+}
+
+.premium-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: linear-gradient(135deg, var(--color-yellow-primary) 0%, #FFB800 100%);
+  color: var(--color-purple-darkest);
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================
+   IMAGEN
+   ========================================== */
 .listing-image {
-  position: relative;
   width: 100%;
   height: 200px;
   overflow: hidden;
-  background: var(--color-gray-200);
+  position: relative;
+  background-color: #F5F5F5;
 }
 
 .listing-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-.listing-badges {
+.listing-card:hover .listing-image img {
+  transform: scale(1.05);
+}
+
+.category-badge {
   position: absolute;
-  top: 1rem;
-  left: 1rem;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  background: rgba(92, 0, 153, 0.9);
+  backdrop-filter: blur(10px);
+  color: white;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ==========================================
+   CONTENIDO
+   ========================================== */
+.listing-content {
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.listing-content {
-  padding: 1.5rem;
-}
-
-.listing-category {
-  color: var(--color-purple-dark);
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
+  gap: 0.75rem;
+  flex: 1;
 }
 
 .listing-title {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--color-gray-900);
-  margin: 0 0 0.75rem 0;
+  color: var(--color-purple-darkest);
+  margin: 0;
   line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.listing-rating {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+.listing-description {
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
 }
 
-.stars {
-  display: flex;
-  gap: 0.125rem;
-}
-
-.listing-meta {
+/* ==========================================
+   INFO
+   ========================================== */
+.listing-info {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-gray-100);
 }
 
-.meta-item {
+.info-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--color-gray-500);
+  color: #666;
   font-size: 0.9rem;
 }
 
+/* ==========================================
+   FOOTER
+   ========================================== */
 .listing-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid #E0E0E0;
+  margin-top: auto;
 }
 
-.views {
-  color: var(--color-gray-400);
+.listing-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #999;
   font-size: 0.85rem;
+}
+
+.view-btn {
+  font-weight: 600;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 768px) {
+  .listing-image {
+    height: 180px;
+  }
+
+  .listing-title {
+    font-size: 1.1rem;
+  }
+
+  .listing-footer {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .view-btn {
+    width: 100%;
+  }
 }
 </style>

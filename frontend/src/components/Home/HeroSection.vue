@@ -1,103 +1,106 @@
+<!-- frontend/src/components/Home/HeroSection.vue -->
 <template>
-  <!-- 
-    HeroSection.vue - Sección principal con búsqueda
-    
-    Propósito: Hero con título, búsqueda avanzada y estadísticas
-    Conecta con: HomeView.vue (componente padre)
-    Emite: search (cuando el usuario busca)
-    Datos: Guías principales, ciudades, estadísticas
-  -->
   <section class="hero-section">
-    <div class="hero-background"></div>
-    <div class="hero-overlay">
-      <div class="hero-content">
-        <!-- Título Principal -->
-        <h1 class="hero-title animate-fade-in">
-          Encuentra Todo lo que Buscas en Bolivia
-        </h1>
-        <p class="hero-subtitle animate-fade-in-delay">
-          Profesionales, Restaurantes, Trabajos y Servicios en tu ciudad
-        </p>
+    <div class="hero-content">
+      <!-- Título Principal -->
+      <h1 class="hero-title">
+        Encuentra Todo lo que Buscas en
+        <span class="highlight">Bolivia</span>
+      </h1>
+      
+      <p class="hero-subtitle">
+        Profesionales, Restaurantes, Trabajos y Servicios en tu ciudad
+      </p>
 
-        <!-- Búsqueda Avanzada -->
-        <div class="search-container animate-slide-up">
-          <!-- Tabs de Guías -->
-          <div class="search-tabs">
-            <button 
-              v-for="guide in guides" 
-              :key="guide.id"
-              :class="['search-tab', { active: activeGuide === guide.slug }]"
-              @click="activeGuide = guide.slug"
-            >
-              <VaIcon :name="guide.icon" size="small" />
-              <span>{{ guide.name }}</span>
-            </button>
-          </div>
+      <!-- Tabs de Categorías -->
+      <div class="category-tabs">
+        <button
+          v-for="cat in categories"
+          :key="cat.id"
+          @click="selectedCategory = cat.id"
+          :class="['category-tab', { active: selectedCategory === cat.id }]"
+        >
+          <va-icon :name="cat.icon" size="small" />
+          {{ cat.label }}
+        </button>
+      </div>
 
-          <!-- Formulario de Búsqueda -->
-          <div class="search-form">
-            <div class="search-field search-main">
-              <VaIcon name="search" size="large" color="var(--color-purple-dark)" />
-              <input 
-                type="text" 
-                :placeholder="getSearchPlaceholder()"
-                v-model="searchQuery"
-                @keyup.enter="handleSearch"
-              />
-            </div>
-
-            <div class="search-field search-location">
-              <VaIcon name="location_on" size="large" color="var(--color-orange-primary)" />
-              <select v-model="selectedCity">
-                <option value="">Todas las Ciudades</option>
-                <option v-for="city in cities" :key="city" :value="city">
-                  {{ city }}
-                </option>
-              </select>
-            </div>
-
-            <VaButton class="search-button" size="large" @click="handleSearch">
-              <VaIcon name="search" />
-              Buscar
-            </VaButton>
-          </div>
-
-          <!-- Filtros Rápidos -->
-          <div class="quick-filters">
-            <span class="filter-label">Búsquedas populares:</span>
-            <button 
-              v-for="filter in quickFilters" 
-              :key="filter"
-              class="quick-filter-btn"
-              @click="quickSearch(filter)"
-            >
-              {{ filter }}
-            </button>
-          </div>
+      <!-- Barra de Búsqueda -->
+      <div class="search-bar">
+        <div class="search-input-wrapper">
+          <va-icon name="search" class="search-icon" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="getPlaceholder()"
+            class="search-input"
+            @keyup.enter="handleSearch"
+          />
         </div>
 
-        <!-- Estadísticas -->
-        <div class="stats-row">
-          <div class="stat-item">
-            <VaIcon name="article" size="large" />
-            <div class="stat-content">
-              <h3>{{ stats.listings.toLocaleString() }}+</h3>
-              <p>Anuncios Activos</p>
-            </div>
+        <div class="location-wrapper">
+          <va-icon name="location_on" class="location-icon" />
+          <select v-model="selectedCity" class="location-select">
+            <option value="">Toda Bolivia</option>
+            <option value="oruro">Oruro</option>
+            <option value="la-paz">La Paz</option>
+            <option value="cochabamba">Cochabamba</option>
+            <option value="santa-cruz">Santa Cruz</option>
+            <option value="potosi">Potosí</option>
+            <option value="tarija">Tarija</option>
+            <option value="chuquisaca">Chuquisaca</option>
+            <option value="beni">Beni</option>
+            <option value="pando">Pando</option>
+          </select>
+        </div>
+
+        <va-button
+          @click="handleSearch"
+          color="yellow-primary"
+          size="large"
+          class="search-button"
+        >
+          <va-icon name="search" />
+          Buscar
+        </va-button>
+      </div>
+
+      <!-- Búsquedas Populares -->
+      <div class="popular-searches">
+        <span class="popular-label">Búsquedas populares:</span>
+        <button
+          v-for="search in popularSearches"
+          :key="search"
+          @click="quickSearch(search)"
+          class="popular-tag"
+        >
+          {{ search }}
+        </button>
+      </div>
+
+      <!-- Estadísticas -->
+      <div class="hero-stats">
+        <div class="stat-item">
+          <va-icon name="description" size="large" color="yellow-primary" />
+          <div class="stat-content">
+            <span class="stat-number">12.456+</span>
+            <span class="stat-label">Anuncios Activos</span>
           </div>
-          <div class="stat-item">
-            <VaIcon name="people" size="large" />
-            <div class="stat-content">
-              <h3>{{ stats.users.toLocaleString() }}+</h3>
-              <p>Usuarios</p>
-            </div>
+        </div>
+        
+        <div class="stat-item">
+          <va-icon name="people" size="large" color="yellow-primary" />
+          <div class="stat-content">
+            <span class="stat-number">45.678+</span>
+            <span class="stat-label">Usuarios</span>
           </div>
-          <div class="stat-item">
-            <VaIcon name="verified" size="large" />
-            <div class="stat-content">
-              <h3>{{ stats.verified.toLocaleString() }}+</h3>
-              <p>Verificados</p>
-            </div>
+        </div>
+        
+        <div class="stat-item">
+          <va-icon name="verified" size="large" color="yellow-primary" />
+          <div class="stat-content">
+            <span class="stat-number">3.421+</span>
+            <span class="stat-label">Verificados</span>
           </div>
         </div>
       </div>
@@ -105,360 +108,334 @@
   </section>
 </template>
 
-<script>
-/**
- * HeroSection Component
- * 
- * Props: Ninguno (datos locales por ahora)
- * 
- * Emits:
- * - search: { query, city, guide } cuando el usuario busca
- * 
- * State:
- * - activeGuide: guía seleccionada en los tabs
- * - searchQuery: texto de búsqueda
- * - selectedCity: ciudad seleccionada
- * 
- * TODO: 
- * - Conectar con API Django /api/search/
- * - Obtener estadísticas desde /api/stats/
- */
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-export default {
-  name: 'HeroSection',
-  emits: ['search'],
-  data() {
-    return {
-      activeGuide: 'profesionales',
-      searchQuery: '',
-      selectedCity: '',
-      
-      // Guías principales (mock)
-      // TODO: Obtener desde Django API /api/guides/
-      guides: [
-        { id: 1, slug: 'profesionales', name: 'Profesionales', icon: 'business_center' },
-        { id: 2, slug: 'gastronomicas', name: 'Gastronomía', icon: 'restaurant' },
-        { id: 3, slug: 'trabajos', name: 'Trabajos', icon: 'work' },
-        { id: 4, slug: 'servicios', name: 'Servicios', icon: 'build' }
-      ],
-      
-      // Ciudades de Bolivia
-      cities: [
-        'La Paz', 'Cochabamba', 'Santa Cruz', 'Sucre',
-        'Oruro', 'Potosí', 'Tarija', 'Beni', 'Pando'
-      ],
-      
-      // Filtros rápidos
-      quickFilters: ['Abogados', 'Restaurantes', 'Desarrollador', 'Plomero'],
-      
-      // Estadísticas (mock)
-      // TODO: Obtener desde Django API /api/stats/
-      stats: {
-        listings: 12456,
-        users: 45678,
-        verified: 3421
-      }
-    }
-  },
-  methods: {
-    getSearchPlaceholder() {
-      const placeholders = {
-        profesionales: '¿Qué profesional buscas? (ej: Abogado, Contador...)',
-        gastronomicas: '¿Qué tipo de comida buscas? (ej: Pizzería, Sushi...)',
-        trabajos: '¿Qué trabajo buscas? (ej: Desarrollador, Vendedor...)',
-        servicios: '¿Qué servicio necesitas? (ej: Plomero, Electricista...)'
-      }
-      return placeholders[this.activeGuide] || '¿Qué estás buscando?'
-    },
-    
-    handleSearch() {
-      // Emitir evento de búsqueda al componente padre
-      this.$emit('search', {
-        query: this.searchQuery,
-        city: this.selectedCity,
-        guide: this.activeGuide
-      })
-      
-      console.log('Búsqueda:', {
-        query: this.searchQuery,
-        city: this.selectedCity,
-        guide: this.activeGuide
-      })
-      
-      // TODO: Redirigir a /guia/:slug con parámetros de búsqueda
-    },
-    
-    quickSearch(filter) {
-      this.searchQuery = filter
-      this.handleSearch()
-    }
+// ==========================================
+// COMPOSABLES
+// ==========================================
+const router = useRouter()
+
+// ==========================================
+// STATE
+// ==========================================
+const selectedCategory = ref('profesionales')
+const searchQuery = ref('')
+const selectedCity = ref('')
+
+const categories = [
+  { id: 'profesionales', label: 'Profesionales', icon: 'work' },
+  { id: 'gastronomia', label: 'Gastronomía', icon: 'restaurant' },
+  { id: 'trabajos', label: 'Trabajos', icon: 'business_center' },
+  { id: 'servicios', label: 'Servicios', icon: 'build' }
+]
+
+const popularSearches = ['Abogados', 'Restaurantes', 'Plomero', 'Desarrollador']
+
+// ==========================================
+// MÉTODOS
+// ==========================================
+const getPlaceholder = () => {
+  const placeholders = {
+    profesionales: 'Busca abogados, doctores, contadores...',
+    gastronomia: 'Busca restaurantes, cafeterías, comida rápida...',
+    trabajos: 'Busca empleos, ofertas laborales...',
+    servicios: 'Busca plomeros, electricistas, carpinteros...'
   }
+  return placeholders[selectedCategory.value]
+}
+
+const handleSearch = () => {
+  // Construir query params
+  const params = {
+    q: searchQuery.value,
+    ciudad: selectedCity.value
+  }
+  
+  // Navegar a la vista de guías con filtros
+  router.push({
+    name: `guias-${selectedCategory.value}`,
+    query: params
+  })
+}
+
+const quickSearch = (term) => {
+  searchQuery.value = term
+  handleSearch()
 }
 </script>
 
 <style scoped>
-/**
- * Estilos del Hero Section
- * Full width, imagen de fondo, overlay púrpura
- */
-
-.hero-section {
-  background: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920') center/cover;
-  min-height: 700px;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-}
-
-.hero-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-}
-
-.hero-overlay {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  background: linear-gradient(135deg, rgba(26, 11, 61, 0.95) 0%, rgba(107, 70, 193, 0.90) 100%);
-  padding: 5rem 0;
-}
-
-.hero-content {
-  max-width: 100%;
-  padding: 0 3rem;
-  margin: 0 auto;
-}
-
-.hero-title {
-  font-size: 4rem;
-  font-weight: 800;
-  color: #ffffff;
-  text-align: center;
-  margin-bottom: 1.5rem;
-  line-height: 1.2;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.hero-subtitle {
-  font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.95);
-  text-align: center;
-  margin-bottom: 3rem;
-  font-weight: 300;
-}
-
-/* Search Container */
-.search-container {
-  max-width: 1200px;
-  margin: 0 auto 3rem;
-}
-
-.search-tabs {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.search-tab {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.search-tab:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.search-tab.active {
-  background: #ffffff;
-  color: var(--color-purple-dark);
-  border-color: #ffffff;
-  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
-}
-
-.search-form {
+   ESTADÍSTICAS
+   ========================================== */
+.hero-stats {
   display: grid;
-  grid-template-columns: 2fr 1.2fr auto;
-  gap: 1rem;
-  background: #ffffff;
-  padding: 1.5rem;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-}
-
-.search-field {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  background: var(--color-gray-50);
-  border-radius: 12px;
-  border: 2px solid transparent;
-  transition: all 0.3s;
-}
-
-.search-field:focus-within {
-  background: #ffffff;
-  border-color: var(--color-purple-dark);
-  box-shadow: 0 0 0 4px rgba(107, 70, 193, 0.1);
-}
-
-.search-field input,
-.search-field select {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 1rem;
-  outline: none;
-  color: var(--color-gray-900);
-  font-weight: 500;
-}
-
-.search-field input::placeholder {
-  color: var(--color-gray-400);
-}
-
-.search-field select {
-  cursor: pointer;
-}
-
-.search-button {
-  background: linear-gradient(135deg, var(--color-orange-primary) 0%, var(--color-orange-light) 100%) !important;
-  padding: 1rem 2.5rem !important;
-  font-size: 1.1rem !important;
-  font-weight: 600 !important;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 20px rgba(255, 140, 0, 0.4);
-  white-space: nowrap;
-}
-
-.search-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(255, 140, 0, 0.5);
-}
-
-/* Quick Filters */
-.quick-filters {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.filter-label {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-}
-
-.quick-filter-btn {
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 20px;
-  color: #ffffff;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-size: 0.9rem;
-}
-
-.quick-filter-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
-}
-
-/* Stats Row */
-.stats-row {
-  display: flex;
-  justify-content: center;
-  gap: 4rem;
-  flex-wrap: wrap;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 3rem;
 }
 
 .stat-item {
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: #ffffff;
+  padding: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
 }
 
-.stat-item .va-icon {
-  width: 60px;
-  height: 60px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 50%;
+.stat-content {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
 }
 
-.stat-content h3 {
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0;
-  line-height: 1;
+.stat-number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-yellow-primary);
 }
 
-.stat-content p {
+.stat-label {
   font-size: 0.9rem;
-  opacity: 0.9;
-  margin: 0.25rem 0 0 0;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-/* Responsive */
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
 @media (max-width: 768px) {
+  .hero-section {
+    padding: 3rem 1rem;
+    min-height: auto;
+  }
+
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
   }
 
   .hero-subtitle {
-    font-size: 1.1rem;
+    font-size: 1rem;
+    margin-bottom: 2rem;
   }
 
-  .search-tabs {
+  .category-tabs {
+    gap: 0.5rem;
+  }
+
+  .category-tab {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .search-bar {
     flex-direction: column;
+    gap: 0.75rem;
   }
 
-  .search-tab {
-    width: 100%;
-    justify-content: center;
+  .location-wrapper {
+    border-left: none;
+    border-top: 2px solid #E0E0E0;
+    padding-top: 0.75rem;
   }
 
-  .search-form {
+  .hero-stats {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
-  .stats-row {
-    gap: 2rem;
-  }
-
-  .stat-item {
+  .popular-searches {
     flex-direction: column;
-    text-align: center;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.5rem;
   }
 
-  .hero-content {
-    padding: 0 1.5rem;
+  .search-button {
+    width: 100%;
   }
 }
 </style>
+   HERO SECTION
+   ========================================== */
+.hero-section {
+  background: linear-gradient(135deg, var(--color-purple-darkest) 0%, var(--color-purple) 100%);
+  padding: 4rem 1rem;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+}
+
+.hero-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ==========================================
+   TÍTULOS
+   ========================================== */
+.hero-title {
+  font-size: 3rem;
+  font-weight: 800;
+  color: white;
+  text-align: center;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.hero-title .highlight {
+  color: var(--color-yellow-primary);
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+/* ==========================================
+   TABS DE CATEGORÍAS
+   ========================================== */
+.category-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.category-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 2px solid transparent;
+  border-radius: 50px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.category-tab:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.category-tab.active {
+  background-color: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
+  border-color: var(--color-yellow-primary);
+}
+
+/* ==========================================
+   BARRA DE BÚSQUEDA
+   ========================================== */
+.search-bar {
+  display: flex;
+  gap: 1rem;
+  background-color: white;
+  padding: 0.75rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  margin-bottom: 2rem;
+}
+
+.search-input-wrapper {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1rem;
+}
+
+.search-icon {
+  color: var(--color-purple);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  color: #333;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.location-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  border-left: 2px solid #E0E0E0;
+}
+
+.location-icon {
+  color: var(--color-yellow-primary);
+}
+
+.location-select {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  color: #333;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.search-button {
+  border-radius: 12px;
+  font-weight: 600;
+  padding: 0 2rem;
+}
+
+/* ==========================================
+   BÚSQUEDAS POPULARES
+   ========================================== */
+.popular-searches {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 3rem;
+}
+
+.popular-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.popular-tag {
+  padding: 0.5rem 1rem;
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.popular-tag:hover {
+  background-color: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
+  border-color: var(--color-yellow-primary);
+  transform: translateY(-2px);
+}
+
+/* ==========================================

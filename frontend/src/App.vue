@@ -1,136 +1,103 @@
+<!-- frontend/src/App.vue -->
 <template>
-  <HomeView />
+  <div id="app">
+    <router-view />
+  </div>
 </template>
 
-<script>
-/**
- * App.vue - Componente raíz de la aplicación
- * 
- * Propósito: Punto de entrada principal de Vue
- * Conecta con: HomeView.vue
- * Responsabilidad: Solo renderizar la vista principal
- */
-
-import HomeView from './views/HomeView.vue'
-
-export default {
-  name: 'App',
-  components: {
-    HomeView
-  }
-}
+<script setup>
+// No hay lógica aquí, solo renderizamos las rutas
 </script>
 
 <style>
-/**
- * Estilos Globales
- * Se aplican a toda la aplicación
- */
+/* ==========================================
+   VARIABLES GLOBALES CSS
+   ========================================== */
+:root {
+  /* Púrpuras */
+  --color-purple-darkest: #3D0066;
+  --color-purple-dark: #510087;
+  --color-purple: #5C0099;
+  
+  /* Amarillos */
+  --color-yellow-primary: #FDC500;
+  --color-yellow-light: #FFD500;
+  
+  /* Grises */
+  --color-gray-light: #F5F5F5;
+  --color-gray-medium: #E0E0E0;
+  --color-gray-dark: #666666;
+  
+  /* Fuentes */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
 
-/* Reset Global */
+/* ==========================================
+   RESET Y ESTILOS BASE
+   ========================================== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html, body {
-  margin: 0 !important;
-  padding: 0 !important;
-  width: 100%;
-  overflow-x: hidden;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+body {
+  font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #FFFFFF;
+  color: #333333;
 }
 
 #app {
-  margin: 0;
-  padding: 0;
-  width: 100%;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Variables CSS para la nueva paleta de colores */
-:root {
-  /* Púrpuras - Paleta Principal */
-  --color-purple-darkest: #3D0066;
-  --color-purple-dark: #510087;
-  --color-purple: #5C0099;
-  
-  /* Amarillos - Acentos */
-  --color-yellow-primary: #FDC500;
-  --color-yellow-light: #FFD500;
-  
-  /* Para mantener compatibilidad con código existente */
-  --color-orange-primary: #FDC500;  /* Mapea al amarillo */
-  --color-orange-light: #FFD500;     /* Mapea al amarillo claro */
-  
-  /* Grises */
-  --color-gray-50: #F9FAFB;
-  --color-gray-100: #F3F4F6;
-  --color-gray-200: #E5E7EB;
-  --color-gray-300: #D1D5DB;
-  --color-gray-400: #9CA3AF;
-  --color-gray-500: #6B7280;
-  --color-gray-600: #4B5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1F2937;
-  --color-gray-900: #111827;
-  
-  /* Estados */
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
-  --color-info: #3B82F6;
-}
-/* Scrollbar personalizada */
-::-webkit-scrollbar {
-  width: 10px;
+/* ==========================================
+   UTILIDADES GLOBALES
+   ========================================== */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--color-gray-100);
+.container-wide {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--color-purple);
-  border-radius: 5px;
+.text-purple {
+  color: var(--color-purple);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-purple-light);
+.text-yellow {
+  color: var(--color-yellow-primary);
 }
 
-/* Animaciones globales */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.bg-purple {
+  background-color: var(--color-purple);
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.bg-yellow {
+  background-color: var(--color-yellow-primary);
 }
 
-/* Clases de utilidad globales */
-.animate-fade-in {
-  animation: fadeIn 0.8s ease-out;
+/* ==========================================
+   TRANSICIONES DE RUTA
+   ========================================== */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
 }
 
-.animate-slide-up {
-  animation: slideUp 0.8s ease-out;
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
