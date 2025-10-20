@@ -112,14 +112,8 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-// ==========================================
-// COMPOSABLES
-// ==========================================
 const router = useRouter()
 
-// ==========================================
-// STATE
-// ==========================================
 const selectedCategory = ref('profesionales')
 const searchQuery = ref('')
 const selectedCity = ref('')
@@ -133,9 +127,6 @@ const categories = [
 
 const popularSearches = ['Abogados', 'Restaurantes', 'Plomero', 'Desarrollador']
 
-// ==========================================
-// MÉTODOS
-// ==========================================
 const getPlaceholder = () => {
   const placeholders = {
     profesionales: 'Busca abogados, doctores, contadores...',
@@ -147,13 +138,11 @@ const getPlaceholder = () => {
 }
 
 const handleSearch = () => {
-  // Construir query params
   const params = {
     q: searchQuery.value,
     ciudad: selectedCity.value
   }
   
-  // Navegar a la vista de guías con filtros
   router.push({
     name: `guias-${selectedCategory.value}`,
     query: params
@@ -167,102 +156,6 @@ const quickSearch = (term) => {
 </script>
 
 <style scoped>
-   ESTADÍSTICAS
-   ========================================== */
-.hero-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  margin-top: 3rem;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-.stat-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-number {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-yellow-primary);
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-/* ==========================================
-   RESPONSIVE
-   ========================================== */
-@media (max-width: 768px) {
-  .hero-section {
-    padding: 3rem 1rem;
-    min-height: auto;
-  }
-
-  .hero-title {
-    font-size: 2rem;
-  }
-
-  .hero-subtitle {
-    font-size: 1rem;
-    margin-bottom: 2rem;
-  }
-
-  .category-tabs {
-    gap: 0.5rem;
-  }
-
-  .category-tab {
-    padding: 0.6rem 1rem;
-    font-size: 0.9rem;
-  }
-
-  .search-bar {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .location-wrapper {
-    border-left: none;
-    border-top: 2px solid #E0E0E0;
-    padding-top: 0.75rem;
-  }
-
-  .hero-stats {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .popular-searches {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-title {
-    font-size: 1.5rem;
-  }
-
-  .search-button {
-    width: 100%;
-  }
-}
-</style>
-   HERO SECTION
-   ========================================== */
 .hero-section {
   background: linear-gradient(135deg, var(--color-purple-darkest) 0%, var(--color-purple) 100%);
   padding: 4rem 1rem;
@@ -277,9 +170,6 @@ const quickSearch = (term) => {
   width: 100%;
 }
 
-/* ==========================================
-   TÍTULOS
-   ========================================== */
 .hero-title {
   font-size: 3rem;
   font-weight: 800;
@@ -300,9 +190,6 @@ const quickSearch = (term) => {
   margin-bottom: 3rem;
 }
 
-/* ==========================================
-   TABS DE CATEGORÍAS
-   ========================================== */
 .category-tabs {
   display: flex;
   justify-content: center;
@@ -337,9 +224,6 @@ const quickSearch = (term) => {
   border-color: var(--color-yellow-primary);
 }
 
-/* ==========================================
-   BARRA DE BÚSQUEDA
-   ========================================== */
 .search-bar {
   display: flex;
   gap: 1rem;
@@ -403,9 +287,6 @@ const quickSearch = (term) => {
   padding: 0 2rem;
 }
 
-/* ==========================================
-   BÚSQUEDAS POPULARES
-   ========================================== */
 .popular-searches {
   display: flex;
   justify-content: center;
@@ -438,4 +319,92 @@ const quickSearch = (term) => {
   transform: translateY(-2px);
 }
 
-/* ==========================================
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-yellow-primary);
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 3rem 1rem;
+    min-height: auto;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .category-tabs {
+    gap: 0.5rem;
+  }
+
+  .category-tab {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .search-bar {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .location-wrapper {
+    border-left: none;
+    border-top: 2px solid #E0E0E0;
+    padding-top: 0.75rem;
+  }
+
+  .hero-stats {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .popular-searches {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.5rem;
+  }
+
+  .search-button {
+    width: 100%;
+  }
+}
+</style>
