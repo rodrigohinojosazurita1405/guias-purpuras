@@ -111,12 +111,13 @@ export default {
 .cta-buttons {
   display: flex;
   gap: 1rem;
+  color: var(--color-yellow-primary) !important;
   flex-wrap: wrap;
 }
 
 .cta-primary {
   background: #ffffff !important;
-  color: var(--color-purple-dark) !important;
+  color: var(--color-yellow-primary) !important;
   font-weight: 700 !important;
   padding: 1rem 2rem !important;
   box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);

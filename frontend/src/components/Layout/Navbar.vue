@@ -4,7 +4,7 @@
     <div class="navbar-content">
       <!-- Logo -->
       <router-link to="/" class="logo">
-        <va-icon name="book" color="yellow-primary" size="large" />
+        <img src="/src/assets/guiaspurpuras.ico" alt="Logo Guías Púrpuras" class="logo-image" />
         <span class="logo-text">Guías Púrpuras</span>
         <span class="logo-country">Bolivia</span>
       </router-link>
@@ -200,6 +200,10 @@ const closeMobileMenu = () => {
   white-space: nowrap;
 }
 
+.logo-image {
+  height: 32px; /* Ajusta este valor al tamaño que desees para el icono */
+  width: auto;
+}
 .logo-text {
   color: white;
 }
