@@ -20,7 +20,7 @@
   --color-purple: #5C0099;
   
   /* Amarillos */
-  --color-yellow-primary: #FDC500;
+  --color-yellow-primary: rgb(253, 197, 0);
   --color-yellow-light: #FFD500;
   
   /* Grises */
