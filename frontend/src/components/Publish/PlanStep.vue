@@ -1,23 +1,6 @@
 <!-- frontend/src/components/Publish/PlanStep.vue -->
 <template>
   <div class="plan-step">
-    <!-- 
-      ==========================================
-      PASO 4: SELECCIÓN DE PLAN
-      ==========================================
-      Permite elegir entre:
-        - Plan Gratis (Bs. 0 - 7 días)
-        - Plan Destacado (Bs. 25 - 30 días)
-        - Plan TOP (Bs. 60 - 60 días)
-      
-      TODO Django:
-        - POST /api/payments/create-order/ - Crear orden de pago
-        - Integrar con pasarela (QR, Pagosnet, etc.)
-        - Webhook para confirmar pago
-        - Activar anuncio después del pago
-        - Enviar email de confirmación
-    -->
-
     <h2 class="step-title">
       <va-icon name="workspace_premium" color="purple" size="large" />
       Elige tu Plan
@@ -27,9 +10,7 @@
       Selecciona el plan que mejor se adapte a tus necesidades
     </p>
 
-    <!-- ==========================================
-         GRID DE PLANES
-         ========================================== -->
+    <!-- Grid de Planes -->
     <div class="plans-grid">
       <!-- Plan Gratis -->
       <div 
@@ -183,9 +164,7 @@
       </div>
     </div>
 
-    <!-- ==========================================
-         COMPARACIÓN DE PLANES
-         ========================================== -->
+    <!-- Comparación de Planes -->
     <div class="comparison-section">
       <h3 class="comparison-title">
         <va-icon name="compare_arrows" />
@@ -237,9 +216,7 @@
       </div>
     </div>
 
-    <!-- ==========================================
-         INFORMACIÓN DE PAGO
-         ========================================== -->
+    <!-- Información de Pago -->
     <div v-if="selectedPlan !== 'free'" class="payment-info">
       <va-icon name="info" color="info" size="large" />
       <div class="payment-info-content">
@@ -264,9 +241,7 @@
       </div>
     </div>
 
-    <!-- ==========================================
-         MENSAJE DE CONFIRMACIÓN
-         ========================================== -->
+    <!-- Mensaje de advertencia -->
     <div v-if="!selectedPlan" class="warning-message">
       <va-icon name="info" color="warning" />
       <span>Selecciona un plan para continuar</span>
@@ -277,9 +252,6 @@
 <script setup>
 import { ref, watch } from 'vue'
 
-// ==========================================
-// PROPS
-// ==========================================
 const props = defineProps({
   modelValue: {
     type: String,
@@ -287,19 +259,10 @@ const props = defineProps({
   }
 })
 
-// ==========================================
-// EMITS
-// ==========================================
 const emit = defineEmits(['update:modelValue'])
 
-// ==========================================
-// STATE
-// ==========================================
 const selectedPlan = ref(props.modelValue)
 
-// ==========================================
-// MÉTODOS
-// ==========================================
 const selectPlan = (plan) => {
   selectedPlan.value = plan
   emit('update:modelValue', plan)
@@ -312,32 +275,20 @@ const validate = () => {
   return true
 }
 
-// ==========================================
-// WATCHERS
-// ==========================================
 watch(() => props.modelValue, (newValue) => {
   selectedPlan.value = newValue
 })
 
-// ==========================================
-// EXPOSE
-// ==========================================
 defineExpose({
   validate
 })
 </script>
 
 <style scoped>
-/* ==========================================
-   CONTENEDOR PRINCIPAL
-   ========================================== */
 .plan-step {
   padding: 1rem 0;
 }
 
-/* ==========================================
-   TÍTULO Y DESCRIPCIÓN
-   ========================================== */
 .step-title {
   display: flex;
   align-items: center;
@@ -355,9 +306,6 @@ defineExpose({
   line-height: 1.5;
 }
 
-/* ==========================================
-   GRID DE PLANES
-   ========================================== */
 .plans-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -365,9 +313,6 @@ defineExpose({
   margin-bottom: 3rem;
 }
 
-/* ==========================================
-   TARJETA DE PLAN
-   ========================================== */
 .plan-card {
   background: white;
   border: 3px solid #E0E0E0;
@@ -409,9 +354,6 @@ defineExpose({
   box-shadow: 0 12px 32px rgba(253, 197, 0, 0.4);
 }
 
-/* ==========================================
-   BADGE DEL PLAN
-   ========================================== */
 .plan-badge {
   position: absolute;
   top: -12px;
@@ -432,9 +374,6 @@ defineExpose({
   color: var(--color-purple-darkest);
 }
 
-/* ==========================================
-   HEADER DEL PLAN
-   ========================================== */
 .plan-header {
   display: flex;
   flex-direction: column;
@@ -478,9 +417,6 @@ defineExpose({
   font-weight: 500;
 }
 
-/* ==========================================
-   CARACTERÍSTICAS
-   ========================================== */
 .plan-features {
   display: flex;
   flex-direction: column;
@@ -506,9 +442,6 @@ defineExpose({
   color: var(--color-purple-dark);
 }
 
-/* ==========================================
-   BOTÓN DEL PLAN
-   ========================================== */
 .plan-button {
   width: 100%;
   padding: 1rem;
@@ -558,9 +491,6 @@ defineExpose({
   color: var(--color-purple-darkest);
 }
 
-/* ==========================================
-   SECCIÓN DE COMPARACIÓN
-   ========================================== */
 .comparison-section {
   background: #F8F9FA;
   border-radius: 12px;
@@ -623,9 +553,6 @@ defineExpose({
   font-weight: 700;
 }
 
-/* ==========================================
-   INFORMACIÓN DE PAGO
-   ========================================== */
 .payment-info {
   display: flex;
   gap: 1rem;
@@ -670,9 +597,6 @@ defineExpose({
   font-size: 0.9rem;
 }
 
-/* ==========================================
-   MENSAJE DE ADVERTENCIA
-   ========================================== */
 .warning-message {
   display: flex;
   align-items: center;
@@ -685,9 +609,6 @@ defineExpose({
   font-weight: 600;
 }
 
-/* ==========================================
-   RESPONSIVE
-   ========================================== */
 @media (max-width: 1024px) {
   .plans-grid {
     grid-template-columns: 1fr;
@@ -726,12 +647,6 @@ defineExpose({
 
   .comparison-row.header {
     display: none;
-  }
-
-  .comparison-row::before {
-    content: attr(data-label);
-    font-weight: 700;
-    color: var(--color-purple);
   }
 }
 </style>

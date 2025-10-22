@@ -88,12 +88,14 @@
         <div class="listing-info">
           <div class="info-item">
             <va-icon name="location_on" size="small" color="purple" />
-            <span>{{ formData.city || 'Ciudad' }}, {{ formData.department || 'Departamento' }}</span>
+            <span>{{ formData.address || 'Dirección' }}, {{ getCityName(formData.city) }}</span>
           </div>
 
-          <div v-if="formData.phone" class="info-item">
-            <va-icon name="phone" size="small" color="purple" />
-            <span>{{ formData.phone }}</span>
+          <div v-if="formData.whatsapp" class="info-item whatsapp-item">
+            <va-icon name="whatsapp" size="small" style="color: #25D366;" />
+            <a :href="getWhatsAppLink(formData.whatsapp)" target="_blank" class="whatsapp-link">
+              {{ formData.whatsapp }}
+            </a>
           </div>
 
           <div v-if="formData.email" class="info-item">
@@ -159,7 +161,7 @@
           </div>
           <div class="detail-item">
             <span class="detail-key">Ubicación:</span>
-            <span class="detail-value">{{ formData.city }}, {{ getDepartmentName(formData.department) }}</span>
+            <span class="detail-value">{{ formData.address }}, {{ getCityName(formData.city) }}</span>
           </div>
         </div>
       </div>
@@ -192,8 +194,12 @@
             <span class="detail-value price-highlight">Bs. {{ formatPrice(formData.price) }}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-key">Teléfono:</span>
-            <span class="detail-value">{{ formData.phone || '-' }}</span>
+            <span class="detail-key">WhatsApp:</span>
+            <span class="detail-value whatsapp-detail">
+              <a :href="getWhatsAppLink(formData.whatsapp)" target="_blank" class="whatsapp-link">
+                {{ formData.whatsapp || '-' }}
+              </a>
+            </span>
           </div>
         </div>
       </div>
@@ -353,6 +359,11 @@ const planPrice = computed(() => {
 })
 
 const planDuration = computed(() => {
+  // CAMBIO: Si es Profesionales y plan gratis, es permanente
+  if (props.formData.category === 'profesionales' && props.formData.plan === 'free') {
+    return '♾️ Permanente'
+  }
+  
   const durations = {
     free: '7 días',
     featured: '30 días',
@@ -450,19 +461,33 @@ const getCategoryName = (id) => {
   return names[id] || '-'
 }
 
-const getDepartmentName = (id) => {
+// CAMBIO: Renombrado de getDepartmentName a getCityName
+const getCityName = (id) => {
   const names = {
     'la-paz': 'La Paz',
+    'el-alto': 'El Alto',
     'cochabamba': 'Cochabamba',
     'santa-cruz': 'Santa Cruz',
     'oruro': 'Oruro',
     'potosi': 'Potosí',
     'tarija': 'Tarija',
-    'chuquisaca': 'Chuquisaca',
-    'beni': 'Beni',
-    'pando': 'Pando'
+    'sucre': 'Sucre',
+    'trinidad': 'Trinidad',
+    'cobija': 'Cobija',
+    'quillacollo': 'Quillacollo',
+    'sacaba': 'Sacaba',
+    'montero': 'Montero',
+    'warnes': 'Warnes'
   }
-  return names[id] || '-'
+  return names[id] || id || '-'
+}
+
+// NUEVO: Generar link de WhatsApp
+const getWhatsAppLink = (whatsapp) => {
+  if (!whatsapp) return '#'
+  // Remover el + y espacios para el link
+  const cleanNumber = whatsapp.replace(/\+/g, '').replace(/\s/g, '')
+  return `https://wa.me/${cleanNumber}`
 }
 </script>
 
@@ -653,6 +678,27 @@ const getDepartmentName = (id) => {
   gap: 0.75rem;
   color: #666;
   font-size: 0.95rem;
+}
+
+.info-item.whatsapp-item {
+  color: #25D366;
+}
+
+.whatsapp-link {
+  color: #25D366;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.whatsapp-link:hover {
+  color: #128C7E;
+  text-decoration: underline;
+}
+
+.whatsapp-detail .whatsapp-link {
+  color: #25D366;
+  font-weight: 700;
 }
 
 .listing-meta {

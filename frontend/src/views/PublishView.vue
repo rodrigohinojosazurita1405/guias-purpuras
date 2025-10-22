@@ -1,6 +1,4 @@
-<!-- BLOQUE 1: TEMPLATE -->
-<template>
-  <!-- 
+<!-- 
   ==========================================
   PUBLISHVIEW.VUE - BLOQUE 1: TEMPLATE
   ==========================================
@@ -15,6 +13,8 @@
     - Paso activo actual
     - Botones de navegación
 -->
+
+<template>
   <MainLayout>
     <section class="publish-section">
       <div class="container">
@@ -54,8 +54,17 @@
           />
 
           <!-- PASO 2: Información del Anuncio -->
+          <!-- Usa formulario específico para profesionales -->
+          <InformationStepProfessional
+            v-if="currentStep === 2 && formData.category === 'profesionales'"
+            ref="informationStepRef"
+            v-model="formData"
+            :subcategory="formData.subcategory"
+          />
+          
+          <!-- Usa formulario genérico para otras categorías -->
           <InformationStep
-            v-if="currentStep === 2"
+            v-if="currentStep === 2 && formData.category !== 'profesionales'"
             ref="informationStepRef"
             v-model="formData"
           />
@@ -145,9 +154,7 @@
       </div>
     </section>
   </MainLayout>
-
 </template>
-
 <!-- BLOQUE 2: SCRIPT -->
 <script setup>
 // ==========================================
@@ -170,6 +177,7 @@ import MainLayout from '@/components/Layout/MainLayout.vue'
 import PublishSteps from '@/components/Publish/PublishSteps.vue'
 import CategoryStep from '@/components/Publish/CategoryStep.vue'
 import InformationStep from '@/components/Publish/InformationStep.vue'
+import InformationStepProfessional from '@/components/Publish/InformationStepProfessional.vue'
 import ImagesStep from '@/components/Publish/ImagesStep.vue'
 import PlanStep from '@/components/Publish/PlanStep.vue'
 import SummaryCard from '@/components/Publish/SummaryCard.vue'
@@ -199,14 +207,31 @@ const formData = ref({
   // Paso 1: Categoría y Ubicación
   category: '',
   subcategory: '',
-  department: '',
   city: '',
+  address: '',
   
-  // Paso 2: Información
+  // Paso 2: Información (Genérica O Profesional según categoría)
   title: '',
+  
+  // Campos genéricos (Gastronomía, Trabajos, Servicios)
   description: '',
   price: null,
-  phone: '',
+  
+  // Campos específicos para PROFESIONALES
+  professionalTitle: '',
+  yearsExperience: '',
+  university: '',
+  graduationYear: null,
+  degree: '',
+  certifications: '',
+  specialties: [],
+  services: '',
+  successCases: '',
+  schedule: '',
+  languages: [],
+  
+  // Contacto (común para todos)
+  whatsapp: '',
   email: '',
   website: '',
   
@@ -290,7 +315,7 @@ const validateCurrentStep = async () => {
     case 4:
       stepRef = planStepRef.value
       break
-    case 5:
+          case 5:
       return true // El paso 5 es solo resumen
   }
   
@@ -363,11 +388,11 @@ const submitForm = async () => {
     // Datos básicos
     payload.append('category', formData.value.category)
     payload.append('subcategory', formData.value.subcategory)
-    payload.append('department', formData.value.department)
-    payload.append('city', formData.value.city)
+    payload.append('city', formData.value.city) // CAMBIO: Ahora es ciudad en lugar de department
+    payload.append('address', formData.value.address) // CAMBIO: Nueva dirección exacta
     payload.append('title', formData.value.title)
     payload.append('description', formData.value.description)
-    payload.append('phone', formData.value.phone)
+    payload.append('whatsapp', formData.value.whatsapp) // CAMBIO: WhatsApp con +591
     payload.append('plan', formData.value.plan)
     
     // Campos opcionales

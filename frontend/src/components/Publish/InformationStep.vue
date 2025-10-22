@@ -5,19 +5,17 @@
       ==========================================
       PASO 2: INFORMACIÓN DEL ANUNCIO
       ==========================================
-      Recolecta:
-        - Título del anuncio (10-100 caracteres)
-        - Descripción (50-500 caracteres)
-        - Precio (opcional, nuevo campo)
-        - Teléfono/WhatsApp (obligatorio)
-        - Email (opcional)
-        - Sitio web (opcional)
+      CAMBIOS APLICADOS:
+        - "Teléfono/WhatsApp" → "WhatsApp"
+        - Pre-llenado con +591
+        - Validación específica para WhatsApp boliviano
+        - Link automático a WhatsApp (wa.me)
       
       TODO Django:
+        - Guardar número con formato internacional (+591XXXXXXXX)
+        - Generar link de WhatsApp automáticamente
         - Validar palabras prohibidas en título/descripción
         - Sanitizar HTML para evitar XSS
-        - Validar formato de teléfono boliviano
-        - Guardar en modelo Listing
     -->
 
     <h2 class="step-title">
@@ -87,7 +85,7 @@
       </div>
 
       <!-- ==========================================
-           PRECIO (NUEVO CAMPO)
+           PRECIO (OPCIONAL)
            ========================================== -->
       <div class="form-group">
         <label class="form-label">
@@ -112,26 +110,30 @@
       </div>
 
       <!-- ==========================================
-           TELÉFONO/WHATSAPP
+           WHATSAPP (CAMBIO: Antes era "Teléfono/WhatsApp")
            ========================================== -->
       <div class="form-group">
         <label class="form-label required">
-          <va-icon name="phone" size="small" />
-          Teléfono/WhatsApp
+          <va-icon name="whatsapp" size="small" />
+          WhatsApp
         </label>
-        <input
-          v-model="localData.phone"
-          type="tel"
-          class="form-input"
-          :class="{ 'has-error': errors.phone }"
-          placeholder="+591 70123456"
-          @input="validatePhone"
-          required
-        />
-        <span v-if="errors.phone" class="error-message">{{ errors.phone }}</span>
-        <span class="form-hint">
-          <va-icon name="info" size="small" />
-          Incluye el código de país (+591)
+        <div class="whatsapp-input-wrapper">
+          <span class="country-code">+591</span>
+          <input
+            v-model="whatsappNumber"
+            type="tel"
+            class="form-input whatsapp-input"
+            :class="{ 'has-error': errors.whatsapp }"
+            placeholder="70123456"
+            maxlength="8"
+            @input="validateWhatsApp"
+            required
+          />
+        </div>
+        <span v-if="errors.whatsapp" class="error-message">{{ errors.whatsapp }}</span>
+        <span class="form-hint success">
+          <va-icon name="check_circle" size="small" />
+          Los clientes podrán contactarte directamente por WhatsApp
         </span>
       </div>
 
@@ -210,6 +212,9 @@ const errors = ref({})
 const autoSaveStatus = ref('')
 const autoSaveTimer = ref(null)
 
+// Estado específico para WhatsApp (solo los 8 dígitos)
+const whatsappNumber = ref('')
+
 // ==========================================
 // COMPUTED
 // ==========================================
@@ -247,11 +252,6 @@ const validateTitle = () => {
   }
 
   // TODO Django: Validar palabras prohibidas
-  // const forbiddenWords = ['spam', 'xxx', 'fake']
-  // if (forbiddenWords.some(word => localData.value.title.toLowerCase().includes(word))) {
-  //   errors.value.title = 'El título contiene palabras no permitidas'
-  //   return false
-  // }
   
   return true
 }
@@ -265,7 +265,7 @@ const validateDescription = () => {
   }
   
   if (localData.value.description.length < 50) {
-    errors.value.description = 'La descripción debe tener al menos 50 caracteres para ser informativa'
+    errors.value.description = 'La descripción debe tener al menos 50 caracteres'
     return false
   }
   
@@ -277,20 +277,32 @@ const validateDescription = () => {
   return true
 }
 
-const validatePhone = () => {
-  errors.value.phone = ''
+// CAMBIO: Validación específica para WhatsApp boliviano
+const validateWhatsApp = () => {
+  errors.value.whatsapp = ''
   
-  if (!localData.value.phone) {
-    errors.value.phone = 'El teléfono es obligatorio'
+  if (!whatsappNumber.value) {
+    errors.value.whatsapp = 'El WhatsApp es obligatorio'
     return false
   }
   
-  // Formato boliviano básico: +591 + 8 dígitos
-  const phoneRegex = /^\+?591\s?\d{8}$/
-  if (!phoneRegex.test(localData.value.phone.replace(/\s/g, ''))) {
-    errors.value.phone = 'Formato inválido. Usa: +591 70123456'
+  // Remover espacios y caracteres no numéricos
+  const cleanNumber = whatsappNumber.value.replace(/\D/g, '')
+  
+  // Validar que tenga exactamente 8 dígitos
+  if (cleanNumber.length !== 8) {
+    errors.value.whatsapp = 'Debe tener 8 dígitos (Ej: 70123456)'
     return false
   }
+  
+  // Validar que empiece con 6 o 7 (números de celular en Bolivia)
+  if (!cleanNumber.startsWith('6') && !cleanNumber.startsWith('7')) {
+    errors.value.whatsapp = 'Número inválido. Debe empezar con 6 o 7'
+    return false
+  }
+  
+  // Guardar el número completo con código de país
+  localData.value.whatsapp = `+591${cleanNumber}`
   
   return true
 }
@@ -331,11 +343,11 @@ const validateWebsite = () => {
 const validate = () => {
   const titleValid = validateTitle()
   const descValid = validateDescription()
-  const phoneValid = validatePhone()
+  const whatsappValid = validateWhatsApp()
   const emailValid = validateEmail()
   const websiteValid = validateWebsite()
   
-  return titleValid && descValid && phoneValid && emailValid && websiteValid
+  return titleValid && descValid && whatsappValid && emailValid && websiteValid
 }
 
 // ==========================================
@@ -345,7 +357,6 @@ const saveAsDraft = () => {
   autoSaveStatus.value = 'Guardando borrador...'
   
   // TODO Django: POST /api/listings/draft/
-  // Guardar en localStorage por ahora (temporal)
   localStorage.setItem('listing_draft', JSON.stringify(localData.value))
   
   setTimeout(() => {
@@ -359,11 +370,9 @@ const saveAsDraft = () => {
 // ==========================================
 // WATCHERS
 // ==========================================
-// Sync con componente padre
 watch(localData, (newValue) => {
   emit('update:modelValue', newValue)
   
-  // Auto-guardado después de 2 segundos de inactividad
   clearTimeout(autoSaveTimer.value)
   autoSaveTimer.value = setTimeout(() => {
     if (newValue.title || newValue.description) {
@@ -374,21 +383,11 @@ watch(localData, (newValue) => {
 
 watch(() => props.modelValue, (newValue) => {
   localData.value = { ...newValue }
+  // Extraer solo los 8 dígitos si ya hay un número guardado
+  if (newValue.whatsapp) {
+    whatsappNumber.value = newValue.whatsapp.replace('+591', '').replace(/\D/g, '')
+  }
 }, { deep: true })
-
-// ==========================================
-// LIFECYCLE - Cargar borrador al montar
-// ==========================================
-// TODO Django: Mover esto a onMounted cuando tengamos backend
-// const loadDraft = () => {
-//   const draft = localStorage.getItem('listing_draft')
-//   if (draft) {
-//     const parsed = JSON.parse(draft)
-//     if (confirm('¿Deseas continuar con tu borrador guardado?')) {
-//       localData.value = { ...localData.value, ...parsed }
-//     }
-//   }
-// }
 
 // ==========================================
 // EXPOSE
@@ -399,16 +398,11 @@ defineExpose({
 </script>
 
 <style scoped>
-/* ==========================================
-   CONTENEDOR PRINCIPAL
-   ========================================== */
+/* Estilos base (reutilizados del archivo anterior) */
 .information-step {
   padding: 1rem 0;
 }
 
-/* ==========================================
-   TÍTULO Y DESCRIPCIÓN
-   ========================================== */
 .step-title {
   display: flex;
   align-items: center;
@@ -426,18 +420,12 @@ defineExpose({
   line-height: 1.5;
 }
 
-/* ==========================================
-   GRID DE FORMULARIO
-   ========================================== */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
 }
 
-/* ==========================================
-   GRUPOS DE FORMULARIO
-   ========================================== */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -463,9 +451,6 @@ defineExpose({
   margin-left: 0.25rem;
 }
 
-/* ==========================================
-   INPUTS Y TEXTAREA
-   ========================================== */
 .form-input,
 .form-textarea {
   padding: 0.875rem 1rem;
@@ -517,6 +502,28 @@ defineExpose({
 }
 
 /* ==========================================
+   CAMPO DE WHATSAPP (NUEVO)
+   ========================================== */
+.whatsapp-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.country-code {
+  position: absolute;
+  left: 1rem;
+  font-weight: 600;
+  color: #25D366; /* Color verde de WhatsApp */
+  pointer-events: none;
+  font-size: 1rem;
+}
+
+.whatsapp-input {
+  padding-left: 4rem;
+}
+
+/* ==========================================
    FOOTER DE INPUT
    ========================================== */
 .input-footer {
@@ -555,6 +562,12 @@ defineExpose({
   color: #666;
   font-size: 0.85rem;
   font-style: italic;
+}
+
+.form-hint.success {
+  color: #25D366;
+  font-style: normal;
+  font-weight: 500;
 }
 
 /* ==========================================

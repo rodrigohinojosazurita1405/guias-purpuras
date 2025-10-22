@@ -5,17 +5,14 @@
       ==========================================
       PASO 1: CATEGORÍA Y UBICACIÓN
       ==========================================
-      Permite seleccionar:
-        - Categoría principal
-        - Subcategoría (dinámica según categoría)
-        - Departamento
-        - Ciudad
+      CAMBIOS APLICADOS:
+        - "Departamento" → "Ciudad" (select con ciudades principales)
+        - "Ciudad" → "Ubicación/Dirección" (dirección exacta)
       
       TODO Django:
         - GET /api/categories/ - Lista de categorías
         - GET /api/subcategories/?category_id=X - Subcategorías filtradas
-        - GET /api/departments/ - Lista de departamentos
-        - GET /api/cities/?department_id=X - Ciudades filtradas
+        - GET /api/cities/ - Lista de ciudades principales de Bolivia
     -->
 
     <h2 class="step-title">
@@ -83,53 +80,51 @@
       </div>
 
       <!-- ==========================================
-           DEPARTAMENTO
+           CIUDAD (CAMBIO: Antes era "Departamento")
            ========================================== -->
       <div class="form-group">
         <label class="form-label required">
           <va-icon name="location_city" size="small" />
-          Departamento
+          Ciudad
         </label>
         <select 
-          v-model="localData.department" 
-          @change="onDepartmentChange"
+          v-model="localData.city" 
           class="form-select"
           required
         >
-          <option value="">Selecciona un departamento</option>
+          <option value="">Selecciona una ciudad</option>
           <option 
-            v-for="dept in departments" 
-            :key="dept.id"
-            :value="dept.id"
+            v-for="city in cities" 
+            :key="city.id"
+            :value="city.id"
           >
-            {{ dept.name }}
+            {{ city.name }}
           </option>
         </select>
-        <span v-if="errors.department" class="error-message">{{ errors.department }}</span>
+        <span v-if="errors.city" class="error-message">{{ errors.city }}</span>
       </div>
 
       <!-- ==========================================
-           CIUDAD
+           UBICACIÓN/DIRECCIÓN (CAMBIO: Antes era "Ciudad")
            ========================================== -->
       <div class="form-group">
         <label class="form-label required">
-          <va-icon name="location_on" size="small" />
-          Ciudad
+          <va-icon name="place" size="small" />
+          Ubicación/Dirección
         </label>
         <input
-          v-model="localData.city"
+          v-model="localData.address"
           type="text"
           class="form-input"
-          placeholder="Ej: Cochabamba, Quillacollo, Sacaba..."
-          :disabled="!localData.department"
+          placeholder="Ej: Av. Heroínas #123, Zona Central"
           required
         />
-        <span v-if="errors.city" class="error-message">{{ errors.city }}</span>
+        <span v-if="errors.address" class="error-message">{{ errors.address }}</span>
         
         <!-- Hint informativo -->
         <span class="form-hint">
           <va-icon name="info" size="small" />
-          Escribe la ciudad específica donde ofreces tu servicio
+          Dirección exacta donde ofreces tu servicio o consultorio
         </span>
       </div>
     </div>
@@ -170,23 +165,29 @@ const categories = ref([
 
 // TODO Django: GET /api/subcategories/?category_id=X
 const subcategories = ref({
-  profesionales: ['Abogados', 'Doctores', 'Contadores', 'Arquitectos', 'Ingenieros'],
+  profesionales: ['Abogados', 'Doctores', 'Contadores', 'Arquitectos', 'Ingenieros', 'Psicólogos', 'Dentistas', 'Veterinarios'],
   gastronomia: ['Restaurantes', 'Cafeterías', 'Comida Rápida', 'Catering', 'Pizzerías'],
   trabajos: ['Tiempo Completo', 'Medio Tiempo', 'Freelance', 'Pasantías', 'Temporal'],
   servicios: ['Plomería', 'Electricidad', 'Carpintería', 'Limpieza', 'Reparaciones']
 })
 
-// TODO Django: GET /api/departments/
-const departments = ref([
+// TODO Django: GET /api/cities/
+// CAMBIO: Lista de ciudades principales de Bolivia (antes eran departamentos)
+const cities = ref([
   { id: 'la-paz', name: 'La Paz' },
+  { id: 'el-alto', name: 'El Alto' },
   { id: 'cochabamba', name: 'Cochabamba' },
   { id: 'santa-cruz', name: 'Santa Cruz' },
   { id: 'oruro', name: 'Oruro' },
   { id: 'potosi', name: 'Potosí' },
   { id: 'tarija', name: 'Tarija' },
-  { id: 'chuquisaca', name: 'Chuquisaca' },
-  { id: 'beni', name: 'Beni' },
-  { id: 'pando', name: 'Pando' }
+  { id: 'sucre', name: 'Sucre' },
+  { id: 'trinidad', name: 'Trinidad' },
+  { id: 'cobija', name: 'Cobija' },
+  { id: 'quillacollo', name: 'Quillacollo' },
+  { id: 'sacaba', name: 'Sacaba' },
+  { id: 'montero', name: 'Montero' },
+  { id: 'warnes', name: 'Warnes' }
 ])
 
 // ==========================================
@@ -206,12 +207,6 @@ const onCategoryChange = () => {
   errors.value.category = ''
 }
 
-const onDepartmentChange = () => {
-  // Reset ciudad cuando cambia el departamento
-  localData.value.city = ''
-  errors.value.department = ''
-}
-
 const validate = () => {
   errors.value = {}
   let isValid = true
@@ -226,13 +221,13 @@ const validate = () => {
     isValid = false
   }
 
-  if (!localData.value.department) {
-    errors.value.department = 'Selecciona un departamento'
+  if (!localData.value.city) {
+    errors.value.city = 'Selecciona una ciudad'
     isValid = false
   }
 
-  if (!localData.value.city || localData.value.city.length < 3) {
-    errors.value.city = 'Escribe una ciudad válida (mínimo 3 caracteres)'
+  if (!localData.value.address || localData.value.address.length < 5) {
+    errors.value.address = 'Escribe una dirección válida (mínimo 5 caracteres)'
     isValid = false
   }
 
