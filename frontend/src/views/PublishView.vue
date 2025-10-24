@@ -36,8 +36,14 @@
             :subcategory="formData.subcategory"
           />
           
+          <InformationStepTrabajos
+            v-if="currentStep === 2 && formData.category === 'trabajos'"
+            ref="informationStepRef"
+            v-model="formData"
+          />
+          
           <InformationStep
-            v-if="currentStep === 2 && formData.category !== 'profesionales' && formData.category !== 'gastronomia'"
+            v-if="currentStep === 2 && formData.category !== 'profesionales' && formData.category !== 'gastronomia' && formData.category !== 'trabajos'"
             ref="informationStepRef"
             v-model="formData"
           />
@@ -125,6 +131,7 @@ import CategoryStep from '@/components/Publish/CategoryStep.vue'
 import InformationStep from '@/components/Publish/InformationStep.vue'
 import InformationStepProfessional from '@/components/Publish/InformationStepProfessional.vue'
 import InformationStepGastronomia from '@/components/Publish/InformationStepGastronomia.vue'
+import InformationStepTrabajos from '@/components/Publish/InformationStepTrabajos.vue'
 import ImagesStep from '@/components/Publish/ImagesStep.vue'
 import MenuStep from '@/components/Publish/MenuStep.vue'
 import PlanStep from '@/components/Publish/PlanStep.vue'

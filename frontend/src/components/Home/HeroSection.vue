@@ -4,8 +4,9 @@
     <div class="hero-content">
       <!-- Título Principal -->
       <h1 class="hero-title">
-        Encuentra Todo lo que Buscas en
+        Una guía moderna para una 
         <span class="highlight">Bolivia</span>
+        conectada
       </h1>
       
       <p class="hero-subtitle">
@@ -17,7 +18,7 @@
         <button
           v-for="cat in categories"
           :key="cat.id"
-          @click="selectedCategory = cat.id"
+          @click="goToCategory(cat.id)"
           :class="['category-tab', { active: selectedCategory === cat.id }]"
         >
           <va-icon :name="cat.icon" size="small" />
@@ -137,18 +138,37 @@ const getPlaceholder = () => {
   return placeholders[selectedCategory.value]
 }
 
+/**
+ * Navega a la categoría seleccionada
+ */
+const goToCategory = (categoryId) => {
+  selectedCategory.value = categoryId
+  router.push(`/guias/${categoryId}`)
+}
+
+/**
+ * Maneja búsqueda con filtros
+ */
 const handleSearch = () => {
-  const params = {
-    q: searchQuery.value,
-    ciudad: selectedCity.value
+  const query = {}
+  
+  if (searchQuery.value) {
+    query.q = searchQuery.value
+  }
+  
+  if (selectedCity.value) {
+    query.ciudad = selectedCity.value
   }
   
   router.push({
-    name: `guias-${selectedCategory.value}`,
-    query: params
+    path: `/guias/${selectedCategory.value}`,
+    query: query
   })
 }
 
+/**
+ * Búsqueda rápida desde tags populares
+ */
 const quickSearch = (term) => {
   searchQuery.value = term
   handleSearch()

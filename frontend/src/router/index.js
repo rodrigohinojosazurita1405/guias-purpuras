@@ -1,126 +1,141 @@
 // frontend/src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+
+// ========== VIEWS ==========
+import HomeView from '@/views/HomeView.vue'
+import GuideView from '@/views/GuideView.vue'
+import PublishView from '@/views/PublishView.vue'
+
+// Profesionales
+import ProfessionalDetailView from '@/views/ProfessionalDetailView.vue'
+
+// Gastronomía
+import RestaurantDetailView from '@/views/RestaurantDetailView.vue'
+
+// Trabajos
+import JobDetailView from '@/views/JobDetailView.vue'
+import ApplicationProcess from '@/views/ApplicationProcess.vue'
+
+// Genéricos (para categorías no implementadas aún)
+import ListingDetailView from '@/views/ListingDetailView.vue'
 
 const routes = [
-  // ==========================================
-  // RUTA PRINCIPAL - HOME
-  // ==========================================
+  // ========== HOME ==========
   {
     path: '/',
-    name: 'home',
-    component: HomeView,
-    meta: {
-      title: 'Guías Púrpuras - Encuentra todo en Bolivia'
-    }
+    name: 'Home',
+    component: HomeView
   },
 
-  // ==========================================
-  // RUTAS DE GUÍAS POR CATEGORÍA
-  // ==========================================
-  {
-    path: '/guias/profesionales',
-    name: 'guias-profesionales',
-    component: () => import('../views/GuideView.vue'),
-    props: { category: 'profesionales' },
-    meta: {
-      title: 'Guías Profesionales - Guías Púrpuras'
-    }
-  },
-  {
-    path: '/guias/gastronomia',
-    name: 'guias-gastronomia',
-    component: () => import('../views/GuideView.vue'),
-    props: { category: 'gastronomia' },
-    meta: {
-      title: 'Guías Gastronómicas - Guías Púrpuras'
-    }
-  },
-  {
-    path: '/guias/trabajos',
-    name: 'guias-trabajos',
-    component: () => import('../views/GuideView.vue'),
-    props: { category: 'trabajos' },
-    meta: {
-      title: 'Guías de Trabajos - Guías Púrpuras'
-    }
-  },
-  {
-    path: '/guias/servicios',
-    name: 'guias-servicios',
-    component: () => import('../views/GuideView.vue'),
-    props: { category: 'servicios' },
-    meta: {
-      title: 'Guías de Servicios - Guías Púrpuras'
-    }
-  },
-
-  // ==========================================
-  // RUTA DE DETALLE DE ANUNCIO
-  // ==========================================
-  {
-    path: '/anuncio/:id',
-    name: 'listing-detail',
-    component: () => import('../views/ListingDetailView.vue'),
-    props: true,
-    meta: {
-      title: 'Detalle del Anuncio - Guías Púrpuras'
-    }
-  },
-
-  // ==========================================
-  // RUTA PARA PUBLICAR ANUNCIO
-  // ==========================================
+  // ========== PUBLICAR ANUNCIO ==========
   {
     path: '/publicar',
-    name: 'publicar',
-    component: () => import('../views/PublishView.vue'),
+    name: 'Publish',
+    component: PublishView,
     meta: {
-      title: 'Publicar Anuncio - Guías Púrpuras',
-      requiresAuth: false // TODO: Cambiar a true cuando tengamos autenticación
+      requiresAuth: false // TODO: Cambiar a true cuando haya autenticación
     }
   },
 
-  // ==========================================
-  // RUTA 404 - NO ENCONTRADO
-  // ==========================================
+  // ========== GUÍAS - PROFESIONALES ==========
+  {
+    path: '/guias/profesionales',
+    name: 'ProfessionalsGuide',
+    component: GuideView,
+    props: { category: 'profesionales' }
+  },
+  {
+    path: '/guias/profesionales/:slug',
+    name: 'ProfessionalDetail',
+    component: ProfessionalDetailView
+  },
+
+  // ========== GUÍAS - GASTRONOMÍA ==========
+  {
+    path: '/guias/gastronomia',
+    name: 'GastronomyGuide',
+    component: GuideView,
+    props: { category: 'gastronomia' }
+  },
+  {
+    path: '/guias/gastronomia/:slug',
+    name: 'RestaurantDetail',
+    component: RestaurantDetailView
+  },
+
+  // ========== GUÍAS - TRABAJOS ==========
+  {
+    path: '/guias/trabajos',
+    name: 'JobsGuide',
+    component: GuideView,
+    props: { category: 'trabajos' }
+  },
+  {
+    path: '/guias/trabajos/:id',
+    name: 'JobDetail',
+    component: JobDetailView
+  },
+  {
+    path: '/guias/trabajos/:id/postular',
+    name: 'ApplicationProcess',
+    component: ApplicationProcess,
+    meta: {
+      requiresAuth: false // TODO: Cambiar a true cuando haya autenticación
+    }
+  },
+
+  // ========== GUÍAS - SERVICIOS ==========
+  {
+    path: '/guias/servicios',
+    name: 'ServicesGuide',
+    component: GuideView,
+    props: { category: 'servicios' }
+  },
+  {
+    path: '/guias/servicios/:slug',
+    name: 'ServiceDetail',
+    component: ListingDetailView // Temporal, cambiar cuando esté ServiceDetailView
+  },
+
+  // ========== 404 - NOT FOUND ==========
   {
     path: '/:pathMatch(.*)*',
-    name: 'not-found',
-    component: () => import('../views/NotFoundView.vue'),
-    meta: {
-      title: 'Página no encontrada - Guías Púrpuras'
-    }
+    name: 'NotFound',
+    component: () => import('@/views/NotFoundView.vue')
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  // Scroll to top on route change
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
       return savedPosition
     } else {
-      return { top: 0 }
+      return { top: 0, behavior: 'smooth' }
     }
   }
 })
 
-// ==========================================
-// GUARD PARA CAMBIAR TÍTULO DE PÁGINA
-// ==========================================
+// ========== NAVIGATION GUARDS ==========
 router.beforeEach((to, from, next) => {
-  document.title = to.meta.title || 'Guías Púrpuras'
-  
-  // TODO: Verificar autenticación cuando se implemente
-  // if (to.meta.requiresAuth && !isAuthenticated()) {
-  //   next({ name: 'login' })
-  // } else {
-  //   next()
-  // }
-  
-  next()
+  // Verificar si la ruta requiere autenticación
+  if (to.meta.requiresAuth) {
+    // TODO: Verificar si el usuario está autenticado
+    const isAuthenticated = false // Cambiar por lógica real
+    
+    if (!isAuthenticated) {
+      // Redirigir al login
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
 })
 
 export default router
