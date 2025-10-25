@@ -1,5 +1,6 @@
 // frontend/src/main.js
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'  // ← NUEVO
 import { createVuestic } from 'vuestic-ui'
 import 'vuestic-ui/css'
 
@@ -32,9 +33,20 @@ const vuesticConfig = {
   }
 }
 
+// ==========================================
+// CREAR APP E INSTANCIAS
+// ==========================================
 const app = createApp(App)
+const pinia = createPinia()  // ← NUEVO
 
+// ==========================================
+// USAR PLUGINS
+// ==========================================
+app.use(pinia)  // ← NUEVO (antes de router)
 app.use(router)
 app.use(createVuestic({ config: vuesticConfig }))
 
+// ==========================================
+// MONTAR APP
+// ==========================================
 app.mount('#app')

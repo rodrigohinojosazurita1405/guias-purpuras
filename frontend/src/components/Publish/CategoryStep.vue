@@ -17,11 +17,11 @@
 
     <h2 class="step-title">
       <va-icon name="category" color="purple" size="large" />
-      Categoría y Ubicación
+      Categoría y Ciudad
     </h2>
 
     <p class="step-description">
-      Selecciona dónde aparecerá tu anuncio para que las personas correctas lo encuentren
+      Selecciona la categoría y ciudad donde aparecerá tu anuncio
     </p>
 
     <div class="form-grid">
@@ -104,29 +104,7 @@
         <span v-if="errors.city" class="error-message">{{ errors.city }}</span>
       </div>
 
-      <!-- ==========================================
-           UBICACIÓN/DIRECCIÓN (CAMBIO: Antes era "Ciudad")
-           ========================================== -->
-      <div class="form-group">
-        <label class="form-label required">
-          <va-icon name="place" size="small" />
-          Ubicación/Dirección
-        </label>
-        <input
-          v-model="localData.address"
-          type="text"
-          class="form-input"
-          placeholder="Ej: Av. Heroínas #123, Zona Central"
-          required
-        />
-        <span v-if="errors.address" class="error-message">{{ errors.address }}</span>
-        
-        <!-- Hint informativo -->
-        <span class="form-hint">
-          <va-icon name="info" size="small" />
-          Dirección exacta donde ofreces tu servicio o consultorio
-        </span>
-      </div>
+
     </div>
   </div>
 </template>
@@ -223,11 +201,6 @@ const validate = () => {
 
   if (!localData.value.city) {
     errors.value.city = 'Selecciona una ciudad'
-    isValid = false
-  }
-
-  if (!localData.value.address || localData.value.address.length < 5) {
-    errors.value.address = 'Escribe una dirección válida (mínimo 5 caracteres)'
     isValid = false
   }
 

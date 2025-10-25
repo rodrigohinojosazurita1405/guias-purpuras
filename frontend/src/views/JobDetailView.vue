@@ -129,345 +129,222 @@
           </div>
 
           <!-- Botones de Acción -->
-          <div class="action-buttons">
-            <va-button
-              @click="applyToJob"
-              color="warning"
+          <div class="job-actions">
+            <!-- BOTÓN NUEVO -->
+            <VaButton
+              @click="handlePostular"
+              color="purple"
+              class="postular-btn"
               size="large"
-              class="apply-btn"
-              :disabled="job.status !== 'abierta'"
             >
-              <va-icon name="send" />
-              POSTULAR A ESTE EMPLEO
-            </va-button>
+              <va-icon name="celebration" class="btn-icon" />
+              <span class="btn-text">Quiero postularme</span>
+            </VaButton>
 
+            <!-- Otros botones (guardar, compartir, denunciar) -->
             <div class="secondary-actions">
-              <va-button
-                @click="saveJob"
-                preset="secondary"
-                icon="bookmark_border"
+              <VaButton
+                preset="plain"
+                color="purple"
+                @click="guardarEmpleo"
               >
+                <va-icon name="bookmark_border" />
                 Guardar Empleo
-              </va-button>
-              
-              <va-button
-                @click="shareJob"
-                preset="secondary"
-                icon="share"
-              >
-                Compartir
-              </va-button>
+              </VaButton>
 
-              <va-button
-                @click="reportJob"
-                preset="secondary"
-                icon="flag"
+              <VaButton
+                preset="plain"
+                color="purple"
+                @click="compartirEmpleo"
               >
+                <va-icon name="share" />
+                Compartir
+              </VaButton>
+
+              <VaButton
+                preset="plain"
+                color="danger"
+                @click="denunciarEmpleo"
+              >
+                <va-icon name="flag" />
                 Denunciar
-              </va-button>
+              </VaButton>
             </div>
           </div>
         </div>
 
-        <!-- Tabs de Contenido -->
-        <div class="content-section">
-          <TabNavigation
-            v-model="activeTab"
-            :tabs="tabs"
-          >
-            <!-- Tab 1: Detalle del Anuncio -->
-            <template #tab-0>
-              <div class="tab-content">
-                <!-- Descripción de la oferta -->
-                <div class="content-block">
-                  <h3 class="block-title">
-                    <va-icon name="description" size="1.5rem" color="purple" />
-                    Descripción de la oferta de empleo
-                  </h3>
-                  <div class="block-text" v-html="job.description"></div>
-                </div>
+        <!-- Descripción del Trabajo -->
+        <div class="job-content">
+          <div class="content-section">
+            <h2 class="section-title">
+              <va-icon name="description" />
+              Descripción del Empleo
+            </h2>
+            <div class="section-text" v-html="job.description"></div>
+          </div>
 
-                <!-- Como nos gustaría que seas (Requisitos) -->
-                <div v-if="job.requirements" class="content-block">
-                  <h3 class="block-title">
-                    <va-icon name="checklist" size="1.5rem" color="purple" />
-                    Como nos gustaría que seas:
-                  </h3>
-                  <ul class="requirements-list">
-                    <li 
-                      v-for="(requirement, index) in job.requirements" 
-                      :key="index"
-                    >
-                      <va-icon name="check_circle" size="small" color="success" />
-                      {{ requirement }}
-                    </li>
-                  </ul>
-                </div>
+          <div v-if="job.requirements" class="content-section">
+            <h2 class="section-title">
+              <va-icon name="checklist" />
+              Requisitos
+            </h2>
+            <div class="section-text" v-html="job.requirements"></div>
+          </div>
 
-                <!-- Tus principales responsabilidades -->
-                <div v-if="job.responsibilities" class="content-block">
-                  <h3 class="block-title">
-                    <va-icon name="assignment" size="1.5rem" color="purple" />
-                    Tus principales responsabilidades serán:
-                  </h3>
-                  <ul class="responsibilities-list">
-                    <li 
-                      v-for="(responsibility, index) in job.responsibilities" 
-                      :key="index"
-                    >
-                      <va-icon name="arrow_right" size="small" color="purple" />
-                      {{ responsibility }}
-                    </li>
-                  </ul>
-                </div>
+          <div v-if="job.benefits" class="content-section">
+            <h2 class="section-title">
+              <va-icon name="star" />
+              Beneficios
+            </h2>
+            <div class="section-text" v-html="job.benefits"></div>
+          </div>
 
-                <!-- Beneficios -->
-                <div v-if="job.benefits && job.benefits.length > 0" class="content-block">
-                  <h3 class="block-title">
-                    <va-icon name="card_giftcard" size="1.5rem" color="purple" />
-                    Beneficios
-                  </h3>
-                  <div class="benefits-grid">
-                    <div 
-                      v-for="(benefit, index) in job.benefits" 
-                      :key="index"
-                      class="benefit-item"
-                    >
-                      <va-icon name="check_circle" size="small" color="success" />
-                      <span>{{ benefit }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- CTA de Postulación -->
-                <div class="cta-block">
-                  <h3>¿Te interesa esta oportunidad?</h3>
-                  <p>Postula ahora y forma parte de nuestro equipo</p>
-                  <va-button
-                    @click="applyToJob"
-                    color="warning"
-                    size="large"
-                    :disabled="job.status !== 'abierta'"
-                  >
-                    <va-icon name="send" />
-                    POSTULAR A ESTE EMPLEO
-                  </va-button>
-                </div>
-              </div>
-            </template>
-
-            <!-- Tab 2: Datos de la Empresa -->
-            <template #tab-1>
-              <div class="tab-content">
-                <div class="content-block">
-                  <h3 class="block-title">
-                    <va-icon name="business" size="1.5rem" color="purple" />
-                    Sobre la empresa
-                  </h3>
-
-                  <div v-if="!job.confidential" class="company-info">
-                    <!-- Logo y nombre -->
-                    <div class="company-header">
-                      <img 
-                        v-if="job.companyLogo" 
-                        :src="job.companyLogo" 
-                        :alt="job.companyName"
-                        class="company-logo-large"
-                      />
-                      <div>
-                        <h4 class="company-name-large">{{ job.companyName }}</h4>
-                        <p class="company-sector">{{ job.companySector }}</p>
-                      </div>
-                    </div>
-
-                    <!-- Descripción -->
-                    <div class="company-description">
-                      <p>{{ job.companyDescription }}</p>
-                    </div>
-
-                    <!-- Info adicional -->
-                    <div class="company-details">
-                      <div class="detail-item" v-if="job.companySize">
-                        <va-icon name="people" />
-                        <span><strong>Tamaño:</strong> {{ job.companySize }}</span>
-                      </div>
-                      <div class="detail-item" v-if="job.companyWebsite">
-                        <va-icon name="language" />
-                        <a :href="job.companyWebsite" target="_blank">
-                          Visitar sitio web
-                        </a>
-                      </div>
-                    </div>
-
-                    <!-- Otros empleos de esta empresa -->
-                    <div v-if="otherJobs.length > 0" class="other-jobs">
-                      <h4>Otros empleos de {{ job.companyName }}</h4>
-                      <div class="jobs-list">
-                        <div 
-                          v-for="otherJob in otherJobs" 
-                          :key="otherJob.id"
-                          class="job-item"
-                          @click="goToJob(otherJob.id)"
-                        >
-                          <div class="job-item-title">{{ otherJob.title }}</div>
-                          <div class="job-item-meta">
-                            <span>{{ otherJob.city }}</span>
-                            <span>•</span>
-                            <span>{{ otherJob.publishedDaysAgo }} días</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div v-else class="confidential-message">
-                    <va-icon name="visibility_off" size="3rem" color="#999" />
-                    <p>Esta es una publicación confidencial. La información de la empresa no está disponible públicamente.</p>
-                  </div>
-                </div>
-              </div>
-            </template>
-          </TabNavigation>
+          <div v-if="job.responsibilities" class="content-section">
+            <h2 class="section-title">
+              <va-icon name="assignment" />
+              Responsabilidades
+            </h2>
+            <div class="section-text" v-html="job.responsibilities"></div>
+          </div>
         </div>
+
       </div>
     </section>
   </MainLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { useToast } from 'vuestic-ui'
 import MainLayout from '@/components/Layout/MainLayout.vue'
-import TabNavigation from '@/components/Common/TabNavigation.vue'
 
-const route = useRoute()
+// ========== COMPOSABLES ==========
 const router = useRouter()
-const activeTab = ref(0)
+const route = useRoute()
+const authStore = useAuthStore()
+const { init: notify } = useToast()
 
-const tabs = [
-  { label: 'Detalle del Anuncio', icon: 'description' },
-  { label: 'Datos de la Empresa', icon: 'business' }
-]
-
-// Mock data - TODO: Reemplazar con API
+// ========== DATA ==========
 const job = ref({
-  id: 1225662,
+  id: route.params.id || '1',
   title: 'Técnico(a) Comercial Agrónomo(a)',
   companyName: 'Agropartners S.R.L.',
-  companyLogo: 'https://via.placeholder.com/200x80/4CAF50/FFFFFF?text=Agropartners',
-  city: 'Santa Cruz de la Sierra',
-  contractType: 'Tiempo Completo',
-  publishDate: '22/10/2025',
-  expiryDate: '21/11/2025',
-  category: 'Agricultura y Campo',
-  tags: ['Agronomía', 'Ingeniero Agrónomo', 'Agropecuaria'],
-  salary: 'No Declarado',
-  status: 'abierta',
-  plan: 'destacado',
+  companyLogo: null,
   verified: true,
   confidential: false,
-  urgent: false,
+  plan: 'destacado',
+  urgent: true,
+  contractType: 'Tiempo Completo',
+  city: 'Santa Cruz de la Sierra',
+  publishDate: 'Hace 2 días',
+  expiryDate: '30/11/2025',
+  category: 'Agronomía y Veterinaria',
+  tags: ['Agronomía', 'Ventas', 'Servicio al Cliente'],
+  salary: 'Bs. 5,000 - 7,000',
+  status: 'abierta',
   description: `
-    <p><strong>¡Tu futuro en el agro comienza aquí!</strong> Sé parte de nuestro Programa Protection Team.</p>
-    <br>
-    <h4>Técnico(a) Comercial Agrónomo(a)</h4>
-    <p>En Agropartners, buscamos a Técnicos(as) Comerciales apasionado(a) por el agro, con visión y ganas de hacer crecer el potencial de nuestros clientes. Tu misión será clave para acompañar a nuestros clientes, brindar visitas y soluciones técnicas e innovadoras y asegurar la prosperidad de sus cultivos, ¡sembrando juntos el éxito en cada parcela!</p>
+    <p>Estamos buscando un <strong>Técnico(a) Comercial Agrónomo(a)</strong> para unirse a nuestro equipo en Santa Cruz de la Sierra.</p>
+    <p>La persona seleccionada será responsable de brindar asesoría técnica a nuestros clientes en el sector agrícola, promover nuestros productos y servicios, y mantener relaciones comerciales sólidas.</p>
   `,
-  requirements: [
-    'Licenciatura en Ingeniería Agronómica, Agropecuaria, Agronegocios o carreras afines.',
-    'Experiencia mínima de 2 años en roles técnico-comerciales o de campo en el sector agrícola.',
-    'Conocimientos sólidos en manejo de productos agrícolas, protocolos de ensayo, análisis de resultados y desarrollo de productos.',
-    'Habilidad para interpretar y presentar datos técnicos de forma clara a equipos internos y clientes.',
-    'Deseable: Cursos o formación especializada en protección vegetal y agronegocios.'
-  ],
-  responsibilities: [
-    'Acompañar a nuestros clientes, brindando visitas técnicas e innovadoras',
-    'Realizar seguimiento y análisis de cultivos',
-    'Desarrollar estrategias de protección vegetal',
-    'Mantener relación cercana con productores',
-    'Reportar avances y resultados al equipo comercial'
-  ],
-  benefits: [
-    'Seguro médico',
-    'Capacitación continua',
-    'Vehículo de empresa',
-    'Comisiones por ventas',
-    'Oportunidades de crecimiento'
-  ],
-  companySector: 'Agricultura y Agronegocios',
-  companySize: '50-200 empleados',
-  companyDescription: 'Agropartners es una empresa líder en el sector agrícola de Bolivia, especializada en soluciones innovadoras para el agro. Contamos con más de 15 años de experiencia en el mercado y un equipo comprometido con el desarrollo sostenible del sector.',
-  companyWebsite: 'https://agropartners.com.bo'
+  requirements: `
+    <ul>
+      <li>Título profesional en Agronomía o carreras afines</li>
+      <li>Experiencia mínima de 2 años en ventas técnicas o asesoría agronómica</li>
+      <li>Conocimientos en cultivos, fertilización y manejo de plagas</li>
+      <li>Excelentes habilidades de comunicación y negociación</li>
+      <li>Licencia de conducir vigente</li>
+      <li>Disponibilidad para viajar</li>
+    </ul>
+  `,
+  benefits: `
+    <ul>
+      <li>Salario competitivo más comisiones</li>
+      <li>Seguro médico privado</li>
+      <li>Bono por cumplimiento de metas</li>
+      <li>Vehículo de la empresa</li>
+      <li>Capacitación continua</li>
+      <li>Oportunidades de crecimiento profesional</li>
+    </ul>
+  `,
+  responsibilities: `
+    <ul>
+      <li>Brindar asesoría técnica a clientes actuales y potenciales</li>
+      <li>Promover y vender productos agroquímicos y servicios</li>
+      <li>Realizar visitas técnicas a campos y cultivos</li>
+      <li>Elaborar informes técnicos y reportes de ventas</li>
+      <li>Participar en eventos y capacitaciones del sector</li>
+      <li>Mantener actualizado el conocimiento sobre productos y tendencias del mercado</li>
+    </ul>
+  `
 })
 
-const otherJobs = ref([
-  { id: 2, title: 'Ingeniero Agrónomo Senior', city: 'Santa Cruz', publishedDaysAgo: 5 },
-  { id: 3, title: 'Asistente de Campo', city: 'Santa Cruz', publishedDaysAgo: 12 }
-])
-
+// ========== COMPUTED ==========
 const getCompanyDisplayName = computed(() => {
-  if (job.value.confidential) {
-    return 'Publicación Confidencial'
-  }
-  if (job.value.importantCompany) {
-    return 'Importante Empresa'
-  }
-  return job.value.companyName
+  return job.value.confidential ? 'Empresa Confidencial' : job.value.companyName
 })
 
-const applyToJob = () => {
-  // TODO: Navegar a proceso de postulación
-  router.push(`/guias/trabajos/${job.value.id}/postular`)
-}
-
-const saveJob = () => {
-  console.log('Guardar empleo')
-  // TODO: Implementar favoritos
-}
-
-const shareJob = () => {
-  console.log('Compartir empleo')
-  // TODO: Implementar compartir
-}
-
-const reportJob = () => {
-  console.log('Denunciar empleo')
-  // TODO: Implementar reporte
-}
-
-const goToJob = (jobId) => {
-  router.push(`/guias/trabajos/${jobId}`)
-}
-
-const fetchJob = async () => {
-  const jobId = route.params.id
-  
-  try {
-    // TODO: Llamada real a la API
-    // const response = await fetch(`/api/jobs/${jobId}/`)
-    // job.value = await response.json()
-    
-    console.log('Cargando trabajo:', jobId)
-  } catch (error) {
-    console.error('Error cargando trabajo:', error)
+// ========== METHODS ==========
+const handlePostular = () => {
+  // Verificar si está autenticado
+  if (!authStore.isAuthenticated) {
+    notify({
+      message: '⚠️ Debes iniciar sesión para postular a este empleo',
+      color: 'warning',
+      duration: 3000
+    })
+    // TODO: Abrir modal de login
+    return
   }
+
+  // Redirigir a formulario de postulación
+  router.push({
+    name: 'ApplicationProcess',  // ← CORREGIDO: nombre con mayúsculas
+    params: { id: job.value.id }
+  })
 }
 
-onMounted(() => {
-  fetchJob()
-})
+const guardarEmpleo = () => {
+  notify({
+    message: '💾 Empleo guardado en tus favoritos',
+    color: 'success'
+  })
+  // TODO: Guardar en favoritos
+}
+
+const compartirEmpleo = () => {
+  // Copiar al portapapeles
+  const url = window.location.href
+  navigator.clipboard.writeText(url).then(() => {
+    notify({
+      message: '🔗 Enlace copiado al portapapeles',
+      color: 'success'
+    })
+  })
+}
+
+const denunciarEmpleo = () => {
+  notify({
+    message: '🚨 Denuncia enviada. Gracias por tu reporte.',
+    color: 'info'
+  })
+  // TODO: Abrir modal de denuncia
+}
 </script>
 
 <style scoped>
+/* ========== Section ========== */
 .job-detail-section {
-  min-height: calc(100vh - 200px);
-  padding: 2rem 1rem;
-  background: linear-gradient(135deg, #FAFAFA 0%, #FFFFFF 100%);
+  min-height: 100vh;
+  background: linear-gradient(135deg, #F5F3FF 0%, #FFFFFF 100%);
+  padding: 2rem 0;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 1.5rem;
 }
 
 /* ========== Breadcrumb ========== */
@@ -476,15 +353,17 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 2rem;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .breadcrumb a {
   color: var(--color-purple);
   text-decoration: none;
+  transition: color 0.2s;
 }
 
 .breadcrumb a:hover {
+  color: var(--color-purple-dark);
   text-decoration: underline;
 }
 
@@ -494,272 +373,344 @@ onMounted(() => {
 
 .breadcrumb .current {
   color: #666;
+  font-weight: 500;
 }
 
-/* ========== Header Card ========== */
+/* ========== Job Header ========== */
 .job-header {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding: 2.5rem;
   margin-bottom: 2rem;
-  display: grid;
-  grid-template-columns: 200px 1fr auto;
-  gap: 2.5rem;
-  align-items: start;
 }
 
 .job-logo {
   position: relative;
-  width: 200px;
-  height: 200px;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #F5F5F5;
-  border: 2px solid #E0E0E0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 2rem;
 }
 
 .job-logo img {
-  max-width: 180px;
-  max-height: 180px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  border-radius: 12px;
 }
 
 .placeholder-logo {
   width: 100%;
   height: 100%;
+  background: #F5F5F5;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #F5F5F5 0%, #E0E0E0 100%);
 }
 
 .badge-verified {
   position: absolute;
-  bottom: 12px;
+  bottom: -10px;
   left: 50%;
   transform: translateX(-50%);
-  background: #4CAF50;
-  color: white;
-  padding: 0.4rem 0.875rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
+  gap: 0.25rem;
+  background: #4CAF50;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
+/* ========== Job Info ========== */
 .job-info {
-  flex: 1;
+  text-align: center;
 }
 
 .badges-row {
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  justify-content: center;
   flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .badge-plan {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .badge-plan.destacado {
-  background: var(--color-yellow-primary);
-  color: var(--color-purple-darkest);
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #fff;
 }
 
 .badge-plan.premium {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: #333;
+  background: linear-gradient(135deg, #9C27B0 0%, #6A1B9A 100%);
+  color: #fff;
 }
 
 .badge-urgent {
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  background: rgba(244, 67, 54, 0.1);
-  color: #D32F2F;
+  gap: 0.25rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #FF5252;
+  color: white;
 }
 
 .job-title {
   font-size: 2rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-purple-darkest);
-  margin: 0 0 0.5rem 0;
-  line-height: 1.2;
+  margin: 0 0 0.75rem 0;
 }
 
 .company-name {
-  font-size: 1.125rem;
-  color: #666;
-  margin: 0 0 1.5rem 0;
-  font-weight: 500;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  font-size: 1.25rem;
+  color: #666;
+  margin: 0 0 2rem 0;
+  font-weight: 500;
 }
 
+/* ========== Info Grid ========== */
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
   margin-bottom: 1.5rem;
-  padding: 1.25rem;
-  background: #F8F8F8;
-  border-radius: 12px;
 }
 
 .info-item {
   display: flex;
-  gap: 0.5rem;
-  font-size: 0.95rem;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #F8F8F8;
+  border-radius: 8px;
 }
 
 .info-label {
   font-weight: 600;
   color: #666;
-  min-width: 100px;
 }
 
 .info-value {
   color: #333;
 }
 
+/* ========== Tags ========== */
 .tags-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .tags-label {
   font-weight: 600;
   color: #666;
-  font-size: 0.95rem;
 }
 
 .tags {
   display: flex;
-  flex-wrap: wrap;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .tag {
   padding: 0.35rem 0.75rem;
-  background: rgba(92, 0, 153, 0.08);
+  background: rgba(92, 0, 153, 0.1);
   color: var(--color-purple);
   border-radius: 12px;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
+/* ========== Salary Box ========== */
 .salary-box {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 1rem;
-  padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(46, 125, 50, 0.05) 100%);
-  border-left: 4px solid #4CAF50;
-  border-radius: 8px;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #F0F4FF 0%, #E8F0FF 100%);
+  border-radius: 12px;
   margin-bottom: 1rem;
 }
 
 .salary-label {
   font-size: 0.9rem;
   color: #666;
-  font-weight: 600;
+  margin-bottom: 0.25rem;
 }
 
 .salary-value {
-  font-size: 1.125rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #2E7D32;
+  color: var(--color-purple);
 }
 
+/* ========== Status Box ========== */
 .status-box {
-  padding: 0.875rem 1.25rem;
-  border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 0.95rem;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 1rem;
   margin-bottom: 1rem;
 }
 
 .status-box.abierta {
   background: rgba(76, 175, 80, 0.1);
-  color: #2E7D32;
-  border-left: 4px solid #4CAF50;
+  color: #4CAF50;
 }
 
 .status-box.cerrada {
-  background: rgba(158, 158, 158, 0.1);
-  color: #666;
-  border-left: 4px solid #999;
+  background: rgba(244, 67, 54, 0.1);
+  color: #F44336;
 }
 
+/* ========== Job ID ========== */
 .job-id {
   font-size: 0.85rem;
   color: #999;
+  text-align: center;
 }
 
-/* ========== Action Buttons ========== */
-.action-buttons {
+/* ========== JOB ACTIONS ========== */
+.job-actions {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  min-width: 250px;
+  padding: 2rem;
+  background: linear-gradient(135deg, #F8F4FF 0%, #FFFFFF 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(92, 0, 153, 0.1);
+  margin: 2rem 0;
 }
 
-.apply-btn {
-  font-size: 1.05rem !important;
-  font-weight: 700 !important;
-  padding: 1.25rem 1.5rem !important;
+/* BOTÓN PRINCIPAL - "QUIERO POSTULARME" */
+.postular-btn {
+  width: 100%;
+  padding: 1.2rem 2rem !important;
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  background: linear-gradient(135deg, var(--color-purple) 0%, #6A1B9A 100%) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(92, 0, 153, 0.25) !important;
+  transition: all 0.3s ease !important;
+  position: relative;
+  overflow: hidden;
 }
 
+.postular-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.postular-btn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.postular-btn:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 24px rgba(92, 0, 153, 0.4) !important;
+}
+
+.postular-btn:active {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(92, 0, 153, 0.3) !important;
+}
+
+.btn-icon {
+  margin-right: 0.5rem;
+  font-size: 1.3rem !important;
+  animation: celebrate 2s ease-in-out infinite;
+}
+
+@keyframes celebrate {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-10deg) scale(1.1);
+  }
+  75% {
+    transform: rotate(10deg) scale(1.1);
+  }
+}
+
+.btn-text {
+  position: relative;
+  z-index: 1;
+}
+
+/* ACCIONES SECUNDARIAS */
 .secondary-actions {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  justify-content: center;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(92, 0, 153, 0.1);
 }
 
-/* ========== Content Section ========== */
-.content-section {
+.secondary-actions button {
+  font-size: 0.9rem !important;
+  padding: 0.6rem 1rem !important;
+}
+
+.secondary-actions button:hover {
+  background: rgba(92, 0, 153, 0.05) !important;
+}
+
+/* ========== Job Content ========== */
+.job-content {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding: 2.5rem;
 }
 
-.tab-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+.content-section {
+  margin-bottom: 2.5rem;
 }
 
-.content-block {
-  padding: 2rem;
-  background: #FAFAFA;
-  border-radius: 12px;
+.content-section:last-child {
+  margin-bottom: 0;
 }
 
-.block-title {
+.section-title {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -767,275 +718,96 @@ onMounted(() => {
   font-weight: 700;
   color: var(--color-purple-darkest);
   margin: 0 0 1.5rem 0;
-}
-
-.block-text {
-  font-size: 1.05rem;
-  line-height: 1.7;
-  color: #333;
-}
-
-.requirements-list,
-.responsibilities-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.requirements-list li,
-.responsibilities-list li {
-  display: flex;
-  align-items: start;
-  gap: 0.75rem;
-  font-size: 1.05rem;
-  line-height: 1.6;
-  color: #333;
-}
-
-.benefits-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-.benefit-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1.25rem;
-  background: white;
-  border-radius: 8px;
-  font-size: 1rem;
-  color: #333;
-  border: 1px solid #E0E0E0;
-}
-
-/* ========== CTA Block ========== */
-.cta-block {
-  background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-purple-dark) 100%);
-  color: white;
-  padding: 3rem;
-  border-radius: 12px;
-  text-align: center;
-}
-
-.cta-block h3 {
-  font-size: 1.75rem;
-  margin: 0 0 0.5rem 0;
-}
-
-.cta-block p {
-  font-size: 1.05rem;
-  margin: 0 0 2rem 0;
-  opacity: 0.9;
-}
-
-/* ========== Company Info ========== */
-.company-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.company-header {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  padding-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
   border-bottom: 2px solid #E0E0E0;
 }
 
-.company-logo-large {
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
-  border: 2px solid #E0E0E0;
-  border-radius: 12px;
-  padding: 1rem;
-  background: white;
-}
-
-.company-name-large {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-purple-darkest);
-  margin: 0 0 0.5rem 0;
-}
-
-.company-sector {
-  font-size: 1rem;
-  color: #666;
-  margin: 0;
-}
-
-.company-description {
-  font-size: 1.05rem;
-  line-height: 1.7;
+.section-text {
   color: #333;
-}
-
-.company-details {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  line-height: 1.8;
   font-size: 1rem;
-  color: #333;
 }
 
-.detail-item a {
-  color: var(--color-purple);
-  text-decoration: none;
+.section-text ul {
+  padding-left: 1.5rem;
+  margin: 1rem 0;
 }
 
-.detail-item a:hover {
-  text-decoration: underline;
+.section-text li {
+  margin-bottom: 0.75rem;
 }
 
-.other-jobs h4 {
-  font-size: 1.25rem;
-  font-weight: 700;
+.section-text p {
+  margin-bottom: 1rem;
+}
+
+.section-text strong {
   color: var(--color-purple-darkest);
-  margin: 0 0 1rem 0;
-}
-
-.jobs-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.job-item {
-  padding: 1rem;
-  background: white;
-  border-radius: 8px;
-  border: 2px solid #E0E0E0;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.job-item:hover {
-  border-color: var(--color-purple);
-  transform: translateX(4px);
-}
-
-.job-item-title {
-  font-size: 1.05rem;
   font-weight: 600;
-  color: var(--color-purple-darkest);
-  margin-bottom: 0.35rem;
 }
 
-.job-item-meta {
-  font-size: 0.9rem;
-  color: #666;
-  display: flex;
-  gap: 0.5rem;
-}
-
-.confidential-message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
-  color: #666;
-}
-
-.confidential-message p {
-  max-width: 500px;
-  font-size: 1.05rem;
-  line-height: 1.6;
-  margin-top: 1rem;
-}
-
-/* ========== Responsive ========== */
-@media (max-width: 1024px) {
-  .job-header {
-    grid-template-columns: 160px 1fr;
-    gap: 2rem;
-  }
-
-  .job-logo {
-    width: 160px;
-    height: 160px;
-  }
-
-  .action-buttons {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    min-width: auto;
-  }
-
-  .secondary-actions {
-    flex-direction: row;
-    flex: 1;
-  }
-
-  .info-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .benefits-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
+/* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
-  .job-detail-section {
-    padding: 1.5rem 1rem;
-  }
-
   .job-header {
-    grid-template-columns: 1fr;
     padding: 1.5rem;
-    gap: 1.5rem;
-  }
-
-  .job-logo {
-    width: 100%;
-    height: 200px;
   }
 
   .job-title {
     font-size: 1.5rem;
   }
 
-  .action-buttons {
-    flex-direction: column;
+  .company-name {
+    font-size: 1rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .salary-value {
+    font-size: 1.25rem;
+  }
+
+  .job-actions {
+    padding: 1.5rem;
+  }
+
+  .postular-btn {
+    padding: 1rem 1.5rem !important;
+    font-size: 1rem !important;
+  }
+
+  .btn-icon {
+    font-size: 1.1rem !important;
   }
 
   .secondary-actions {
     flex-direction: column;
+    gap: 0.5rem;
   }
 
-  .content-section {
+  .secondary-actions button {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .job-content {
     padding: 1.5rem;
   }
 
-  .content-block {
-    padding: 1.5rem;
-  }
-
-  .block-title {
+  .section-title {
     font-size: 1.25rem;
   }
+}
 
-  .cta-block {
-    padding: 2rem 1.5rem;
-  }
+/* ESTADOS ESPECIALES */
+.postular-btn:disabled {
+  background: #CCCCCC !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
 
-  .cta-block h3 {
-    font-size: 1.5rem;
-  }
+.postular-btn:disabled:hover {
+  transform: none !important;
 }
 </style>

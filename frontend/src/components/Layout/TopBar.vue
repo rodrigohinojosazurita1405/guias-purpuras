@@ -12,11 +12,11 @@
       <div class="top-left">
         <a href="tel:+59144123456" class="top-link">
           <VaIcon name="phone" size="small" />
-          <span>+591 4-412-3456</span>
+          <span>+59165324767</span>
         </a>
         <a href="mailto:info@guiaspurpuras.com" class="top-link">
           <VaIcon name="email" size="small" />
-          <span>info@guiaspurpuras.com</span>
+          <span>info@guiaspurpuras.com.bo</span>
         </a>
       </div>
 

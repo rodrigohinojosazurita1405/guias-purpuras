@@ -6,11 +6,11 @@
       <h1 class="hero-title">
         Una guía moderna para una 
         <span class="highlight">Bolivia</span>
-        conectada
+        conectada 
       </h1>
       
       <p class="hero-subtitle">
-        Profesionales, Restaurantes, Trabajos y Servicios en tu ciudad
+        Somos el ecosistema digital que conecta el talento, gastronomía, las empresas PyMe y las oportunidades de Bolivia.
       </p>
 
       <!-- Tabs de Categorías -->

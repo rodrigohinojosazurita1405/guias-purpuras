@@ -19,7 +19,15 @@
             <h3>Guías Púrpuras</h3>
           </div>
           <p class="footer-desc">
-            La plataforma líder de clasificados en Bolivia. Conectamos personas, negocios y oportunidades en todo el país.
+            Creemos que Bolivia está llena de talento, esfuerzo y creatividad, pero que ese
+            potencial se pierde en el ruido de redes caóticas y plataformas impersonales. Por eso
+            creamos Guías Púrpuras, un ecosistema digital diseñado para ordenar el caos y
+            conectar a las personas con oportunidades reales.
+            No somos una simple app de clasificados. Somos una red viva de servicios profesionales,
+            empresas y PyMe, empleos y gastronomía, organizada, clara y moderna. Un espacio donde lo
+            boliviano se ve bien, se encuentra fácil y se valora.
+            No venimos a competir con las redes sociales; venimos a complementarlas, trayendo
+            orden, diseño y propósito al mundo digital boliviano
           </p>
           <!-- Redes Sociales -->
           <div class="social-links">
