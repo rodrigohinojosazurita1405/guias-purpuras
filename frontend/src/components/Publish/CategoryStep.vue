@@ -138,7 +138,7 @@ const categories = ref([
   { id: 'profesionales', name: 'Profesionales', icon: '📋' },
   { id: 'gastronomia', name: 'Gastronomía', icon: '🍽️' },
   { id: 'trabajos', name: 'Trabajos', icon: '💼' },
-  { id: 'servicios', name: 'Servicios', icon: '🛠️' }
+  { id: 'negocios', name: 'Negocios', icon: '🛠️' }
 ])
 
 // TODO Django: GET /api/subcategories/?category_id=X
@@ -146,7 +146,7 @@ const subcategories = ref({
   profesionales: ['Abogados', 'Doctores', 'Contadores', 'Arquitectos', 'Ingenieros', 'Psicólogos', 'Dentistas', 'Veterinarios'],
   gastronomia: ['Restaurantes', 'Cafeterías', 'Comida Rápida', 'Catering', 'Pizzerías'],
   trabajos: ['Tiempo Completo', 'Medio Tiempo', 'Freelance', 'Pasantías', 'Temporal'],
-  servicios: ['Plomería', 'Electricidad', 'Carpintería', 'Limpieza', 'Reparaciones']
+  negocios: ['Importadoras', 'Telecomunicaciones', 'Construcción', 'Fabricas', 'Tecnologia','Manufactura']
 })
 
 // TODO Django: GET /api/cities/

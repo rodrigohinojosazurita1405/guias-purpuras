@@ -1,11 +1,12 @@
 // frontend/src/main.js
 import { createApp } from 'vue'
-import { createPinia } from 'pinia'  // ← NUEVO
+import { createPinia } from 'pinia'
 import { createVuestic } from 'vuestic-ui'
 import 'vuestic-ui/css'
 
 import App from './App.vue'
 import router from './router'
+import { vuesticSpanishConfig } from './config/vuestic-i18n-config'
 
 // ==========================================
 // CONFIGURACIÓN DE VUESTIC UI
@@ -30,19 +31,22 @@ const vuesticConfig = {
       danger: '#e34b4a',
       warning: '#ffc200',
     }
-  }
+  },
+  
+  // ✨ CONFIGURACIÓN DE TRADUCCIONES AL ESPAÑOL
+  i18n: vuesticSpanishConfig
 }
 
 // ==========================================
 // CREAR APP E INSTANCIAS
 // ==========================================
 const app = createApp(App)
-const pinia = createPinia()  // ← NUEVO
+const pinia = createPinia()
 
 // ==========================================
 // USAR PLUGINS
 // ==========================================
-app.use(pinia)  // ← NUEVO (antes de router)
+app.use(pinia)
 app.use(router)
 app.use(createVuestic({ config: vuesticConfig }))
 

@@ -202,8 +202,21 @@ const nextStep = async () => {
     return
   }
   
+  // 🎯 REDIRIGIR A FORMULARIOS ESPECÍFICOS DESPUÉS DEL PASO 1
   if (currentStep.value === 1) {
     updateStepsList()
+    
+    // Si selecciona "Negocios", redirigir al formulario específico
+    if (formData.value.category === 'negocios') {
+      router.push('/guias/negocios/crear')
+      return
+    }
+    
+    // Si selecciona "Trabajos", redirigir al formulario específico
+    if (formData.value.category === 'trabajos') {
+      router.push('/guias/trabajos/crear')
+      return
+    }
   }
   
   if (currentStep.value < getTotalSteps()) {

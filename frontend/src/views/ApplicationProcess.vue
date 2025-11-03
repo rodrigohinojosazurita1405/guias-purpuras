@@ -1,4 +1,5 @@
 <!-- frontend/src/views/ApplicationProcess.vue -->
+<!-- ACTUALIZADO V2.0 - Compatible con JobCreate V2.0 -->
 <template>
   <MainLayout>
     <section class="application-process-section">
@@ -34,10 +35,15 @@
               <va-icon name="place" size="small" />
               {{ jobData.city }}
             </p>
+            <!-- Salary Info Badge (NUEVO) -->
+            <div v-if="showSalaryInfo" class="salary-badge">
+              <va-icon name="payments" size="small" />
+              <span>{{ salaryDisplayText }}</span>
+            </div>
           </div>
         </div>
 
-        <!-- Stepper / Progress Bar -->
+        <!-- Stepper / Progress Bar - ACTUALIZADO: 4 pasos -->
         <div class="stepper">
           <div 
             v-for="(step, index) in steps" 
@@ -67,20 +73,34 @@
         <!-- Contenido de los Pasos -->
         <div class="step-content">
           
-          <!-- PASO 1: Pretensión y Carta -->
+          <!-- PASO 1: Pretensión y Carta (ACTUALIZADO - Condicional) -->
           <div v-if="currentStep === 0" class="step-panel">
-            <h2 class="panel-title">Pretensión y Carta</h2>
+            <h2 class="panel-title">
+              {{ requiresSalaryExpectation ? 'Pretensión Salarial y Carta' : 'Carta de Presentación' }}
+            </h2>
             <p class="panel-description">
-              Cuéntanos sobre tu pretensión salarial y escribe una carta de presentación para esta posición.
+              {{ requiresSalaryExpectation 
+                ? 'Cuéntanos sobre tu pretensión salarial y escribe una carta de presentación para esta posición.'
+                : 'Escribe una carta de presentación destacando por qué eres el candidato ideal para esta posición.'
+              }}
             </p>
 
             <div class="form-section">
-              <!-- Pretensión Salarial -->
-              <div class="salary-section">
+              
+              <!-- Pretensión Salarial (CONDICIONAL - Solo si es "A convenir") -->
+              <div v-if="requiresSalaryExpectation" class="salary-section">
                 <h3 class="section-subtitle">
                   <va-icon name="payments" color="purple" />
-                  Pretensión Salarial
+                  Pretensión Salarial *
                 </h3>
+
+                <div class="salary-info-notice">
+                  <va-icon name="info" size="small" color="#2196F3" />
+                  <p>
+                    La empresa ha indicado que el salario es <strong>"A convenir"</strong>. 
+                    Por favor, indica tu pretensión salarial para esta posición.
+                  </p>
+                </div>
 
                 <div class="salary-type-selector">
                   <VaRadio
@@ -107,6 +127,8 @@
                     placeholder="Monto"
                     :min="0"
                     style="flex: 1;"
+                    :error="!!errors.salaryAmount"
+                    :error-messages="errors.salaryAmount"
                   />
                 </div>
 
@@ -122,6 +144,16 @@
                       <strong>{{ applicationData.salaryCurrency }} {{ applicationData.salaryAmount || 0 }}</strong>
                     </p>
                   </div>
+                </div>
+              </div>
+
+              <!-- Mensaje si el salario ya está definido (NUEVO) -->
+              <div v-else class="salary-defined-message">
+                <va-icon name="check_circle" color="success" size="large" />
+                <div>
+                  <h4>Salario Definido por la Empresa</h4>
+                  <p>{{ salaryDisplayText }}</p>
+                  <p class="hint">No necesitas indicar tu pretensión salarial.</p>
                 </div>
               </div>
 
@@ -150,8 +182,90 @@
             </div>
           </div>
 
-          <!-- PASO 2: Currículum - VERSIÓN CORREGIDA -->
+          <!-- PASO 2: Preguntas de Screening (NUEVO - V2.0) -->
           <div v-if="currentStep === 1" class="step-panel">
+            <h2 class="panel-title">Preguntas del Reclutador</h2>
+            <p class="panel-description">
+              Por favor, responde las siguientes preguntas para completar tu postulación.
+            </p>
+
+            <!-- Si no hay preguntas de screening -->
+            <div v-if="!hasScreeningQuestions" class="no-screening-message">
+              <va-icon name="info" size="large" color="#2196F3" />
+              <div>
+                <h4>No hay preguntas adicionales</h4>
+                <p>El reclutador no ha configurado preguntas de screening para esta posición.</p>
+                <p class="hint">Puedes continuar al siguiente paso.</p>
+              </div>
+            </div>
+
+            <!-- Si hay preguntas de screening -->
+            <div v-else class="screening-questions-section">
+              <div class="screening-info-box">
+                <va-icon name="quiz" color="purple" />
+                <div>
+                  <p>
+                    El reclutador ha preparado <strong>{{ screeningQuestions.length }} pregunta(s)</strong> 
+                    para conocerte mejor y filtrar candidatos.
+                  </p>
+                  <p class="hint">
+                    Las preguntas marcadas con <span class="required-mark">*</span> son obligatorias.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Lista de preguntas -->
+              <div class="screening-questions-list">
+                <div 
+                  v-for="(question, index) in screeningQuestions"
+                  :key="index"
+                  class="screening-question-card"
+                >
+                  <div class="question-header">
+                    <span class="question-number">{{ index + 1 }}</span>
+                    <label class="question-text">
+                      {{ question.text }}
+                      <span v-if="question.required" class="required-mark">*</span>
+                    </label>
+                  </div>
+
+                  <div class="question-answer">
+                    <!-- Tipo: Texto corto -->
+                    <VaInput
+                      v-if="question.type === 'text'"
+                      v-model="applicationData.screeningAnswers[index]"
+                      placeholder="Tu respuesta..."
+                      :error="!!errors[`screening_${index}`]"
+                      :error-messages="errors[`screening_${index}`]"
+                    />
+
+                    <!-- Tipo: Sí/No -->
+                    <VaRadioGroup
+                      v-else-if="question.type === 'yesno'"
+                      v-model="applicationData.screeningAnswers[index]"
+                      :options="yesNoOptions"
+                      :error="!!errors[`screening_${index}`]"
+                      :error-messages="errors[`screening_${index}`]"
+                      class="yesno-group"
+                    />
+
+                    <!-- Tipo: Opción múltiple -->
+                    <VaSelect
+                      v-else-if="question.type === 'multiple'"
+                      v-model="applicationData.screeningAnswers[index]"
+                      :options="question.options.split('\n').filter(opt => opt.trim())"
+                      placeholder="Selecciona una opción..."
+                      :error="!!errors[`screening_${index}`]"
+                      :error-messages="errors[`screening_${index}`]"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PASO 3: Currículum (antes paso 2) -->
+          <div v-if="currentStep === 2" class="step-panel">
             <h2 class="panel-title">Currículum</h2>
             <p class="panel-description">
               Revisa que tu currículum esté actualizado y con datos de contacto correctos.
@@ -167,21 +281,14 @@
                   Usar mi currículum guardado
                 </VaCheckbox>
 
-                <!-- Preview del CV guardado (solo si está activado el checkbox) -->
+                <!-- Lista de CVs guardados (solo si está activado el checkbox) -->
                 <transition name="fade">
-                  <div v-if="applicationData.useSavedCV" class="cv-preview">
-                    <va-icon name="description" size="3rem" color="purple" />
-                    <div class="cv-info">
-                      <h4>{{ savedCV.title }}</h4>
-                      <p>Última actualización: {{ savedCV.lastUpdate }}</p>
-                    </div>
-                    <VaButton 
-                      preset="plain" 
-                      color="purple"
-                      @click="editCV"
-                    >
-                      Editar
-                    </VaButton>
+                  <div v-if="applicationData.useSavedCV" class="saved-cv-list">
+                    <CVList
+                      v-model="selectedSavedCVId"
+                      @create-new="handleCreateNewFromList"
+                      @edit="handleEditFromList"
+                    />
                   </div>
                 </transition>
               </div>
@@ -231,7 +338,7 @@
 
                     <VaButton 
                       preset="secondary"
-                      @click="showFillCVForm = true"
+                      @click="showCVFormWizard = true"
                       size="large"
                       class="cv-option-btn"
                     >
@@ -272,263 +379,430 @@
                     </div>
                   </transition>
 
-                  <!-- Resumen del CV (si está llenando el formulario) -->
+                  <!-- Mostrar CV creado con wizard (si existe) -->
                   <transition name="fade">
-                    <div v-if="showFillCVForm && !applicationData.useSavedCV" class="cv-summary">
-                      
-                      <!-- Datos Personales -->
-                      <div class="cv-section">
-                        <div class="section-header">
-                          <h4>
-                            <va-icon name="person" />
-                            Datos Personales
-                          </h4>
-                          <VaButton 
-                            preset="plain" 
-                            icon="edit" 
-                            size="small"
-                            @click="editSection('personal')"
+                    <div v-if="cvCreated" class="cv-created-preview">
+                      <div class="cv-created-header">
+                        <va-icon name="check_circle" color="success" size="2.5rem" />
+                        <div class="cv-created-info">
+                          <h4>CV Completo Creado</h4>
+                          <p>Tu currículum está listo para ser enviado</p>
+                        </div>
+                        <div class="cv-created-actions">
+                          <VaButton
+                            preset="plain"
+                            icon="visibility"
+                            @click="showCVPreviewModal = true"
+                            title="Ver CV completo"
+                          >
+                            Ver
+                          </VaButton>
+                          <VaButton
+                            preset="plain"
+                            icon="edit"
+                            @click="showCVFormWizard = true"
+                            title="Editar CV"
                           >
                             Editar
                           </VaButton>
                         </div>
-                        <div class="section-content">
-                          <p><strong>CV actualizado:</strong> {{ cvData.lastUpdate }}</p>
-                          <p><strong>Nombre:</strong> {{ cvData.fullName }}</p>
-                          <p><strong>Email:</strong> {{ cvData.email }}</p>
-                          <p><strong>Teléfono:</strong> {{ cvData.phone }}</p>
-                          <p><strong>Ciudad:</strong> {{ cvData.city }}</p>
+                      </div>
+
+                      <!-- Detalles del CV creado -->
+                      <div class="cv-created-details">
+                        <div class="cv-detail-row">
+                          <va-icon name="person" size="small" />
+                          <strong>{{ cvFormData.personalInfo.fullName }}</strong>
+                        </div>
+                        <div class="cv-detail-row">
+                          <va-icon name="email" size="small" />
+                          {{ cvFormData.personalInfo.email }}
+                        </div>
+                        <div class="cv-detail-row">
+                          <va-icon name="phone" size="small" />
+                          {{ cvFormData.personalInfo.phone }}
+                        </div>
+                        <div class="cv-detail-row">
+                          <va-icon name="place" size="small" />
+                          {{ cvFormData.personalInfo.city }}
                         </div>
                       </div>
 
-                      <!-- Título Profesional -->
-                      <div class="cv-section">
-                        <div class="section-header">
-                          <h4>
-                            <va-icon name="school" />
-                            Título Profesional
-                          </h4>
-                          <VaButton 
-                            preset="plain" 
-                            icon="edit" 
-                            size="small"
-                            @click="editSection('title')"
-                          >
-                            Editar
-                          </VaButton>
+                      <!-- Stats del CV -->
+                      <div class="cv-created-stats">
+                        <div class="stat-item">
+                          <va-icon name="school" size="small" color="purple" />
+                          {{ cvFormData.education.length }} Formación(es)
                         </div>
-                        <div class="section-content">
-                          <p>{{ cvData.professionalTitle || 'No especificado' }}</p>
+                        <div class="stat-item">
+                          <va-icon name="work" size="small" color="purple" />
+                          {{ cvFormData.experience.length }} Experiencia(s)
                         </div>
-                      </div>
-
-                      <!-- Presentación / Biografía -->
-                      <div class="cv-section">
-                        <div class="section-header">
-                          <h4>
-                            <va-icon name="article" />
-                            Presentación / Biografía
-                          </h4>
-                          <VaButton 
-                            preset="plain" 
-                            icon="edit" 
-                            size="small"
-                            @click="editSection('bio')"
-                          >
-                            Editar
-                          </VaButton>
+                        <div class="stat-item">
+                          <va-icon name="lightbulb" size="small" color="purple" />
+                          {{ cvFormData.skills.length }} Habilidad(es)
                         </div>
-                        <div class="section-content">
-                          <p>{{ cvData.bio || 'No especificado' }}</p>
+                        <div class="stat-item">
+                          <va-icon name="language" size="small" color="purple" />
+                          {{ cvFormData.languages.length }} Idioma(s)
                         </div>
                       </div>
-
-                      <!-- Resumen de Experiencia Laboral -->
-                      <div class="cv-section">
-                        <div class="section-header">
-                          <h4>
-                            <va-icon name="work_history" />
-                            Experiencia Laboral
-                          </h4>
-                          <VaButton 
-                            preset="plain" 
-                            icon="edit" 
-                            size="small"
-                            @click="editSection('experience')"
-                          >
-                            Editar
-                          </VaButton>
-                        </div>
-                        <div class="section-content">
-                          <div 
-                            v-if="cvData.experience.length > 0"
-                            v-for="(exp, index) in cvData.experience" 
-                            :key="index" 
-                            class="experience-item"
-                          >
-                            <p><strong>{{ exp.position }}</strong></p>
-                            <p>{{ exp.company }} | {{ exp.period }}</p>
-                          </div>
-                          <p v-else class="no-content">No has agregado experiencia laboral</p>
-                        </div>
-                      </div>
-
                     </div>
                   </transition>
+
                 </div>
               </transition>
+
             </div>
           </div>
 
-          <!-- PASO 3: Revisión -->
-          <div v-if="currentStep === 2" class="step-panel">
-            <h2 class="panel-title">Revisión</h2>
+          <!-- PASO 4: Confirmación (antes paso 3) -->
+          <div v-if="currentStep === 3" class="step-panel">
+            <h2 class="panel-title">Confirmar y Enviar</h2>
             <p class="panel-description">
               Revisa tu postulación antes de enviarla. Asegúrate de que toda la información sea correcta.
             </p>
 
-            <div class="review-content">
-              <!-- Revisión de Pretensión Salarial y Carta -->
-              <div class="review-card">
-                <h3 class="review-title">
-                  <va-icon name="payments" />
+            <div class="confirmation-section">
+              
+              <!-- Resumen del trabajo -->
+              <div class="confirmation-card">
+                <h3 class="confirmation-subtitle">
+                  <va-icon name="work" color="purple" />
+                  Postulación para
+                </h3>
+                <div class="job-summary">
+                  <h4>{{ jobTitle }}</h4>
+                  <p>{{ jobData.companyName }}</p>
+                  <p>
+                    <va-icon name="place" size="small" />
+                    {{ jobData.city }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Resumen de pretensión salarial (si aplica) -->
+              <div v-if="requiresSalaryExpectation && applicationData.salaryAmount" class="confirmation-card">
+                <h3 class="confirmation-subtitle">
+                  <va-icon name="payments" color="purple" />
                   Pretensión Salarial
                 </h3>
-                <div class="review-info">
-                  <div class="review-row">
-                    <span class="review-label">Tipo:</span>
-                    <span class="review-value">{{ applicationData.salaryType === 'bruto' ? 'Sueldo Bruto' : 'Sueldo Neto' }}</span>
-                  </div>
-                  <div class="review-row">
-                    <span class="review-label">Monto:</span>
-                    <span class="review-value">{{ applicationData.salaryCurrency }} {{ applicationData.salaryAmount || 0 }}</span>
-                  </div>
+                <div class="salary-summary">
+                  <p class="salary-amount">
+                    {{ applicationData.salaryCurrency }} {{ applicationData.salaryAmount.toLocaleString() }}
+                  </p>
+                  <p class="salary-type">{{ applicationData.salaryType === 'bruto' ? 'Bruto' : 'Neto' }}</p>
                 </div>
+                <VaButton
+                  preset="plain"
+                  size="small"
+                  @click="currentStep = 0"
+                >
+                  Editar
+                </VaButton>
               </div>
 
-              <div class="review-card">
-                <h3 class="review-title">
-                  <va-icon name="edit_note" />
+              <!-- Resumen de preguntas de screening (si hay) -->
+              <div v-if="hasScreeningQuestions && hasAnsweredScreening" class="confirmation-card">
+                <h3 class="confirmation-subtitle">
+                  <va-icon name="quiz" color="purple" />
+                  Respuestas a Preguntas
+                </h3>
+                <div class="screening-answers-summary">
+                  <div 
+                    v-for="(question, index) in screeningQuestions"
+                    :key="index"
+                    class="answer-item"
+                  >
+                    <p class="answer-question">{{ index + 1 }}. {{ question.text }}</p>
+                    <p class="answer-response">
+                      <va-icon name="check_circle" size="small" color="success" />
+                      {{ applicationData.screeningAnswers[index] || 'Sin respuesta' }}
+                    </p>
+                  </div>
+                </div>
+                <VaButton
+                  preset="plain"
+                  size="small"
+                  @click="currentStep = 1"
+                >
+                  Editar
+                </VaButton>
+              </div>
+
+              <!-- Resumen de carta de presentación -->
+              <div v-if="applicationData.coverLetter" class="confirmation-card">
+                <h3 class="confirmation-subtitle">
+                  <va-icon name="edit_note" color="purple" />
                   Carta de Presentación
                 </h3>
-                <div class="review-info">
-                  <p v-if="applicationData.coverLetter" class="cover-letter-preview">{{ applicationData.coverLetter }}</p>
-                  <p v-else class="no-content">No has incluido carta de presentación</p>
+                <div class="cover-letter-summary">
+                  <p>{{ applicationData.coverLetter.substring(0, 200) }}{{ applicationData.coverLetter.length > 200 ? '...' : '' }}</p>
                 </div>
+                <VaButton
+                  preset="plain"
+                  size="small"
+                  @click="currentStep = 0"
+                >
+                  Editar
+                </VaButton>
               </div>
 
-              <!-- Revisión de CV -->
-              <div class="review-card">
-                <h3 class="review-title">
-                  <va-icon name="description" />
+              <!-- Resumen del CV -->
+              <div class="confirmation-card">
+                <h3 class="confirmation-subtitle">
+                  <va-icon name="description" color="purple" />
                   Currículum
                 </h3>
-                <div class="review-info">
-                  <div v-if="applicationData.useSavedCV && hasSavedCV" class="review-row">
-                    <span class="review-label">CV:</span>
-                    <span class="review-value">{{ savedCV.title }}</span>
+                <div class="cv-summary">
+                  <div v-if="applicationData.useSavedCV && selectedSavedCVId">
+                    <va-icon name="check_circle" color="success" />
+                    <p>CV guardado seleccionado</p>
                   </div>
-                  <div v-else-if="applicationData.uploadedCV" class="review-row">
-                    <span class="review-label">CV:</span>
-                    <span class="review-value">{{ applicationData.uploadedCV.name }}</span>
+                  <div v-else-if="applicationData.uploadedCV">
+                    <va-icon name="check_circle" color="success" />
+                    <p>{{ applicationData.uploadedCV.name }}</p>
                   </div>
-                  <p v-else class="no-content">No has adjuntado un CV</p>
+                  <div v-else-if="cvCreated">
+                    <va-icon name="check_circle" color="success" />
+                    <p>CV creado - {{ cvFormData.personalInfo.fullName }}</p>
+                  </div>
                 </div>
+                <VaButton
+                  preset="plain"
+                  size="small"
+                  @click="currentStep = 2"
+                >
+                  Editar
+                </VaButton>
               </div>
 
-              <!-- Aviso importante -->
-              <div class="important-notice">
-                <va-icon name="info" size="2rem" color="#2196F3" />
-                <div>
-                  <h4>Antes de enviar</h4>
-                  <p>• Asegúrate de que todos tus datos sean correctos.</p>
-                  <p>• Una vez enviada, no podrás modificar tu postulación.</p>
-                  <p>• La empresa recibirá tu información y se pondrá en contacto si hay interés.</p>
-                </div>
+              <!-- Términos y condiciones -->
+              <div class="terms-section">
+                <VaCheckbox
+                  v-model="applicationData.acceptedTerms"
+                  :error="!!errors.acceptedTerms"
+                  :error-messages="errors.acceptedTerms"
+                >
+                  He leído y acepto los 
+                  <a href="/terminos" target="_blank">términos y condiciones</a> 
+                  y la 
+                  <a href="/privacidad" target="_blank">política de privacidad</a>
+                </VaCheckbox>
               </div>
+
+              <!-- Botón de envío -->
+              <div class="submit-section">
+                <VaButton
+                  color="success"
+                  size="large"
+                  :loading="submitting"
+                  @click="submitApplication"
+                  :disabled="!canSubmit"
+                  class="submit-button"
+                >
+                  <va-icon name="send" />
+                  Enviar Postulación
+                </VaButton>
+                <p class="submit-hint">
+                  Al enviar tu postulación, la empresa recibirá tu información y se pondrá en contacto contigo.
+                </p>
+              </div>
+
             </div>
           </div>
 
         </div>
 
-        <!-- Botones de Navegación -->
+        <!-- Botones de navegación -->
         <div class="navigation-buttons">
           <VaButton
             v-if="currentStep > 0"
             preset="secondary"
             @click="previousStep"
+            size="large"
           >
             <va-icon name="arrow_back" />
             Anterior
           </VaButton>
           
-          <div style="flex: 1;"></div>
-          
           <VaButton
-            v-if="currentStep < steps.length - 1"
+            v-if="currentStep < 3"
             color="purple"
             @click="nextStep"
-            :disabled="!canProceed"
+            size="large"
           >
             Siguiente
             <va-icon name="arrow_forward" />
-          </VaButton>
-
-          <VaButton
-            v-if="currentStep === steps.length - 1"
-            color="success"
-            @click="submitApplication"
-            :loading="isSubmitting"
-          >
-            <va-icon name="send" />
-            Enviar Postulación
           </VaButton>
         </div>
 
       </div>
     </section>
 
-    <!-- Modal de Upload de CV -->
+    <!-- Modal para subir CV -->
     <VaModal
       v-model="showUploadCVModal"
-      size="large"
-      title="Subir mi Currículum"
-      :hide-default-actions="true"
-      no-padding
+      title="Subir tu Currículum"
+      size="medium"
+      :close-button="true"
+      hide-default-actions
     >
       <div class="upload-cv-modal-content">
         <p class="modal-description">
-          Sube tu CV en formato PDF, DOC o DOCX. El archivo no debe superar 5MB.
+          Sube tu CV en formato PDF, DOC o DOCX. El archivo no debe superar los 5 MB.
         </p>
 
-        <!-- Componente de Upload -->
-        <FileUpload
-          ref="cvUploadRef"
-          accept=".pdf,.doc,.docx"
-          :max-size="5"
-          :multiple="false"
-          file-type="CV"
-          @upload="handleCVUpload"
-          @remove="handleCVRemove"
-          @error="handleUploadError"
-        />
+        <VaFileUpload
+          v-model="uploadedFiles"
+          type="single"
+          file-types=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          dropzone
+          @file-added="handleFileAdded"
+          @file-removed="handleFileRemoved"
+        >
+          <template #content>
+            <div class="upload-dropzone">
+              <va-icon name="cloud_upload" size="4rem" color="#9155FD" />
+              <p class="upload-text">Arrastra tu CV aquí o haz click para seleccionar</p>
+              <p class="upload-hint">PDF, DOC o DOCX • Máximo 5 MB</p>
+            </div>
+          </template>
+        </VaFileUpload>
 
-        <!-- Botones del Modal -->
         <div class="modal-actions">
           <VaButton
             preset="secondary"
-            @click="closeUploadModal"
+            @click="showUploadCVModal = false"
           >
             Cancelar
           </VaButton>
           <VaButton
             color="purple"
-            @click="confirmUploadCV"
-            :disabled="!uploadedFile"
+            @click="confirmCVUpload"
+            :disabled="uploadedFiles.length === 0"
           >
-            <va-icon name="check" />
-            Usar este CV
+            Confirmar
           </VaButton>
+        </div>
+      </div>
+    </VaModal>
+
+    <!-- Modal de wizard para crear CV -->
+    <VaModal
+      v-model="showCVFormWizard"
+      title="Crear mi Currículum"
+      size="large"
+      :close-button="true"
+      hide-default-actions
+    >
+      <CVFormWizard
+        v-if="showCVFormWizard"
+        v-model="cvFormData"
+        @save="handleCVFormSave"
+        @cancel="showCVFormWizard = false"
+      />
+    </VaModal>
+
+    <!-- Modal para vista previa del CV creado -->
+    <VaModal
+      v-model="showCVPreviewModal"
+      title="Vista Previa de tu CV"
+      size="large"
+      :close-button="true"
+      hide-default-actions
+    >
+      <div class="cv-full-preview">
+        <!-- Información Personal -->
+        <div class="preview-section">
+          <h3 class="preview-section-title">
+            <va-icon name="person" />
+            Información Personal
+          </h3>
+          <div class="preview-content">
+            <p><strong>Nombre:</strong> {{ cvFormData.personalInfo.fullName }}</p>
+            <p><strong>Email:</strong> {{ cvFormData.personalInfo.email }}</p>
+            <p><strong>Teléfono:</strong> {{ cvFormData.personalInfo.phone }}</p>
+            <p><strong>Ciudad:</strong> {{ cvFormData.personalInfo.city }}</p>
+            <p v-if="cvFormData.personalInfo.summary" class="preview-summary">
+              {{ cvFormData.personalInfo.summary }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Educación -->
+        <div v-if="cvFormData.education.length" class="preview-section">
+          <h3 class="preview-section-title">
+            <va-icon name="school" />
+            Formación Académica
+          </h3>
+          <div class="preview-content">
+            <div 
+              v-for="(edu, index) in cvFormData.education" 
+              :key="index"
+              class="preview-item"
+            >
+              <h5>{{ edu.degree }}</h5>
+              <p>{{ edu.institution }}</p>
+              <p>{{ edu.startDate }} - {{ edu.endDate || 'Presente' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Experiencia -->
+        <div v-if="cvFormData.experience.length" class="preview-section">
+          <h3 class="preview-section-title">
+            <va-icon name="work" />
+            Experiencia Laboral
+          </h3>
+          <div class="preview-content">
+            <div 
+              v-for="(exp, index) in cvFormData.experience" 
+              :key="index"
+              class="preview-item"
+            >
+              <h5>{{ exp.position }}</h5>
+              <p>{{ exp.company }}</p>
+              <p>{{ exp.startDate }} - {{ exp.endDate || 'Presente' }}</p>
+              <p v-if="exp.description">{{ exp.description }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Habilidades -->
+        <div v-if="cvFormData.skills.length" class="preview-section">
+          <h3 class="preview-section-title">
+            <va-icon name="lightbulb" />
+            Habilidades
+          </h3>
+          <div class="preview-content">
+            <div class="preview-skills">
+              <span 
+                v-for="(skill, index) in cvFormData.skills" 
+                :key="index"
+                class="preview-skill"
+              >
+                {{ skill }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Idiomas -->
+        <div v-if="cvFormData.languages.length" class="preview-section">
+          <h3 class="preview-section-title">
+            <va-icon name="language" />
+            Idiomas
+          </h3>
+          <div class="preview-content">
+            <div 
+              v-for="(lang, index) in cvFormData.languages" 
+              :key="index"
+              class="preview-item"
+            >
+              <p><strong>{{ lang.language }}:</strong> {{ lang.level }}</p>
+            </div>
+          </div>
         </div>
       </div>
     </VaModal>
@@ -537,306 +811,435 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import MainLayout from '@/components/Layout/MainLayout.vue'
-import FileUpload from '@/components/Upload/FileUpload.vue'
+import CVFormWizard from '@/components/CV/CVFormWizard.vue'
+import CVList from '@/components/CV/CVList.vue'
 
-// ========== COMPOSABLES ==========
-const router = useRouter()
 const route = useRoute()
+const router = useRouter()
 const { init: notify } = useToast()
 
-// ========== DATA SIMULADA ==========
-const jobId = ref(route.params.id || '123')
-const jobTitle = ref('Técnico(a) Comercial Agrónomo(a)')
+// Props from route
+const jobId = ref(route.params.id)
+
+// Job Data (ACTUALIZADO - Necesita salaryType y screeningQuestions)
 const jobData = ref({
-  companyName: 'Agropartners S.R.L.',
+  companyName: 'Empresa Demo',
   companyLogo: null,
-  city: 'Santa Cruz de la Sierra'
+  city: 'Santa Cruz',
+  salaryType: 'negotiable', // TODO: Get from API - 'range', 'fixed', 'negotiable', 'hidden'
+  salaryMin: null,
+  salaryMax: null,
+  salaryFixed: null,
+  screeningQuestions: [
+    // TODO: Get from API
+    // Example:
+    // {
+    //   text: '¿Tienes licencia de conducir?',
+    //   type: 'yesno',
+    //   options: '',
+    //   required: true
+    // }
+  ]
 })
 
-// ========== STATE ==========
-const currentStep = ref(0)
-const isSubmitting = ref(false)
+const jobTitle = ref('Técnico Comercial Agrónomo')
 
+// Steps (ACTUALIZADO - 4 pasos)
 const steps = ref([
   { label: 'Pretensión y Carta' },
+  { label: 'Preguntas' }, // NUEVO
   { label: 'Currículum' },
-  { label: 'Revisión' }
+  { label: 'Confirmar' }
 ])
 
-// Datos de la aplicación
-const applicationData = ref({
+const currentStep = ref(0)
+
+// Application Data (ACTUALIZADO)
+const applicationData = reactive({
+  // Pretensión salarial (condicional)
   salaryType: 'bruto',
   salaryCurrency: 'Bs.',
   salaryAmount: null,
-  coverLetter: '',
-  useSavedCV: false,
-  uploadedCV: null
-})
-
-// Variables para CV
-const showFillCVForm = ref(false)
-const cvUploadRef = ref(null)
-const uploadedFile = ref(null)
-const showUploadCVModal = ref(false)
-
-// Mock de CV guardado
-const hasSavedCV = ref(true)
-const savedCV = ref({
-  title: 'CV_RodrigoHinojosa.pdf',
-  lastUpdate: '15/10/2025'
-})
-
-// Mock de datos del CV
-const cvData = ref({
-  lastUpdate: '15/10/2025',
-  fullName: 'Rodrigo Hinojosa Zurita',
-  email: 'rodrigohinojosazurita@gmail.com',
-  phone: '65324767',
-  city: 'Cochabamba',
-  professionalTitle: 'Tec. Sup En Informática',
-  bio: 'Soy una persona proactiva, emprendedora, analítica, eficaz y eficiente me gusta el trabajo en equipo y aprender cosas nuevas.',
-  experience: [
-    {
-      position: 'Marketing y Publicidad',
-      company: 'Por Industria',
-      period: '7 años y 4 meses (1 trabajo)'
-    }
-  ],
-  workExperience: 'Trabajos de tiempo completo o medio tiempo'
-})
-
-// ========== COMPUTED ==========
-const calculatedNetSalary = computed(() => {
-  if (!applicationData.value.salaryAmount) return 0
-  // Cálculo simplificado (restar 12.71% del AFP)
-  const afpDeduction = applicationData.value.salaryAmount * 0.1271
-  return Math.round(applicationData.value.salaryAmount - afpDeduction)
-})
-
-const canProceed = computed(() => {
-  if (currentStep.value === 0) {
-    // Paso 1: Al menos debe tener monto salarial
-    return applicationData.value.salaryAmount > 0
-  }
   
-  if (currentStep.value === 1) {
-    // Paso 2: Debe tener CV (guardado o subido)
-    return (applicationData.value.useSavedCV && hasSavedCV.value) || 
-           applicationData.value.uploadedCV !== null
+  // Carta de presentación
+  coverLetter: '',
+  
+  // Screening answers (NUEVO V2.0)
+  screeningAnswers: [],
+  
+  // CV
+  useSavedCV: false,
+  uploadedCV: null,
+  
+  // Terms
+  acceptedTerms: false
+})
+
+// CV Form Data (para wizard)
+const cvFormData = reactive({
+  personalInfo: {
+    fullName: '',
+    email: '',
+    phone: '',
+    city: '',
+    summary: ''
+  },
+  education: [],
+  experience: [],
+  skills: [],
+  languages: []
+})
+
+// States
+const submitting = ref(false)
+const hasSavedCV = ref(false)
+const selectedSavedCVId = ref(null)
+const cvCreated = ref(false)
+const showUploadCVModal = ref(false)
+const showCVFormWizard = ref(false)
+const showCVPreviewModal = ref(false)
+const uploadedFiles = ref([])
+
+// Errors
+const errors = reactive({})
+
+// Options for Yes/No questions
+const yesNoOptions = [
+  { text: 'Sí', value: 'Sí' },
+  { text: 'No', value: 'No' }
+]
+
+// Computed Properties (NUEVOS para V2.0)
+const requiresSalaryExpectation = computed(() => {
+  return jobData.value.salaryType === 'negotiable'
+})
+
+const hasScreeningQuestions = computed(() => {
+  return jobData.value.screeningQuestions && jobData.value.screeningQuestions.length > 0
+})
+
+const screeningQuestions = computed(() => {
+  return jobData.value.screeningQuestions || []
+})
+
+const hasAnsweredScreening = computed(() => {
+  if (!hasScreeningQuestions.value) return false
+  return applicationData.screeningAnswers.some(answer => answer && answer.trim())
+})
+
+const showSalaryInfo = computed(() => {
+  const type = jobData.value.salaryType
+  return type && type !== 'hidden'
+})
+
+const salaryDisplayText = computed(() => {
+  const type = jobData.value.salaryType
+  if (type === 'range' && jobData.value.salaryMin && jobData.value.salaryMax) {
+    return `Bs. ${jobData.value.salaryMin.toLocaleString()} - ${jobData.value.salaryMax.toLocaleString()}`
+  }
+  if (type === 'fixed' && jobData.value.salaryFixed) {
+    return `Bs. ${jobData.value.salaryFixed.toLocaleString()}`
+  }
+  if (type === 'negotiable') {
+    return 'A convenir'
+  }
+  return null
+})
+
+const calculatedNetSalary = computed(() => {
+  if (!applicationData.salaryAmount || applicationData.salaryType !== 'bruto') {
+    return 0
+  }
+  // Cálculo aproximado (12.71% de aporte laboral)
+  const netSalary = applicationData.salaryAmount * 0.8729
+  return Math.round(netSalary)
+})
+
+const canSubmit = computed(() => {
+  // Must accept terms
+  if (!applicationData.acceptedTerms) return false
+  
+  // Must have CV (saved, uploaded, or created)
+  const hasCV = applicationData.useSavedCV || applicationData.uploadedCV || cvCreated.value
+  if (!hasCV) return false
+  
+  // If salary expectation is required, must have amount
+  if (requiresSalaryExpectation.value && !applicationData.salaryAmount) return false
+  
+  // Must answer required screening questions
+  if (hasScreeningQuestions.value) {
+    for (let i = 0; i < screeningQuestions.value.length; i++) {
+      const question = screeningQuestions.value[i]
+      if (question.required) {
+        const answer = applicationData.screeningAnswers[i]
+        if (!answer || !answer.toString().trim()) {
+          return false
+        }
+      }
+    }
   }
   
   return true
 })
 
-// ========== METHODS - NAVEGACIÓN ==========
-const nextStep = () => {
-  if (!canProceed.value) {
-    notify({
-      message: 'Por favor completa la información requerida',
-      color: 'warning'
-    })
-    return
+// Validation
+const validateStep = () => {
+  // Clear previous errors
+  Object.keys(errors).forEach(key => delete errors[key])
+  
+  if (currentStep.value === 0) {
+    // Validate salary expectation if required
+    if (requiresSalaryExpectation.value && !applicationData.salaryAmount) {
+      errors.salaryAmount = 'La pretensión salarial es requerida'
+      return false
+    }
   }
   
-  if (currentStep.value < steps.value.length - 1) {
-    currentStep.value++
+  if (currentStep.value === 1) {
+    // Validate screening questions
+    if (hasScreeningQuestions.value) {
+      let hasError = false
+      screeningQuestions.value.forEach((question, index) => {
+        if (question.required) {
+          const answer = applicationData.screeningAnswers[index]
+          if (!answer || !answer.toString().trim()) {
+            errors[`screening_${index}`] = 'Esta pregunta es obligatoria'
+            hasError = true
+          }
+        }
+      })
+      if (hasError) return false
+    }
+  }
+  
+  if (currentStep.value === 2) {
+    // Validate CV
+    const hasCV = applicationData.useSavedCV || applicationData.uploadedCV || cvCreated.value
+    if (!hasCV) {
+      notify({
+        message: '⚠️ Debes subir o crear tu currículum',
+        color: 'warning'
+      })
+      return false
+    }
+  }
+  
+  if (currentStep.value === 3) {
+    // Validate terms
+    if (!applicationData.acceptedTerms) {
+      errors.acceptedTerms = 'Debes aceptar los términos y condiciones'
+      return false
+    }
+  }
+  
+  return true
+}
+
+// Navigation
+const nextStep = () => {
+  if (validateStep()) {
+    // Skip screening step if no questions
+    if (currentStep.value === 0 && !hasScreeningQuestions.value) {
+      currentStep.value = 2 // Skip to CV
+    } else {
+      currentStep.value++
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  } else {
+    notify({
+      message: '⚠️ Por favor completa todos los campos requeridos',
+      color: 'warning'
+    })
   }
 }
 
 const previousStep = () => {
-  if (currentStep.value > 0) {
+  // Skip screening step if no questions (going back)
+  if (currentStep.value === 2 && !hasScreeningQuestions.value) {
+    currentStep.value = 0 // Go back to first step
+  } else {
     currentStep.value--
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-const submitApplication = async () => {
-  isSubmitting.value = true
-  
-  // Simular envío
-  await new Promise(resolve => setTimeout(resolve, 2000))
-  
-  notify({
-    message: '🎉 ¡Postulación enviada exitosamente!',
-    color: 'success',
-    duration: 4000
-  })
-  
-  isSubmitting.value = false
-  
-  // Redirigir a la página del empleo
-  router.push(`/guias/trabajos/${jobId.value}`)
-}
-
-// ========== METHODS - CV CHECKBOX ==========
+// CV Handlers
 const handleCVCheckboxChange = (value) => {
-  console.log('Checkbox CV cambió a:', value)
-  
-  // Si activa el checkbox pero no hay CV guardado
-  if (value && !hasSavedCV.value) {
-    notify({
-      message: '⚠️ No tienes un CV guardado. Por favor, sube uno nuevo.',
-      color: 'warning',
-      duration: 3000
-    })
-    
-    // Desactivar automáticamente después de un momento
-    setTimeout(() => {
-      applicationData.value.useSavedCV = false
-    }, 100)
-    return
-  }
-  
-  // Si destiquea, limpiar el CV subido y cerrar formulario
   if (!value) {
-    showFillCVForm.value = false
+    selectedSavedCVId.value = null
   }
 }
 
-const editCV = () => {
+const handleCreateNewFromList = () => {
+  applicationData.useSavedCV = false
+  showCVFormWizard.value = true
+}
+
+const handleEditFromList = (cvId) => {
+  // TODO: Load CV data for editing
+  showCVFormWizard.value = true
+}
+
+const handleFileAdded = (file) => {
+  console.log('File added:', file)
+}
+
+const handleFileRemoved = (file) => {
+  console.log('File removed:', file)
+}
+
+const confirmCVUpload = () => {
+  if (uploadedFiles.value.length > 0) {
+    const file = uploadedFiles.value[0]
+    applicationData.uploadedCV = {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      uploadedAt: new Date(),
+      file: file
+    }
+    showUploadCVModal.value = false
+    uploadedFiles.value = []
+    
+    notify({
+      message: '✅ CV subido correctamente',
+      color: 'success'
+    })
+  }
+}
+
+const removeUploadedCV = () => {
+  applicationData.uploadedCV = null
   notify({
-    message: '🚧 Edición de CV próximamente',
+    message: 'CV eliminado',
     color: 'info'
   })
-  // TODO: Redirigir a editar CV
-}
-
-// ========== METHODS - UPLOADED CV ==========
-const removeUploadedCV = () => {
-  if (confirm('¿Estás seguro de eliminar este archivo?')) {
-    applicationData.value.uploadedCV = null
-    notify({
-      message: '🗑️ CV eliminado correctamente',
-      color: 'info'
-    })
-  }
 }
 
 const previewCV = () => {
-  if (applicationData.value.uploadedCV?.url) {
-    window.open(applicationData.value.uploadedCV.url, '_blank')
-  } else {
+  // TODO: Implement CV preview
+  notify({
+    message: 'Vista previa del CV',
+    color: 'info'
+  })
+}
+
+const handleCVFormSave = (data) => {
+  Object.assign(cvFormData, data)
+  cvCreated.value = true
+  showCVFormWizard.value = false
+  
+  notify({
+    message: '✅ CV creado exitosamente',
+    color: 'success'
+  })
+}
+
+// Submit
+const submitApplication = async () => {
+  if (!canSubmit.value) {
     notify({
-      message: '⚠️ No se puede previsualizar este archivo',
+      message: '⚠️ Por favor completa todos los campos requeridos',
       color: 'warning'
     })
+    return
+  }
+
+  submitting.value = true
+
+  try {
+    // TODO: Implement API call
+    const applicationPayload = {
+      jobId: jobId.value,
+      salaryExpectation: requiresSalaryExpectation.value ? {
+        type: applicationData.salaryType,
+        currency: applicationData.salaryCurrency,
+        amount: applicationData.salaryAmount
+      } : null,
+      coverLetter: applicationData.coverLetter,
+      screeningAnswers: hasScreeningQuestions.value ? applicationData.screeningAnswers : null,
+      cv: applicationData.useSavedCV ? { savedCVId: selectedSavedCVId.value } : 
+          applicationData.uploadedCV ? { file: applicationData.uploadedCV.file } :
+          cvCreated.value ? { formData: cvFormData } : null
+    }
+
+    console.log('Submitting application:', applicationPayload)
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    notify({
+      message: '🎉 ¡Postulación enviada exitosamente!',
+      color: 'success',
+      duration: 5000
+    })
+
+    // Redirect to job detail or success page
+    setTimeout(() => {
+      router.push(`/guias/trabajos/${jobId.value}`)
+    }, 1500)
+
+  } catch (error) {
+    notify({
+      message: '❌ Error al enviar la postulación. Intenta nuevamente.',
+      color: 'danger'
+    })
+  } finally {
+    submitting.value = false
   }
 }
 
+// Helpers
 const formatFileSize = (bytes) => {
-  if (!bytes) return '0 Bytes'
+  if (bytes === 0) return '0 Bytes'
   const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const sizes = ['Bytes', 'KB', 'MB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
 }
 
 const formatUploadDate = (date) => {
-  if (!date) return ''
   const now = new Date()
-  const uploadDate = new Date(date)
-  const diff = now - uploadDate
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
+  const diff = Math.floor((now - date) / 1000 / 60)
+  if (diff < 1) return 'Hace unos segundos'
+  if (diff < 60) return `Hace ${diff} minuto${diff > 1 ? 's' : ''}`
+  const hours = Math.floor(diff / 60)
+  if (hours < 24) return `Hace ${hours} hora${hours > 1 ? 's' : ''}`
+  return date.toLocaleDateString()
+}
+
+// Lifecycle
+onMounted(async () => {
+  // TODO: Fetch job data from API
+  // const job = await fetchJobData(jobId.value)
+  // Object.assign(jobData.value, job)
   
-  if (minutes < 1) return 'hace unos segundos'
-  if (minutes < 60) return `hace ${minutes} minuto${minutes > 1 ? 's' : ''}`
-  if (hours < 24) return `hace ${hours} hora${hours > 1 ? 's' : ''}`
-  if (days < 7) return `hace ${days} día${days > 1 ? 's' : ''}`
-  return uploadDate.toLocaleDateString()
-}
-
-const editSection = (section) => {
-  notify({
-    message: `🚧 Editando sección: ${section}`,
-    color: 'info'
-  })
-  // TODO: Abrir modal de edición
-}
-
-// ========== METHODS - UPLOAD MODAL ==========
-const handleCVUpload = (fileData) => {
-  console.log('CV subido:', fileData)
-  uploadedFile.value = fileData
+  // TODO: Check if user has saved CVs
+  // hasSavedCV.value = await checkSavedCVs()
   
-  notify({
-    message: `✅ ${fileData.name} cargado correctamente`,
-    color: 'success'
-  })
-}
-
-const handleCVRemove = (fileData) => {
-  console.log('CV eliminado:', fileData)
-  uploadedFile.value = null
-}
-
-const handleUploadError = (errorMessage) => {
-  notify({
-    message: errorMessage,
-    color: 'danger'
-  })
-}
-
-const confirmUploadCV = () => {
-  if (!uploadedFile.value) {
-    notify({
-      message: '⚠️ Debes subir un archivo primero',
-      color: 'warning'
-    })
-    return
+  // Initialize screening answers array
+  if (hasScreeningQuestions.value) {
+    applicationData.screeningAnswers = new Array(screeningQuestions.value.length).fill('')
   }
-
-  // Guardar el CV subido en applicationData
-  applicationData.value.uploadedCV = {
-    ...uploadedFile.value,
-    uploadedAt: new Date()
-  }
-
-  // Asegurarse de que no esté usando el CV guardado
-  applicationData.value.useSavedCV = false
-
-  notify({
-    message: '✅ CV adjuntado correctamente a tu postulación',
-    color: 'success',
-    duration: 3000
-  })
-
-  // Cerrar el modal
-  closeUploadModal()
-}
-
-const closeUploadModal = () => {
-  showUploadCVModal.value = false
-  
-  // Limpiar el archivo temporal después de un momento
-  setTimeout(() => {
-    uploadedFile.value = null
-    if (cvUploadRef.value) {
-      // Resetear el componente de upload
-      cvUploadRef.value.files = []
-    }
-  }, 300)
-}
+})
 </script>
 
 <style scoped>
-/* ========== Section ========== */
+/* ========== Container ========== */
 .application-process-section {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #F5F3FF 0%, #FFFFFF 100%);
-  padding: 2rem 0;
+  padding: 4rem 0;
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(135deg, #F8F4FF 0%, #FFFFFF 100%);
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 2rem;
 }
 
 /* ========== Breadcrumb ========== */
@@ -846,6 +1249,7 @@ const closeUploadModal = () => {
   gap: 0.5rem;
   margin-bottom: 2rem;
   font-size: 0.9rem;
+  color: #666;
 }
 
 .breadcrumb a {
@@ -856,7 +1260,6 @@ const closeUploadModal = () => {
 
 .breadcrumb a:hover {
   color: var(--color-purple-dark);
-  text-decoration: underline;
 }
 
 .breadcrumb .separator {
@@ -864,19 +1267,19 @@ const closeUploadModal = () => {
 }
 
 .breadcrumb .current {
-  color: #666;
-  font-weight: 500;
+  color: #333;
+  font-weight: 600;
 }
 
 /* ========== Job Header ========== */
 .job-header {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
   padding: 2rem;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
 }
 
@@ -890,14 +1293,14 @@ const closeUploadModal = () => {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .placeholder-logo {
   width: 100%;
   height: 100%;
   background: #F5F5F5;
-  border-radius: 8px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -915,30 +1318,43 @@ const closeUploadModal = () => {
 }
 
 .company-name {
-  font-size: 1.125rem;
+  font-size: 1.1rem;
   color: #666;
-  margin: 0 0 0.5rem 0;
-  font-weight: 500;
+  margin: 0 0 0.25rem 0;
 }
 
 .job-location {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.25rem;
   color: #999;
   font-size: 0.95rem;
   margin: 0;
 }
 
+/* Salary Badge (NUEVO) */
+.salary-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #E8F5E9;
+  color: #2E7D32;
+  border-radius: 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+}
+
 /* ========== Stepper ========== */
 .stepper {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   padding: 2rem;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
 }
 
@@ -952,7 +1368,7 @@ const closeUploadModal = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .step-circle {
@@ -960,20 +1376,20 @@ const closeUploadModal = () => {
   height: 50px;
   border-radius: 50%;
   background: #E0E0E0;
-  color: #666;
+  color: #999;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   transition: all 0.3s ease;
 }
 
 .step.active .step-circle {
   background: var(--color-purple);
   color: white;
-  box-shadow: 0 4px 12px rgba(92, 0, 153, 0.3);
   transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(92, 0, 153, 0.3);
 }
 
 .step.completed .step-circle {
@@ -984,9 +1400,8 @@ const closeUploadModal = () => {
 .step-label {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #666;
+  color: #999;
   text-align: center;
-  max-width: 100px;
 }
 
 .step.active .step-label {
@@ -1003,10 +1418,10 @@ const closeUploadModal = () => {
   background: #E0E0E0;
   margin: 0 1rem;
   position: relative;
-  top: -25px;
+  top: -1.5rem;
 }
 
-.step.completed + .step .step-line {
+.step.completed .step-line {
   background: #4CAF50;
 }
 
@@ -1014,9 +1429,10 @@ const closeUploadModal = () => {
 .step-content {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding: 3rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
+  min-height: 400px;
 }
 
 .step-panel {
@@ -1038,21 +1454,20 @@ const closeUploadModal = () => {
   font-size: 2rem;
   font-weight: 700;
   color: var(--color-purple-darkest);
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.5rem 0;
 }
 
 .panel-description {
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: #666;
-  margin: 0 0 2.5rem 0;
-  line-height: 1.6;
+  margin: 0 0 2rem 0;
 }
 
 /* ========== Form Section ========== */
 .form-section {
   display: flex;
   flex-direction: column;
-  gap: 3rem;
+  gap: 2rem;
 }
 
 .section-subtitle {
@@ -1060,16 +1475,32 @@ const closeUploadModal = () => {
   align-items: center;
   gap: 0.75rem;
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-purple-darkest);
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 1rem 0;
 }
 
-/* ========== Salary Section ========== */
+/* ========== Salary Section (ACTUALIZADO) ========== */
 .salary-section {
   padding: 2rem;
-  background: #F8F8F8;
+  background: #F8F4FF;
   border-radius: 12px;
+  border: 2px solid rgba(92, 0, 153, 0.1);
+}
+
+.salary-info-notice {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #E3F2FD;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.salary-info-notice p {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
 }
 
 .salary-type-selector {
@@ -1087,33 +1518,60 @@ const closeUploadModal = () => {
 .salary-info-box {
   display: flex;
   gap: 1rem;
-  padding: 1.25rem;
-  background: rgba(33, 150, 243, 0.05);
-  border-left: 4px solid #2196F3;
+  padding: 1rem;
+  background: white;
   border-radius: 8px;
 }
 
 .salary-info-box p {
   margin: 0 0 0.5rem 0;
-  color: #333;
-  line-height: 1.6;
+  color: #666;
 }
 
 .salary-note {
-  color: #666;
   font-size: 0.9rem;
+  font-style: italic;
 }
 
 .salary-final {
+  margin-top: 0.5rem;
   font-weight: 600;
-  color: var(--color-purple-darkest);
-  font-size: 1.05rem;
+  color: #333;
 }
 
-/* ========== Cover Letter ========== */
+/* Salary Defined Message (NUEVO) */
+.salary-defined-message {
+  display: flex;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: #E8F5E9;
+  border-radius: 12px;
+  border: 2px solid #4CAF50;
+}
+
+.salary-defined-message h4 {
+  margin: 0 0 0.5rem 0;
+  color: #2E7D32;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.salary-defined-message p {
+  margin: 0 0 0.5rem 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+.salary-defined-message .hint {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #999;
+}
+
+/* ========== Cover Letter Section ========== */
 .cover-letter-section {
   padding: 2rem;
-  background: #F8F8F8;
+  background: #F5F5F5;
   border-radius: 12px;
 }
 
@@ -1123,8 +1581,126 @@ const closeUploadModal = () => {
 
 .field-hint {
   font-size: 0.9rem;
-  color: #666;
+  color: #999;
   font-style: italic;
+}
+
+/* ========== Screening Questions Section (NUEVO V2.0) ========== */
+.no-screening-message {
+  display: flex;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: #E3F2FD;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.no-screening-message h4 {
+  margin: 0 0 0.5rem 0;
+  color: #1976D2;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.no-screening-message p {
+  margin: 0 0 0.5rem 0;
+  color: #666;
+}
+
+.no-screening-message .hint {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #999;
+}
+
+.screening-questions-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.screening-info-box {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #F8F4FF;
+  border-radius: 12px;
+  border: 2px solid rgba(92, 0, 153, 0.1);
+}
+
+.screening-info-box p {
+  margin: 0 0 0.5rem 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+.screening-info-box .hint {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: #999;
+  margin-top: 0.5rem;
+}
+
+.required-mark {
+  color: #F44336;
+  font-weight: 700;
+  margin-left: 0.25rem;
+}
+
+.screening-questions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.screening-question-card {
+  padding: 1.5rem;
+  background: white;
+  border: 2px solid #E0E0E0;
+  border-radius: 12px;
+  transition: border-color 0.3s;
+}
+
+.screening-question-card:hover {
+  border-color: var(--color-purple);
+}
+
+.question-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.question-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--color-purple);
+  color: white;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.question-text {
+  flex: 1;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.5;
+}
+
+.question-answer {
+  padding-left: 3rem;
+}
+
+.yesno-group {
+  display: flex;
+  gap: 2rem;
 }
 
 /* ========== CV Review ========== */
@@ -1136,76 +1712,48 @@ const closeUploadModal = () => {
 
 .saved-cv-option {
   padding: 1.5rem;
-  background: #F8F8F8;
-  border-radius: 8px;
+  background: #F8F4FF;
+  border-radius: 12px;
 }
 
-.cv-preview {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 8px;
+.saved-cv-list {
   margin-top: 1rem;
-  border: 2px solid var(--color-purple);
 }
 
-.cv-info {
-  flex: 1;
-}
-
-.cv-info h4 {
-  margin: 0 0 0.35rem 0;
-  color: var(--color-purple-darkest);
-  font-size: 1.125rem;
-}
-
-.cv-info p {
-  margin: 0;
-  color: #666;
-  font-size: 0.9rem;
+.cv-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .cv-notice {
   display: flex;
   gap: 1rem;
-  padding: 1.25rem;
-  background: rgba(33, 150, 243, 0.05);
-  border-left: 4px solid #2196F3;
+  padding: 1rem;
+  background: #E3F2FD;
   border-radius: 8px;
 }
 
 .cv-notice p {
   margin: 0;
-  color: #333;
+  color: #666;
 }
 
-/* ========== CV Options ========== */
 .cv-options {
   display: flex;
-  gap: 1.5rem;
+  gap: 2rem;
   align-items: center;
-  justify-content: center;
-  margin: 2rem 0;
 }
 
 .cv-option-btn {
   flex: 1;
-  max-width: 300px;
-  height: auto !important;
-  padding: 2rem 1.5rem !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  gap: 1rem !important;
-  border-radius: 16px !important;
-  transition: all 0.3s ease !important;
-}
-
-.cv-option-btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  max-width: 400px;
+  height: auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .btn-content {
@@ -1217,54 +1765,48 @@ const closeUploadModal = () => {
 
 .btn-title {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .btn-subtitle {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   opacity: 0.8;
 }
 
 .option-divider {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #F5F5F5;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: #E0E0E0;
-  border-radius: 50%;
+  font-weight: 700;
+  color: #999;
   flex-shrink: 0;
 }
 
-.option-divider span {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #666;
-}
-
-/* ========== Uploaded CV Card ========== */
 .uploaded-cv-card {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: 1.5rem;
-  background: #F0FFF0;
+  background: #E8F5E9;
   border: 2px solid #4CAF50;
   border-radius: 12px;
-  margin-top: 1.5rem;
 }
 
 .cv-file-info {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  flex: 1;
+  gap: 1rem;
 }
 
 .file-details h4 {
-  margin: 0 0 0.25rem;
-  color: #333;
+  margin: 0 0 0.25rem 0;
+  color: #2E7D32;
   font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .file-details p {
@@ -1274,8 +1816,8 @@ const closeUploadModal = () => {
 }
 
 .upload-date {
-  color: #4CAF50 !important;
-  font-weight: 500;
+  font-size: 0.85rem !important;
+  color: #999 !important;
 }
 
 .cv-file-actions {
@@ -1283,135 +1825,142 @@ const closeUploadModal = () => {
   gap: 0.5rem;
 }
 
-/* ========== CV Summary ========== */
-.cv-summary {
+/* ========== Confirmation Section ========== */
+.confirmation-section {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.cv-section {
-  padding: 1.5rem;
-  background: #F8F8F8;
-  border-radius: 8px;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.section-header h4 {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--color-purple-darkest);
-}
-
-.section-content {
-  color: #333;
-  line-height: 1.6;
-}
-
-.section-content p {
-  margin: 0 0 0.5rem 0;
-}
-
-.experience-item {
-  margin-bottom: 1rem;
-}
-
-.experience-item:last-child {
-  margin-bottom: 0;
-}
-
-.no-content {
-  color: #999;
-  font-style: italic;
-}
-
-/* ========== Review Content ========== */
-.review-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.review-card {
+.confirmation-card {
   padding: 2rem;
-  background: #F8F8F8;
+  background: #F8F4FF;
   border-radius: 12px;
-  border: 2px solid #E0E0E0;
+  border: 2px solid rgba(92, 0, 153, 0.1);
 }
 
-.review-title {
+.confirmation-subtitle {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--color-purple-darkest);
-  margin: 0 0 1.25rem 0;
+  color: var(--color-purple);
+  margin: 0 0 1rem 0;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid #E0E0E0;
+  border-bottom: 2px solid rgba(92, 0, 153, 0.1);
 }
 
-.review-info {
+.job-summary h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.25rem;
+  color: var(--color-purple-darkest);
+}
+
+.job-summary p {
+  margin: 0 0 0.25rem 0;
+  color: #666;
+}
+
+.salary-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.salary-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2E7D32;
+  margin: 0;
+}
+
+.salary-type {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Screening Answers Summary (NUEVO) */
+.screening-answers-summary {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.review-row {
-  display: flex;
   gap: 1rem;
-  font-size: 1rem;
 }
 
-.review-label {
-  font-weight: 600;
-  color: #666;
-  min-width: 120px;
-}
-
-.review-value {
-  color: #333;
-}
-
-.cover-letter-preview {
-  white-space: pre-wrap;
-  line-height: 1.7;
-  color: #333;
-  margin: 0;
+.answer-item {
   padding: 1rem;
   background: white;
   border-radius: 8px;
 }
 
-.important-notice {
+.answer-question {
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.answer-response {
   display: flex;
-  gap: 1.5rem;
-  padding: 2rem;
-  background: rgba(33, 150, 243, 0.08);
-  border-left: 4px solid #2196F3;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  margin: 0;
+}
+
+.cover-letter-summary p {
+  margin: 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+.cv-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cv-summary p {
+  margin: 0;
+  color: #666;
+}
+
+.terms-section {
+  padding: 1.5rem;
+  background: #FFF3E0;
   border-radius: 12px;
 }
 
-.important-notice h4 {
-  margin: 0 0 0.75rem 0;
-  color: #1976D2;
-  font-size: 1.125rem;
+.terms-section a {
+  color: var(--color-purple);
+  text-decoration: none;
+  font-weight: 600;
 }
 
-.important-notice p {
-  margin: 0 0 0.5rem 0;
-  color: #333;
-  line-height: 1.6;
+.terms-section a:hover {
+  text-decoration: underline;
+}
+
+.submit-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #F0FFF0 0%, #FFFFFF 100%);
+  border-radius: 12px;
+  border: 2px solid #4CAF50;
+}
+
+.submit-button {
+  min-width: 300px;
+}
+
+.submit-hint {
+  margin: 0;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
 }
 
 /* ========== Navigation Buttons ========== */
@@ -1419,22 +1968,36 @@ const closeUploadModal = () => {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+  padding: 0 2rem;
 }
 
-.navigation-buttons .va-button {
-  min-width: 150px;
-}
-
-/* ========== Upload Modal ========== */
+/* ========== Modal Styles ========== */
 .upload-cv-modal-content {
   padding: 2rem;
 }
 
 .modal-description {
-  margin: 0 0 2rem;
+  margin: 0 0 2rem 0;
   color: #666;
-  font-size: 1rem;
   line-height: 1.6;
+}
+
+.upload-dropzone {
+  padding: 3rem;
+  text-align: center;
+}
+
+.upload-text {
+  margin: 1rem 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.upload-hint {
+  margin: 0;
+  color: #999;
+  font-size: 0.9rem;
 }
 
 .modal-actions {
@@ -1442,31 +2005,31 @@ const closeUploadModal = () => {
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid #E0E0E0;
 }
 
 /* ========== Transitions ========== */
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.3s ease;
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s;
 }
 
-.fade-enter-from,
-.fade-leave-to {
+.fade-enter-from, .fade-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
 }
 
 /* ========== Responsive ========== */
-@media (max-width: 768px) {
-  .stepper {
-    padding: 1.5rem 1rem;
-    overflow-x: auto;
+@media (max-width: 968px) {
+  .container {
+    padding: 0 1rem;
   }
 
-  .step-indicator {
-    min-width: 80px;
+  .job-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .stepper {
+    overflow-x: auto;
+    padding: 1.5rem;
   }
 
   .step-circle {
@@ -1489,11 +2052,6 @@ const closeUploadModal = () => {
 
   .panel-title {
     font-size: 1.5rem;
-  }
-
-  .job-header {
-    flex-direction: column;
-    text-align: center;
   }
 
   .job-title {
@@ -1547,5 +2105,198 @@ const closeUploadModal = () => {
   .modal-actions .va-button {
     width: 100%;
   }
+
+  .cv-created-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .cv-created-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cv-created-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========== Z-INDEX FIX ========== */
+:deep(.va-modal__container) {
+  z-index: 9999 !important;
+}
+
+:deep(.va-modal__overlay) {
+  z-index: 9998 !important;
+}
+
+:deep(.va-modal__dialog) {
+  z-index: 10000 !important;
+}
+
+/* Asegurar que el contenido del modal sea interactivo */
+:deep(.va-modal__inner) {
+  position: relative;
+  z-index: 10001 !important;
+  pointer-events: auto !important;
+}
+
+/* ========== CV Created Preview ========== */
+.cv-created-preview {
+  padding: 2rem;
+  background: linear-gradient(135deg, #F0FFF0 0%, #FFFFFF 100%);
+  border: 2px solid #4CAF50;
+  border-radius: 16px;
+  margin-top: 1.5rem;
+}
+
+.cv-created-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid rgba(76, 175, 80, 0.2);
+}
+
+.cv-created-info {
+  flex: 1;
+}
+
+.cv-created-info h4 {
+  margin: 0 0 0.25rem;
+  color: #2E7D32;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.cv-created-info p {
+  margin: 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+.cv-created-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cv-created-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+}
+
+.cv-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.cv-created-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* ========== CV Full Preview (Modal) ========== */
+.cv-full-preview {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.cv-full-preview .preview-section {
+  padding: 1.5rem;
+  background: #F8F8F8;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.cv-full-preview .preview-section:last-child {
+  margin-bottom: 0;
+}
+
+.cv-full-preview .preview-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-purple-darkest);
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #E0E0E0;
+}
+
+.cv-full-preview .preview-content p {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  line-height: 1.6;
+}
+
+.cv-full-preview .preview-summary {
+  margin-top: 1rem !important;
+  font-style: italic;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.cv-full-preview .preview-item {
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.cv-full-preview .preview-item:last-child {
+  margin-bottom: 0;
+}
+
+.cv-full-preview .preview-item h5 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-purple-darkest);
+  margin: 0 0 0.5rem 0;
+}
+
+.cv-full-preview .preview-item p {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.cv-full-preview .preview-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cv-full-preview .preview-skill {
+  padding: 0.5rem 1rem;
+  background: var(--color-purple);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 </style>

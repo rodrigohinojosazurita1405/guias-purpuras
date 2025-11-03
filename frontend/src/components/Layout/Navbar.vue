@@ -48,12 +48,12 @@
         </router-link>
         
         <router-link 
-          to="/guias/servicios" 
+          to="/guias/negocios" 
           class="nav-link"
           active-class="active"
         >
           <va-icon name="build" size="small" />
-          Servicios
+          Negocios
         </router-link>
       </div>
 
@@ -176,13 +176,13 @@
         </router-link>
         
         <router-link 
-          to="/guias/servicios" 
+          to="/guias/negocios" 
           class="mobile-link"
           @click="closeMobileMenu"
           active-class="active"
         >
           <va-icon name="build" />
-          Servicios
+          Negocios
         </router-link>
 
         <!-- Auth en mobile (NO logueado) -->
@@ -237,7 +237,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useToast } from 'vuestic-ui'
 import AuthModal from '@/components/Auth/AuthModal.vue'
@@ -245,6 +245,7 @@ import AuthModal from '@/components/Auth/AuthModal.vue'
 // ========== COMPOSABLES ==========
 const router = useRouter()
 const authStore = useAuthStore()
+const route = useRoute()
 const { init: notify } = useToast()
 
 // ========== STATE ==========
@@ -263,6 +264,7 @@ const goToPublish = () => {
     return
   }
   
+  // SIEMPRE ir al formulario genérico /publicar
   router.push('/publicar')
   closeMobileMenu()
 }

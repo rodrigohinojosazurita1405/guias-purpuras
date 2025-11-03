@@ -123,7 +123,7 @@ const categories = [
   { id: 'profesionales', label: 'Profesionales', icon: 'work' },
   { id: 'gastronomia', label: 'Gastronomía', icon: 'restaurant' },
   { id: 'trabajos', label: 'Trabajos', icon: 'business_center' },
-  { id: 'servicios', label: 'Servicios', icon: 'build' }
+  { id: 'negocios', label: 'Negocios', icon: 'build' }
 ]
 
 const popularSearches = ['Abogados', 'Restaurantes', 'Plomero', 'Desarrollador']
@@ -133,7 +133,7 @@ const getPlaceholder = () => {
     profesionales: 'Busca abogados, doctores, contadores...',
     gastronomia: 'Busca restaurantes, cafeterías, comida rápida...',
     trabajos: 'Busca empleos, ofertas laborales...',
-    servicios: 'Busca plomeros, electricistas, carpinteros...'
+    negocios: 'Busca Empresas, PyMes, Industrias...'
   }
   return placeholders[selectedCategory.value]
 }

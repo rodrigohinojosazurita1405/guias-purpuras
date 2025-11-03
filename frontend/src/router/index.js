@@ -1,4 +1,3 @@
-// frontend/src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 
 // ========== VIEWS ==========
@@ -15,9 +14,20 @@ import RestaurantDetailView from '@/views/RestaurantDetailView.vue'
 // Trabajos
 import JobDetailView from '@/views/JobDetailView.vue'
 import ApplicationProcess from '@/views/ApplicationProcess.vue'
+import JobCreate from '@/views/JobCreate.vue'
+
+// Negocios
+import BusinessList from '@/views/BusinessList.vue'
+import BusinessDetail from '@/views/BusinessDetail.vue'
+import BusinessCreate from '@/views/BusinessCreate.vue'
 
 // Genéricos (para categorías no implementadas aún)
 import ListingDetailView from '@/views/ListingDetailView.vue'
+
+// ========== PAGES ==========
+import AboutPage from '@/pages/AboutPage.vue'
+import BlogPage from '@/pages/BlogPage.vue'
+import ContactPage from '@/pages/ContactPage.vue'
 
 const routes = [
   // ========== HOME ==========
@@ -71,6 +81,15 @@ const routes = [
     props: { category: 'trabajos' }
   },
   {
+    path: '/guias/trabajos/crear',  // ⚠️ ESTA RUTA DEBE IR ANTES DE /:id
+    name: 'JobCreate',
+    component: JobCreate,
+    meta: {
+      title: 'Publicar Trabajo',
+      requiresAuth: false
+    }
+  },
+  {
     path: '/guias/trabajos/:id',
     name: 'JobDetail',
     component: JobDetailView
@@ -84,17 +103,53 @@ const routes = [
     }
   },
 
-  // ========== GUÍAS - SERVICIOS ==========
+  // ========== GUÍAS - NEGOCIOS ==========
   {
-    path: '/guias/servicios',
-    name: 'ServicesGuide',
-    component: GuideView,
-    props: { category: 'servicios' }
+  path: '/guias/negocios',
+  name: 'Negocios',
+  component: BusinessList,
+  meta: {
+    title: 'Guías de Negocios',
+    requiresAuth: false
+  }
+},
+{
+  path: '/guias/negocios/crear',  // ⚠️ ESTA RUTA DEBE IR ANTES DE /:slug
+  name: 'NegociosCrear',
+  component: BusinessCreate,
+  meta: {
+    title: 'Publicar Negocio',
+    requiresAuth: false  // ✅ ACCESO LIBRE
+  }
+},
+{
+  path: '/guias/negocios/:slug',  // ⚠️ ESTA RUTA DEBE IR DESPUÉS DE /crear
+  name: 'NegociosDetalle',
+  component: BusinessDetail,
+  meta: {
+    title: 'Detalle de Negocio',
+    requiresAuth: false
+  }
+},
+
+  // ========== PÁGINAS ESTÁTICAS ==========
+  {
+    path: '/nosotros',
+    name: 'About',
+    component: AboutPage,
+    meta: { title: 'Sobre Nosotros' }
   },
   {
-    path: '/guias/servicios/:slug',
-    name: 'ServiceDetail',
-    component: ListingDetailView // Temporal, cambiar cuando esté ServiceDetailView
+    path: '/blog',
+    name: 'Blog',
+    component: BlogPage,
+    meta: { title: 'Blog' }
+  },
+  {
+    path: '/contacto',
+    name: 'Contact',
+    component: ContactPage,
+    meta: { title: 'Contacto' }
   },
 
   // ========== 404 - NOT FOUND ==========
@@ -119,13 +174,9 @@ const router = createRouter({
 
 // ========== NAVIGATION GUARDS ==========
 router.beforeEach((to, from, next) => {
-  // Verificar si la ruta requiere autenticación
   if (to.meta.requiresAuth) {
-    // TODO: Verificar si el usuario está autenticado
     const isAuthenticated = false // Cambiar por lógica real
-    
     if (!isAuthenticated) {
-      // Redirigir al login
       next({
         path: '/login',
         query: { redirect: to.fullPath }

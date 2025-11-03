@@ -24,7 +24,7 @@
             creamos Guías Púrpuras, un ecosistema digital diseñado para ordenar el caos y
             conectar a las personas con oportunidades reales.
             No somos una simple app de clasificados. Somos una red viva de servicios profesionales,
-            empresas y PyMe, empleos y gastronomía, organizada, clara y moderna. Un espacio donde lo
+            empresas PyMe, ofertas laborales y gastronomía, organizada, clara y moderna. Un espacio donde lo
             boliviano se ve bien, se encuentra fácil y se valora.
             No venimos a competir con las redes sociales; venimos a complementarlas, trayendo
             orden, diseño y propósito al mundo digital boliviano
@@ -47,16 +47,18 @@
         </div>
 
         <!-- Columna: Enlaces Rápidos -->
+       <!-- Columna: Enlaces Rápidos -->
         <div class="footer-col">
           <h4>Enlaces Rápidos</h4>
           <ul class="footer-links">
-            <li><a href="#">Acerca de Nosotros</a></li>
-            <li><a href="#">Cómo Funciona</a></li>
-            <li><a href="#">Precios y Planes</a></li>
-            <li><a href="#">Blog</a></li>
-            <li><a href="#">Contacto</a></li>
+            <li><router-link to="/nosotros">Acerca de Nosotros</router-link></li>
+            <li><router-link to="/publicar">Cómo Funciona</router-link></li>
+            <li><router-link to="/publicar">Precios y Planes</router-link></li>
+            <li><router-link to="/blog">Blog</router-link></li>
+            <li><router-link to="/contacto">Contacto</router-link></li>
           </ul>
         </div>
+
 
         <!-- Columna: Categorías -->
         <div class="footer-col">
@@ -65,7 +67,7 @@
             <li><a href="#">Guías Profesionales</a></li>
             <li><a href="#">Guías Gastronómicas</a></li>
             <li><a href="#">Guías de Trabajos</a></li>
-            <li><a href="#">Guías de Servicios</a></li>
+            <li><a href="#">Guías de Negocios</a></li>
           </ul>
         </div>
 

@@ -35,15 +35,7 @@ INSTALLED_APPS = [
 #Install apps WebApp GuiasPurpuras
     
   
-    'departament',
-    'city',
-    'guide',
-    'listing',
-    'rating',
-    'listingImage',
-    'plan',
-    'subcategory',
-    'user',   
+   
 #*****************************#
     'django.contrib.admin',
     'django.contrib.auth',

@@ -52,6 +52,7 @@
           <div class="listings-header">
             <div class="header-info">
               <h2>{{ guideName }}</h2>
+             
             </div>
             <select v-model="sortBy" class="sort-select" @change="sortListings">
               <option value="recent">Más Recientes</option>
@@ -601,7 +602,7 @@ export default {
         this.allListings = [
           {
             id: 1,
-            category: 'Servicios',
+            category: 'Negocios',
             title: 'Plomería Profesional - Urgencias 24/7',
             subcategory: 'Plomería',
             image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400',

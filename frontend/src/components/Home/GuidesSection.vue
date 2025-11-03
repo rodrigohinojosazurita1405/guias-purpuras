@@ -79,8 +79,8 @@ const guides = [
     route: 'guias-trabajos'
   },
   {
-    id: 'servicios',
-    title: '🛠️ Guías de Servicios',
+    id: 'Negocios',
+    title: '🛠️ Guías de Negocios',
     description: 'Plomeros, electricistas, carpinteros y servicios para tu hogar',
     icon: 'build',
     color: 'yellow-light',
