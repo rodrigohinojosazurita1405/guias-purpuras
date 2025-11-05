@@ -1,5 +1,5 @@
 <!-- frontend/src/views/JobCreate.vue -->
-<!-- FORMULARIO PROFESIONAL PARA PUBLICAR TRABAJOS - VERSIÓN 2.0 -->
+<!-- FORMULARIO PROFESIONAL PARA PUBLICAR TRABAJOS - VERSIÓN 2.1 CON SEO -->
 <template>
   <MainLayout>
     <div class="job-create">
@@ -8,7 +8,7 @@
       <div class="create-header">
         <h1 class="header-title">Publica tu Oferta de Trabajo</h1>
         <p class="header-subtitle">
-          Encuentra al candidato ideal para tu empresa - Completa el formulario en 7 pasos
+          Encuentra al candidato ideal para tu empresa - Completa el formulario en 8 pasos
         </p>
       </div>
 
@@ -100,6 +100,15 @@
                 file-types="image/*"
                 dropzone
               />
+              <!-- Preview del logo -->
+              <div v-if="companyLogoPreview" class="logo-preview-container">
+                <p class="logo-preview-label">Vista previa:</p>
+                <img 
+                  :src="companyLogoPreview" 
+                  alt="Preview logo"
+                  class="logo-preview-image"
+                />
+              </div>
             </div>
 
             <div class="form-field full-width">
@@ -562,8 +571,18 @@
           </div>
         </div>
 
-        <!-- Step 6: Plan -->
+        <!-- Step 6: SEO -->
         <div v-show="currentStep === 6" class="form-step">
+          <SEOStep
+            v-model="formData.seoData"
+            entity-type="trabajo"
+            base-url="guiaspurpuras.com/trabajos"
+          />
+        </div>
+
+
+        <!-- Step 7: Plan -->
+        <div v-show="currentStep === 7" class="form-step">
           <div class="step-header">
             <va-icon name="verified" size="large" color="#5C0099" />
             <div>
@@ -602,8 +621,8 @@
           </div>
         </div>
 
-        <!-- Step 7: Vista Previa y Confirmar (NUEVO - V2.0) -->
-        <div v-show="currentStep === 7" class="form-step">
+        <!-- Step 8: Vista Previa y Confirmar (NUEVO - V2.0) -->
+        <div v-show="currentStep === 8" class="form-step">
           <div class="step-header">
             <va-icon name="visibility" size="large" color="#5C0099" />
             <div>
@@ -658,10 +677,16 @@
 
                 <!-- Title -->
                 <h1 class="preview-title">{{ formData.title || 'Título del puesto' }}</h1>
-                <p class="preview-company">
-                  <va-icon name="business" size="small" />
-                  {{ formData.companyName || 'Nombre de la empresa' }}
-                </p>
+                <div class="preview-company">
+                  <img 
+                    v-if="companyLogoPreview" 
+                    :src="companyLogoPreview" 
+                    alt="Logo empresa"
+                    class="company-logo-preview"
+                  />
+                  <va-icon v-else name="business" size="small" />
+                  <span>{{ formData.companyName || 'Nombre de la empresa' }}</span>
+                </div>
 
                 <!-- Info Grid -->
                 <div class="preview-info-grid">
@@ -759,7 +784,7 @@
             <div class="summary-item">
               <span class="summary-label">Plan:</span>
               <span class="summary-value">{{ getPlanName(formData.plan) }}</span>
-              <VaButton preset="plain" size="small" @click="goToStep(6)">
+              <VaButton preset="plain" size="small" @click="goToStep(7)">
                 Editar
               </VaButton>
             </div>
@@ -778,7 +803,7 @@
           </VaButton>
           
           <VaButton
-            v-if="currentStep < 7"
+            v-if="currentStep < 8"
             color="purple"
             @click="nextStep"
           >
@@ -788,7 +813,7 @@
 
           <!-- Save Draft Button -->
           <VaButton
-            v-if="currentStep < 7"
+            v-if="currentStep < 8"
             preset="plain"
             icon="save"
             @click="saveDraft"
@@ -799,7 +824,7 @@
 
           <!-- Publish Button -->
           <VaButton
-            v-if="currentStep === 7"
+            v-if="currentStep === 8"
             color="success"
             :loading="submitting"
             @click="submitForm"
@@ -821,6 +846,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import MainLayout from '@/components/Layout/MainLayout.vue'
+import SEOStep from '@/components/Publish/SEOStep.vue'
 
 const router = useRouter()
 const { init: notify } = useToast()
@@ -831,6 +857,7 @@ const savingDraft = ref(false)
 const autoSaving = ref(false)
 const lastSaved = ref('')
 const showPreview = ref(false)
+const companyLogoPreview = ref(null)
 
 const steps = [
   { number: 1, label: 'Información' },
@@ -838,8 +865,9 @@ const steps = [
   { number: 3, label: 'Salario' },
   { number: 4, label: 'Contacto' },
   { number: 5, label: 'Screening' },
-  { number: 6, label: 'Plan' },
-  { number: 7, label: 'Confirmar' }
+  { number: 6, label: 'SEO' },
+  { number: 7, label: 'Plan' },
+  { number: 8, label: 'Confirmar' }
 ]
 
 const categories = [
@@ -968,9 +996,55 @@ const formData = reactive({
     applications: 0,
     conversionRate: 0
   }
+,
+  
+  // SEO Fields (Step 6)
+  seoData: {
+    slug: '',
+    mainKeyword: '',
+    tags: [],
+    metaDescription: '',
+    locationKeywords: '',
+    categories: []
+  }
 })
 
 const errors = reactive({})
+
+// Watch para actualizar preview del logo
+watch(() => formData.companyLogo, (newValue) => {
+  console.log('🔍 Logo changed:', newValue)
+  console.log('🔍 Type:', typeof newValue)
+  console.log('🔍 Is Array?:', Array.isArray(newValue))
+  
+  // VaFileUpload con type="single" devuelve el File directamente, NO un array
+  if (newValue) {
+    const file = Array.isArray(newValue) ? newValue[0] : newValue
+    console.log('📁 File object:', file)
+    console.log('📁 File type:', typeof file)
+    console.log('📁 Is File?:', file instanceof File)
+    console.log('📁 Has url?:', file?.url)
+    
+    // VaFileUpload puede devolver un objeto con diferentes estructuras
+    if (file instanceof File) {
+      companyLogoPreview.value = URL.createObjectURL(file)
+      console.log('✅ Preview URL (File):', companyLogoPreview.value)
+    } else if (file?.url) {
+      // Vuestic VaFile object
+      companyLogoPreview.value = file.url
+      console.log('✅ Preview URL (VaFile):', companyLogoPreview.value)
+    } else if (typeof file === 'string') {
+      companyLogoPreview.value = file
+      console.log('✅ Preview URL (String):', companyLogoPreview.value)
+    } else {
+      console.log('❌ Unknown file structure')
+      companyLogoPreview.value = null
+    }
+  } else {
+    companyLogoPreview.value = null
+    console.log('❌ No logo')
+  }
+}, { deep: true })
 
 // Computed Properties
 const salaryPreview = computed(() => {
@@ -1046,7 +1120,8 @@ const validateStep = () => {
   }
   
   // Step 5 (Screening) - Optional, no required validation
-  // Step 6 (Plan) - Always has default
+  // Step 6 (SEO) - Optional, no required validation
+  // Step 7 (Plan) - Always has default
   
   return Object.keys(errors).length === 0
 }
@@ -1054,7 +1129,7 @@ const validateStep = () => {
 // Navigation
 const nextStep = () => {
   if (validateStep()) {
-    if (currentStep.value < 7) {
+    if (currentStep.value < 8) {
       currentStep.value++
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -1747,6 +1822,38 @@ onBeforeUnmount(() => {
   color: #666;
   font-size: 1.1rem;
   margin-bottom: 1.5rem;
+}
+
+.company-logo-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid #E0E0E0;
+}
+
+.logo-preview-container {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #F8F4FF;
+  border-radius: 8px;
+  border: 2px solid rgba(92, 0, 153, 0.1);
+}
+
+.logo-preview-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5C0099;
+  margin: 0 0 0.5rem 0;
+}
+
+.logo-preview-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 3px solid #5C0099;
+  box-shadow: 0 4px 12px rgba(92, 0, 153, 0.2);
 }
 
 .preview-info-grid {

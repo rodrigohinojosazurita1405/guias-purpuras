@@ -3,25 +3,56 @@
     <section class="publish-section">
       <div class="container">
         <div class="publish-header">
+          <div class="header-icon">
+            <va-icon name="add_circle" size="3rem" color="purple" />
+          </div>
           <h1 class="publish-title">Publica tu Anuncio</h1>
           <p class="publish-subtitle">
             Completa el formulario y llega a miles de personas en Bolivia
           </p>
         </div>
 
-        <PublishSteps 
-          :current-step="currentStep" 
-          :steps="stepsList" 
-        />
+        <!-- Progress Bar Moderno -->
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div 
+              class="progress-fill" 
+              :style="{ width: ((currentStep / getTotalSteps()) * 100) + '%' }"
+            ></div>
+          </div>
+          <div class="progress-steps">
+            <div 
+              v-for="(step, index) in stepsList" 
+              :key="index"
+              class="progress-step"
+              :class="{ 
+                active: currentStep === index + 1,
+                completed: currentStep > index + 1
+              }"
+            >
+              <div class="step-circle">
+                <va-icon 
+                  v-if="currentStep > index + 1" 
+                  name="check" 
+                  size="1.2rem" 
+                />
+                <span v-else>{{ index + 1 }}</span>
+              </div>
+              <span class="step-name">{{ step }}</span>
+            </div>
+          </div>
+        </div>
 
         <div class="form-card" :key="currentStep">
           
+          <!-- Paso 1: Categoría -->
           <CategoryStep
             v-if="currentStep === 1"
             ref="categoryStepRef"
             v-model="formData"
           />
 
+          <!-- Paso 2: Información -->
           <InformationStepProfessional
             v-if="currentStep === 2 && formData.category === 'profesionales'"
             ref="informationStepRef"
@@ -48,27 +79,61 @@
             v-model="formData"
           />
 
+          <!-- Paso 3: GPS (profesionales y gastronomía) -->
+          <GPSStep
+            v-if="currentStep === 3 && (formData.category === 'profesionales' || formData.category === 'gastronomia')"
+            ref="gpsStepRef"
+            v-model:coordinates="formData.coordinates"
+            v-model:address="formData.gpsAddress"
+          />
+
+          <!-- Paso 4: SEO (profesionales y gastronomía) -->
+          <SEOStep
+            v-if="currentStep === 4 && formData.category === 'profesionales'"
+            ref="seoStepRef"
+            v-model="formData.seoData"
+            entity-type="profesional"
+            base-url="guiaspurpuras.com/profesionales"
+          />
+
+          <SEOStep
+            v-if="currentStep === 4 && formData.category === 'gastronomia'"
+            ref="seoStepRef"
+            v-model="formData.seoData"
+            entity-type="restaurante"
+            base-url="guiaspurpuras.com/gastronomia"
+          />
+
+          <!-- Imágenes -->
           <ImagesStep
-            v-if="currentStep === 3"
+            v-if="(currentStep === 3 && formData.category !== 'profesionales' && formData.category !== 'gastronomia') || 
+                  (currentStep === 5 && (formData.category === 'profesionales' || formData.category === 'gastronomia'))"
             ref="imagesStepRef"
             v-model="formData.images"
             :plan="formData.plan"
           />
 
+          <!-- Menú (solo gastronomía) -->
           <MenuStep
-            v-if="currentStep === 4 && formData.category === 'gastronomia'"
+            v-if="currentStep === 6 && formData.category === 'gastronomia'"
             ref="menuStepRef"
             v-model="formData.menuItems"
           />
 
+          <!-- Plan -->
           <PlanStep
-            v-if="(currentStep === 4 && formData.category !== 'gastronomia') || (currentStep === 5 && formData.category === 'gastronomia')"
+            v-if="(currentStep === 4 && formData.category !== 'gastronomia' && formData.category !== 'profesionales') || 
+                  (currentStep === 7 && formData.category === 'gastronomia') ||
+                  (currentStep === 6 && formData.category === 'profesionales')"
             ref="planStepRef"
             v-model="formData.plan"
           />
 
+          <!-- Confirmar -->
           <div 
-            v-if="(currentStep === 5 && formData.category !== 'gastronomia') || (currentStep === 6 && formData.category === 'gastronomia')"
+            v-if="(currentStep === 5 && formData.category !== 'gastronomia' && formData.category !== 'profesionales') || 
+                  (currentStep === 8 && formData.category === 'gastronomia') ||
+                  (currentStep === 7 && formData.category === 'profesionales')"
             class="summary-step"
           >
             <SummaryCard 
@@ -126,7 +191,6 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/components/Layout/MainLayout.vue'
-import PublishSteps from '@/components/Publish/PublishSteps.vue'
 import CategoryStep from '@/components/Publish/CategoryStep.vue'
 import InformationStep from '@/components/Publish/InformationStep.vue'
 import InformationStepProfessional from '@/components/Publish/InformationStepProfessional.vue'
@@ -136,6 +200,8 @@ import ImagesStep from '@/components/Publish/ImagesStep.vue'
 import MenuStep from '@/components/Publish/MenuStep.vue'
 import PlanStep from '@/components/Publish/PlanStep.vue'
 import SummaryCard from '@/components/Publish/SummaryCard.vue'
+import GPSStep from '@/components/Publish/GPSStep.vue'
+import SEOStep from '@/components/Publish/SEOStep.vue'
 
 const router = useRouter()
 
@@ -147,6 +213,8 @@ const informationStepRef = ref(null)
 const imagesStepRef = ref(null)
 const menuStepRef = ref(null)
 const planStepRef = ref(null)
+const gpsStepRef = ref(null)
+const seoStepRef = ref(null)
 
 const formData = ref({
   category: '',
@@ -177,18 +245,42 @@ const formData = ref({
   email: '',
   website: '',
   images: [],
-  plan: 'free'
+  plan: 'free',
+  // GPS Fields
+  coordinates: '',
+  gpsAddress: '',
+  // SEO Fields
+  seoData: {
+    slug: '',
+    mainKeyword: '',
+    tags: [],
+    metaDescription: '',
+    locationKeywords: '',
+    categories: []
+  }
 })
 
 const stepsList = ref(['Categoría', 'Información', 'Imágenes', 'Plan', 'Confirmar'])
 
 const getTotalSteps = () => {
-  return formData.value.category === 'gastronomia' ? 6 : 5
+  // Profesionales: 7 pasos
+  if (formData.value.category === 'profesionales') {
+    return 7
+  }
+  // ✨ GASTRONOMÍA: 8 PASOS (Info, GPS, SEO, Imágenes, Menú, Plan, Confirmar)
+  if (formData.value.category === 'gastronomia') {
+    return 8
+  }
+  // Otros: 5 pasos
+  return 5
 }
 
 const updateStepsList = () => {
-  if (formData.value.category === 'gastronomia') {
-    stepsList.value = ['Categoría', 'Información', 'Imágenes', 'Menú', 'Plan', 'Confirmar']
+  if (formData.value.category === 'profesionales') {
+    stepsList.value = ['Categoría', 'Información', 'GPS', 'SEO', 'Imágenes', 'Plan', 'Confirmar']
+  } else if (formData.value.category === 'gastronomia') {
+    // ✨ GASTRONOMÍA CON GPS Y SEO
+    stepsList.value = ['Categoría', 'Información', 'GPS', 'SEO', 'Imágenes', 'Menú', 'Plan', 'Confirmar']
   } else {
     stepsList.value = ['Categoría', 'Información', 'Imágenes', 'Plan', 'Confirmar']
   }
@@ -244,28 +336,60 @@ const validateCurrentStep = async () => {
     case 1:
       stepRef = categoryStepRef.value
       break
+    
     case 2:
       stepRef = informationStepRef.value
       break
+    
     case 3:
-      stepRef = imagesStepRef.value
+      // Paso 3: GPS (profesionales y gastronomía) o Imágenes (otros)
+      if (formData.value.category === 'profesionales' || formData.value.category === 'gastronomia') {
+        stepRef = gpsStepRef.value // GPS es opcional, siempre válido
+      } else {
+        stepRef = imagesStepRef.value
+      }
       break
+    
     case 4:
+      // Paso 4: SEO (profesionales y gastronomía) o Plan (otros)
+      if (formData.value.category === 'profesionales' || formData.value.category === 'gastronomia') {
+        stepRef = seoStepRef.value // SEO es opcional, siempre válido
+      } else {
+        stepRef = planStepRef.value
+      }
+      break
+    
+    case 5:
+      // Paso 5: Imágenes (profesionales y gastronomía) o Confirmar (otros)
+      if (formData.value.category === 'profesionales' || formData.value.category === 'gastronomia') {
+        stepRef = imagesStepRef.value
+      } else {
+        return true // Confirmar, no valida
+      }
+      break
+    
+    case 6:
+      // Paso 6: Menú (gastronomía) o Plan (profesionales)
       if (formData.value.category === 'gastronomia') {
         stepRef = menuStepRef.value
-      } else {
+      } else if (formData.value.category === 'profesionales') {
         stepRef = planStepRef.value
       }
       break
-    case 5:
+    
+    case 7:
+      // Paso 7: Plan (gastronomía) o Confirmar (profesionales)
       if (formData.value.category === 'gastronomia') {
         stepRef = planStepRef.value
       } else {
-        return true
+        return true // Confirmar, no valida
       }
       break
-    case 6:
-      return true
+    
+    case 8:
+      // Paso 8: Confirmar (gastronomía)
+      return true // No valida
+    
     default:
       return true
   }
@@ -320,17 +444,132 @@ onMounted(() => {
   margin-bottom: 3rem;
 }
 
+.header-icon {
+  margin-bottom: 1rem;
+  animation: fadeInDown 0.6s ease;
+}
+
 .publish-title {
   font-size: 2.5rem;
   font-weight: 800;
-  color: var(--color-purple-darkest);
+  background: linear-gradient(135deg, #5C0099, #9333EA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 0.5rem;
+  animation: fadeInDown 0.6s ease 0.1s backwards;
 }
 
 .publish-subtitle {
   font-size: 1.125rem;
-  color: #666;
+  color: #6B7280;
   line-height: 1.5;
+  animation: fadeInDown 0.6s ease 0.2s backwards;
+}
+
+/* ===================================
+   PROGRESS BAR MODERNO
+   =================================== */
+.progress-container {
+  margin-bottom: 3rem;
+  animation: fadeIn 0.6s ease 0.3s backwards;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #E5E7EB;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #5C0099, #9333EA, #DB2777);
+  border-radius: 10px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  position: relative;
+}
+
+.step-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #9CA3AF;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 2;
+}
+
+.progress-step.active .step-circle {
+  background: linear-gradient(135deg, #5C0099, #9333EA);
+  border-color: #5C0099;
+  color: white;
+  transform: scale(1.15);
+  box-shadow: 0 4px 16px rgba(92, 0, 153, 0.4);
+}
+
+.progress-step.completed .step-circle {
+  background: linear-gradient(135deg, #FDC500, #FFA500);
+  border-color: #FDC500;
+  color: #5C0099;
+  box-shadow: 0 4px 16px rgba(253, 197, 0, 0.4);
+}
+
+.step-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #9CA3AF;
+  transition: color 0.3s ease;
+  text-align: center;
+}
+
+.progress-step.active .step-name {
+  color: #5C0099;
+  font-weight: 700;
+}
+
+.progress-step.completed .step-name {
+  color: #6B7280;
 }
 
 .form-card {
@@ -423,6 +662,43 @@ onMounted(() => {
   .form-card {
     padding: 1rem;
     border-radius: 12px;
+  }
+
+  .step-name {
+    display: none;
+  }
+
+  .progress-steps {
+    padding: 0 1rem;
+  }
+
+  .step-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+}
+
+/* ===================================
+   ANIMACIONES
+   =================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

@@ -108,91 +108,116 @@
             <!-- Tab Content -->
             <div class="tab-content">
               
-              <!-- About Tab -->
+                            <!-- About Tab - Información -->
               <div v-show="activeTab === 'about'" class="tab-panel">
                 <div class="content-section">
                   <h2 class="section-title">
-                    <va-icon name="info" />
-                    Acerca de la Empresa
+                    <va-icon name="business" />
+                    Acerca del negocio
                   </h2>
-                  <p class="section-text">{{ business.description }}</p>
+                  <p class="business-description">{{ business.description }}</p>
                 </div>
-
-                <!-- Tags -->
-                <div v-if="business.tags && business.tags.length > 0" class="content-section">
+                
+                <div class="content-section" v-if="business.category">
                   <h2 class="section-title">
-                    <va-icon name="tag" />
-                    Etiquetas
+                    <va-icon name="category" />
+                    Categoría
                   </h2>
-                  <div class="tags-cloud">
-                    <VaChip
-                      v-for="(tag, index) in business.tags"
-                      :key="index"
-                      color="purple"
-                      outline
-                      size="large"
-                    >
-                      {{ tag }}
-                    </VaChip>
+                  <VaChip size="large" color="purple">{{ business.category }}</VaChip>
+                </div>
+                
+                <div class="content-section" v-if="business.schedule">
+                  <h2 class="section-title">
+                    <va-icon name="schedule" />
+                    Horario de atención
+                  </h2>
+                  <p class="business-info-text">{{ business.schedule }}</p>
+                </div>
+                
+                <div class="content-section" v-if="business.features && business.features.length > 0">
+                  <h2 class="section-title">
+                    <va-icon name="star" />
+                    Características destacadas
+                  </h2>
+                  <div class="features-grid">
+                    <div v-for="(feature, index) in business.features" :key="index" class="feature-item">
+                      <va-icon name="check_circle" color="success" />
+                      <span>{{ feature }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-
               <!-- Products Tab -->
               <div v-show="activeTab === 'products'" class="tab-panel">
-                <div v-if="business.products && business.products.length > 0" class="content-section">
+                <div class="content-section">
                   <h2 class="section-title">
                     <va-icon name="inventory" />
                     Productos y Servicios
                   </h2>
-                  <div class="products-showcase">
-                    <div 
-                      v-for="(product, index) in business.products" 
-                      :key="index" 
-                      class="product-item"
-                    >
-                      <div v-if="product.image" class="product-img">
+                  
+                  <div v-if="business.products && business.products.length > 0" class="products-grid">
+                    <div v-for="product in business.products" :key="product.id" class="product-card">
+                      <div v-if="product.image" class="product-image">
                         <img :src="product.image" :alt="product.name" />
                       </div>
-                      <div class="product-details">
-                        <h4>{{ product.name }}</h4>
-                        <p>{{ product.description }}</p>
+                      <div v-else class="product-image-placeholder">
+                        <va-icon name="inventory" size="3rem" color="#999" />
+                      </div>
+                      <div class="product-info">
+                        <h3 class="product-name">{{ product.name }}</h3>
+                        <p class="product-description">{{ product.description }}</p>
+                        <div class="product-price" v-if="product.price">
+                          <span class="price-label">Precio:</span>
+                          <span class="price-value">Bs. {{ product.price }}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                <div v-else class="empty-state">
-                  <va-icon name="inventory_2" size="3rem" color="#CCC" />
-                  <p>No hay productos registrados</p>
+                  
+                  <div v-else class="empty-products">
+                    <va-icon name="inventory" size="5rem" color="#CCC" />
+                    <p>No hay productos o servicios disponibles en este momento</p>
+                  </div>
                 </div>
               </div>
-
-              <!-- Contact Tab -->
-              <div v-show="activeTab === 'contact'" class="tab-panel">
+              <!-- Location Tab - Ubicación -->
+              <div v-show="activeTab === 'location'" class="tab-panel">
                 <div class="content-section">
                   <h2 class="section-title">
                     <va-icon name="place" />
                     Ubicación
                   </h2>
-                  <div class="location-info">
-                    <div class="info-row">
-                      <va-icon name="home" />
-                      <span>{{ business.address || 'Dirección no disponible' }}</span>
+                  
+                  <!-- Info de dirección -->
+                  <div class="location-address-card">
+                    <div class="address-icon">
+                      <va-icon name="location_on" size="large" />
                     </div>
-                    <div class="info-row">
-                      <va-icon name="location_city" />
-                      <span>{{ business.city || 'Bolivia' }}</span>
+                    <div class="address-content">
+                      <p class="address-main">{{ business.address || 'Dirección no disponible' }}</p>
+                      <p class="address-city">{{ business.city }}, Bolivia</p>
                     </div>
                   </div>
-                  <VaButton
-                    v-if="business.coordinates"
-                    color="purple"
-                    icon="open_in_new"
-                    class="map-btn"
-                    @click="openInGoogleMaps"
-                  >
-                    Ver en Google Maps
-                  </VaButton>
+                  
+                  <!-- Mapa simple y elegante -->
+                  <div v-if="businessCoordinates" class="map-wrapper-elegant">
+                    <MapLocation
+                      ref="mapLocationRef"
+                      :coordinates="businessCoordinates"
+                      :address="business.address || `${business.city}, Bolivia`"
+                      :title="business.name"
+                      :zoom="16"
+                      :height="'400px'"
+                      :hide-header="true"
+                      readonly
+                    />
+                  </div>
+                  
+                  <!-- Fallback sin mapa -->
+                  <div v-else class="map-placeholder-simple">
+                    <va-icon name="map" size="4rem" color="#999" />
+                    <p>Ubicación en {{ business.city }}, Bolivia</p>
+                  </div>
                 </div>
               </div>
 
@@ -324,17 +349,41 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import MainLayout from '@/components/Layout/MainLayout.vue'
 import { getBusinessBySlug } from '@/data/mockBusinesses'
+import MapLocation from '@/components/Publish/MapLocation.vue'
 
 const route = useRoute()
 const router = useRouter()
 const { init: notify } = useToast()
 
 const business = ref(null)
+const mapLocationRef = ref(null)
+
+// NOTA: Los datos de 'business' vienen de getBusinessBySlug()
+// Asegúrate de que el objeto incluya estos campos:
+// - description: string
+// - schedule: string  
+// - features: array de strings
+// - products: array de objetos con { id, name, description, price, image }
+// - address: string
+// - coordinates: string (formato: "lat, lng")
+// Ejemplo:
+// {
+//   name: "Mi Negocio",
+//   description: "Descripción del negocio...",
+//   schedule: "Lun-Vie: 9:00-18:00",
+//   features: ["WiFi gratis", "Parking"],
+//   products: [
+//     { id: 1, name: "Producto 1", description: "...", price: 100, image: "..." }
+//   ],
+//   address: "Av. Ejemplo 123",
+//   coordinates: "-17.3935, -66.1570"
+// }
+
 const loading = ref(true)
 const isFavorite = ref(false)
 const activeTab = ref('about')
@@ -342,7 +391,7 @@ const activeTab = ref('about')
 const tabs = [
   { id: 'about', label: 'Información', icon: 'info' },
   { id: 'products', label: 'Productos', icon: 'inventory' },
-  { id: 'contact', label: 'Contacto', icon: 'place' }
+  { id: 'location', label: 'Ubicación', icon: 'place' }
 ]
 
 const planIcon = computed(() => {
@@ -362,6 +411,32 @@ const planLabel = computed(() => {
     default: return ''
   }
 })
+
+// Convertir coordenadas de string a objeto { lat, lng }
+const businessCoordinates = computed(() => {
+  if (business.value?.coordinates) {
+    const coords = business.value.coordinates.replace(/ /g, '').split(',')
+    if (coords.length === 2) {
+      return {
+        lat: parseFloat(coords[0]),
+        lng: parseFloat(coords[1])
+      }
+    }
+  }
+  return null
+})
+
+// Refrescar el mapa cuando se cambia al tab de ubicación
+watch(activeTab, (newTab) => {
+  if (newTab === 'location') {
+    setTimeout(() => {
+      if (mapLocationRef.value?.refreshMapSize) {
+        mapLocationRef.value.refreshMapSize()
+      }
+    }, 100)
+  }
+})
+
 
 const fetchBusiness = async () => {
   loading.value = true
@@ -992,6 +1067,288 @@ onMounted(() => {
     padding: 0;
     border-radius: 50%;
     justify-content: center;
+  }
+}
+
+
+/* ====================================
+   📍 LOCATION SECTION - ELEGANT & SIMPLE
+   ==================================== */
+
+.location-address-card {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #F8F4FF 0%, #FFF 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(92, 0, 153, 0.1);
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.location-address-card:hover {
+  border-color: rgba(92, 0, 153, 0.3);
+  box-shadow: 0 4px 12px rgba(92, 0, 153, 0.1);
+}
+
+.address-icon {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #5C0099, #8B00CC);
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(92, 0, 153, 0.3);
+}
+
+.address-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.address-main {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.4;
+}
+
+.address-city {
+  font-size: 0.95rem;
+  color: #6B7280;
+  margin: 0;
+}
+
+.map-wrapper-elegant {
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border: 3px solid rgba(92, 0, 153, 0.15);
+  transition: all 0.3s ease;
+}
+
+.map-wrapper-elegant :deep(.map-location) {
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-wrapper-elegant :deep(.map-container) {
+  height: 400px !important;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.map-wrapper-elegant :deep(.leaflet-map) {
+  height: 100% !important;
+  width: 100%;
+}
+
+.map-wrapper-elegant :deep(.map-footer) {
+  flex-shrink: 0;
+}
+
+.map-wrapper-elegant:hover {
+  box-shadow: 0 12px 32px rgba(92, 0, 153, 0.2);
+  border-color: rgba(92, 0, 153, 0.3);
+}
+
+.map-placeholder-simple {
+  padding: 4rem 2rem;
+  text-align: center;
+  background: #F9FAFB;
+  border-radius: 16px;
+  border: 2px dashed #D1D5DB;
+}
+
+.map-placeholder-simple p {
+  margin: 1rem 0 0 0;
+  color: #6B7280;
+  font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .location-address-card {
+    padding: 1.25rem;
+  }
+  
+  .address-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .address-main {
+    font-size: 1rem;
+  }
+
+}
+
+
+/* ====================================
+   📝 TAB ABOUT - INFORMACIÓN
+   ==================================== */
+
+.business-description {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #374151;
+  margin: 0;
+}
+
+.business-info-text {
+  font-size: 1rem;
+  color: #4B5563;
+  margin: 0;
+  padding: 1rem;
+  background: #F9FAFB;
+  border-radius: 8px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #F8F4FF 0%, #FFF 100%);
+  border-radius: 10px;
+  border: 2px solid rgba(92, 0, 153, 0.1);
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  border-color: rgba(92, 0, 153, 0.3);
+  transform: translateX(5px);
+}
+
+.feature-item span {
+  font-size: 0.95rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* ====================================
+   📦 TAB PRODUCTS - PRODUCTOS
+   ==================================== */
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.product-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 2px solid rgba(92, 0, 153, 0.1);
+}
+
+.product-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(92, 0, 153, 0.2);
+  border-color: rgba(92, 0, 153, 0.3);
+}
+
+.product-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.1);
+}
+
+.product-image-placeholder {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #F3F4F6, #E5E7EB);
+}
+
+.product-info {
+  padding: 1.5rem;
+}
+
+.product-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.product-description {
+  font-size: 0.9rem;
+  color: #6B7280;
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+}
+
+.product-price {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid rgba(92, 0, 153, 0.1);
+}
+
+.price-label {
+  font-size: 0.85rem;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.price-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #5C0099;
+}
+
+.empty-products {
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #9CA3AF;
+}
+
+.empty-products p {
+  margin: 1rem 0 0 0;
+  font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

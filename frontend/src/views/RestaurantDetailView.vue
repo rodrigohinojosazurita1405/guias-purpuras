@@ -312,29 +312,32 @@
                       <va-icon name="location_on" size="2rem" color="purple" />
                       <div>
                         <div class="location-name">{{ restaurant.title }}</div>
-                        <div class="location-address">{{ restaurant.city }}, Bolivia</div>
+                        <div class="location-address">
+                          {{ restaurant.gpsAddress || `${restaurant.city}, Bolivia` }}
+                        </div>
+                        <div v-if="restaurant.coordinates" class="location-coords">
+                          📍 {{ restaurant.coordinates.lat }}, {{ restaurant.coordinates.lng }}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Mapa placeholder -->
-                  <div class="map-placeholder">
-                    <va-icon name="map" size="60px" color="#999" />
-                    <p class="map-text">{{ restaurant.city }}</p>
-                    <va-button
-                      color="purple"
-                      @click="openInMaps"
-                    >
-                      <va-icon name="directions" />
-                      Abrir en Google Maps
-                    </va-button>
+                  <!-- Mapa GPS -->
+                  <div v-if="restaurant.coordinates" class="map-container">
+                    <MapLocation
+                      :coordinates="restaurant.coordinates"
+                      :address="restaurant.gpsAddress || `${restaurant.city}, Bolivia`"
+                      :title="restaurant.title"
+                      :zoom="16"
+                      readonly
+                    />
                   </div>
 
-                  <!-- Cómo llegar -->
-                  <div class="directions-info">
-                    <h4>¿Cómo llegar?</h4>
-                    <p>Haz clic en "Abrir en Google Maps" para ver las direcciones desde tu ubicación actual.</p>
+                  <div v-else class="map-placeholder">
+                    <va-icon name="map" size="60px" color="#999" />
+                    <p class="map-text">{{ restaurant.city }}</p>
                   </div>
+
                 </div>
 
                 <!-- CTA de contacto -->
@@ -365,6 +368,7 @@ import { useRoute } from 'vue-router'
 import MainLayout from '@/components/Layout/MainLayout.vue'
 import TabNavigation from '@/components/Common/TabNavigation.vue'
 import MenuItemCard from '@/components/Publish/MenuItemCard.vue'
+import MapLocation from '@/components/Publish/MapLocation.vue'
 
 const route = useRoute()
 const activeTab = ref(0)
@@ -390,6 +394,8 @@ const restaurant = ref({
   whatsapp: '71234567',
   email: 'contacto@elsaborboliviano.com',
   website: 'https://elsaborboliviano.com',
+  coordinates: { lat: -17.3935, lng: -66.1570 },
+  gpsAddress: 'Av. Heroínas 456, Cochabamba, Bolivia',
   city: 'Cochabamba',
   verified: true,
   plan: 'destacado',
@@ -444,8 +450,15 @@ const restaurant = ref({
 })
 
 const openInMaps = () => {
-  const query = encodeURIComponent(`${restaurant.value.title}, ${restaurant.value.city}, Bolivia`)
-  window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank')
+  // Si hay coordenadas GPS exactas, usarlas
+  if (restaurant.value.coordinates) {
+    const { lat, lng } = restaurant.value.coordinates
+    window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`, '_blank')
+  } else {
+    // Fallback: búsqueda por nombre y ciudad
+    const query = encodeURIComponent(`${restaurant.value.title}, ${restaurant.value.city}, Bolivia`)
+    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank')
+  }
 }
 
 const fetchRestaurant = async () => {
@@ -903,6 +916,17 @@ onMounted(() => {
 .location-address {
   font-size: 1rem;
   color: #666;
+}
+.location-coords {
+  font-size: 0.85rem;
+  color: #5C0099;
+  font-family: monospace;
+  margin-top: 0.25rem;
+}
+
+
+.map-container {
+  margin: 2rem 0;
 }
 
 .map-placeholder {

@@ -337,18 +337,6 @@ const availableSpecialties = ref([
   'Derecho Laboral',
   'Derecho Comercial',
   'Derecho Tributario',
-  'Medicina General',
-  'Pediatría',
-  'Cardiología',
-  'Traumatología',
-  'Contabilidad General',
-  'Auditoría',
-  'Impuestos',
-  'Finanzas',
-  'Diseño Arquitectónico',
-  'Construcción',
-  'Remodelación',
-  'Supervisión de Obras'
 ])
 
 const availableLanguages = ref([
@@ -384,9 +372,9 @@ const errors = ref({})
 const toggleSpecialty = (specialty) => {
   const index = localData.value.specialties.indexOf(specialty)
   if (index > -1) {
-    localData.value.specialties.splice(index, 1)
+    localData.value.specialties = localData.value.specialties.filter(s => s !== specialty)
   } else {
-    localData.value.specialties.push(specialty)
+    localData.value.specialties = [...localData.value.specialties, specialty]
   }
 }
 
@@ -394,9 +382,9 @@ const toggleSpecialty = (specialty) => {
 const toggleLanguage = (language) => {
   const index = localData.value.languages.indexOf(language)
   if (index > -1) {
-    localData.value.languages.splice(index, 1)
+    localData.value.languages = localData.value.languages.filter(l => l !== language)
   } else {
-    localData.value.languages.push(language)
+    localData.value.languages = [...localData.value.languages, language]
   }
 }
 

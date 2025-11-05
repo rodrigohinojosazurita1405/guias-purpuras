@@ -304,6 +304,106 @@
                   </div>
                 </div>
 
+                <!-- Redes Sociales -->
+                <div v-if="professional.socialMedia" class="content-block social-media-section">
+                  <h3 class="block-title">
+                    <va-icon name="share" size="1.5rem" color="purple" />
+                    Síguenos en redes sociales
+                  </h3>
+                  
+                  <div class="social-buttons">
+                    <a 
+                      v-if="professional.socialMedia.facebook"
+                      :href="professional.socialMedia.facebook"
+                      target="_blank"
+                      class="social-btn facebook"
+                      title="Facebook"
+                    >
+                      <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z" />
+                      </svg>
+                      <span>Facebook</span>
+                    </a>
+
+                    <a 
+                      v-if="professional.socialMedia.instagram"
+                      :href="professional.socialMedia.instagram"
+                      target="_blank"
+                      class="social-btn instagram"
+                      title="Instagram"
+                    >
+                      <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z" />
+                      </svg>
+                      <span>Instagram</span>
+                    </a>
+
+                    <a 
+                      v-if="professional.socialMedia.linkedin"
+                      :href="professional.socialMedia.linkedin"
+                      target="_blank"
+                      class="social-btn linkedin"
+                      title="LinkedIn"
+                    >
+                      <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M19 3A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3H19M18.5 18.5V13.2A3.26 3.26 0 0 0 15.24 9.94C14.39 9.94 13.4 10.46 12.92 11.24V10.13H10.13V18.5H12.92V13.57C12.92 12.8 13.54 12.17 14.31 12.17A1.4 1.4 0 0 1 15.71 13.57V18.5H18.5M6.88 8.56A1.68 1.68 0 0 0 8.56 6.88C8.56 5.95 7.81 5.19 6.88 5.19A1.69 1.69 0 0 0 5.19 6.88C5.19 7.81 5.95 8.56 6.88 8.56M8.27 18.5V10.13H5.5V18.5H8.27Z" />
+                      </svg>
+                      <span>LinkedIn</span>
+                    </a>
+
+                    <a 
+                      v-if="professional.socialMedia.twitter"
+                      :href="professional.socialMedia.twitter"
+                      target="_blank"
+                      class="social-btn twitter"
+                      title="Twitter/X"
+                    >
+                      <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                      </svg>
+                      <span>Twitter</span>
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Ubicación con mapa -->
+                <div class="content-block location-map-section">
+                  <h3 class="block-title">
+                    <va-icon name="place" size="1.5rem" color="purple" />
+                    Ubicación
+                  </h3>
+                  
+                  <!-- Info de dirección -->
+                  <div class="location-address-card">
+                    <div class="address-icon">
+                      <va-icon name="location_on" size="large" />
+                    </div>
+                    <div class="address-content">
+                      <p class="address-main">{{ professional.gpsAddress || professional.city }}</p>
+                      <p class="address-city">{{ professional.city }}, Bolivia</p>
+                    </div>
+                  </div>
+                  
+                  <!-- Mapa elegante -->
+                  <div v-if="professionalCoordinates" class="map-wrapper-elegant">
+                    <MapLocation
+                      :coordinates="professionalCoordinates"
+                      :address="professional.gpsAddress || `${professional.city}, Bolivia`"
+                      :title="professional.title"
+                      :zoom="16"
+                      :height="'400px'"
+                      :hide-header="true"
+                      readonly
+                    />
+                  </div>
+                  
+                  <!-- Fallback sin mapa -->
+                  <div v-else class="map-placeholder-simple">
+                    <va-icon name="map" size="4rem" color="#999" />
+                    <p>Ubicación en {{ professional.city }}, Bolivia</p>
+                  </div>
+                </div>
+
                 <!-- CTA -->
                 <div class="cta-block">
                   <h3>¿Listo para contratar este profesional?</h3>
@@ -327,10 +427,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import MainLayout from '@/components/Layout/MainLayout.vue'
 import TabNavigation from '@/components/Common/TabNavigation.vue'
+import MapLocation from '@/components/Publish/MapLocation.vue'
 
 const route = useRoute()
 const activeTab = ref(0)
@@ -361,8 +462,30 @@ const professional = ref({
   website: 'https://juanperezabogado.com',
   city: 'Cochabamba',
   verified: true,
+  coordinates: '-17.3895, -66.1568',
+  gpsAddress: 'Av. Papa Paulo 123, Cochabamba, Bolivia',
+  socialMedia: {
+    facebook: 'https://facebook.com/juanperezabogado',
+    instagram: 'https://instagram.com/juanperezabogado',
+    linkedin: 'https://linkedin.com/in/juanperez',
+    twitter: 'https://twitter.com/juanperezabo'
+  },
   plan: 'destacado',
   images: [{ url: 'https://via.placeholder.com/600x400/5C0099/FFFFFF?text=Dr.+Juan+P%C3%A9rez' }]
+})
+
+// Convertir coordenadas de string a objeto { lat, lng }
+const professionalCoordinates = computed(() => {
+  if (professional.value?.coordinates) {
+    const coords = professional.value.coordinates.replace(/ /g, '').split(',')
+    if (coords.length === 2) {
+      return {
+        lat: parseFloat(coords[0]),
+        lng: parseFloat(coords[1])
+      }
+    }
+  }
+  return null
 })
 
 const fetchProfessional = async () => {
@@ -910,6 +1033,185 @@ onMounted(() => {
 
   .cta-block h3 {
     font-size: 1.5rem;
+  }
+}
+
+
+/* ====================================
+   🎨 SOCIAL MEDIA SECTION
+   ==================================== */
+
+.social-media-section {
+  background: linear-gradient(135deg, #F8F4FF 0%, #FFF 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 2px solid rgba(92, 0, 153, 0.1);
+}
+
+.social-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: white;
+}
+
+.social-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.social-btn svg {
+  flex-shrink: 0;
+}
+
+.social-btn.facebook {
+  background: linear-gradient(135deg, #1877F2, #0C63D4);
+}
+
+.social-btn.facebook:hover {
+  background: linear-gradient(135deg, #0C63D4, #084FA0);
+}
+
+.social-btn.instagram {
+  background: linear-gradient(135deg, #E4405F, #C13584, #833AB4);
+}
+
+.social-btn.instagram:hover {
+  background: linear-gradient(135deg, #C13584, #833AB4, #5B51D8);
+}
+
+.social-btn.linkedin {
+  background: linear-gradient(135deg, #0A66C2, #004182);
+}
+
+.social-btn.linkedin:hover {
+  background: linear-gradient(135deg, #004182, #003366);
+}
+
+.social-btn.twitter {
+  background: linear-gradient(135deg, #000000, #333333);
+}
+
+.social-btn.twitter:hover {
+  background: linear-gradient(135deg, #333333, #1DA1F2);
+}
+
+/* ====================================
+   📍 LOCATION MAP SECTION
+   ==================================== */
+
+.location-map-section {
+  margin-top: 2rem;
+}
+
+.location-address-card {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #F8F4FF 0%, #FFF 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(92, 0, 153, 0.1);
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.location-address-card:hover {
+  border-color: rgba(92, 0, 153, 0.3);
+  box-shadow: 0 4px 12px rgba(92, 0, 153, 0.1);
+}
+
+.address-icon {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #5C0099, #8B00CC);
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(92, 0, 153, 0.3);
+}
+
+.address-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.address-main {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.4;
+}
+
+.address-city {
+  font-size: 0.95rem;
+  color: #6B7280;
+  margin: 0;
+}
+
+.map-wrapper-elegant {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border: 3px solid rgba(92, 0, 153, 0.15);
+  transition: all 0.3s ease;
+}
+
+.map-wrapper-elegant:hover {
+  box-shadow: 0 12px 32px rgba(92, 0, 153, 0.2);
+  border-color: rgba(92, 0, 153, 0.3);
+}
+
+.map-placeholder-simple {
+  padding: 4rem 2rem;
+  text-align: center;
+  background: #F9FAFB;
+  border-radius: 16px;
+  border: 2px dashed #D1D5DB;
+}
+
+.map-placeholder-simple p {
+  margin: 1rem 0 0 0;
+  color: #6B7280;
+  font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .social-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .location-address-card {
+    padding: 1.25rem;
+  }
+  
+  .address-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .address-main {
+    font-size: 1rem;
   }
 }
 </style>
