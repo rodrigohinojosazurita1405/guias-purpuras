@@ -1,5 +1,5 @@
 <!-- frontend/src/views/BusinessCreate.vue -->
-<!-- FORMULARIO ESPECÍFICO PARA NEGOCIOS - ESTILO CONSISTENTE -->
+<!-- ✨ INTEGRADO CON BRANCHMANAGER + ANCHO CORRECTO -->
 <template>
   <MainLayout>
     <div class="business-create">
@@ -204,7 +204,7 @@
               <VaFileUpload
                 v-model="formData.bannerFile"
                 type="single"
-                file-types=".jpg,.jpeg,.png"
+                file-types="image/*"
               />
               <span class="field-hint">
                 Tamaño recomendado: 1200x400px
@@ -219,7 +219,7 @@
               <VaFileUpload
                 v-model="formData.logoFile"
                 type="single"
-                file-types=".jpg,.jpeg,.png"
+                file-types="image/*"
               />
               <span class="field-hint">
                 Tamaño recomendado: 200x200px
@@ -228,40 +228,103 @@
           </div>
         </div>
 
-        <!-- Step 4: Plan -->
-        <!-- Step 4: Ubicación GPS -->
+        <!-- ✨ Step 4: Ubicación GPS + SUCURSALES (MODIFICADO) -->
         <div v-show="currentStep === 4" class="form-step">
+          <div class="step-header">
+            <va-icon name="location_on" size="large" color="#5C0099" />
+            <div>
+              <h2 class="step-title">Ubicación Principal</h2>
+              <p class="step-description">Define la ubicación GPS de tu negocio</p>
+            </div>
+          </div>
+
+          <!-- Ubicación GPS Principal -->
           <GPSLocation
             v-model:coordinates="formData.coordinates"
             v-model:address="formData.gpsAddress"
             :error="errors.coordinates"
           />
+
+          <!-- ✨ SUCURSALES ADICIONALES (NUEVO) -->
+          <div style="margin-top: 3rem;">
+            <BranchManager
+              ref="branchManagerRef"
+              v-model="formData.branches"
+              :user-plan="userPlan"
+              :cities="cities"
+              @upgrade-plan="handleUpgradePlan"
+            />
+          </div>
         </div>
 
         <!-- Step 5: SEO -->
         <div v-show="currentStep === 5" class="form-step">
-          <SEOFields
-            :model-value="{
-              slug: formData.slug,
-              mainKeyword: formData.mainKeyword,
-              tags: formData.tags,
-              metaDescription: formData.metaDescription,
-              locationKeywords: formData.locationKeywords,
-              categories: formData.seoCategories
-            }"
-            @update:model-value="(val) => {
-              formData.slug = val.slug
-              formData.mainKeyword = val.mainKeyword
-              formData.tags = val.tags
-              formData.metaDescription = val.metaDescription
-              formData.locationKeywords = val.locationKeywords
-              formData.seoCategories = val.categories
-            }"
-            entity-type="negocio"
-            base-url="guiaspurpuras.com/negocios"
-            :available-categories="seoCategories"
-          />
+          <div class="step-header">
+            <va-icon name="search" size="large" color="#5C0099" />
+            <div>
+              <h2 class="step-title">SEO y Optimización</h2>
+              <p class="step-description">Mejora la visibilidad de tu negocio</p>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field full-width">
+              <label class="field-label">
+                <va-icon name="link" size="small" />
+                URL personalizada
+              </label>
+              <VaInput
+                v-model="formData.slug"
+                placeholder="mi-negocio-la-paz"
+              />
+              <span class="field-hint">
+                Tu negocio aparecerá en: guiaspurpuras.com/negocios/{{ formData.slug || 'tu-url' }}
+              </span>
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">
+                <va-icon name="key" size="small" />
+                Palabra clave principal
+              </label>
+              <VaInput
+                v-model="formData.mainKeyword"
+                placeholder="Ej: fábrica plásticos La Paz"
+              />
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">
+                <va-icon name="tag" size="small" />
+                Etiquetas adicionales
+              </label>
+              <VaInput
+                v-model="formData.tagsInput"
+                placeholder="manufactura, plásticos, Bolivia"
+                @input="updateTags"
+              />
+              <span class="field-hint">
+                Separa las etiquetas con comas
+              </span>
+            </div>
+
+            <div class="form-field full-width">
+              <label class="field-label">
+                <va-icon name="description" size="small" />
+                Descripción para buscadores
+              </label>
+              <VaTextarea
+                v-model="formData.metaDescription"
+                placeholder="Descripción breve que aparecerá en Google..."
+                :max-length="160"
+                :min-rows="3"
+                counter
+              />
+            </div>
+          </div>
         </div>
+
+        <!-- Step 6: Plan -->
         <div v-show="currentStep === 6" class="form-step">
           <div class="step-header">
             <va-icon name="verified" size="large" color="#5C0099" />
@@ -301,40 +364,68 @@
           </div>
         </div>
 
-        <!-- Step 5: Confirmar -->
+        <!-- Step 7: Confirmar -->
         <div v-show="currentStep === 7" class="form-step">
           <div class="step-header">
             <va-icon name="check_circle" size="large" color="#5C0099" />
             <div>
               <h2 class="step-title">Confirmar Publicación</h2>
-              <p class="step-description">Revisa la información antes de publicar</p>
+              <p class="step-description">Revisa todos los datos antes de publicar</p>
             </div>
           </div>
 
           <div class="summary-card">
+            <h3 style="margin-bottom: 1.5rem;">Resumen de tu anuncio:</h3>
+            
             <div class="summary-item">
               <span class="summary-label">Nombre:</span>
-              <span class="summary-value">{{ formData.name || '-' }}</span>
+              <span class="summary-value">{{ formData.name || 'Sin especificar' }}</span>
             </div>
+            
             <div class="summary-item">
               <span class="summary-label">Categoría:</span>
-              <span class="summary-value">{{ formData.category || '-' }}</span>
+              <span class="summary-value">{{ formData.category || 'Sin especificar' }}</span>
             </div>
+            
             <div class="summary-item">
               <span class="summary-label">Ciudad:</span>
-              <span class="summary-value">{{ formData.city || '-' }}</span>
+              <span class="summary-value">{{ formData.city || 'Sin especificar' }}</span>
             </div>
+            
             <div class="summary-item">
-              <span class="summary-label">Plan:</span>
-              <span class="summary-value">{{ getPlanName(formData.plan) }}</span>
+              <span class="summary-label">Teléfono:</span>
+              <span class="summary-value">{{ formData.phone || 'Sin especificar' }}</span>
+            </div>
+
+            <div class="summary-item">
+              <span class="summary-label">Email:</span>
+              <span class="summary-value">{{ formData.email || 'Sin especificar' }}</span>
+            </div>
+
+            <!-- ✨ SUCURSALES EN RESUMEN (NUEVO) -->
+            <div v-if="formData.branches && formData.branches.length > 0" class="summary-item">
+              <span class="summary-label">Sucursales adicionales:</span>
+              <span class="summary-value">{{ formData.branches.length }}</span>
+            </div>
+
+            <div class="summary-item">
+              <span class="summary-label">Plan seleccionado:</span>
+              <span class="summary-value">{{ formData.plan || 'Sin especificar' }}</span>
             </div>
           </div>
 
-          <VaAlert color="info" border="left">
-            <template #title>Importante</template>
-            Tu anuncio será revisado por nuestro equipo antes de ser publicado. 
-            Recibirás una notificación cuando esté activo.
-          </VaAlert>
+          <div style="padding: 1.5rem; background: #E8F5E8; border-radius: 12px; margin-top: 2rem;">
+            <h4 style="color: #2E7D2E; margin-bottom: 1rem;">
+              <va-icon name="info" color="#2E7D2E" />
+              ¿Qué sucede después?
+            </h4>
+            <ul style="margin: 0; color: #2E7D2E;">
+              <li>Tu anuncio será publicado inmediatamente</li>
+              <li>Aparecerá en los resultados de búsqueda</li>
+              <li>Los usuarios podrán contactarte directamente</li>
+              <li>Puedes editarlo en cualquier momento</li>
+            </ul>
+          </div>
         </div>
 
         <!-- Navigation Buttons -->
@@ -343,25 +434,31 @@
             v-if="currentStep > 1"
             preset="secondary"
             @click="previousStep"
+            size="large"
           >
             <va-icon name="arrow_back" />
             Anterior
           </VaButton>
-          
+
+          <div style="flex: 1;"></div>
+
           <VaButton
             v-if="currentStep < 7"
-            color="purple"
+            color="success"
             @click="nextStep"
+            size="large"
+            :disabled="!isStepValid"
           >
-            Siguiente
+            Continuar
             <va-icon name="arrow_forward" />
           </VaButton>
 
           <VaButton
             v-if="currentStep === 7"
             color="success"
-            :loading="submitting"
             @click="submitForm"
+            size="large"
+            :loading="isSubmitting"
           >
             <va-icon name="check" />
             Publicar Negocio
@@ -369,30 +466,66 @@
         </div>
 
       </div>
-
     </div>
   </MainLayout>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
-import MainLayout from '@/components/Layout/MainLayout.vue'
-import SEOFields from '@/components/SEO/SEOFields.vue'
-import GPSLocation from '@/components/Location/GPSLocation.vue'
 
+// ✅ IMPORTS CORREGIDOS
+import MainLayout from '@/components/Layout/MainLayout.vue'
+import GPSLocation from '@/components/Location/GPSLocation.vue'
+import BranchManager from '@/components/Common/BranchManager.vue'
+
+// ========== COMPOSABLES ==========
 const router = useRouter()
 const { init: notify } = useToast()
 
+// ========== REACTIVE STATE ==========
 const currentStep = ref(1)
-const submitting = ref(false)
+const isSubmitting = ref(false)
+const branchManagerRef = ref(null)
 
+// ✨ PLAN DEL USUARIO (TEMPORAL)
+const userPlan = computed(() => 'plata')
+
+// ========== FORM DATA ==========
+const formData = ref({
+  name: '',
+  category: '',
+  description: '',
+  city: '',
+  address: '',
+  phone: '',
+  email: '',
+  website: '',
+  nit: '',
+  bannerFile: [],
+  logoFile: [],
+  coordinates: '',
+  gpsAddress: '',
+  branches: [], // ✨ NUEVO
+  slug: '',
+  mainKeyword: '',
+  tags: [],
+  tagsInput: '',
+  metaDescription: '',
+  locationKeywords: '',
+  seoCategories: [],
+  plan: 'basico'
+})
+
+const errors = ref({})
+
+// ========== CONFIGURATION DATA ==========
 const steps = [
   { number: 1, label: 'Información' },
   { number: 2, label: 'Contacto' },
   { number: 3, label: 'Imágenes' },
-  { number: 4, label: 'Ubicación GPS' },
+  { number: 4, label: 'Ubicación' },
   { number: 5, label: 'SEO' },
   { number: 6, label: 'Plan' },
   { number: 7, label: 'Confirmar' }
@@ -406,17 +539,18 @@ const categories = [
   'Alimentación',
   'Construcción',
   'Textil',
-  'Automotriz'
+  'Automotriz',
+  'Otro'
 ]
 
 const cities = [
   'La Paz',
   'Santa Cruz',
   'Cochabamba',
+  'Sucre',
   'Oruro',
   'Potosí',
   'Tarija',
-  'Sucre',
   'Beni',
   'Pando'
 ]
@@ -424,109 +558,86 @@ const cities = [
 const plans = [
   {
     id: 'basico',
-    name: 'Básico',
-    badge: 'GRATIS',
-    price: 'Bs. 0',
+    name: 'Plan Básico',
+    price: 'GRATIS',
+    badge: 'Básico',
     features: [
       'Publicación básica',
-      'Visible 30 días',
-      'Información de contacto'
+      '1 imagen',
+      'Información de contacto',
+      'Ubicación en mapa'
     ]
   },
   {
     id: 'destacado',
-    name: 'Destacado',
-    badge: 'POPULAR',
-    price: 'Bs. 150',
+    name: 'Plan Destacado',
+    price: '50 Bs/mes',
+    badge: 'Popular',
     features: [
-      'Badge "Destacado"',
-      'Visible 60 días',
-      'Aparece en búsquedas destacadas',
-      'Soporte prioritario'
+      'Publicación destacada',
+      '5 imágenes',
+      'Logo y banner',
+      'Posición preferencial',
+      'Estadísticas básicas'
     ]
   },
   {
     id: 'top',
-    name: 'TOP',
-    badge: 'PREMIUM',
-    price: 'Bs. 300',
+    name: 'Plan Top',
+    price: '100 Bs/mes',
+    badge: 'Premium',
     features: [
-      'Badge "TOP"',
-      'Visible 90 días',
-      'Posición privilegiada',
-      'Verificación incluida',
-      'Estadísticas detalladas'
+      'Máxima visibilidad',
+      '10 imágenes',
+      'Video promocional',
+      'SEO optimizado',
+      'Estadísticas avanzadas',
+      'Soporte prioritario'
     ]
   }
 ]
 
-const formData = reactive({
-  name: '',
-  category: '',
-  description: '',
-  city: '',
-  address: '',
-  phone: '',
-  email: '',
-  website: '',
-  nit: '',
-  bannerFile: [],
-  logoFile: [],
-  plan: 'basico',
-  // GPS Location
-  coordinates: '',
-  gpsAddress: '',
-  // SEO Fields
-  slug: '',
-  mainKeyword: '',
-  tags: [],
-  metaDescription: '',
-  locationKeywords: '',
-  seoCategories: []
+// ========== COMPUTED ==========
+const isStepValid = computed(() => {
+  switch (currentStep.value) {
+    case 1: // Información
+      return formData.value.name && 
+             formData.value.category && 
+             formData.value.description &&
+             formData.value.city &&
+             formData.value.address
+    case 2: // Contacto
+      return formData.value.phone && 
+             formData.value.email && 
+             formData.value.nit
+    case 3: // Imágenes
+      return true // Opcional
+    case 4: // Ubicación + Sucursales
+      if (!formData.value.coordinates) return false
+      if (branchManagerRef.value && !branchManagerRef.value.validate()) return false
+      return true
+    case 5: // SEO
+      return true // Opcional
+    case 6: // Plan
+      return formData.value.plan
+    default:
+      return true
+  }
 })
 
-const errors = reactive({})
-
-const validateStep = () => {
-  Object.keys(errors).forEach(key => delete errors[key])
-  
-  if (currentStep.value === 1) {
-    if (!formData.name) errors.name = 'El nombre es requerido'
-    if (!formData.category) errors.category = 'La categoría es requerida'
-    if (!formData.description) errors.description = 'La descripción es requerida'
-    if (!formData.city) errors.city = 'La ciudad es requerida'
-    if (!formData.address) errors.address = 'La dirección es requerida'
-  }
-  
-  if (currentStep.value === 2) {
-    if (!formData.phone) errors.phone = 'El teléfono es requerido'
-    if (!formData.email) errors.email = 'El email es requerido'
-    if (!formData.nit) errors.nit = 'El NIT es requerido'
-  }
-  
-  // Step 3: Imágenes - opcional
-  
-  // Step 4: GPS Location
-  if (currentStep.value === 4) {
-    if (!formData.coordinates) errors.coordinates = 'Las coordenadas GPS son requeridas'
-  }
-  
-  // Step 5: SEO
-  if (currentStep.value === 5) {
-    if (!formData.slug) errors.slug = 'El slug es requerido'
-    if (!formData.mainKeyword) errors.mainKeyword = 'La palabra clave principal es requerida'
-    if (!formData.metaDescription) errors.metaDescription = 'La meta descripción es requerida'
-  }
-  
-  return Object.keys(errors).length === 0
-}
-
+// ========== METHODS ==========
 const nextStep = () => {
-  if (validateStep()) {
-    if (currentStep.value < 7) {
-      currentStep.value++
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
+  if (!isStepValid.value) {
+    notify({
+      message: 'Por favor completa todos los campos requeridos',
+      color: 'warning'
+    })
+    return
+  }
+
+  if (currentStep.value < 7) {
+    currentStep.value++
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 
@@ -537,76 +648,94 @@ const previousStep = () => {
   }
 }
 
-// Computed property para categorías SEO
-const seoCategories = ref(categories.map((cat, idx) => ({
-  id: idx + 1,
-  name: cat,
-  selected: false
-})))
-
-const getPlanName = (planId) => {
-  const plan = plans.find(p => p.id === planId)
-  return plan ? plan.name : '-'
+const updateTags = () => {
+  formData.value.tags = formData.value.tagsInput
+    .split(',')
+    .map(tag => tag.trim())
+    .filter(tag => tag.length > 0)
 }
 
 const submitForm = async () => {
-  submitting.value = true
-  
-  // Simular envío
-  await new Promise(resolve => setTimeout(resolve, 2000))
-  
-  notify({
-    message: '🎉 ¡Negocio publicado exitosamente!',
-    color: 'success',
-    duration: 3000
-  })
-  
-  submitting.value = false
-  router.push('/guias/negocios')
+  if (!isStepValid.value) {
+    notify({
+      message: 'Por favor completa todos los campos',
+      color: 'danger'
+    })
+    return
+  }
+
+  isSubmitting.value = true
+
+  try {
+    // Simular envío
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    notify({
+      message: '¡Negocio publicado exitosamente!',
+      color: 'success'
+    })
+
+    // Redireccionar
+    router.push('/negocios')
+  } catch (error) {
+    notify({
+      message: 'Error al publicar el negocio',
+      color: 'danger'
+    })
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+const handleUpgradePlan = () => {
+  router.push('/planes')
 }
 </script>
 
 <style scoped>
-/* Container */
+/* ========== Container - COPIADO DE JOBCREATE ========== */
 .business-create {
-  max-width: 1000px;
-  margin: 0 auto;
+  max-width: 1200px; /* ✅ ANCHO LIMITADO */
+  margin: 0 auto;    /* ✅ CENTRADO */
   padding: 2rem;
   min-height: 100vh;
 }
 
-/* Header */
+/* ========== Header ========== */
 .create-header {
   text-align: center;
   margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 3px solid #5C0099;
 }
 
 .header-title {
-  margin: 0 0 0.5rem 0;
   font-size: 2.5rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #5C0099;
+  margin: 0 0 1rem 0;
 }
 
 .header-subtitle {
-  margin: 0;
   font-size: 1.1rem;
   color: #666;
+  margin: 0;
 }
 
-/* Stepper */
+/* ========== Stepper ========== */
 .stepper-container {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 3rem;
-  position: relative;
+  padding: 0 1rem;
 }
 
 .step-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.5rem;
   flex: 1;
   position: relative;
 }
@@ -621,8 +750,7 @@ const submitForm = async () => {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 1.25rem;
-  margin-bottom: 0.75rem;
+  font-size: 1.2rem;
   transition: all 0.3s ease;
   z-index: 2;
 }
@@ -635,8 +763,8 @@ const submitForm = async () => {
 }
 
 .step-item.completed .step-circle {
-  background: #FFD700;
-  color: #000;
+  background: #4CAF50;
+  color: white;
 }
 
 .step-line {
@@ -644,33 +772,36 @@ const submitForm = async () => {
   top: 25px;
   left: 50%;
   width: 100%;
-  height: 2px;
+  height: 3px;
   background: #E0E0E0;
   z-index: 1;
 }
 
 .step-item.completed .step-line {
-  background: #FFD700;
+  background: #4CAF50;
 }
 
 .step-label {
-  font-size: 0.9rem;
-  color: #666;
+  font-size: 0.85rem;
   font-weight: 600;
+  color: #999;
   text-align: center;
 }
 
 .step-item.active .step-label {
   color: #5C0099;
-  font-weight: 700;
 }
 
-/* Form Container */
+.step-item.completed .step-label {
+  color: #4CAF50;
+}
+
+/* ========== Form Container - COPIADO DE JOBCREATE ========== */
 .form-container {
   background: white;
   border-radius: 16px;
-  padding: 2.5rem;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 3rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
 
 .form-step {
@@ -682,7 +813,7 @@ const submitForm = async () => {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Step Header */
+/* ========== Step Header ========== */
 .step-header {
   display: flex;
   gap: 1rem;
@@ -705,7 +836,7 @@ const submitForm = async () => {
   font-size: 1rem;
 }
 
-/* Form Grid */
+/* ========== Form Grid ========== */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -737,7 +868,7 @@ const submitForm = async () => {
   font-style: italic;
 }
 
-/* Plans Grid */
+/* ========== Plans Grid ========== */
 .plans-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -817,9 +948,9 @@ const submitForm = async () => {
   color: #666;
 }
 
-/* Summary */
+/* ========== Summary ========== */
 .summary-card {
-  background: #F8F8F8;
+  background: #F8F4FF;
   padding: 2rem;
   border-radius: 12px;
   margin-bottom: 2rem;
@@ -829,7 +960,7 @@ const submitForm = async () => {
   display: flex;
   justify-content: space-between;
   padding: 1rem 0;
-  border-bottom: 1px solid #E0E0E0;
+  border-bottom: 1px solid rgba(92, 0, 153, 0.1);
 }
 
 .summary-item:last-child {
@@ -846,50 +977,45 @@ const submitForm = async () => {
   font-weight: 600;
 }
 
-/* Actions */
+/* ========== Actions ========== */
 .form-actions {
   display: flex;
-  justify-content: space-between;
   gap: 1rem;
+  justify-content: flex-end;
   margin-top: 2rem;
   padding-top: 2rem;
-  border-top: 2px solid rgba(0, 0, 0, 0.05);
+  border-top: 2px solid #E0E0E0;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .plans-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
+/* ========== Responsive ========== */
+@media (max-width: 968px) {
   .business-create {
     padding: 1rem;
   }
 
-  .header-title {
-    font-size: 2rem;
+  .form-container {
+    padding: 2rem 1.5rem;
   }
 
-  .form-container {
-    padding: 1.5rem;
+  .stepper-container {
+    overflow-x: auto;
+    padding-bottom: 1rem;
+  }
+
+  .step-label {
+    font-size: 0.75rem;
   }
 
   .form-grid {
     grid-template-columns: 1fr;
   }
 
-  .stepper-container {
-    overflow-x: auto;
-  }
-
-  .step-line {
-    display: none;
+  .plans-grid {
+    grid-template-columns: 1fr;
   }
 
   .form-actions {
-    flex-direction: column;
+    flex-direction: column-reverse;
   }
 }
 </style>

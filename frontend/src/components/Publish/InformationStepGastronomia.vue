@@ -1,30 +1,14 @@
 <!-- 
   ==========================================
   INFORMATIONSTEPGASTRONOMIA.VUE
+  ✨ INTEGRADO CON BRANCHMANAGER
   ==========================================
-  
-  Formulario específico para la categoría GASTRONOMÍA
-  (Restaurantes, Cafeterías, Heladerías, etc.)
-  
-  Campos específicos:
-    - Nombre del establecimiento
-    - Tipo de cocina
-    - Rango de precios
-    - Horarios de atención
-    - Menú (PDF o texto)
-    - Delivery disponible
-    - Capacidad
-    - Estacionamiento
-    - Logo del restaurante
 -->
 
 <template>
   <div class="information-step-gastronomia">
-    <!-- 
-      ==========================================
-      HEADER
-      ==========================================
-    -->
+    
+    <!-- HEADER -->
     <div class="step-header">
       <div class="header-icon">
         <va-icon name="restaurant" size="2rem" color="purple" />
@@ -37,18 +21,10 @@
       </div>
     </div>
 
-    <!-- 
-      ==========================================
-      FORMULARIO
-      ==========================================
-    -->
+    <!-- FORMULARIO -->
     <div class="form-content">
       
-      <!-- 
-        ==========================================
-        INFORMACIÓN BÁSICA
-        ==========================================
-      -->
+      <!-- INFORMACIÓN BÁSICA -->
       <div class="form-section">
         <h3 class="section-title">
           <va-icon name="info" size="1.25rem" />
@@ -81,9 +57,6 @@
           </div>
         </div>
 
-        <!-- Tipo de Cocina - ELIMINADO -->
-        <!-- Ahora se filtra por subcategorías creadas en el backend -->
-
         <!-- Descripción Detallada -->
         <div class="form-row">
           <va-textarea
@@ -112,11 +85,7 @@
         </div>
       </div>
 
-      <!-- 
-        ==========================================
-        PRECIOS Y SERVICIOS
-        ==========================================
-      -->
+      <!-- PRECIOS Y SERVICIOS -->
       <div class="form-section">
         <h3 class="section-title">
           <va-icon name="payments" size="1.25rem" />
@@ -162,16 +131,9 @@
             </va-switch>
           </div>
         </div>
-
-        <!-- Menú - ELIMINADO -->
-        <!-- Ahora el menú se crea en un paso separado (MenuStep) con fotos individuales de cada plato -->
       </div>
 
-      <!-- 
-        ==========================================
-        HORARIOS Y CAPACIDAD
-        ==========================================
-      -->
+      <!-- HORARIOS Y CAPACIDAD -->
       <div class="form-section">
         <h3 class="section-title">
           <va-icon name="schedule" size="1.25rem" />
@@ -239,11 +201,7 @@
         </div>
       </div>
 
-      <!-- 
-        ==========================================
-        INFORMACIÓN DE CONTACTO
-        ==========================================
-      -->
+      <!-- INFORMACIÓN DE CONTACTO -->
       <div class="form-section">
         <h3 class="section-title">
           <va-icon name="contact_phone" size="1.25rem" />
@@ -282,10 +240,10 @@
             <va-input
               v-model="localFormData.email"
               label="Email (Opcional)"
-              placeholder="contacto@restaurant.com"
+              placeholder="contacto@restaurante.com"
               type="email"
               :rules="[
-                (v) => !v || /.+@.+\..+/.test(v) || 'Email inválido'
+                (v) => !v || /.+@.+\..+/.test(v) || 'El email no es válido'
               ]"
             >
               <template #prepend>
@@ -295,12 +253,12 @@
           </div>
         </div>
 
-        <!-- Sitio Web o Redes Sociales -->
+        <!-- Sitio Web (Opcional) -->
         <div class="form-row">
           <va-input
             v-model="localFormData.website"
-            label="Sitio Web, Facebook o Instagram (Opcional)"
-            placeholder="https://tu-sitio.com o https://facebook.com/tupagina"
+            label="Sitio Web (Opcional)"
+            placeholder="https://www.mirestaurante.com"
             :rules="[
               (v) => !v || v.startsWith('http://') || v.startsWith('https://') || 'Debe empezar con http:// o https://'
             ]"
@@ -309,23 +267,14 @@
               <va-icon name="language" color="purple" />
             </template>
           </va-input>
-          
-          <div class="input-hint">
-            <va-icon name="info" size="small" />
-            <span>Puedes agregar tu sitio web, página de Facebook o perfil de Instagram</span>
-          </div>
         </div>
       </div>
 
-      <!-- 
-        ==========================================
-        INFORMACIÓN ADICIONAL
-        ==========================================
-      -->
+      <!-- CARACTERÍSTICAS ADICIONALES -->
       <div class="form-section">
         <h3 class="section-title">
-          <va-icon name="more_horiz" size="1.25rem" />
-          Información Adicional (Opcional)
+          <va-icon name="stars" size="1.25rem" />
+          Características Adicionales
         </h3>
 
         <!-- Características Especiales -->
@@ -378,19 +327,26 @@
           </div>
         </div>
       </div>
+
+      <!-- ✨ SUCURSALES ADICIONALES (NUEVO) -->
+      <div class="form-section">
+        <BranchManager
+          ref="branchManagerRef"
+          v-model="localFormData.branches"
+          :user-plan="userPlan"
+          :cities="cities"
+          @upgrade-plan="handleUpgradePlan"
+        />
+      </div>
+
     </div>
   </div>
 </template>
 
 <script setup>
-// ==========================================
-// IMPORTS
-// ==========================================
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
+import BranchManager from '@/components/Common/BranchManager.vue'
 
-// ==========================================
-// PROPS & EMITS
-// ==========================================
 const props = defineProps({
   modelValue: {
     type: Object,
@@ -404,35 +360,31 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-// ==========================================
-// STATE
-// ==========================================
 const localFormData = ref({
-  // Información básica
   title: props.modelValue.title || '',
   description: props.modelValue.description || '',
-  
-  // Precios y servicios
   priceRange: props.modelValue.priceRange || '',
   deliveryAvailable: props.modelValue.deliveryAvailable || false,
-  
-  // Horarios y capacidad
   schedule: props.modelValue.schedule || '',
   capacity: props.modelValue.capacity || null,
   parking: props.modelValue.parking || false,
-  
-  // Contacto
   whatsapp: props.modelValue.whatsapp || '',
   email: props.modelValue.email || '',
   website: props.modelValue.website || '',
-  
-  // Características adicionales
-  features: props.modelValue.features || []
+  features: props.modelValue.features || [],
+  branches: props.modelValue.branches || []
 })
 
-// ==========================================
-// OPTIONS - RANGOS DE PRECIO
-// ==========================================
+const branchManagerRef = ref(null)
+
+const userPlan = computed(() => {
+  // TODO: Obtener del store real
+  // import { useUserStore } from '@/stores/user'
+  // const userStore = useUserStore()
+  // return userStore.plan || 'free'
+  return 'plata'
+})
+
 const priceRanges = [
   { text: '💵 Económico (Bs. 10 - 30)', value: 'economico' },
   { text: '💵💵 Moderado (Bs. 30 - 60)', value: 'moderado' },
@@ -440,20 +392,29 @@ const priceRanges = [
   { text: '💵💵💵💵 Premium (Bs. 100+)', value: 'premium' }
 ]
 
-// ==========================================
-// WATCHERS
-// ==========================================
+const cities = ref([
+  { id: 'cochabamba', name: 'Cochabamba' },
+  { id: 'la-paz', name: 'La Paz' },
+  { id: 'santa-cruz', name: 'Santa Cruz' },
+  { id: 'sucre', name: 'Sucre' },
+  { id: 'tarija', name: 'Tarija' },
+  { id: 'potosi', name: 'Potosí' },
+  { id: 'oruro', name: 'Oruro' },
+  { id: 'beni', name: 'Beni' },
+  { id: 'pando', name: 'Pando' }
+])
+
+const handleUpgradePlan = () => {
+  window.location.href = '/planes'
+}
+
 watch(localFormData, (newValue) => {
   emit('update:modelValue', { ...props.modelValue, ...newValue })
 }, { deep: true })
 
-// ==========================================
-// MÉTODOS DE VALIDACIÓN
-// ==========================================
 const validate = () => {
   const errors = []
   
-  // Validaciones obligatorias
   if (!localFormData.value.title || localFormData.value.title.length < 5) {
     errors.push('El nombre del establecimiento debe tener al menos 5 caracteres')
   }
@@ -476,16 +437,18 @@ const validate = () => {
     errors.push('El número de WhatsApp debe ser válido (8 dígitos, empezar con 6 o 7)')
   }
   
-  // Email (solo si existe)
   if (localFormData.value.email && !/.+@.+\..+/.test(localFormData.value.email)) {
     errors.push('El email no es válido')
   }
   
-  // Website (solo si existe)
   if (localFormData.value.website && 
       !localFormData.value.website.startsWith('http://') && 
       !localFormData.value.website.startsWith('https://')) {
     errors.push('La URL debe empezar con http:// o https://')
+  }
+  
+  if (branchManagerRef.value && !branchManagerRef.value.validate()) {
+    errors.push('Hay errores en la información de las sucursales')
   }
   
   if (errors.length > 0) {
@@ -496,23 +459,16 @@ const validate = () => {
   return true
 }
 
-// Exponer método validate() para que PublishView.vue pueda llamarlo
 defineExpose({
   validate
 })
 </script>
 
 <style scoped>
-/* ==========================================
-   CONTENEDOR PRINCIPAL
-   ========================================== */
 .information-step-gastronomia {
   width: 100%;
 }
 
-/* ==========================================
-   HEADER
-   ========================================== */
 .step-header {
   display: flex;
   align-items: center;
@@ -546,18 +502,12 @@ defineExpose({
   margin: 0.25rem 0 0 0;
 }
 
-/* ==========================================
-   FORMULARIO
-   ========================================== */
 .form-content {
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
 }
 
-/* ==========================================
-   SECCIONES
-   ========================================== */
 .form-section {
   display: flex;
   flex-direction: column;
@@ -576,9 +526,6 @@ defineExpose({
   border-bottom: 2px solid #F5F5F5;
 }
 
-/* ==========================================
-   FILAS Y GRILLAS
-   ========================================== */
 .form-row {
   display: flex;
   flex-direction: column;
@@ -591,9 +538,6 @@ defineExpose({
   gap: 1.5rem;
 }
 
-/* ==========================================
-   HINTS
-   ========================================== */
 .input-hint {
   display: flex;
   align-items: center;
@@ -610,9 +554,6 @@ defineExpose({
   color: #2E7D32;
 }
 
-/* ==========================================
-   WHATSAPP PREFIX
-   ========================================== */
 .whatsapp-prefix {
   font-weight: 700;
   color: var(--color-purple);
@@ -621,9 +562,6 @@ defineExpose({
   border-radius: 6px;
 }
 
-/* ==========================================
-   SWITCH LABEL
-   ========================================== */
 .switch-label {
   display: flex;
   align-items: center;
@@ -631,9 +569,6 @@ defineExpose({
   font-weight: 600;
 }
 
-/* ==========================================
-   CHECKBOX GROUP
-   ========================================== */
 .checkbox-group {
   display: flex;
   flex-direction: column;
@@ -652,9 +587,6 @@ defineExpose({
   gap: 1rem;
 }
 
-/* ==========================================
-   RESPONSIVE - TABLET
-   ========================================== */
 @media (max-width: 768px) {
   .step-header {
     flex-direction: column;
@@ -675,9 +607,6 @@ defineExpose({
   }
 }
 
-/* ==========================================
-   RESPONSIVE - MOBILE
-   ========================================== */
 @media (max-width: 480px) {
   .header-icon {
     width: 56px;

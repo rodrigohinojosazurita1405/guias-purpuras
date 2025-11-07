@@ -1,6 +1,32 @@
 <!-- frontend/src/components/Home/HeroSection.vue -->
 <template>
   <section class="hero-section">
+    <!-- 
+      ==========================================
+      SLIDER DE IMÁGENES DE FONDO
+      ==========================================
+      Para agregar más imágenes:
+      1. Coloca las imágenes en: frontend/src/assets/hero/
+      2. Agrega las rutas al array backgroundImages (línea 115)
+      3. Ejemplo: 
+         backgroundImages: [
+           '/src/assets/hero/bg1.jpg',
+           '/src/assets/hero/bg2.jpg',  // Nueva imagen
+           '/src/assets/hero/bg3.jpg'   // Nueva imagen
+         ]
+    -->
+    <div class="hero-background-slider">
+      <transition name="fade-slide" mode="out-in">
+        <div 
+          :key="currentSlide" 
+          class="hero-slide"
+          :style="{ backgroundImage: `url(${backgroundImages[currentSlide]})` }"
+        ></div>
+      </transition>
+      <!-- Overlay oscuro para legibilidad del texto -->
+      <div class="hero-overlay"></div>
+    </div>
+
     <div class="hero-content">
       <!-- Título Principal -->
       <h1 class="hero-title">
@@ -13,7 +39,7 @@
         Somos el ecosistema digital que conecta el talento, gastronomía, las empresas PyMe y las oportunidades de Bolivia.
       </p>
 
-      <!-- Tabs de Categorías -->
+      <!-- Tabs de Categorías - NO MODIFICADOS -->
       <div class="category-tabs">
         <button
           v-for="cat in categories"
@@ -110,15 +136,38 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+// ==========================================
+// STATE
+// ==========================================
 const selectedCategory = ref('profesionales')
 const searchQuery = ref('')
 const selectedCity = ref('')
+const currentSlide = ref(0)
 
+// ==========================================
+// IMÁGENES DEL SLIDER
+// ==========================================
+// 📸 Para agregar más imágenes, simplemente agrega rutas al array:
+const backgroundImages = [
+  new URL('@/assets/hero/bg1.jpg', import.meta.url).href,
+  // new URL('@/assets/hero/bg2.jpg', import.meta.url).href,  // ⬅️ Descomenta y agrega más imágenes aquí
+  // new URL('@/assets/hero/bg3.jpg', import.meta.url).href,
+]
+
+// ==========================================
+// CONFIGURACIÓN DEL SLIDER
+// ==========================================
+let sliderInterval = null
+const SLIDE_DURATION = 5000 // 5 segundos por imagen (ajusta según prefieras)
+
+// ==========================================
+// DATOS
+// ==========================================
 const categories = [
   { id: 'profesionales', label: 'Profesionales', icon: 'work' },
   { id: 'gastronomia', label: 'Gastronomía', icon: 'restaurant' },
@@ -128,6 +177,9 @@ const categories = [
 
 const popularSearches = ['Abogados', 'Restaurantes', 'Plomero', 'Desarrollador']
 
+// ==========================================
+// MÉTODOS
+// ==========================================
 const getPlaceholder = () => {
   const placeholders = {
     profesionales: 'Busca abogados, doctores, contadores...',
@@ -138,17 +190,11 @@ const getPlaceholder = () => {
   return placeholders[selectedCategory.value]
 }
 
-/**
- * Navega a la categoría seleccionada
- */
 const goToCategory = (categoryId) => {
   selectedCategory.value = categoryId
   router.push(`/guias/${categoryId}`)
 }
 
-/**
- * Maneja búsqueda con filtros
- */
 const handleSearch = () => {
   const query = {}
   
@@ -166,25 +212,116 @@ const handleSearch = () => {
   })
 }
 
-/**
- * Búsqueda rápida desde tags populares
- */
 const quickSearch = (term) => {
   searchQuery.value = term
   handleSearch()
 }
+
+// ==========================================
+// SLIDER AUTOMÁTICO
+// ==========================================
+const nextSlide = () => {
+  currentSlide.value = (currentSlide.value + 1) % backgroundImages.length
+}
+
+const startSlider = () => {
+  // Solo inicia el slider si hay más de 1 imagen
+  if (backgroundImages.length > 1) {
+    sliderInterval = setInterval(nextSlide, SLIDE_DURATION)
+  }
+}
+
+const stopSlider = () => {
+  if (sliderInterval) {
+    clearInterval(sliderInterval)
+  }
+}
+
+// ==========================================
+// LIFECYCLE HOOKS
+// ==========================================
+onMounted(() => {
+  startSlider()
+})
+
+onBeforeUnmount(() => {
+  stopSlider()
+})
 </script>
 
 <style scoped>
+/* ==========================================
+   HERO SECTION
+   ========================================== */
 .hero-section {
-  background: linear-gradient(135deg, var(--color-purple-darkest) 0%, var(--color-purple) 100%);
+  position: relative;
   padding: 4rem 1rem;
   min-height: 600px;
   display: flex;
   align-items: center;
+  overflow: hidden;
 }
 
+/* ==========================================
+   SLIDER DE FONDO
+   ========================================== */
+.hero-background-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.hero-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Overlay oscuro para mejorar legibilidad */
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg, 
+    rgba(61, 0, 102, 0.40) 0%,    /* purple-darkest con opacidad */
+    rgba(156, 17, 249, 0.20) 100%   /* purple con opacidad */
+  );
+  z-index: 1;
+}
+
+/* ==========================================
+   TRANSICIONES DEL SLIDER
+   ========================================== */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 1.5s ease-in-out;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+}
+
+/* ==========================================
+   CONTENIDO DEL HERO
+   ========================================== */
 .hero-content {
+  position: relative;
+  z-index: 2;
   max-width: 1000px;
   margin: 0 auto;
   width: 100%;
@@ -197,6 +334,7 @@ const quickSearch = (term) => {
   text-align: center;
   margin-bottom: 1rem;
   line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .hero-title .highlight {
@@ -205,11 +343,15 @@ const quickSearch = (term) => {
 
 .hero-subtitle {
   font-size: 1.25rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.95);
   text-align: center;
   margin-bottom: 3rem;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
 }
 
+/* ==========================================
+   TABS DE CATEGORÍAS
+   ========================================== */
 .category-tabs {
   display: flex;
   justify-content: center;
@@ -234,8 +376,10 @@ const quickSearch = (term) => {
 }
 
 .category-tab:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--color-purple);
+  color: white;
   transform: translateY(-2px);
+  border-color: var(--color-purple);
 }
 
 .category-tab.active {
@@ -244,13 +388,16 @@ const quickSearch = (term) => {
   border-color: var(--color-yellow-primary);
 }
 
+/* ==========================================
+   BARRA DE BÚSQUEDA
+   ========================================== */
 .search-bar {
   display: flex;
   gap: 1rem;
   background-color: white;
   padding: 0.75rem;
   border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   margin-bottom: 2rem;
 }
 
@@ -307,6 +454,9 @@ const quickSearch = (term) => {
   padding: 0 2rem;
 }
 
+/* ==========================================
+   BÚSQUEDAS POPULARES
+   ========================================== */
 .popular-searches {
   display: flex;
   justify-content: center;
@@ -317,7 +467,7 @@ const quickSearch = (term) => {
 }
 
 .popular-label {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
 }
 
@@ -339,6 +489,9 @@ const quickSearch = (term) => {
   transform: translateY(-2px);
 }
 
+/* ==========================================
+   ESTADÍSTICAS
+   ========================================== */
 .hero-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -369,9 +522,12 @@ const quickSearch = (term) => {
 
 .stat-label {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
 }
 
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
 @media (max-width: 768px) {
   .hero-section {
     padding: 3rem 1rem;
