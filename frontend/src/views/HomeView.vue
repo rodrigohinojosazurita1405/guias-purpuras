@@ -49,9 +49,6 @@
 import MainLayout from '@/components/Layout/MainLayout.vue'
 import HeroSection from '@/components/Home/HeroSection.vue'
 import GuidesSection from '@/components/Home/GuidesSection.vue'
-import FeaturedSection from '@/components/Home/FeaturedSection.vue'
-import HowItWorksSection from '@/components/Home/HowItWorksSection.vue'
-import PricingSection from '@/components/Home/PricingSection.vue'
 import TestimonialsSection from '@/components/Home/TestimonialsSection.vue'
 import CTABanner from '@/components/Home/CTABanner.vue'
 
@@ -61,9 +58,6 @@ export default {
     MainLayout,
     HeroSection,
     GuidesSection,
-    FeaturedSection,
-    HowItWorksSection,
-    PricingSection,
     TestimonialsSection,
     CTABanner
   }

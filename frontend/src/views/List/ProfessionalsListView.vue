@@ -124,7 +124,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/components/Layout/MainLayout.vue'
-import ProfessionalCard from '@/components/Guide/ProfessionalCard.vue'
+import ProfessionalCard from '@/components/Cards/ProfessionalCard.vue'
 
 const router = useRouter()
 const loading = ref(false)

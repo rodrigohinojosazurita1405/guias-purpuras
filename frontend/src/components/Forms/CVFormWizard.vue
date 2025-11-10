@@ -156,7 +156,7 @@
           icon="add"
           class="add-btn"
         >
-          Agregar Formación
+          Agregar Formación Profesional,Cursos, Talleres, Diplomados etc.
         </VaButton>
 
         <div 

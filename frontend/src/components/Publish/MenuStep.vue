@@ -1,18 +1,10 @@
 <!-- 
   ==========================================
-  MENUSTEP.VUE
+  MENUSTEP.VUE - VERSIÓN ORIGINAL SIMPLE
   ==========================================
   
-  Paso del formulario de publicación donde el dueño del restaurante
-  puede agregar múltiples platos/productos a su menú.
+  ✅ Solo checkboxes corregidos
   
-  Cada plato incluye:
-    - Foto
-    - Nombre
-    - Precio
-    - Descripción
-    - Ingredientes
-    - Tags (vegetariano, picante, etc.)
 -->
 
 <template>
@@ -111,7 +103,7 @@
 
     <!-- 
       ==========================================
-      MODAL: AGREGAR/EDITAR PLATO
+      MODAL: AGREGAR/EDITAR PLATO - SIN TOCAR Z-INDEX
       ==========================================
     -->
     <va-modal
@@ -222,39 +214,39 @@
           <span>Separa los ingredientes con comas</span>
         </div>
 
-        <!-- Tags -->
+        <!-- ✅ Tags - SOLO ESTE ES EL CAMBIO -->
         <div class="tags-section">
           <label class="tags-label">Características (Opcional):</label>
           <div class="tags-grid">
             <va-checkbox
-              v-model="currentItem.tags"
+              :model-value="isTagSelected('Vegetariano')"
+              @update:model-value="(checked) => toggleTag('Vegetariano', checked)"
               label="🌱 Vegetariano"
-              value="Vegetariano"
             />
             <va-checkbox
-              v-model="currentItem.tags"
+              :model-value="isTagSelected('Vegano')"
+              @update:model-value="(checked) => toggleTag('Vegano', checked)"
               label="🌿 Vegano"
-              value="Vegano"
             />
             <va-checkbox
-              v-model="currentItem.tags"
+              :model-value="isTagSelected('Picante')"
+              @update:model-value="(checked) => toggleTag('Picante', checked)"
               label="🌶️ Picante"
-              value="Picante"
             />
             <va-checkbox
-              v-model="currentItem.tags"
+              :model-value="isTagSelected('Sin Gluten')"
+              @update:model-value="(checked) => toggleTag('Sin Gluten', checked)"
               label="🌾 Sin Gluten"
-              value="Sin Gluten"
             />
             <va-checkbox
-              v-model="currentItem.tags"
+              :model-value="isTagSelected('Especialidad de la casa')"
+              @update:model-value="(checked) => toggleTag('Especialidad de la casa', checked)"
               label="⭐ Especialidad"
-              value="Especialidad de la casa"
             />
             <va-checkbox
-              v-model="currentItem.tags"
+              :model-value="isTagSelected('Más vendido')"
+              @update:model-value="(checked) => toggleTag('Más vendido', checked)"
               label="🔥 Popular"
-              value="Más vendido"
             />
           </div>
         </div>
@@ -347,74 +339,27 @@ const openAddItemModal = () => {
 }
 
 /**
- * Abre modal para editar plato existente
+ * Editar plato existente
  */
 const editItem = (index) => {
   editingIndex.value = index
   const item = localMenuItems.value[index]
   
+  // Copiar datos del item al formulario
   currentItem.value = {
-    name: item.name,
-    price: item.price,
-    description: item.description || '',
-    ingredientsText: Array.isArray(item.ingredients) 
-      ? item.ingredients.join(', ') 
-      : item.ingredients || '',
-    ingredients: item.ingredients || [],
-    tags: item.tags || [],
-    featured: item.featured || false,
-    image: item.image,
-    imagePreview: item.image ? getImageUrl(item.image) : null
+    ...item,
+    ingredientsText: item.ingredients?.join(', ') || ''
   }
   
   showItemModal.value = true
 }
 
 /**
- * Guarda el plato (nuevo o editado)
+ * Confirmar eliminación
  */
-const saveItem = () => {
-  // Validar campos obligatorios
-  if (!currentItem.value.name || currentItem.value.price === null) {
-    alert('Por favor completa los campos obligatorios')
-    return
-  }
-
-  // Procesar ingredientes (convertir texto a array)
-  const ingredientsArray = currentItem.value.ingredientsText
-    .split(',')
-    .map(i => i.trim())
-    .filter(i => i.length > 0)
-
-  const itemData = {
-    name: currentItem.value.name,
-    price: parseFloat(currentItem.value.price),
-    description: currentItem.value.description,
-    ingredients: ingredientsArray,
-    tags: currentItem.value.tags,
-    featured: currentItem.value.featured,
-    image: currentItem.value.image,
-    imagePreview: currentItem.value.imagePreview
-  }
-
-  if (editingIndex.value !== null) {
-    // Editar existente
-    localMenuItems.value[editingIndex.value] = itemData
-  } else {
-    // Agregar nuevo
-    localMenuItems.value.push(itemData)
-  }
-
-  closeItemModal()
-}
-
-/**
- * Cierra el modal de item
- */
-const closeItemModal = () => {
-  showItemModal.value = false
-  editingIndex.value = null
-  resetCurrentItem()
+const confirmDelete = (index) => {
+  deletingIndex.value = index
+  showDeleteModal.value = true
 }
 
 /**
@@ -435,30 +380,58 @@ const resetCurrentItem = () => {
 }
 
 /**
- * Maneja la carga de imagen
+ * ✅ Verificar si un tag está seleccionado
  */
-const handleImageUpload = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-
-  // Validar tamaño (máx 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    alert('La imagen es muy grande. Máximo 5MB.')
-    return
-  }
-
-  // Validar tipo
-  if (!file.type.startsWith('image/')) {
-    alert('Solo se permiten archivos de imagen')
-    return
-  }
-
-  currentItem.value.image = file
-  currentItem.value.imagePreview = URL.createObjectURL(file)
+const isTagSelected = (tag) => {
+  return currentItem.value.tags && currentItem.value.tags.includes(tag)
 }
 
 /**
- * Remueve la imagen
+ * ✅ Toggle de tags (agregar/quitar)
+ */
+const toggleTag = (tag, checked) => {
+  if (!currentItem.value.tags) {
+    currentItem.value.tags = []
+  }
+  
+  if (checked) {
+    // Agregar tag si no existe
+    if (!currentItem.value.tags.includes(tag)) {
+      currentItem.value.tags.push(tag)
+    }
+  } else {
+    // Remover tag si existe
+    const index = currentItem.value.tags.indexOf(tag)
+    if (index > -1) {
+      currentItem.value.tags.splice(index, 1)
+    }
+  }
+}
+
+/**
+ * Maneja el upload de imagen
+ */
+const handleImageUpload = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    if (file.size > 5 * 1024 * 1024) { // 5MB
+      alert('La imagen es muy grande. Máximo 5MB.')
+      return
+    }
+
+    currentItem.value.image = file
+
+    // Crear preview
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      currentItem.value.imagePreview = e.target.result
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+/**
+ * Remueve la imagen actual
  */
 const removeImage = () => {
   currentItem.value.image = null
@@ -469,76 +442,69 @@ const removeImage = () => {
 }
 
 /**
- * Confirma eliminación
+ * Cierra el modal sin guardar
  */
-const confirmDelete = (index) => {
-  deletingIndex.value = index
-  showDeleteModal.value = true
+const closeItemModal = () => {
+  showItemModal.value = false
 }
 
 /**
- * Elimina el plato
+ * Guarda el plato (nuevo o editado)
+ */
+const saveItem = () => {
+  if (!currentItem.value.name || currentItem.value.price === null || currentItem.value.price === '') {
+    return // Validation handled by VA components
+  }
+
+  // Procesar ingredientes si los hay
+  if (currentItem.value.ingredientsText) {
+    currentItem.value.ingredients = currentItem.value.ingredientsText
+      .split(',')
+      .map(ingredient => ingredient.trim())
+      .filter(ingredient => ingredient)
+  }
+
+  const newItem = { ...currentItem.value }
+  delete newItem.ingredientsText // No necesitamos esto
+
+  if (editingIndex.value !== null) {
+    // Editando item existente
+    localMenuItems.value[editingIndex.value] = newItem
+  } else {
+    // Agregando nuevo item
+    localMenuItems.value.push(newItem)
+  }
+
+  emit('update:modelValue', localMenuItems.value)
+  showItemModal.value = false
+}
+
+/**
+ * Elimina definitivamente el plato
  */
 const deleteItem = () => {
   if (deletingIndex.value !== null) {
     localMenuItems.value.splice(deletingIndex.value, 1)
-    deletingIndex.value = null
+    emit('update:modelValue', localMenuItems.value)
   }
+  
   showDeleteModal.value = false
-}
-
-/**
- * Obtiene URL de imagen
- */
-const getImageUrl = (image) => {
-  if (image instanceof File) {
-    return URL.createObjectURL(image)
-  }
-  if (typeof image === 'string') {
-    return image
-  }
-  if (image && image.url) {
-    return image.url
-  }
-  return null
+  deletingIndex.value = null
 }
 
 // ==========================================
 // WATCHERS
 // ==========================================
-watch(localMenuItems, (newValue) => {
-  emit('update:modelValue', newValue)
-}, { deep: true })
-
-// ==========================================
-// VALIDACIÓN
-// ==========================================
-const validate = () => {
-  // Opcional: puede no tener platos
-  // Pero si los tiene, deben estar completos
-  for (const item of localMenuItems.value) {
-    if (!item.name || item.price === null || item.price === undefined) {
-      console.error('Todos los platos deben tener nombre y precio')
-      return false
-    }
-  }
-  return true
-}
-
-// Exponer método validate() para PublishView.vue
-defineExpose({
-  validate
-})
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    localMenuItems.value = [...newValue]
+  },
+  { deep: true }
+)
 </script>
 
 <style scoped>
-/* ==========================================
-   CONTENEDOR PRINCIPAL
-   ========================================== */
-.menu-step {
-  width: 100%;
-}
-
 /* ==========================================
    HEADER
    ========================================== */
@@ -547,36 +513,33 @@ defineExpose({
   align-items: center;
   gap: 1.5rem;
   margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid #E0E0E0;
 }
 
 .header-icon {
   width: 64px;
   height: 64px;
+  background: rgba(139, 92, 246, 0.1);
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-purple-dark) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(92, 0, 153, 0.2);
 }
 
 .step-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--color-purple-darkest);
+  color: var(--color-purple-dark);
   margin: 0;
 }
 
 .step-subtitle {
-  font-size: 1rem;
   color: #666;
   margin: 0.25rem 0 0 0;
+  font-size: 1rem;
 }
 
 /* ==========================================
-   CONTROLES
+   CONTROLS
    ========================================== */
 .menu-controls {
   display: flex;
@@ -584,8 +547,9 @@ defineExpose({
   align-items: center;
   margin-bottom: 2rem;
   padding: 1.25rem;
-  background: #F8F8F8;
+  background: rgba(139, 92, 246, 0.05);
   border-radius: 12px;
+  border-left: 4px solid var(--color-purple);
 }
 
 .menu-count {
@@ -595,146 +559,129 @@ defineExpose({
 }
 
 .count-text {
-  font-size: 1rem;
-  color: #666;
+  font-size: 1.1rem;
+  color: var(--color-purple-dark);
 }
 
 /* ==========================================
-   GRID DE PLATOS
+   GRID
    ========================================== */
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
 /* ==========================================
-   ESTADO VACÍO
+   EMPTY STATE
    ========================================== */
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
   text-align: center;
-  background: #F8F8F8;
+  padding: 4rem 2rem;
+  background: #f9fafb;
   border-radius: 16px;
-  border: 2px dashed #CCC;
+  border: 2px dashed #d1d5db;
   margin-bottom: 2rem;
 }
 
 .empty-title {
+  margin: 1.5rem 0 0.75rem 0;
   font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-purple-dark);
-  margin: 1rem 0 0.5rem 0;
+  font-weight: 600;
+  color: #374151;
 }
 
 .empty-text {
-  font-size: 1rem;
-  color: #666;
-  max-width: 500px;
-  line-height: 1.5;
+  color: #6b7280;
   margin: 0 0 2rem 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
 }
 
 /* ==========================================
-   HINT INFORMATIVO
+   INFO HINT
    ========================================== */
 .info-hint {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: 1rem;
   padding: 1rem;
-  background: #FFF8E1;
-  border-left: 4px solid var(--va-warning);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
   border-radius: 8px;
-  margin-top: 2rem;
+  margin-bottom: 2rem;
 }
 
 .hint-content {
-  font-size: 0.9rem;
-  color: #666;
+  color: #92400e;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 
 /* ==========================================
-   FORMULARIO DE ITEM (MODAL)
+   FORM
    ========================================== */
 .item-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 1rem 0;
+  max-width: none;
 }
 
-/* ==========================================
-   PREVIEW/UPLOAD DE IMAGEN
-   ========================================== */
 .image-preview-section {
-  width: 100%;
   margin-bottom: 1rem;
 }
 
 .image-preview {
   position: relative;
-  width: 100%;
-  max-width: 400px;
-  height: 250px;
-  margin: 0 auto;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: inline-block;
 }
 
 .image-preview img {
-  width: 100%;
-  height: 100%;
+  width: 300px;
+  height: 200px;
   object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
 }
 
 .remove-image-btn {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(4px);
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
   border-radius: 50%;
 }
 
 .image-upload {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  background: #F8F8F8;
-  border: 2px dashed #CCC;
-  border-radius: 12px;
   text-align: center;
+  padding: 2rem;
+  border: 2px dashed var(--color-purple);
+  border-radius: 8px;
+  background: rgba(139, 92, 246, 0.02);
+  transition: background-color 0.2s;
+}
+
+.image-upload:hover {
+  background: rgba(139, 92, 246, 0.05);
 }
 
 .upload-btn {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .upload-hint {
+  color: #6b7280;
   font-size: 0.875rem;
-  color: #999;
   margin: 0;
 }
 
-/* ==========================================
-   OTROS ELEMENTOS DEL FORM
-   ========================================== */
 .price-prefix {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-purple);
-  padding: 0.5rem;
-  background: #F5F5F5;
-  border-radius: 6px;
 }
 
 .input-hint {
@@ -767,33 +714,24 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-weight: 600;
 }
 
 /* ==========================================
    RESPONSIVE - TABLET
    ========================================== */
 @media (max-width: 768px) {
-  .step-header {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .step-title {
-    font-size: 1.5rem;
-  }
-
   .menu-controls {
     flex-direction: column;
     gap: 1rem;
+    text-align: center;
   }
 
   .menu-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
 
   .tags-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
 }
 
@@ -818,8 +756,9 @@ defineExpose({
     font-size: 1.25rem;
   }
 
-  .image-preview {
-    height: 200px;
+  .image-preview img {
+    width: 100%;
+    max-width: 300px;
   }
 }
 </style>

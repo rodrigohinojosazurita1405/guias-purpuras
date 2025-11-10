@@ -537,7 +537,7 @@ onMounted(() => {
   color: #9CA3AF;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  z-index: 2;
+  
 }
 
 .progress-step.active .step-circle {

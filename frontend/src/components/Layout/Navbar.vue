@@ -66,7 +66,7 @@
           class="publish-btn"
         >
           <va-icon name="add_circle" />
-          <span class="btn-text">Publicar Gratis</span>
+          <span class="btn-text">Publica tu anuncio</span>
         </va-button>
 
         <!-- Auth Buttons (cuando NO está logueado) -->

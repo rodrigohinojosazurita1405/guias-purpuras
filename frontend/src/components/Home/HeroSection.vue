@@ -175,7 +175,7 @@ const categories = [
   { id: 'negocios', label: 'Negocios', icon: 'build' }
 ]
 
-const popularSearches = ['Abogados', 'Restaurantes', 'Plomero', 'Desarrollador']
+const popularSearches = ['Psicologos','Abogados','Restaurantes', 'Ingenieros']
 
 // ==========================================
 // MÉTODOS

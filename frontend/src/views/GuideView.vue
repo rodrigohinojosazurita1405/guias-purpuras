@@ -1,11 +1,12 @@
 <!-- 
   ═══════════════════════════════════════════════════════════
-  GuideView.vue - Vista Principal de Guía (CORREGIDO)
+  GuideView.vue - Vista Principal de Guía UNIFICADA
   ═══════════════════════════════════════════════════════════
   
   Responsabilidad: Mostrar listado de anuncios según categoría
-  Componentes: TopFiltersBar, FiltersSidebar, ProfessionalCard, RestaurantCard, JobCard, ListingCard
-  Conexión Django: GET /api/listings/?category=profesionales
+  Categorías soportadas: profesionales, gastronomia, trabajos, negocios
+  Componentes: TopFiltersBar, FiltersSidebar, Cards específicos
+  Conexión Django: GET /api/listings/?category={category}
 -->
 <template>
   <MainLayout>
@@ -27,14 +28,14 @@
     <!-- ========== Contenido Principal ========== -->
     <section class="guide-content">
       <div class="content-container">
-        
+       
         <!-- Sidebar de Filtros (Desktop) -->
         <FiltersSidebar 
           :subcategories="currentGuide.subcategories"
           :cities="cities"
           @filter-change="handleFilterChange"
         />
-
+        
         <!-- Área de Listados -->
         <div class="listings-area">
           
@@ -64,9 +65,17 @@
 
           <!-- Grid con Cards -->
           <div class="listings-grid">
+            <!-- ✅ NEGOCIOS - NUEVO SUPPORT -->
+            <BusinessCard 
+              v-if="category === 'negocios'"
+              v-for="listing in paginatedListings" 
+              :key="listing.id"
+              :business="listing"
+            />
+
             <!-- Profesionales -->
             <ProfessionalCard 
-              v-if="category === 'profesionales'"
+              v-else-if="category === 'profesionales'"
               v-for="listing in paginatedListings" 
               :key="listing.id"
               :listing="listing"
@@ -142,17 +151,21 @@
 <script>
 /**
  * ═══════════════════════════════════════════════════════════
- * GuideView - Script (Con JobCard integrado)
+ * GuideView - Script UNIFICADO (Con soporte para negocios)
  * ═══════════════════════════════════════════════════════════
  */
 
 import MainLayout from '@/components/Layout/MainLayout.vue'
-import TopFiltersBar from '@/components/Guide/TopFiltersBar.vue'
-import FiltersSidebar from '@/components/Guide/FiltersSidebar.vue'
-import ProfessionalCard from '@/components/Guide/ProfessionalCard.vue'
-import RestaurantCard from '@/components/Guide/RestaurantCard.vue'
-import JobCard from '@/components/Guide/JobCard.vue'
-import ListingCard from '@/components/Guide/ListingCard.vue'
+import TopFiltersBar from '@/components/Filters/TopFiltersBar.vue'
+import FiltersSidebar from '@/components/Filters/FiltersSidebar.vue'
+import ProfessionalCard from '@/components/Cards/ProfessionalCard.vue'
+import RestaurantCard from '@/components/Cards/RestaurantCard.vue'
+import JobCard from '@/components/Cards/JobCard.vue'
+import BusinessCard from '@/components/Cards/BusinessCard.vue'  // ✅ NUEVO IMPORT
+import ListingCard from '@/components/Cards/ListingCard.vue'
+
+// ✅ IMPORTAR MOCK DATA PARA NEGOCIOS
+import { mockBusinesses } from '@/data/mockBusinesses.js'
 
 export default {
   name: 'GuideView',
@@ -163,6 +176,7 @@ export default {
     ProfessionalCard,
     RestaurantCard,
     JobCard,
+    BusinessCard,  // ✅ NUEVO COMPONENTE
     ListingCard 
   },
   
@@ -170,7 +184,7 @@ export default {
     category: {
       type: String,
       required: true,
-      validator: (value) => ['profesionales', 'gastronomia', 'trabajos', 'servicios'].includes(value)
+      validator: (value) => ['profesionales', 'gastronomia', 'trabajos', 'negocios', 'servicios'].includes(value)  // ✅ AGREGAR NEGOCIOS
     }
   },
   
@@ -192,8 +206,12 @@ export default {
       
       cities: ['La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Tarija', 'Sucre', 'Beni', 'Pando'],
       
-      // Configuración por categoría
+      // ✅ CONFIGURACIÓN EXPANDIDA CON NEGOCIOS
       categoryConfig: {
+        negocios: {
+          name: 'Guías de Negocios en Bolivia',
+          subcategories: ['Manufactura', 'Textil', 'Alimentos', 'Tecnología', 'Servicios', 'Construcción', 'Comercio', 'Transporte', 'Educación', 'Salud']
+        },
         profesionales: {
           name: 'Profesionales en Bolivia',
           subcategories: ['Abogados', 'Contadores', 'Arquitectos', 'Doctores', 'Ingenieros', 'Psicólogos']
@@ -243,11 +261,16 @@ export default {
 
       // Filtrar por subcategoría
       if (this.topFilters.subcategory) {
-        results = results.filter(listing => 
-          listing.subcategory === this.topFilters.subcategory ||
-          listing.professionalTitle?.includes(this.topFilters.subcategory) ||
-          listing.contractType === this.topFilters.subcategory
-        )
+        results = results.filter(listing => {
+          // Para negocios, filtrar por categoría 
+          if (this.category === 'negocios') {
+            return listing.category === this.topFilters.subcategory
+          }
+          // Para otros, usar la lógica existente
+          return listing.subcategory === this.topFilters.subcategory ||
+                 listing.professionalTitle?.includes(this.topFilters.subcategory) ||
+                 listing.contractType === this.topFilters.subcategory
+        })
       }
 
       // Filtrar por ciudad
@@ -262,15 +285,21 @@ export default {
         const searchLower = this.topFilters.search.toLowerCase()
         results = results.filter(listing => {
           const title = listing.title?.toLowerCase() || ''
+          const name = listing.name?.toLowerCase() || ''  // ✅ Para negocios
+          const description = listing.description?.toLowerCase() || ''
           const professionalTitle = listing.professionalTitle?.toLowerCase() || ''
           const companyName = listing.companyName?.toLowerCase() || ''
+          const category = listing.category?.toLowerCase() || ''
           const subcategory = listing.subcategory?.toLowerCase() || ''
           const specialties = listing.specialties?.join(' ').toLowerCase() || ''
           const tags = listing.tags?.join(' ').toLowerCase() || ''
           
           return title.includes(searchLower) || 
+                 name.includes(searchLower) ||  // ✅ Para negocios
+                 description.includes(searchLower) ||
                  professionalTitle.includes(searchLower) ||
                  companyName.includes(searchLower) ||
+                 category.includes(searchLower) ||
                  subcategory.includes(searchLower) ||
                  specialties.includes(searchLower) ||
                  tags.includes(searchLower)
@@ -291,15 +320,29 @@ export default {
           return listings.sort((a, b) => (b.rating || 0) - (a.rating || 0))
         case 'featured':
           return listings.sort((a, b) => {
-            const priorityA = a.plan === 'destacado' ? 2 : a.plan === 'premium' ? 1 : 0
-            const priorityB = b.plan === 'destacado' ? 2 : b.plan === 'premium' ? 1 : 0
-            return priorityB - priorityA
+            // ✅ Mejorar para negocios
+            const getPriority = (item) => {
+              const plan = item.plan?.toLowerCase()
+              if (plan === 'top') return 3
+              if (plan === 'destacado') return 2  
+              if (plan === 'premium') return 1
+              return 0
+            }
+            return getPriority(b) - getPriority(a)
           })
         case 'name':
-          return listings.sort((a, b) => a.title.localeCompare(b.title))
+          return listings.sort((a, b) => {
+            const nameA = a.name || a.title || ''
+            const nameB = b.name || b.title || ''
+            return nameA.localeCompare(nameB)
+          })
         case 'recent':
         default:
-          return listings
+          return listings.sort((a, b) => {
+            const dateA = new Date(a.createdAt || a.publishDate || '2024-01-01')
+            const dateB = new Date(b.createdAt || b.publishDate || '2024-01-01')
+            return dateB - dateA
+          })
       }
     },
 
@@ -319,26 +362,32 @@ export default {
       return Math.ceil(this.filteredListings.length / this.itemsPerPage)
     }
   },
-  
+
   methods: {
     /**
-     * Maneja cambio de filtros superiores
-     */
-    handleTopFilterChange(filters) {
-      this.topFilters = { ...filters }
-      this.currentPage = 1 // Reset a página 1
-    },
-
-    /**
-     * Maneja cambio de filtros del sidebar
+     * Manejar cambio de filtros del sidebar
      */
     handleFilterChange(filters) {
-      console.log('Filtros sidebar:', filters)
-      // TODO: Integrar con filtros superiores si es necesario
+      // Aplicar filtros desde el sidebar
+      if (filters.subcategories?.length > 0) {
+        this.topFilters.subcategory = filters.subcategories[0]
+      }
+      if (filters.city) {
+        this.topFilters.city = filters.city
+      }
+      this.currentPage = 1
     },
 
     /**
-     * Limpia todos los filtros
+     * Manejar cambio de filtros de la barra superior
+     */
+    handleTopFilterChange(filters) {
+      this.topFilters = { ...this.topFilters, ...filters }
+      this.currentPage = 1
+    },
+
+    /**
+     * Limpiar todos los filtros
      */
     clearAllFilters() {
       this.topFilters = {
@@ -350,63 +399,46 @@ export default {
     },
 
     /**
-     * Ordena los listados
+     * Ordenar listados
      */
     sortListings() {
-      this.currentPage = 1 // Reset a página 1
+      this.currentPage = 1
     },
-    
+
     /**
-     * Navega al detalle
+     * Navegar a un anuncio
      */
     viewListing(listing) {
-      console.log('Ver:', listing.id)
-      this.$router.push(`/guias/${this.category}/${listing.slug || listing.id}`)
+      this.$router.push(`/anuncio/${listing.id}`)
     },
 
-    /**
-     * Paginación
-     */
-    goToPage(page) {
-      this.currentPage = page
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    },
-
+    // ========== Paginación ==========
     previousPage() {
       if (this.currentPage > 1) {
         this.currentPage--
-        window.scrollTo({ top: 0, behavior: 'smooth' })
       }
     },
 
     nextPage() {
       if (this.currentPage < this.totalPages) {
         this.currentPage++
-        window.scrollTo({ top: 0, behavior: 'smooth' })
       }
     },
 
-    /**
-     * Obtiene listados desde la API
-     */
-    async fetchListings() {
-      try {
-        // TODO: Llamar API real
-        // const response = await fetch(`/api/listings/?category=${this.category}`)
-        // this.allListings = await response.json()
-        
-        // Mock data por categoría
-        this.loadMockData()
-      } catch (error) {
-        console.error('Error cargando listados:', error)
-      }
+    goToPage(page) {
+      this.currentPage = page
     },
 
     /**
-     * Carga datos mock según la categoría
+     * ✅ CARGAR DATOS SEGÚN CATEGORÍA (CON INFORMACIÓN COMPLETA)
      */
     loadMockData() {
-      if (this.category === 'profesionales') {
+      // ✅ DATOS PARA NEGOCIOS
+      if (this.category === 'negocios') {
+        this.allListings = [...mockBusinesses]
+      } 
+      // ✅ DATOS PARA PROFESIONALES (3 cards con info completa)
+      else if (this.category === 'profesionales') {
         this.allListings = [
           {
             id: 1,
@@ -420,6 +452,8 @@ export default {
             plan: 'destacado',
             verified: true,
             rating: 4.8,
+            reviews: 42,
+            description: 'Abogado con amplia experiencia en casos civiles y familiares. Especialista en mediación y resolución de conflictos.',
             images: [{ url: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=400' }]
           },
           {
@@ -432,8 +466,10 @@ export default {
             specialties: ['Pediatría', 'Medicina General', 'Vacunación'],
             city: 'La Paz',
             plan: 'premium',
-            verified: false,
+            verified: true,
             rating: 4.9,
+            reviews: 67,
+            description: 'Doctora especializada en pediatría con enfoque en medicina preventiva y desarrollo infantil.',
             images: [{ url: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400' }]
           },
           {
@@ -442,163 +478,211 @@ export default {
             title: 'Lic. Carlos Rodríguez',
             professionalTitle: 'Contador Público Autorizado',
             subcategory: 'Contadores',
-            yearsExperience: 8,
-            specialties: ['Contabilidad', 'Auditoría', 'Impuestos'],
-            city: 'Santa Cruz',
-            plan: 'free',
-            verified: false,
-            rating: 4.5,
-            images: []
-          },
-          {
-            id: 4,
-            slug: 'ana-martinez-arquitecta',
-            title: 'Arq. Ana Martínez',
-            professionalTitle: 'Arquitecta especializada en diseño moderno',
-            subcategory: 'Arquitectos',
             yearsExperience: 12,
-            specialties: ['Diseño Arquitectónico', 'Remodelación', 'Construcción'],
-            city: 'Cochabamba',
+            specialties: ['Contabilidad General', 'Auditoría', 'Tributación'],
+            city: 'Santa Cruz',
             plan: 'premium',
-            verified: true,
-            rating: 5.0,
+            verified: false,
+            rating: 4.7,
+            reviews: 23,
+            description: 'Contador con amplia experiencia en auditorías y asesoramiento tributario para empresas.',
             images: [{ url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400' }]
           }
         ]
-      } else if (this.category === 'gastronomia') {
+      }
+      // ✅ DATOS COMPLETOS PARA GASTRONOMÍA (CON TODA LA INFORMACIÓN VALIOSA)
+      else if (this.category === 'gastronomia') {
         this.allListings = [
           {
             id: 1,
-            slug: 'el-sabor-boliviano',
-            title: 'Restaurante El Sabor Boliviano',
+            slug: 'restaurante-el-fogon',
+            title: 'Restaurante El Fogón',
             subcategory: 'Comida Tradicional',
-            priceRange: 'moderado',
-            schedule: 'Lun-Dom: 12:00 - 22:00',
-            capacity: 80,
-            parking: true,
-            deliveryAvailable: true,
+            cuisine: 'Boliviana',
+            priceRange: 'moderado', // economico, moderado, alto, premium
             city: 'Cochabamba',
             plan: 'destacado',
             verified: true,
-            rating: 4.7,
+            rating: 4.8,
+            reviews: 67,
+            description: 'Auténtica comida tradicional boliviana en ambiente familiar. Especialistas en platos típicos cochabambinos.',
+            timeAgo: 'Actualizado hace 1h',
+            deliveryAvailable: true,
+            schedule: 'Lun-Dom 11:00 - 22:00',
+            capacity: 80,
+            parking: true,
             images: [{ url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400' }],
             menuItems: [
-              { name: 'Pique Macho', price: 45, image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=200' },
-              { name: 'Silpancho', price: 35, image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200' },
-              { name: 'Sajta de Pollo', price: 40, image: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=200' }
+              {
+                name: 'Silpancho Tradicional',
+                price: 35,
+                image: 'https://images.unsplash.com/photo-1551782450-17144efb9c50?w=300&h=200&fit=crop'
+              },
+              {
+                name: 'Pique Macho',
+                price: 42,
+                image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300&h=200&fit=crop'
+              },
+              {
+                name: 'Chicharrón de Cerdo',
+                price: 38,
+                image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=300&h=200&fit=crop'
+              },
+              {
+                name: 'Anticucho de Corazón',
+                price: 25,
+                image: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=300&h=200&fit=crop'
+              }
             ]
           },
           {
             id: 2,
-            slug: 'pizzeria-italiana',
-            title: 'Pizzería Italiana Don Giuseppe',
+            slug: 'pizzeria-don-luigi',
+            title: 'Pizzería Don Luigi',
             subcategory: 'Pizzerías',
+            cuisine: 'Italiana',
             priceRange: 'moderado',
-            schedule: 'Mar-Dom: 18:00 - 23:00',
-            capacity: 50,
-            parking: false,
-            deliveryAvailable: true,
             city: 'La Paz',
             plan: 'premium',
             verified: true,
             rating: 4.6,
-            images: [{ url: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400' }],
+            reviews: 89,
+            description: 'Auténtica pizza italiana con ingredientes importados. Masa artesanal y horno de leña tradicional.',
+            timeAgo: 'Actualizado hace 2h',
+            deliveryAvailable: true,
+            schedule: 'Mar-Dom 18:00 - 23:00',
+            capacity: 45,
+            parking: false,
+            images: [{ url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400' }],
             menuItems: [
-              { name: 'Pizza Margarita', price: 55, image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=200' },
-              { name: 'Pizza Pepperoni', price: 60, image: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=200' }
+              {
+                name: 'Pizza Margherita',
+                price: 65,
+                image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300&h=200&fit=crop'
+              },
+              {
+                name: 'Pizza Quattro Stagioni',
+                price: 78,
+                image: 'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=300&h=200&fit=crop'
+              },
+              {
+                name: 'Calzone Especial',
+                price: 72,
+                image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&h=200&fit=crop'
+              }
             ]
           },
           {
             id: 3,
-            slug: 'cafe-del-centro',
-            title: 'Café del Centro',
-            subcategory: 'Cafeterías',
+            slug: 'heladeria-sorbeto',
+            title: 'Heladería Sorbeto',
+            subcategory: 'Heladerías',
+            cuisine: 'Postres',
             priceRange: 'economico',
-            schedule: 'Lun-Sáb: 8:00 - 20:00',
-            capacity: 30,
-            parking: false,
-            deliveryAvailable: false,
             city: 'Santa Cruz',
-            plan: 'free',
-            verified: false,
-            rating: 4.4,
-            images: [{ url: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400' }],
-            menuItems: []
+            plan: 'premium',
+            verified: true,
+            rating: 4.9,
+            reviews: 156,
+            description: 'Helados artesanales con sabores únicos. Productos naturales y recetas familiares tradicionales.',
+            timeAgo: 'Actualizado hace 3h',
+            deliveryAvailable: false,
+            schedule: 'Lun-Sab 14:00 - 22:00',
+            capacity: 25,
+            parking: true,
+            images: [{ url: 'https://images.unsplash.com/photo-1488900128323-21503983a07e?w=400' }],
+            menuItems: [
+              {
+                name: 'Helado de Coco Tropical',
+                price: 15,
+                image: 'https://images.unsplash.com/photo-1488900128323-21503983a07e?w=300&h=200&fit=crop'
+              },
+              {
+                name: 'Sundae de Chocolate',
+                price: 22,
+                image: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=300&h=200&fit=crop'
+              },
+              {
+                name: 'Smoothie de Frutas',
+                price: 18,
+                image: 'https://images.unsplash.com/photo-1553530979-cb6735f24a89?w=300&h=200&fit=crop'
+              },
+              {
+                name: 'Milkshake Especial',
+                price: 25,
+                image: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=300&h=200&fit=crop'
+              },
+              {
+                name: 'Copa Helada Premium',
+                price: 35,
+                image: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=300&h=200&fit=crop'
+              }
+            ]
           }
         ]
-      } else if (this.category === 'trabajos') {
+      }
+      // ✅ DATOS PARA TRABAJOS (3 cards con info completa)
+      else if (this.category === 'trabajos') {
         this.allListings = [
           {
             id: 1,
             title: 'Desarrollador Full Stack Senior',
             companyName: 'TechCorp Bolivia',
-            companyLogo: 'https://via.placeholder.com/150x60/5C0099/FFFFFF?text=TechCorp',
-            city: 'Cochabamba',
+            companyLogo: 'https://via.placeholder.com/150x60/5C0099/FFFFFF?text=TECH',
+            city: 'La Paz',
             contractType: 'Tiempo Completo',
             modality: 'Remoto',
-            salary: 'Bs. 5000 - 8000',
-            tags: ['Python', 'React', 'PostgreSQL', 'AWS'],
-            publishedDaysAgo: 2,
+            salary: 'Bs. 8000 - 12000',
+            tags: ['JavaScript', 'Vue.js', 'Node.js', 'PostgreSQL'],
+            publishedDaysAgo: 1,
             plan: 'destacado',
             verified: true,
             confidential: false,
-            urgent: false,
-            subcategory: 'Tiempo Completo'
+            urgent: true,
+            subcategory: 'Tiempo Completo',
+            description: 'Buscamos desarrollador senior para liderar proyectos de desarrollo web con tecnologías modernas.'
           },
           {
             id: 2,
-            title: 'Diseñador Gráfico',
+            title: 'Diseñador UX/UI',
             companyName: 'Importante Empresa',
             companyLogo: null,
-            city: 'La Paz',
-            contractType: 'Medio Tiempo',
+            city: 'Cochabamba',
+            contractType: 'Tiempo Completo',
             modality: 'Híbrido',
-            salary: 'Bs. 3000 - 4500',
-            tags: ['Adobe Suite', 'Illustrator', 'Photoshop', 'Branding'],
-            publishedDaysAgo: 3,
+            salary: 'Bs. 5000 - 7500',
+            tags: ['Figma', 'Adobe XD', 'Prototipado', 'Design System'],
+            publishedDaysAgo: 2,
             plan: 'premium',
             verified: false,
             confidential: false,
             importantCompany: true,
             urgent: false,
-            subcategory: 'Medio Tiempo'
+            subcategory: 'Tiempo Completo',
+            description: 'Diseñador creativo para mejorar la experiencia de usuario en nuestras aplicaciones digitales.'
           },
           {
             id: 3,
-            title: 'Analista de Marketing Digital',
-            companyName: null,
-            companyLogo: null,
+            title: 'Contador Senior',
+            companyName: 'Consultora ABC',
+            companyLogo: 'https://via.placeholder.com/150x60/2E7D32/FFFFFF?text=ABC',
             city: 'Santa Cruz',
             contractType: 'Tiempo Completo',
             modality: 'Presencial',
-            salary: 'No Declarado',
-            tags: ['SEO', 'Google Ads', 'Analytics', 'Social Media'],
-            publishedDaysAgo: 5,
-            plan: 'free',
-            verified: false,
-            confidential: true,
-            urgent: true,
-            subcategory: 'Tiempo Completo'
-          },
-          {
-            id: 4,
-            title: 'Contador Senior',
-            companyName: 'Consultora Financiera ABC',
-            companyLogo: 'https://via.placeholder.com/150x60/2E7D32/FFFFFF?text=ABC',
-            city: 'Cochabamba',
-            contractType: 'Tiempo Completo',
-            modality: 'Presencial',
             salary: 'Bs. 6000 - 9000',
-            tags: ['Contabilidad', 'Impuestos', 'Auditoría', 'NIC'],
-            publishedDaysAgo: 1,
+            tags: ['Contabilidad', 'SIAF', 'Auditoría', 'Tributación'],
+            publishedDaysAgo: 5,
             plan: 'premium',
             verified: true,
             confidential: false,
             urgent: false,
-            subcategory: 'Tiempo Completo'
+            subcategory: 'Tiempo Completo',
+            description: 'Contador experimentado para manejar la contabilidad general y asesoría tributaria de clientes.'
           }
         ]
-      } else if (this.category === 'servicios') {
+      } 
+      // Datos para servicios
+      else if (this.category === 'servicios') {
         this.allListings = [
           {
             id: 1,
@@ -613,20 +697,6 @@ export default {
             rating: 5,
             reviews: 32,
             views: 267
-          },
-          {
-            id: 2,
-            category: 'Servicios',
-            title: 'Electricista Certificado',
-            subcategory: 'Electricidad',
-            image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400',
-            city: 'Santa Cruz',
-            timeAgo: 'Hace 1 día',
-            plan: 'premium',
-            verified: false,
-            rating: 4,
-            reviews: 18,
-            views: 123
           }
         ]
       }
@@ -637,7 +707,7 @@ export default {
    * Al montar el componente, cargar los listados
    */
   mounted() {
-    this.fetchListings()
+    this.loadMockData()
   },
 
   /**
@@ -646,7 +716,7 @@ export default {
   watch: {
     category: {
       handler() {
-        this.fetchListings()
+        this.loadMockData()
         this.clearAllFilters() // Limpiar filtros al cambiar de categoría
       },
       immediate: false
@@ -748,6 +818,7 @@ export default {
   box-shadow: 0 0 0 3px rgba(92, 0, 153, 0.1);
 }
 
+/* ✅ GRID UNIFICADO - TAMAÑO CONSISTENTE PARA TODOS LOS CARDS */
 .listings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

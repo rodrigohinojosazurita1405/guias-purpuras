@@ -14,13 +14,68 @@
 
         <!-- Header Card -->
         <div class="professional-header">
-          <!-- Imagen/Logo -->
-          <div class="professional-image">
-            <img 
-              v-if="professional.images && professional.images.length > 0"
-              :src="professional.images[0].url"
-              :alt="professional.title"
-            />
+          <!-- ✅ SLIDER DE IMÁGENES (SOLO ESTE CAMBIO) -->
+          <div class="professional-image-slider">
+            <!-- Slider con imágenes -->
+            <div v-if="professionalImages.length > 0" class="image-slider-container">
+              <div class="slider-wrapper">
+                <!-- Track de imágenes -->
+                <div 
+                  class="slider-track" 
+                  :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
+                >
+                  <div 
+                    v-for="(image, index) in professionalImages"
+                    :key="image.id || index"
+                    class="slider-slide"
+                  >
+                    <img 
+                      :src="image.url" 
+                      :alt="`${professional.title} - Imagen ${index + 1}`"
+                      class="slider-image"
+                    />
+                  </div>
+                </div>
+                
+                <!-- Flechas de navegación (solo si hay múltiples imágenes) -->
+                <template v-if="professionalImages.length > 1">
+                  <button 
+                    @click="prevSlide" 
+                    class="slider-arrow slider-arrow-prev"
+                    :class="{ disabled: currentSlide === 0 }"
+                  >
+                    <va-icon name="chevron_left" size="1.5rem" />
+                  </button>
+                  
+                  <button 
+                    @click="nextSlide" 
+                    class="slider-arrow slider-arrow-next"
+                    :class="{ disabled: currentSlide === professionalImages.length - 1 }"
+                  >
+                    <va-icon name="chevron_right" size="1.5rem" />
+                  </button>
+                </template>
+                
+                <!-- Contador de imágenes -->
+                <div v-if="professionalImages.length > 1" class="image-counter">
+                  {{ currentSlide + 1 }}/{{ professionalImages.length }}
+                </div>
+              </div>
+              
+              <!-- Dots indicadores -->
+              <div v-if="professionalImages.length > 1" class="slider-dots">
+                <button
+                  v-for="(_, index) in professionalImages"
+                  :key="index"
+                  @click="goToSlide(index)"
+                  class="slider-dot"
+                  :class="{ active: currentSlide === index }"
+                  :aria-label="`Ver imagen ${index + 1}`"
+                />
+              </div>
+            </div>
+            
+            <!-- Placeholder si no hay imágenes -->
             <div v-else class="placeholder-image">
               <va-icon name="person" size="5rem" color="#999" />
             </div>
@@ -427,7 +482,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import MainLayout from '@/components/Layout/MainLayout.vue'
 import TabNavigation from '@/components/Common/TabNavigation.vue'
@@ -435,6 +490,46 @@ import MapLocation from '@/components/Publish/MapLocation.vue'
 
 const route = useRoute()
 const activeTab = ref(0)
+
+// ✅ SLIDER STATE AGREGADO
+const currentSlide = ref(0)
+
+// ✅ COMPUTED: Imágenes del profesional (máximo 3, ordenadas)
+const professionalImages = computed(() => {
+  if (!professional.value.images) return []
+  
+  return professional.value.images
+    .sort((a, b) => (a.order || 0) - (b.order || 0)) // Ordenar por campo order
+    .slice(0, 3) // Máximo 3 imágenes
+})
+
+// ✅ SLIDER METHODS
+const nextSlide = () => {
+  if (currentSlide.value < professionalImages.value.length - 1) {
+    currentSlide.value++
+  }
+}
+
+const prevSlide = () => {
+  if (currentSlide.value > 0) {
+    currentSlide.value--
+  }
+}
+
+const goToSlide = (index) => {
+  currentSlide.value = index
+}
+
+// ✅ KEYBOARD NAVIGATION
+const handleKeyPress = (event) => {
+  if (professionalImages.value.length > 1) {
+    if (event.key === 'ArrowLeft') {
+      prevSlide()
+    } else if (event.key === 'ArrowRight') {
+      nextSlide()
+    }
+  }
+}
 
 const tabs = [
   { label: 'Servicios', icon: 'description' },
@@ -471,7 +566,11 @@ const professional = ref({
     twitter: 'https://twitter.com/juanperezabo'
   },
   plan: 'destacado',
-  images: [{ url: 'https://via.placeholder.com/600x400/5C0099/FFFFFF?text=Dr.+Juan+P%C3%A9rez' }]
+  images: [
+    { id: 1, url: 'https://via.placeholder.com/1200x1200/5C0099/FFFFFF?text=Dr.+Juan+P%C3%A9rez+1', order: 1 },
+    { id: 2, url: 'https://via.placeholder.com/1200x1200/8B5CF6/FFFFFF?text=Dr.+Juan+P%C3%A9rez+2', order: 2 },
+    { id: 3, url: 'https://via.placeholder.com/1200x1200/A855F7/FFFFFF?text=Dr.+Juan+P%C3%A9rez+3', order: 3 }
+  ]
 })
 
 // Convertir coordenadas de string a objeto { lat, lng }
@@ -504,6 +603,11 @@ const fetchProfessional = async () => {
 
 onMounted(() => {
   fetchProfessional()
+  document.addEventListener('keydown', handleKeyPress)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyPress)
 })
 </script>
 
@@ -558,18 +662,137 @@ onMounted(() => {
   align-items: start;
 }
 
-.professional-image {
+.professional-image-slider {
   width: 250px;
   height: 250px;
   border-radius: 12px;
   overflow: hidden;
   background: #F5F5F5;
+  position: relative;
 }
 
-.professional-image img {
+/* ==========================================
+   ✅ SLIDER DE IMÁGENES - ESTILOS NUEVOS
+   ========================================== */
+.image-slider-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.slider-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.slider-track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.4s ease-in-out;
+}
+
+.slider-slide {
+  min-width: 100%;
+  height: 100%;
+}
+
+.slider-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+}
+
+/* Flechas de navegación */
+.slider-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.slider-arrow:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.slider-arrow.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.slider-arrow.disabled:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: translateY(-50%);
+}
+
+.slider-arrow-prev {
+  left: 12px;
+}
+
+.slider-arrow-next {
+  right: 12px;
+}
+
+/* Contador de imágenes */
+.image-counter {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 10;
+}
+
+/* Dots indicadores */
+.slider-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.3), transparent);
+}
+
+.slider-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.slider-dot:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(1.2);
+}
+
+.slider-dot.active {
+  background: white;
+  transform: scale(1.3);
 }
 
 .placeholder-image {
@@ -961,7 +1184,7 @@ onMounted(() => {
     gap: 2rem;
   }
 
-  .professional-image {
+  .professional-image-slider {
     width: 200px;
     height: 200px;
   }
@@ -989,7 +1212,7 @@ onMounted(() => {
     gap: 1.5rem;
   }
 
-  .professional-image {
+  .professional-image-slider {
     width: 100%;
     height: 250px;
     margin: 0 auto;

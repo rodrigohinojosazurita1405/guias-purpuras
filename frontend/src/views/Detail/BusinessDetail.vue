@@ -180,6 +180,39 @@
                   </div>
                 </div>
               </div>
+              
+              <!-- ✅ GALERÍA TAB -->
+              <div v-show="activeTab === 'gallery'" class="tab-panel">
+                <div class="content-section">
+                  <h2 class="section-title">
+                    <va-icon name="photo_library" />
+                    Galería de Fotos
+                  </h2>
+                  
+                  <!-- Grid estilo Facebook -->
+                  <div v-if="businessImages.length > 0" class="photo-grid">
+                    <div 
+                      v-for="(image, index) in businessImages.slice(0, 6)" 
+                      :key="image.id"
+                      class="photo-item"
+                      :class="{ 'photo-large': index === 0 && businessImages.length > 1 }"
+                      @click="openPhotoModal(index)"
+                    >
+                      <img :src="image.url" :alt="`Foto ${index + 1}`" />
+                      <div class="photo-overlay">
+                        <va-icon name="fullscreen" size="2rem" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div v-else class="gallery-empty">
+                    <va-icon name="photo_library" size="4rem" color="#ccc" />
+                    <h3>Sin fotos disponibles</h3>
+                    <p>Este negocio aún no ha subido fotos.</p>
+                  </div>
+                </div>
+              </div>
+              
               <!-- Location Tab - Ubicación -->
               <div v-show="activeTab === 'location'" class="tab-panel">
                 <div class="content-section">
@@ -345,6 +378,50 @@
         Volver al Listado
       </VaButton>
     </div>
+    
+    <!-- ✅ MODAL DE FOTOS CON TAMAÑO FIJO -->
+    <va-modal
+      v-model="showPhotoModal"
+      size="large"
+      hide-default-actions
+      class="photo-modal"
+    >
+      <div class="photo-modal-wrapper">
+        <div class="photo-modal-container">
+          <img 
+            v-if="businessImages[currentPhotoIndex]"
+            :src="businessImages[currentPhotoIndex].url" 
+            :alt="`Foto ${currentPhotoIndex + 1}`"
+            class="modal-photo"
+          />
+          
+          <!-- Botones minimalistas -->
+          <template v-if="businessImages.length > 1">
+            <button 
+              @click="prevPhoto" 
+              class="modal-nav-btn modal-nav-prev"
+              :disabled="currentPhotoIndex === 0"
+            >
+              <va-icon name="chevron_left" size="1.2rem" />
+            </button>
+            
+            <button 
+              @click="nextPhoto" 
+              class="modal-nav-btn modal-nav-next"
+              :disabled="currentPhotoIndex === businessImages.length - 1"
+            >
+              <va-icon name="chevron_right" size="1.2rem" />
+            </button>
+          </template>
+        </div>
+        
+        <!-- Info debajo -->
+        <div class="photo-modal-info">
+          <h4>{{ business?.name }}</h4>
+          <p>{{ currentPhotoIndex + 1 }} de {{ businessImages.length }}</p>
+        </div>
+      </div>
+    </va-modal>
   </MainLayout>
 </template>
 
@@ -388,9 +465,40 @@ const loading = ref(true)
 const isFavorite = ref(false)
 const activeTab = ref('about')
 
+// ✅ MODAL FOTOS STATE
+const showPhotoModal = ref(false)
+const currentPhotoIndex = ref(0)
+
+// ✅ COMPUTED: Imágenes del negocio
+const businessImages = computed(() => {
+  if (!business.value?.images) return []
+  return business.value.images
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
+    .slice(0, 10)
+})
+
+// ✅ METHODS
+const openPhotoModal = (index) => {
+  currentPhotoIndex.value = index
+  showPhotoModal.value = true
+}
+
+const nextPhoto = () => {
+  if (currentPhotoIndex.value < businessImages.value.length - 1) {
+    currentPhotoIndex.value++
+  }
+}
+
+const prevPhoto = () => {
+  if (currentPhotoIndex.value > 0) {
+    currentPhotoIndex.value--
+  }
+}
+
 const tabs = [
   { id: 'about', label: 'Información', icon: 'info' },
   { id: 'products', label: 'Productos', icon: 'inventory' },
+  { id: 'gallery', label: 'Galería', icon: 'photo_library' },
   { id: 'location', label: 'Ubicación', icon: 'place' }
 ]
 
@@ -443,6 +551,19 @@ const fetchBusiness = async () => {
   await new Promise(resolve => setTimeout(resolve, 500))
   const slug = route.params.slug
   business.value = getBusinessBySlug(slug)
+  
+  // ✅ AGREGAR IMÁGENES DEMO
+  if (!business.value?.images) {
+    business.value.images = [
+      { id: 1, url: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=800&fit=crop', order: 1 },
+      { id: 2, url: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=800&h=800&fit=crop', order: 2 },
+      { id: 3, url: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&h=800&fit=crop', order: 3 },
+      { id: 4, url: 'https://images.unsplash.com/photo-1574180045827-681f8a1a9622?w=800&h=800&fit=crop', order: 4 },
+      { id: 5, url: 'https://images.unsplash.com/photo-1486312338219-ce68e2c6b7d1?w=800&h=800&fit=crop', order: 5 },
+      { id: 6, url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=800&fit=crop', order: 6 }
+    ]
+  }
+  
   loading.value = false
 }
 
@@ -1349,6 +1470,260 @@ onMounted(() => {
   
   .features-grid {
     grid-template-columns: 1fr;
+  }
+  
+}
+
+/* ==========================================
+   ✅ GALERÍA GRID ESTILO FACEBOOK
+   ========================================== */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 1.5rem;
+}
+
+.photo-grid:has(.photo-large) {
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+
+.photo-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f5f5f5;
+}
+
+.photo-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.photo-large {
+  grid-row: span 2;
+  aspect-ratio: 4/5;
+}
+
+.photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.photo-item:hover img {
+  transform: scale(1.05);
+}
+
+.photo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+}
+
+.photo-item:hover .photo-overlay {
+  opacity: 1;
+}
+
+.gallery-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #fafafa;
+  border-radius: 20px;
+  border: 2px dashed #ddd;
+  margin-top: 1.5rem;
+}
+
+/* ==========================================
+   ✅ MODAL CON TAMAÑO FIJO Y BOTONES MODERNOS
+   ========================================== */
+.photo-modal :deep(.va-modal__dialog) {
+  background: #fff;
+  border-radius: 20px;
+  overflow: visible; /* ✅ Para botones externos */
+  max-width: 90vw;
+  max-height: 80vh; /* ✅ No toca el header */
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.photo-modal-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.photo-modal-container {
+  position: relative;
+  width: 600px;
+  height: 600px;
+  margin: 0 auto;
+  background: #000;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+}
+
+.modal-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Botones minimalistas y modernos */
+.modal-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px; /* ✅ Un poco más grandes */
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2); /* ✅ Sombra más visible */
+  backdrop-filter: blur(10px);
+  z-index: 1000; /* ✅ Por encima de todo */
+}
+
+.modal-nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25); /* ✅ Sombra hover más dramática */
+}
+
+.modal-nav-btn:disabled {
+  opacity: 0.3; /* ✅ Más transparente cuando disabled */
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.modal-nav-prev {
+  left: -25px; /* ✅ Visible pero fuera del modal */
+}
+
+.modal-nav-next {
+  right: -25px; /* ✅ Visible pero fuera del modal */
+}
+
+.photo-modal-info {
+  padding: 24px;
+  text-align: center;
+  background: #fff;
+  border-radius: 0 0 16px 16px;
+}
+
+.photo-modal-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.photo-modal-info p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .photo-modal-container {
+    width: 500px;
+    height: 500px;
+  }
+  
+  .modal-nav-prev {
+    left: -20px; /* ✅ Ajustar para tablet */
+  }
+  
+  .modal-nav-next {
+    right: -20px; /* ✅ Ajustar para tablet */
+  }
+}
+
+@media (max-width: 768px) {
+  .photo-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .photo-grid:has(.photo-large) {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .photo-large {
+    aspect-ratio: 1;
+    grid-row: span 1;
+  }
+  
+  .photo-modal :deep(.va-modal__dialog) {
+    max-width: 95vw;
+    max-height: 85vh;
+    margin: 1rem;
+  }
+  
+  .photo-modal-container {
+    width: 80vw;
+    height: 80vw;
+    max-width: 400px;
+    max-height: 400px;
+  }
+  
+  /* ✅ En móvil, botones sobre la imagen */
+  .modal-nav-btn {
+    width: 44px;
+    height: 44px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+  }
+  
+  .modal-nav-prev {
+    left: 16px; /* ✅ Sobre la imagen */
+  }
+  
+  .modal-nav-next {
+    right: 16px; /* ✅ Sobre la imagen */
+  }
+}
+
+@media (max-width: 480px) {
+  .photo-modal-container {
+    width: 90vw;
+    height: 90vw;
+    max-height: 70vh;
+  }
+  
+  .modal-nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .modal-nav-prev {
+    left: 12px;
+  }
+  
+  .modal-nav-next {
+    right: 12px;
   }
 }
 </style>

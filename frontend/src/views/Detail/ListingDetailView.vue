@@ -166,9 +166,9 @@
  * ═══════════════════════════════════════════════════════════
  */
 import MainLayout from '@/components/Layout/MainLayout.vue'
-import ImageGallery from '@/components/ListingDetail/ImageGallery.vue'
-import ContactCard from '@/components/ListingDetail/ContactCard.vue'
-import RelatedListings from '@/components/ListingDetail/RelatedListings.vue'
+import ImageGallery from '@/components/Gallery/ImageGallery.vue'
+import ContactCard from '@/components/Cards/ContactCard.vue'
+import RelatedListings from '@/components/Lists/RelatedListings.vue'
 
 export default {
   name: 'ListingDetailView',

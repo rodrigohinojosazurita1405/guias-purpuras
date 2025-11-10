@@ -372,7 +372,7 @@ const subcategoriesData = {
       salud: {
         name: 'Salud',
         icon: 'local_hospital',
-        items: ['Médico', 'Dentista', 'Psicólogo', 'Nutricionista', 'Fisioterapeuta', 'Enfermera', 'Veterinario']
+        items: ['Médico', 'Dentista', 'Psicólogo', 'Nutricionista', 'Fisioterapeuta', 'Enfermera', 'Veterinario','Neurologo']
       },
       legal: {
         name: 'Legal',

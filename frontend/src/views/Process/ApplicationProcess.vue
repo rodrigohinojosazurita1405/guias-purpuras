@@ -578,17 +578,20 @@
               </div>
 
               <!-- Términos y condiciones -->
-              <div class="terms-section">
-                <VaCheckbox
-                  v-model="applicationData.acceptedTerms"
-                  :error="!!errors.acceptedTerms"
-                  :error-messages="errors.acceptedTerms"
-                >
-                  He leído y acepto los 
-                  <a href="/terminos" target="_blank">términos y condiciones</a> 
-                  y la 
-                  <a href="/privacidad" target="_blank">política de privacidad</a>
-                </VaCheckbox>
+               <div class="terms-section">
+                <div class="terms-checkbox-wrapper">
+                  <VaCheckbox
+                    v-model="applicationData.acceptedTerms"
+                    :error="!!errors.acceptedTerms"
+                    :error-messages="errors.acceptedTerms"
+                  />
+                  <div class="terms-text">
+                    He leído y acepto los 
+                    <a href="/terminos" target="_blank">términos y condiciones</a> 
+                    y la 
+                    <a href="/privacidad" target="_blank">política de privacidad</a>
+                  </div>
+                </div>
               </div>
 
               <!-- Botón de envío -->
@@ -815,8 +818,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import MainLayout from '@/components/Layout/MainLayout.vue'
-import CVFormWizard from '@/components/CV/CVFormWizard.vue'
-import CVList from '@/components/CV/CVList.vue'
+import CVFormWizard from '@/components/Forms/CVFormWizard.vue'
+import CVList from '@/components/Lists/CVList.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -1084,8 +1087,47 @@ const handleEditFromList = (cvId) => {
   showCVFormWizard.value = true
 }
 
-const handleFileAdded = (file) => {
-  console.log('File added:', file)
+const handleFileAdded = (files) => {
+  console.log('Files received:', files)
+  
+  // Verificar que sea array y tenga archivos
+  if (!Array.isArray(files) || files.length === 0) {
+    console.error('No files received or invalid format')
+    return
+  }
+  
+  const file = files[0] // Tomar el primer archivo
+  
+  // Validar tipo de archivo
+  const validTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ]
+  
+  if (!validTypes.includes(file.type)) {
+    notify({
+      message: '⚠️ Solo se permiten archivos PDF, DOC o DOCX',
+      color: 'warning'
+    })
+    return
+  }
+  
+  // Validar tamaño (máximo 10MB)
+  const maxSize = 10 * 1024 * 1024 // 10MB
+  if (file.size > maxSize) {
+    notify({
+      message: '⚠️ El archivo es demasiado grande. Máximo 10MB',
+      color: 'warning'
+    })
+    return
+  }
+  
+  // Almacenar en uploadedFiles
+  uploadedFiles.value = [file]
+  
+  // Auto-confirmar upload inmediatamente
+  confirmCVUpload()
 }
 
 const handleFileRemoved = (file) => {
@@ -1102,16 +1144,25 @@ const confirmCVUpload = () => {
       uploadedAt: new Date(),
       file: file
     }
-    showUploadCVModal.value = false
-    uploadedFiles.value = []
     
+    // Cerrar modal si estaba abierto
+    showUploadCVModal.value = false
+    
+    // Mostrar confirmación exitosa
     notify({
-      message: '✅ CV subido correctamente',
-      color: 'success'
+      message: `✅ CV "${file.name}" subido correctamente`,
+      color: 'success',
+      duration: 4000
+    })
+    
+    console.log('CV uploaded successfully:', applicationData.uploadedCV)
+  } else {
+    notify({
+      message: '⚠️ No se encontró ningún archivo para subir',
+      color: 'warning'
     })
   }
 }
-
 const removeUploadedCV = () => {
   applicationData.uploadedCV = null
   notify({
@@ -2299,4 +2350,30 @@ onMounted(async () => {
   font-size: 0.9rem;
   font-weight: 500;
 }
+
+/* Fix para términos y condiciones */
+.terms-checkbox-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.terms-text {
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-top: 2px; /* Alinear con checkbox */
+}
+
+.terms-text a {
+  color: var(--color-purple);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.terms-text a:hover {
+  text-decoration: underline;
+}
+
+
 </style>
