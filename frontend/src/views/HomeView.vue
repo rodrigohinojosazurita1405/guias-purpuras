@@ -3,23 +3,14 @@
     HomeView.vue - Vista principal del sitio
     
     Propósito: Ensamblar todas las secciones del Home
-    Conecta con: MainLayout.vue (layout) y todos los componentes de Home/
+    Conecta con: MainLayout.vue (layout) y componentes de Home/
   -->
   <MainLayout>
-    <!-- Hero con Búsqueda -->
+    <!-- Hero con Búsqueda y Geolocalización -->
     <HeroSection />
 
-    <!-- 4 Guías Principales -->
+    <!-- 4 Guías Principales (Cards Flotantes) -->
     <GuidesSection />
-
-    <!-- Anuncios Destacados -->
-    <FeaturedSection />
-
-    <!-- Cómo Funciona -->
-    <HowItWorksSection />
-
-    <!-- Planes y Precios -->
-    <PricingSection />
 
     <!-- Testimonios -->
     <TestimonialsSection />
@@ -34,16 +25,13 @@
  * HomeView Component
  * 
  * Componentes hijos:
- * - MainLayout: Layout principal (Navbar + Footer)
- * - HeroSection: Hero con búsqueda y navegación a categorías
- * - GuidesSection: 4 guías principales
- * - FeaturedSection: Anuncios destacados
- * - HowItWorksSection: Cómo funciona
- * - PricingSection: Planes y precios
- * - TestimonialsSection: Testimonios
- * - CTABanner: Llamado a la acción
+ * - MainLayout: Layout principal (TopBar + Navbar + Footer)
+ * - HeroSection: Hero con búsqueda y geolocalización automática
+ * - GuidesSection: 4 cards flotantes de categorías principales
+ * - TestimonialsSection: Testimonios de usuarios
+ * - CTABanner: Llamado a la acción final
  * 
- * Nota: La navegación ahora es manejada directamente por cada componente
+ * ✅ Geolocalización: Implementada en HeroSection via useSearchStore
  */
 
 import MainLayout from '@/components/Layout/MainLayout.vue'

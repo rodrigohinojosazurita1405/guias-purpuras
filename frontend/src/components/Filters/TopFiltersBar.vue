@@ -1,4 +1,4 @@
-<!-- frontend/src/components/Guide/TopFiltersBar.vue -->
+<!-- frontend/src/components/Filters/TopFiltersBar.vue -->
 <template>
   <div class="top-filters-bar">
     <div class="filters-container">
@@ -73,7 +73,7 @@
 import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
-  // Categoría actual (profesionales, gastronomia, trabajos, servicios)
+  // Categoría actual (profesionales, gastronomia, trabajos, negocios)
   category: {
     type: String,
     required: true
@@ -88,7 +88,7 @@ const props = defineProps({
   // Ciudades disponibles
   cities: {
     type: Array,
-    default: () => ['La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Tarija', 'Sucre', 'Beni', 'Pando']
+    default: () => ['La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Tarija', 'Chuquisaca', 'Beni', 'Pando']
   },
   
   // Número de resultados
@@ -140,6 +140,13 @@ const categoryConfigs = {
     searchPlaceholder: 'Buscar por cargo o empresa...',
     resultsLabel: 'ofertas de trabajo'
   },
+  negocios: {
+    icon: 'store',
+    label: 'Tipo de negocio',
+    placeholder: 'Todos los negocios',
+    searchPlaceholder: 'Buscar por nombre o categoría...',
+    resultsLabel: 'negocios'
+  },
   servicios: {
     icon: 'build',
     label: 'Tipo de servicio',
@@ -183,6 +190,14 @@ const clearFilters = () => {
 // Exponer método para limpiar desde el padre
 defineExpose({
   clearFilters
+})
+
+// ✅ WATCH PARA LIMPIAR FILTROS AL CAMBIAR DE CATEGORÍA
+watch(() => props.category, () => {
+  // Solo limpiar subcategory y search, mantener ciudad
+  localFilters.value.subcategory = ''
+  localFilters.value.search = ''
+  emitFilters()
 })
 
 // Watch para sincronizar con prop modelValue

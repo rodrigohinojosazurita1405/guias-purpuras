@@ -1,20 +1,7 @@
 <!-- frontend/src/components/Home/HeroSection.vue -->
 <template>
   <section class="hero-section">
-    <!-- 
-      ==========================================
-      SLIDER DE IMÁGENES DE FONDO
-      ==========================================
-      Para agregar más imágenes:
-      1. Coloca las imágenes en: frontend/src/assets/hero/
-      2. Agrega las rutas al array backgroundImages (línea 115)
-      3. Ejemplo: 
-         backgroundImages: [
-           '/src/assets/hero/bg1.jpg',
-           '/src/assets/hero/bg2.jpg',  // Nueva imagen
-           '/src/assets/hero/bg3.jpg'   // Nueva imagen
-         ]
-    -->
+    <!-- Slider de Imágenes de Fondo -->
     <div class="hero-background-slider">
       <transition name="fade-slide" mode="out-in">
         <div 
@@ -23,7 +10,6 @@
           :style="{ backgroundImage: `url(${backgroundImages[currentSlide]})` }"
         ></div>
       </transition>
-      <!-- Overlay oscuro para legibilidad del texto -->
       <div class="hero-overlay"></div>
     </div>
 
@@ -39,13 +25,13 @@
         Somos el ecosistema digital que conecta el talento, gastronomía, las empresas PyMe y las oportunidades de Bolivia.
       </p>
 
-      <!-- Tabs de Categorías - NO MODIFICADOS -->
+      <!-- Tabs de Categorías -->
       <div class="category-tabs">
         <button
           v-for="cat in categories"
           :key="cat.id"
-          @click="goToCategory(cat.id)"
-          :class="['category-tab', { active: selectedCategory === cat.id }]"
+          @click="selectCategory(cat.id)"
+          :class="['category-tab', { active: searchStore.selectedCategory === cat.id }]"
         >
           <va-icon :name="cat.icon" size="small" />
           {{ cat.label }}
@@ -57,7 +43,7 @@
         <div class="search-input-wrapper">
           <va-icon name="search" class="search-icon" />
           <input
-            v-model="searchQuery"
+            v-model="searchStore.searchQuery"
             type="text"
             :placeholder="getPlaceholder()"
             class="search-input"
@@ -66,8 +52,16 @@
         </div>
 
         <div class="location-wrapper">
-          <va-icon name="location_on" class="location-icon" />
-          <select v-model="selectedCity" class="location-select">
+          <va-icon 
+            :name="searchStore.isLoadingLocation ? 'refresh' : 'location_on'" 
+            :class="['location-icon', { spinning: searchStore.isLoadingLocation }]" 
+          />
+          <select 
+            v-model="searchStore.selectedCity" 
+            class="location-select"
+            @change="onCityChange"
+            :disabled="searchStore.isLoadingLocation"
+          >
             <option value="">Toda Bolivia</option>
             <option value="oruro">Oruro</option>
             <option value="la-paz">La Paz</option>
@@ -79,6 +73,17 @@
             <option value="beni">Beni</option>
             <option value="pando">Pando</option>
           </select>
+          
+          <!-- Badge de ubicación detectada -->
+          <button 
+            v-if="searchStore.userDetectedCity && searchStore.locationMethod !== 'manual'"
+            @click="searchStore.resetLocation()"
+            class="location-badge"
+            title="Ciudad detectada automáticamente. Click para re-detectar"
+          >
+            <va-icon name="my_location" size="14px" />
+            <span>Auto</span>
+          </button>
         </div>
 
         <va-button
@@ -86,23 +91,11 @@
           color="yellow-primary"
           size="large"
           class="search-button"
+          :loading="searchStore.isLoadingLocation"
         >
           <va-icon name="search" />
           Buscar
         </va-button>
-      </div>
-
-      <!-- Búsquedas Populares -->
-      <div class="popular-searches">
-        <span class="popular-label">Búsquedas populares:</span>
-        <button
-          v-for="search in popularSearches"
-          :key="search"
-          @click="quickSearch(search)"
-          class="popular-tag"
-        >
-          {{ search }}
-        </button>
       </div>
 
       <!-- Estadísticas -->
@@ -136,34 +129,31 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import { useSearchStore } from '@/stores/useSearchStore'
 
 const router = useRouter()
+const searchStore = useSearchStore()
 
 // ==========================================
 // STATE
 // ==========================================
-const selectedCategory = ref('profesionales')
-const searchQuery = ref('')
-const selectedCity = ref('')
 const currentSlide = ref(0)
 
 // ==========================================
 // IMÁGENES DEL SLIDER
 // ==========================================
-// 📸 Para agregar más imágenes, simplemente agrega rutas al array:
 const backgroundImages = [
   new URL('@/assets/hero/bg1.jpg', import.meta.url).href,
-  // new URL('@/assets/hero/bg2.jpg', import.meta.url).href,  // ⬅️ Descomenta y agrega más imágenes aquí
-  // new URL('@/assets/hero/bg3.jpg', import.meta.url).href,
+  // Agrega más imágenes aquí
 ]
 
 // ==========================================
 // CONFIGURACIÓN DEL SLIDER
 // ==========================================
 let sliderInterval = null
-const SLIDE_DURATION = 5000 // 5 segundos por imagen (ajusta según prefieras)
+const SLIDE_DURATION = 5000
 
 // ==========================================
 // DATOS
@@ -172,10 +162,19 @@ const categories = [
   { id: 'profesionales', label: 'Profesionales', icon: 'work' },
   { id: 'gastronomia', label: 'Gastronomía', icon: 'restaurant' },
   { id: 'trabajos', label: 'Trabajos', icon: 'business_center' },
-  { id: 'negocios', label: 'Negocios', icon: 'build' }
+  { id: 'negocios', label: 'Negocios', icon: 'store' }
 ]
 
-const popularSearches = ['Psicologos','Abogados','Restaurantes', 'Ingenieros']
+// ✅ BÚSQUEDAS POPULARES DINÁMICAS SEGÚN CATEGORÍA
+const popularSearches = computed(() => {
+  const searches = {
+    profesionales: ['Abogados', 'Doctores', 'Contadores', 'Arquitectos'],
+    gastronomia: ['Restaurantes', 'Pizzerías', 'Cafeterías', 'Heladerías'],
+    trabajos: ['Desarrollador', 'Diseñador', 'Contador', 'Ingeniero'],
+    negocios: ['Manufactura', 'Tecnología', 'Comercio', 'Servicios']
+  }
+  return searches[searchStore.selectedCategory] || searches.profesionales
+})
 
 // ==========================================
 // MÉTODOS
@@ -187,33 +186,27 @@ const getPlaceholder = () => {
     trabajos: 'Busca empleos, ofertas laborales...',
     negocios: 'Busca Empresas, PyMes, Industrias...'
   }
-  return placeholders[selectedCategory.value]
+  return placeholders[searchStore.selectedCategory]
 }
 
-const goToCategory = (categoryId) => {
-  selectedCategory.value = categoryId
-  router.push(`/guias/${categoryId}`)
+const selectCategory = (categoryId) => {
+  searchStore.setSelectedCategory(categoryId)
+}
+
+const onCityChange = () => {
+  // Cuando el usuario cambia manualmente, actualizar el store
+  searchStore.setSelectedCity(searchStore.selectedCity)
 }
 
 const handleSearch = () => {
-  const query = {}
-  
-  if (searchQuery.value) {
-    query.q = searchQuery.value
-  }
-  
-  if (selectedCity.value) {
-    query.ciudad = selectedCity.value
-  }
-  
   router.push({
-    path: `/guias/${selectedCategory.value}`,
-    query: query
+    path: `/guias/${searchStore.selectedCategory}`,
+    query: searchStore.searchParams
   })
 }
 
 const quickSearch = (term) => {
-  searchQuery.value = term
+  searchStore.setSearchQuery(term)
   handleSearch()
 }
 
@@ -225,7 +218,6 @@ const nextSlide = () => {
 }
 
 const startSlider = () => {
-  // Solo inicia el slider si hay más de 1 imagen
   if (backgroundImages.length > 1) {
     sliderInterval = setInterval(nextSlide, SLIDE_DURATION)
   }
@@ -240,8 +232,11 @@ const stopSlider = () => {
 // ==========================================
 // LIFECYCLE HOOKS
 // ==========================================
-onMounted(() => {
+onMounted(async () => {
   startSlider()
+  
+  // 🎯 DETECTAR UBICACIÓN AUTOMÁTICAMENTE AL CARGAR
+  await searchStore.detectUserLocation()
 })
 
 onBeforeUnmount(() => {
@@ -260,6 +255,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   overflow: hidden;
+  /* ✅ MANTENER Z-INDEX BAJO PARA NO INTERFERIR CON MODALES */
+  z-index: 1;
 }
 
 /* ==========================================
@@ -285,18 +282,13 @@ onBeforeUnmount(() => {
   background-repeat: no-repeat;
 }
 
-/* Overlay oscuro para mejorar legibilidad */
 .hero-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    135deg, 
-    rgba(61, 0, 102, 0.40) 0%,    /* purple-darkest con opacidad */
-    rgba(156, 17, 249, 0.20) 100%   /* purple con opacidad */
-  );
+  background: linear-gradient(135deg,  rgba(61, 0, 102, 0.50) 0%,rgba(156, 17, 249, 0.40) 100%);
   z-index: 1;
 }
 
@@ -308,10 +300,7 @@ onBeforeUnmount(() => {
   transition: opacity 1.5s ease-in-out;
 }
 
-.fade-slide-enter-from {
-  opacity: 0;
-}
-
+.fade-slide-enter-from,
 .fade-slide-leave-to {
   opacity: 0;
 }
@@ -321,6 +310,7 @@ onBeforeUnmount(() => {
    ========================================== */
 .hero-content {
   position: relative;
+  /* ✅ Z-INDEX BAJO PARA NO INTERFERIR CON MODALES (99999) */
   z-index: 2;
   max-width: 1000px;
   margin: 0 auto;
@@ -347,6 +337,7 @@ onBeforeUnmount(() => {
   text-align: center;
   margin-bottom: 3rem;
   text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+  line-height: 1.6;
 }
 
 /* ==========================================
@@ -432,10 +423,21 @@ onBeforeUnmount(() => {
   gap: 0.5rem;
   padding: 0 1rem;
   border-left: 2px solid #E0E0E0;
+  position: relative;
 }
 
 .location-icon {
   color: var(--color-yellow-primary);
+  transition: transform 0.3s ease;
+}
+
+.location-icon.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .location-select {
@@ -448,10 +450,36 @@ onBeforeUnmount(() => {
   background-color: transparent;
 }
 
+.location-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.location-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(92, 0, 153, 0.1);
+  border: 1px solid rgba(92, 0, 153, 0.3);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-purple);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.location-badge:hover {
+  background: rgba(92, 0, 153, 0.2);
+  transform: scale(1.05);
+}
+
 .search-button {
   border-radius: 12px;
   font-weight: 600;
   padding: 0 2rem;
+  white-space: nowrap;
 }
 
 /* ==========================================
@@ -507,6 +535,12 @@ onBeforeUnmount(() => {
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
 }
 
 .stat-content {
@@ -528,6 +562,24 @@ onBeforeUnmount(() => {
 /* ==========================================
    RESPONSIVE
    ========================================== */
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .hero-stats {
+    gap: 1.5rem;
+  }
+
+  .stat-item {
+    padding: 1.25rem;
+  }
+}
+
 @media (max-width: 768px) {
   .hero-section {
     padding: 3rem 1rem;
@@ -555,12 +607,22 @@ onBeforeUnmount(() => {
   .search-bar {
     flex-direction: column;
     gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .search-input-wrapper,
+  .location-wrapper {
+    padding: 0.75rem 1rem;
   }
 
   .location-wrapper {
     border-left: none;
     border-top: 2px solid #E0E0E0;
     padding-top: 0.75rem;
+  }
+
+  .search-button {
+    width: 100%;
   }
 
   .hero-stats {
@@ -571,16 +633,58 @@ onBeforeUnmount(() => {
   .popular-searches {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .popular-label {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 0.5rem;
   }
 }
 
 @media (max-width: 480px) {
+  .hero-section {
+    padding: 2rem 0.75rem;
+  }
+
   .hero-title {
+    font-size: 1.75rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .category-tabs {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .category-tab {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .search-bar {
+    padding: 0.75rem;
+  }
+
+  .stat-item {
+    padding: 1rem;
+  }
+
+  .stat-number {
     font-size: 1.5rem;
   }
 
-  .search-button {
-    width: 100%;
+  .stat-label {
+    font-size: 0.85rem;
+  }
+
+  .popular-tag {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
   }
 }
 </style>

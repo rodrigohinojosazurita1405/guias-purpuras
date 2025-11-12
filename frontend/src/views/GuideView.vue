@@ -3,10 +3,9 @@
   GuideView.vue - Vista Principal de Guía UNIFICADA
   ═══════════════════════════════════════════════════════════
   
+  ✅ INTEGRADO CON STORE: Lee filtros automáticamente desde useSearchStore
   Responsabilidad: Mostrar listado de anuncios según categoría
   Categorías soportadas: profesionales, gastronomia, trabajos, negocios
-  Componentes: TopFiltersBar, FiltersSidebar, Cards específicos
-  Conexión Django: GET /api/listings/?category={category}
 -->
 <template>
   <MainLayout>
@@ -53,7 +52,11 @@
           <div class="listings-header">
             <div class="header-info">
               <h2>{{ guideName }}</h2>
-             
+              <!-- Badge de ciudad detectada -->
+              <div v-if="searchStore.userDetectedCity && searchStore.locationMethod !== 'manual'" class="location-detected-badge">
+                <va-icon name="my_location" size="small" />
+                <span>Mostrando resultados cerca de {{ searchStore.displayCity }}</span>
+              </div>
             </div>
             <select v-model="sortBy" class="sort-select" @change="sortListings">
               <option value="recent">Más Recientes</option>
@@ -65,7 +68,7 @@
 
           <!-- Grid con Cards -->
           <div class="listings-grid">
-            <!-- ✅ NEGOCIOS - NUEVO SUPPORT -->
+            <!-- ✅ NEGOCIOS -->
             <BusinessCard 
               v-if="category === 'negocios'"
               v-for="listing in paginatedListings" 
@@ -111,7 +114,10 @@
           <div v-if="filteredListings.length === 0" class="empty-state">
             <va-icon name="search_off" size="4rem" color="#CCC" />
             <h3>No se encontraron resultados</h3>
-            <p>Intenta ajustar los filtros de búsqueda</p>
+            <p v-if="topFilters.city">
+              No hay anuncios en <strong>{{ searchStore.displayCity }}</strong> que coincidan con tu búsqueda
+            </p>
+            <p v-else>Intenta ajustar los filtros de búsqueda</p>
             <va-button @click="clearAllFilters" color="purple">
               Limpiar filtros
             </va-button>
@@ -151,20 +157,20 @@
 <script>
 /**
  * ═══════════════════════════════════════════════════════════
- * GuideView - Script UNIFICADO (Con soporte para negocios)
+ * GuideView - INTEGRADO CON STORE
  * ═══════════════════════════════════════════════════════════
  */
 
+import { watch } from 'vue'
 import MainLayout from '@/components/Layout/MainLayout.vue'
 import TopFiltersBar from '@/components/Filters/TopFiltersBar.vue'
 import FiltersSidebar from '@/components/Filters/FiltersSidebar.vue'
 import ProfessionalCard from '@/components/Cards/ProfessionalCard.vue'
 import RestaurantCard from '@/components/Cards/RestaurantCard.vue'
 import JobCard from '@/components/Cards/JobCard.vue'
-import BusinessCard from '@/components/Cards/BusinessCard.vue'  // ✅ NUEVO IMPORT
+import BusinessCard from '@/components/Cards/BusinessCard.vue'
 import ListingCard from '@/components/Cards/ListingCard.vue'
-
-// ✅ IMPORTAR MOCK DATA PARA NEGOCIOS
+import { useSearchStore } from '@/stores/useSearchStore'
 import { mockBusinesses } from '@/data/mockBusinesses.js'
 
 export default {
@@ -176,7 +182,7 @@ export default {
     ProfessionalCard,
     RestaurantCard,
     JobCard,
-    BusinessCard,  // ✅ NUEVO COMPONENTE
+    BusinessCard,
     ListingCard 
   },
   
@@ -184,8 +190,13 @@ export default {
     category: {
       type: String,
       required: true,
-      validator: (value) => ['profesionales', 'gastronomia', 'trabajos', 'negocios', 'servicios'].includes(value)  // ✅ AGREGAR NEGOCIOS
+      validator: (value) => ['profesionales', 'gastronomia', 'trabajos', 'negocios', 'servicios'].includes(value)
     }
+  },
+  
+  setup() {
+    const searchStore = useSearchStore()
+    return { searchStore }
   },
   
   data() {
@@ -193,7 +204,7 @@ export default {
       showMobileFilters: false,
       sortBy: 'recent',
       
-      // Filtros superiores
+      // Filtros superiores (ahora sincronizados con el store)
       topFilters: {
         subcategory: '',
         city: '',
@@ -204,9 +215,8 @@ export default {
       currentPage: 1,
       itemsPerPage: 9,
       
-      cities: ['La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Tarija', 'Sucre', 'Beni', 'Pando'],
+      cities: ['La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Tarija', 'Chuquisaca', 'Beni', 'Pando'],
       
-      // ✅ CONFIGURACIÓN EXPANDIDA CON NEGOCIOS
       categoryConfig: {
         negocios: {
           name: 'Guías de Negocios en Bolivia',
@@ -230,15 +240,11 @@ export default {
         }
       },
       
-      // Mock data - TODO: Reemplazar con API
       allListings: []
     }
   },
   
   computed: {
-    /**
-     * Obtiene la configuración de la guía actual
-     */
     currentGuide() {
       return {
         name: this.categoryConfig[this.category]?.name || 'Guías',
@@ -246,27 +252,19 @@ export default {
       }
     },
 
-    /**
-     * Nombre de la guía actual
-     */
     guideName() {
       return this.currentGuide.name
     },
 
-    /**
-     * Listados filtrados
-     */
     filteredListings() {
       let results = [...this.allListings]
 
       // Filtrar por subcategoría
       if (this.topFilters.subcategory) {
         results = results.filter(listing => {
-          // Para negocios, filtrar por categoría 
           if (this.category === 'negocios') {
             return listing.category === this.topFilters.subcategory
           }
-          // Para otros, usar la lógica existente
           return listing.subcategory === this.topFilters.subcategory ||
                  listing.professionalTitle?.includes(this.topFilters.subcategory) ||
                  listing.contractType === this.topFilters.subcategory
@@ -285,7 +283,7 @@ export default {
         const searchLower = this.topFilters.search.toLowerCase()
         results = results.filter(listing => {
           const title = listing.title?.toLowerCase() || ''
-          const name = listing.name?.toLowerCase() || ''  // ✅ Para negocios
+          const name = listing.name?.toLowerCase() || ''
           const description = listing.description?.toLowerCase() || ''
           const professionalTitle = listing.professionalTitle?.toLowerCase() || ''
           const companyName = listing.companyName?.toLowerCase() || ''
@@ -295,7 +293,7 @@ export default {
           const tags = listing.tags?.join(' ').toLowerCase() || ''
           
           return title.includes(searchLower) || 
-                 name.includes(searchLower) ||  // ✅ Para negocios
+                 name.includes(searchLower) ||
                  description.includes(searchLower) ||
                  professionalTitle.includes(searchLower) ||
                  companyName.includes(searchLower) ||
@@ -309,9 +307,6 @@ export default {
       return results
     },
 
-    /**
-     * Listados ordenados
-     */
     sortedListings() {
       const listings = [...this.filteredListings]
 
@@ -320,7 +315,6 @@ export default {
           return listings.sort((a, b) => (b.rating || 0) - (a.rating || 0))
         case 'featured':
           return listings.sort((a, b) => {
-            // ✅ Mejorar para negocios
             const getPriority = (item) => {
               const plan = item.plan?.toLowerCase()
               if (plan === 'top') return 3
@@ -346,18 +340,12 @@ export default {
       }
     },
 
-    /**
-     * Listados paginados
-     */
     paginatedListings() {
       const start = (this.currentPage - 1) * this.itemsPerPage
       const end = start + this.itemsPerPage
       return this.sortedListings.slice(start, end)
     },
 
-    /**
-     * Total de páginas
-     */
     totalPages() {
       return Math.ceil(this.filteredListings.length / this.itemsPerPage)
     }
@@ -365,10 +353,47 @@ export default {
 
   methods: {
     /**
-     * Manejar cambio de filtros del sidebar
+     * 🆕 SINCRONIZAR CON STORE AL INICIAR
      */
+    syncWithStore() {
+      // Leer query params de la URL
+      const { ciudad, q } = this.$route.query
+      
+      // Si hay query params, usarlos
+      if (ciudad) {
+        this.topFilters.city = this.normalizeCityName(ciudad)
+      } 
+      // Si no hay query params pero el store tiene ciudad, usarla
+      else if (this.searchStore.selectedCity) {
+        this.topFilters.city = this.normalizeCityName(this.searchStore.selectedCity)
+      }
+      
+      if (q) {
+        this.topFilters.search = q
+      } else if (this.searchStore.searchQuery) {
+        this.topFilters.search = this.searchStore.searchQuery
+      }
+    },
+
+    /**
+     * Normalizar nombre de ciudad (de slug a nombre completo)
+     */
+    normalizeCityName(citySlug) {
+      const cityMap = {
+        'oruro': 'Oruro',
+        'la-paz': 'La Paz',
+        'cochabamba': 'Cochabamba',
+        'santa-cruz': 'Santa Cruz',
+        'potosi': 'Potosí',
+        'tarija': 'Tarija',
+        'chuquisaca': 'Chuquisaca',
+        'beni': 'Beni',
+        'pando': 'Pando'
+      }
+      return cityMap[citySlug] || citySlug
+    },
+
     handleFilterChange(filters) {
-      // Aplicar filtros desde el sidebar
       if (filters.subcategories?.length > 0) {
         this.topFilters.subcategory = filters.subcategories[0]
       }
@@ -378,41 +403,35 @@ export default {
       this.currentPage = 1
     },
 
-    /**
-     * Manejar cambio de filtros de la barra superior
-     */
     handleTopFilterChange(filters) {
       this.topFilters = { ...this.topFilters, ...filters }
       this.currentPage = 1
     },
 
-    /**
-     * Limpiar todos los filtros
-     */
     clearAllFilters() {
       this.topFilters = {
         subcategory: '',
         city: '',
         search: ''
       }
+      this.searchStore.clearAllFilters()
       this.currentPage = 1
+      
+      // ✅ LIMPIAR QUERY PARAMS DE LA URL
+      this.$router.replace({
+        path: this.$route.path,
+        query: {}
+      })
     },
 
-    /**
-     * Ordenar listados
-     */
     sortListings() {
       this.currentPage = 1
     },
 
-    /**
-     * Navegar a un anuncio
-     */
     viewListing(listing) {
       this.$router.push(`/anuncio/${listing.id}`)
     },
 
-    // ========== Paginación ==========
     previousPage() {
       if (this.currentPage > 1) {
         this.currentPage--
@@ -429,15 +448,10 @@ export default {
       this.currentPage = page
     },
 
-    /**
-     * ✅ CARGAR DATOS SEGÚN CATEGORÍA (CON INFORMACIÓN COMPLETA)
-     */
     loadMockData() {
-      // ✅ DATOS PARA NEGOCIOS
       if (this.category === 'negocios') {
         this.allListings = [...mockBusinesses]
       } 
-      // ✅ DATOS PARA PROFESIONALES (3 cards con info completa)
       else if (this.category === 'profesionales') {
         this.allListings = [
           {
@@ -490,7 +504,6 @@ export default {
           }
         ]
       }
-      // ✅ DATOS COMPLETOS PARA GASTRONOMÍA (CON TODA LA INFORMACIÓN VALIOSA)
       else if (this.category === 'gastronomia') {
         this.allListings = [
           {
@@ -499,7 +512,7 @@ export default {
             title: 'Restaurante El Fogón',
             subcategory: 'Comida Tradicional',
             cuisine: 'Boliviana',
-            priceRange: 'moderado', // economico, moderado, alto, premium
+            priceRange: 'moderado',
             city: 'Cochabamba',
             plan: 'destacado',
             verified: true,
@@ -513,26 +526,10 @@ export default {
             parking: true,
             images: [{ url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400' }],
             menuItems: [
-              {
-                name: 'Silpancho Tradicional',
-                price: 35,
-                image: 'https://images.unsplash.com/photo-1551782450-17144efb9c50?w=300&h=200&fit=crop'
-              },
-              {
-                name: 'Pique Macho',
-                price: 42,
-                image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300&h=200&fit=crop'
-              },
-              {
-                name: 'Chicharrón de Cerdo',
-                price: 38,
-                image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=300&h=200&fit=crop'
-              },
-              {
-                name: 'Anticucho de Corazón',
-                price: 25,
-                image: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=300&h=200&fit=crop'
-              }
+              { name: 'Silpancho Tradicional', price: 35, image: 'https://images.unsplash.com/photo-1551782450-17144efb9c50?w=300&h=200&fit=crop' },
+              { name: 'Pique Macho', price: 42, image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300&h=200&fit=crop' },
+              { name: 'Chicharrón de Cerdo', price: 38, image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=300&h=200&fit=crop' },
+              { name: 'Anticucho de Corazón', price: 25, image: 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=300&h=200&fit=crop' }
             ]
           },
           {
@@ -555,21 +552,9 @@ export default {
             parking: false,
             images: [{ url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400' }],
             menuItems: [
-              {
-                name: 'Pizza Margherita',
-                price: 65,
-                image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300&h=200&fit=crop'
-              },
-              {
-                name: 'Pizza Quattro Stagioni',
-                price: 78,
-                image: 'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=300&h=200&fit=crop'
-              },
-              {
-                name: 'Calzone Especial',
-                price: 72,
-                image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&h=200&fit=crop'
-              }
+              { name: 'Pizza Margherita', price: 65, image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=300&h=200&fit=crop' },
+              { name: 'Pizza Quattro Stagioni', price: 78, image: 'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=300&h=200&fit=crop' },
+              { name: 'Calzone Especial', price: 72, image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&h=200&fit=crop' }
             ]
           },
           {
@@ -592,36 +577,15 @@ export default {
             parking: true,
             images: [{ url: 'https://images.unsplash.com/photo-1488900128323-21503983a07e?w=400' }],
             menuItems: [
-              {
-                name: 'Helado de Coco Tropical',
-                price: 15,
-                image: 'https://images.unsplash.com/photo-1488900128323-21503983a07e?w=300&h=200&fit=crop'
-              },
-              {
-                name: 'Sundae de Chocolate',
-                price: 22,
-                image: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=300&h=200&fit=crop'
-              },
-              {
-                name: 'Smoothie de Frutas',
-                price: 18,
-                image: 'https://images.unsplash.com/photo-1553530979-cb6735f24a89?w=300&h=200&fit=crop'
-              },
-              {
-                name: 'Milkshake Especial',
-                price: 25,
-                image: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=300&h=200&fit=crop'
-              },
-              {
-                name: 'Copa Helada Premium',
-                price: 35,
-                image: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=300&h=200&fit=crop'
-              }
+              { name: 'Helado de Coco Tropical', price: 15, image: 'https://images.unsplash.com/photo-1488900128323-21503983a07e?w=300&h=200&fit=crop' },
+              { name: 'Sundae de Chocolate', price: 22, image: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=300&h=200&fit=crop' },
+              { name: 'Smoothie de Frutas', price: 18, image: 'https://images.unsplash.com/photo-1553530979-cb6735f24a89?w=300&h=200&fit=crop' },
+              { name: 'Milkshake Especial', price: 25, image: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=300&h=200&fit=crop' },
+              { name: 'Copa Helada Premium', price: 35, image: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=300&h=200&fit=crop' }
             ]
           }
         ]
       }
-      // ✅ DATOS PARA TRABAJOS (3 cards con info completa)
       else if (this.category === 'trabajos') {
         this.allListings = [
           {
@@ -681,7 +645,6 @@ export default {
           }
         ]
       } 
-      // Datos para servicios
       else if (this.category === 'servicios') {
         this.allListings = [
           {
@@ -703,23 +666,27 @@ export default {
     }
   },
 
-  /**
-   * Al montar el componente, cargar los listados
-   */
   mounted() {
     this.loadMockData()
+    // 🆕 Sincronizar con store al montar
+    this.syncWithStore()
   },
 
-  /**
-   * Cuando cambia la categoría (prop), recargar
-   */
   watch: {
     category: {
       handler() {
         this.loadMockData()
-        this.clearAllFilters() // Limpiar filtros al cambiar de categoría
+        this.syncWithStore()
       },
       immediate: false
+    },
+    
+    // 🆕 Observar cambios en la ruta
+    '$route.query': {
+      handler() {
+        this.syncWithStore()
+      },
+      deep: true
     }
   }
 }
@@ -793,11 +760,31 @@ export default {
   gap: 1rem;
 }
 
+.header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .header-info h2 {
   font-size: 2rem;
   font-weight: 800;
   color: var(--color-purple-darkest);
   margin: 0;
+}
+
+/* 🆕 Badge de ubicación detectada */
+.location-detected-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(92, 0, 153, 0.1);
+  border: 1px solid rgba(92, 0, 153, 0.2);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-purple);
 }
 
 .sort-select {
@@ -818,7 +805,7 @@ export default {
   box-shadow: 0 0 0 3px rgba(92, 0, 153, 0.1);
 }
 
-/* ✅ GRID UNIFICADO - TAMAÑO CONSISTENTE PARA TODOS LOS CARDS */
+/* ✅ GRID UNIFICADO */
 .listings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -850,6 +837,11 @@ export default {
   font-size: 1rem;
   color: #666;
   margin: 0 0 2rem 0;
+}
+
+.empty-state strong {
+  color: var(--color-purple);
+  font-weight: 600;
 }
 
 /* ========== Pagination ========== */
@@ -912,6 +904,11 @@ export default {
 
   .pagination {
     margin-top: 2rem;
+  }
+
+  .location-detected-badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
   }
 }
 </style>

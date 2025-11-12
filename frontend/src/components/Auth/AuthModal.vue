@@ -1,4 +1,4 @@
-<!-- REEMPLAZA TU AuthModal.vue COMPLETO CON ESTE -->
+<!-- frontend/src/components/Auth/AuthModal.vue -->
 <template>
   <VaModal
     v-model="isOpen"
@@ -8,7 +8,7 @@
     no-padding
     fullscreen
     overlay-opacity="0.8"
-    :z-index="999999"
+    :z-index="99999"
   >
     <div class="modal-wrapper">
       <div class="auth-modal">
@@ -16,7 +16,7 @@
         <div class="modal-header">
           <img src="/src/assets/guiaspurpuras.ico" alt="Logo" class="modal-logo" />
           <h2 class="modal-title">
-            Inicia sesión en <span class="brand-name">Guías Púrpuras</span>
+            {{ currentTab === 'login' ? 'Inicia sesión' : 'Regístrate' }} en <span class="brand-name">Guías Púrpuras</span>
           </h2>
           <button class="close-btn" @click="handleClose(false)">
             <va-icon name="close" />
@@ -255,13 +255,20 @@ const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false
+  },
+  // 🆕 PROP PARA TAB INICIAL
+  initialTab: {
+    type: String,
+    default: 'register', // Por defecto registro
+    validator: (value) => ['login', 'register'].includes(value)
   }
 })
 
 const emit = defineEmits(['update:modelValue', 'success'])
 
 const isOpen = ref(props.modelValue)
-const currentTab = ref('login')
+// 🆕 USAR INITIAL TAB DEL PROP
+const currentTab = ref(props.initialTab)
 const showPassword = ref(false)
 const isLoading = ref(false)
 
@@ -289,6 +296,8 @@ const resetForms = () => {
   loginForm.value = { identifier: '', password: '', remember: false }
   registerForm.value = { name: '', email: '', phone: '', password: '', acceptTerms: false }
   showPassword.value = false
+  // 🆕 RESETEAR AL TAB INICIAL AL CERRAR
+  currentTab.value = props.initialTab
 }
 
 const handleLogin = async () => {
@@ -364,13 +373,22 @@ const showTerms = () => {
   notify({ message: '📄 Términos y condiciones próximamente', color: 'info' })
 }
 
+// 🆕 WATCH PARA CAMBIAR TAB CUANDO CAMBIA EL PROP
+watch(() => props.initialTab, (newTab) => {
+  currentTab.value = newTab
+})
+
 watch(() => props.modelValue, (newValue) => {
   isOpen.value = newValue
+  // 🆕 RESETEAR AL TAB INICIAL AL ABRIR
+  if (newValue) {
+    currentTab.value = props.initialTab
+  }
 })
 </script>
 
 <style scoped>
-/* ========== WRAPPER CON CENTRADO ABSOLUTO ========== */
+/* Los estilos siguen igual... */
 .modal-wrapper {
   position: fixed;
   top: 0;

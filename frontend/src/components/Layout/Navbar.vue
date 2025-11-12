@@ -3,10 +3,12 @@
   <nav class="navbar">
     <div class="navbar-content">
       <!-- Logo -->
-      <router-link to="/" class="logo">
+      <router-link to="/" class="logo" @click="closeMobileMenu">
         <img src="/src/assets/guiaspurpuras.ico" alt="Logo Guías Púrpuras" class="logo-image" />
-        <span class="logo-text">Guías Púrpuras</span>
-        <span class="logo-country">Bolivia</span>
+        <div class="logo-text-wrapper">
+          <span class="logo-text">Guías Púrpuras</span>
+          <span class="logo-country">Bolivia</span>
+        </div>
       </router-link>
 
       <!-- Desktop Navigation -->
@@ -17,7 +19,7 @@
           exact-active-class="active"
         >
           <va-icon name="home" size="small" />
-          Inicio
+          <span>Inicio</span>
         </router-link>
         
         <router-link 
@@ -26,7 +28,7 @@
           active-class="active"
         >
           <va-icon name="work" size="small" />
-          Profesionales
+          <span>Profesionales</span>
         </router-link>
         
         <router-link 
@@ -35,7 +37,7 @@
           active-class="active"
         >
           <va-icon name="restaurant" size="small" />
-          Gastronomía
+          <span>Gastronomía</span>
         </router-link>
         
         <router-link 
@@ -44,7 +46,7 @@
           active-class="active"
         >
           <va-icon name="business_center" size="small" />
-          Trabajos
+          <span>Trabajos</span>
         </router-link>
         
         <router-link 
@@ -52,184 +54,207 @@
           class="nav-link"
           active-class="active"
         >
-          <va-icon name="build" size="small" />
-          Negocios
+          <va-icon name="store" size="small" />
+          <span>Negocios</span>
         </router-link>
       </div>
 
-      <!-- Actions: Publicar + Auth -->
+      <!-- Actions -->
       <div class="nav-actions">
-        <!-- Botón Publicar -->
+        <!-- Botón Publicar (destacado) -->
         <va-button
           @click="goToPublish"
-          color="yellow-primary"
           class="publish-btn"
         >
-          <va-icon name="add_circle" />
-          <span class="btn-text">Publica tu anuncio</span>
+          <va-icon name="add_circle" size="small" />
+          <span class="btn-text">Publicar anuncio</span>
+          <span class="btn-text-short">Publicar</span>
         </va-button>
 
-        <!-- Auth Buttons (cuando NO está logueado) -->
-        <div v-if="!authStore.isAuthenticated" class="auth-buttons">
-          <va-button
-            @click="showAuthModal = true"
-            color="yellow-primary"
-            class="login-btn desktop-only"
-          >
-            <va-icon name="login" />
-            <span>Ingresar</span>
-          </va-button>
-        </div>
+        <!-- Auth: Login (NO logueado) -->
+        <va-button
+          v-if="!authStore.isAuthenticated"
+          @click="showAuthModal = true"
+          class="login-btn desktop-only"
+          preset="secondary"
+        >
+          <va-icon name="login" size="small" />
+          <span>Ingresar</span>
+        </va-button>
 
-        <!-- User Menu (cuando SÍ está logueado) -->
+        <!-- User Menu (SÍ logueado) -->
         <VaDropdown v-else class="user-menu" placement="bottom-end">
           <template #anchor>
             <button class="user-avatar-btn">
               <div class="user-avatar">
                 {{ authStore.userInitials }}
               </div>
-              <span class="user-name-desktop desktop-only">{{ authStore.user.name }}</span>
+              <span class="user-name desktop-only">{{ authStore.user.name }}</span>
               <va-icon name="expand_more" size="small" />
             </button>
           </template>
 
           <VaDropdownContent class="user-dropdown">
             <div class="user-info">
-              <div class="user-name">{{ authStore.user.name }}</div>
+              <div class="user-name-full">{{ authStore.user.name }}</div>
               <div class="user-email">{{ authStore.user.email }}</div>
             </div>
             
-            <VaDivider />
+            <VaDivider style="margin: 0.5rem 0;" />
             
             <button class="dropdown-item" @click="goToProfile">
-              <va-icon name="person" />
-              Mi Perfil
+              <va-icon name="person" size="small" />
+              <span>Mi Perfil</span>
             </button>
             
             <button class="dropdown-item" @click="goToMyListings">
-              <va-icon name="list" />
-              Mis Anuncios
+              <va-icon name="list" size="small" />
+              <span>Mis Anuncios</span>
             </button>
             
-            <VaDivider />
+            <VaDivider style="margin: 0.5rem 0;" />
             
             <button class="dropdown-item logout" @click="handleLogout">
-              <va-icon name="logout" />
-              Cerrar Sesión
+              <va-icon name="logout" size="small" />
+              <span>Cerrar Sesión</span>
             </button>
           </VaDropdownContent>
         </VaDropdown>
 
         <!-- Mobile Menu Toggle -->
-        <va-button
+        <button
           @click="toggleMobileMenu"
-          icon="menu"
-          color="white"
-          text-color="purple"
           class="mobile-menu-btn"
-          flat
-        />
+          :class="{ active: mobileMenuOpen }"
+          aria-label="Menú"
+        >
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
       </div>
     </div>
 
-    <!-- Mobile Menu -->
-    <transition name="slide">
-      <div v-if="mobileMenuOpen" class="mobile-menu">
-        <router-link 
-          to="/" 
-          class="mobile-link"
-          @click="closeMobileMenu"
-          exact-active-class="active"
-        >
-          <va-icon name="home" />
-          Inicio
-        </router-link>
-        
-        <router-link 
-          to="/guias/profesionales" 
-          class="mobile-link"
-          @click="closeMobileMenu"
-          active-class="active"
-        >
-          <va-icon name="work" />
-          Profesionales
-        </router-link>
-        
-        <router-link 
-          to="/guias/gastronomia" 
-          class="mobile-link"
-          @click="closeMobileMenu"
-          active-class="active"
-        >
-          <va-icon name="restaurant" />
-          Gastronomía
-        </router-link>
-        
-        <router-link 
-          to="/guias/trabajos" 
-          class="mobile-link"
-          @click="closeMobileMenu"
-          active-class="active"
-        >
-          <va-icon name="business_center" />
-          Trabajos
-        </router-link>
-        
-        <router-link 
-          to="/guias/negocios" 
-          class="mobile-link"
-          @click="closeMobileMenu"
-          active-class="active"
-        >
-          <va-icon name="build" />
-          Negocios
-        </router-link>
+    <!-- Mobile Menu Overlay -->
+    <transition name="fade">
+      <div v-if="mobileMenuOpen" class="mobile-overlay" @click="closeMobileMenu"></div>
+    </transition>
 
-        <!-- Auth en mobile (NO logueado) -->
-        <div v-if="!authStore.isAuthenticated" class="mobile-auth">
-          <va-button
-            @click="openAuthModalAndCloseMenu"
-            color="yellow-primary"
-            block
-          >
-            <va-icon name="login" />
-            Ingresar
-          </va-button>
+    <!-- Mobile Menu Drawer -->
+    <transition name="slide-in">
+      <div v-if="mobileMenuOpen" class="mobile-menu">
+        <div class="mobile-menu-header">
+          <span class="mobile-menu-title">Menú</span>
+          <button @click="closeMobileMenu" class="close-btn">
+            <va-icon name="close" />
+          </button>
         </div>
-        
-        <!-- User section en mobile (SÍ logueado) -->
-        <div v-else class="mobile-user-section">
-          <div class="mobile-user-info">
-            <div class="user-avatar-mobile">
-              {{ authStore.userInitials }}
-            </div>
-            <div>
-              <div class="mobile-user-name">{{ authStore.user.name }}</div>
-              <div class="mobile-user-email">{{ authStore.user.email }}</div>
+
+        <div class="mobile-menu-content">
+          <!-- User section (si está logueado) -->
+          <div v-if="authStore.isAuthenticated" class="mobile-user-section">
+            <div class="mobile-user-info">
+              <div class="user-avatar-mobile">
+                {{ authStore.userInitials }}
+              </div>
+              <div class="user-details">
+                <div class="mobile-user-name">{{ authStore.user.name }}</div>
+                <div class="mobile-user-email">{{ authStore.user.email }}</div>
+              </div>
             </div>
           </div>
-          
-          <button class="mobile-link" @click="goToProfileAndClose">
-            <va-icon name="person" />
-            Mi Perfil
-          </button>
-          
-          <button class="mobile-link" @click="goToMyListingsAndClose">
-            <va-icon name="list" />
-            Mis Anuncios
-          </button>
-          
-          <button class="mobile-link logout" @click="handleLogoutAndClose">
-            <va-icon name="logout" />
-            Cerrar Sesión
-          </button>
+
+          <!-- Navigation Links -->
+          <div class="mobile-nav-section">
+            <router-link 
+              to="/" 
+              class="mobile-link"
+              @click="closeMobileMenu"
+              exact-active-class="active"
+            >
+              <va-icon name="home" />
+              <span>Inicio</span>
+            </router-link>
+            
+            <router-link 
+              to="/guias/profesionales" 
+              class="mobile-link"
+              @click="closeMobileMenu"
+              active-class="active"
+            >
+              <va-icon name="work" />
+              <span>Profesionales</span>
+            </router-link>
+            
+            <router-link 
+              to="/guias/gastronomia" 
+              class="mobile-link"
+              @click="closeMobileMenu"
+              active-class="active"
+            >
+              <va-icon name="restaurant" />
+              <span>Gastronomía</span>
+            </router-link>
+            
+            <router-link 
+              to="/guias/trabajos" 
+              class="mobile-link"
+              @click="closeMobileMenu"
+              active-class="active"
+            >
+              <va-icon name="business_center" />
+              <span>Trabajos</span>
+            </router-link>
+            
+            <router-link 
+              to="/guias/negocios" 
+              class="mobile-link"
+              @click="closeMobileMenu"
+              active-class="active"
+            >
+              <va-icon name="store" />
+              <span>Negocios</span>
+            </router-link>
+          </div>
+
+          <!-- User actions (si está logueado) -->
+          <div v-if="authStore.isAuthenticated" class="mobile-nav-section">
+            <button class="mobile-link" @click="goToProfileAndClose">
+              <va-icon name="person" />
+              <span>Mi Perfil</span>
+            </button>
+            
+            <button class="mobile-link" @click="goToMyListingsAndClose">
+              <va-icon name="list" />
+              <span>Mis Anuncios</span>
+            </button>
+            
+            <button class="mobile-link logout" @click="handleLogoutAndClose">
+              <va-icon name="logout" />
+              <span>Cerrar Sesión</span>
+            </button>
+          </div>
+
+          <!-- Auth button (si NO está logueado) -->
+          <div v-else class="mobile-auth">
+            <va-button
+              @click="openAuthModalAndCloseMenu"
+              color="yellow-primary"
+              size="large"
+              block
+            >
+              <va-icon name="login" />
+              <span>Ingresar</span>
+            </va-button>
+          </div>
         </div>
       </div>
     </transition>
 
     <!-- Auth Modal -->
     <AuthModal 
-      v-model="showAuthModal" 
+      v-model="showAuthModal"
+      initial-tab="login"
       @success="handleAuthSuccess" 
     />
   </nav>
@@ -237,24 +262,21 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useToast } from 'vuestic-ui'
 import AuthModal from '@/components/Auth/AuthModal.vue'
 
-// ========== COMPOSABLES ==========
 const router = useRouter()
 const authStore = useAuthStore()
-const route = useRoute()
 const { init: notify } = useToast()
 
-// ========== STATE ==========
+// State
 const mobileMenuOpen = ref(false)
 const showAuthModal = ref(false)
 
-// ========== METHODS ==========
+// Methods
 const goToPublish = () => {
-  // Si no está autenticado, mostrar modal
   if (!authStore.isAuthenticated) {
     showAuthModal.value = true
     notify({
@@ -264,7 +286,6 @@ const goToPublish = () => {
     return
   }
   
-  // SIEMPRE ir al formulario genérico /publicar
   router.push('/publicar')
   closeMobileMenu()
 }
@@ -274,7 +295,6 @@ const goToProfile = () => {
     message: '🚧 Ruta de perfil próximamente',
     color: 'info'
   })
-  // TODO: router.push('/perfil')
 }
 
 const goToMyListings = () => {
@@ -282,7 +302,6 @@ const goToMyListings = () => {
     message: '🚧 Ruta de mis anuncios próximamente',
     color: 'info'
   })
-  // TODO: router.push('/mis-anuncios')
 }
 
 const goToProfileAndClose = () => {
@@ -310,7 +329,6 @@ const handleLogoutAndClose = () => {
 }
 
 const handleAuthSuccess = () => {
-  // Después de login/register exitoso
   notify({
     message: '¡Bienvenido a Guías Púrpuras! 🎉',
     color: 'success'
@@ -319,10 +337,18 @@ const handleAuthSuccess = () => {
 
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
+  
+  // Prevenir scroll del body cuando el menú está abierto
+  if (mobileMenuOpen.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
 }
 
 const closeMobileMenu = () => {
   mobileMenuOpen.value = false
+  document.body.style.overflow = ''
 }
 
 const openAuthModalAndCloseMenu = () => {
@@ -339,13 +365,13 @@ const openAuthModalAndCloseMenu = () => {
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 .navbar-content {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 3rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -356,26 +382,39 @@ const openAuthModalAndCloseMenu = () => {
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.625rem;
   text-decoration: none;
   color: white;
-  font-weight: 700;
-  font-size: 1.25rem;
-  white-space: nowrap;
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.02);
 }
 
 .logo-image {
-  height: 32px;
+  height: 36px;
   width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.logo-text-wrapper {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
 }
 
 .logo-text {
   color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
 }
 
 .logo-country {
   color: var(--color-yellow-primary);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 /* ========== NAVEGACIÓN DESKTOP ========== */
@@ -384,20 +423,34 @@ const openAuthModalAndCloseMenu = () => {
   gap: 0.5rem;
   flex: 1;
   justify-content: center;
+  align-items: center;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.6rem 1rem;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
   color: white;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 500;
   font-size: 0.95rem;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--color-yellow-primary);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
 }
 
 .nav-link:hover {
@@ -405,9 +458,18 @@ const openAuthModalAndCloseMenu = () => {
   transform: translateY(-2px);
 }
 
+.nav-link:hover::after {
+  width: 80%;
+}
+
 .nav-link.active {
   background-color: var(--color-yellow-primary);
   color: var(--color-purple-darkest);
+  font-weight: 600;
+}
+
+.nav-link.active::after {
+  display: none;
 }
 
 /* ========== ACTIONS ========== */
@@ -418,40 +480,45 @@ const openAuthModalAndCloseMenu = () => {
 }
 
 .publish-btn {
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(253, 197, 0, 0.3);
-  transition: all 0.3s ease;
+  --va-background-color: var(--color-yellow-primary) !important;
+  color: var(--color-purple-darkest) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(253, 197, 0, 0.35);
+  transition: all 0.3s ease !important;
+  border: none !important;
 }
 
 .publish-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(253, 197, 0, 0.4);
+  box-shadow: 0 6px 20px rgba(253, 197, 0, 0.5);
 }
 
-/* ========== AUTH BUTTONS ========== */
-.auth-buttons {
-  display: flex;
-  gap: 0.5rem;
+.btn-text-short {
+  display: none;
 }
 
 .login-btn {
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(253, 197, 0, 0.2);
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
 }
 
 .login-btn:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(253, 197, 0, 0.4);
 }
 
 /* ========== USER MENU ========== */
 .user-avatar-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  gap: 0.625rem;
+  padding: 0.5rem 0.875rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.25);
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -460,12 +527,13 @@ const openAuthModalAndCloseMenu = () => {
 
 .user-avatar-btn:hover {
   background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
 }
 
 .user-avatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--color-yellow-primary);
   color: var(--color-purple-darkest);
@@ -473,16 +541,17 @@ const openAuthModalAndCloseMenu = () => {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   flex-shrink: 0;
 }
 
-.user-name-desktop {
+.user-name {
   font-weight: 600;
-  max-width: 150px;
+  max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.9rem;
 }
 
 .user-dropdown {
@@ -491,17 +560,17 @@ const openAuthModalAndCloseMenu = () => {
 }
 
 .user-info {
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1rem;
 }
 
-.user-name {
+.user-name-full {
   font-weight: 600;
   color: var(--color-purple-darkest);
   margin-bottom: 0.25rem;
 }
 
 .user-email {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #666;
 }
 
@@ -516,8 +585,8 @@ const openAuthModalAndCloseMenu = () => {
   border-radius: 8px;
   text-align: left;
   cursor: pointer;
-  transition: background 0.2s ease;
-  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
   color: #333;
 }
 
@@ -533,60 +602,107 @@ const openAuthModalAndCloseMenu = () => {
   background: rgba(227, 75, 74, 0.1);
 }
 
-/* ========== MOBILE MENU ========== */
+/* ========== MOBILE MENU BUTTON ========== */
 .mobile-menu-btn {
   display: none;
-}
-
-.mobile-menu {
-  background-color: var(--color-purple-dark);
-  padding: 1rem;
-  display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  justify-content: space-around;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 10;
 }
 
-.mobile-link {
+.hamburger-line {
+  width: 100%;
+  height: 3px;
+  background: white;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-btn.active .hamburger-line:nth-child(1) {
+  transform: translateY(10px) rotate(45deg);
+}
+
+.mobile-menu-btn.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-btn.active .hamburger-line:nth-child(3) {
+  transform: translateY(-10px) rotate(-45deg);
+}
+
+/* ========== MOBILE OVERLAY ========== */
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
+
+/* ========== MOBILE MENU DRAWER ========== */
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 85%;
+  max-width: 320px;
+  background: var(--color-purple-dark);
+  z-index: 1001;
+  overflow-y: auto;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-menu-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
+  justify-content: center;
   cursor: pointer;
-  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
-.mobile-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
 }
 
-.mobile-link.active {
-  background-color: var(--color-yellow-primary);
-  color: var(--color-purple-darkest);
-}
-
-.mobile-link.logout {
-  color: #FFB3B3;
-}
-
-.mobile-auth {
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: 0.5rem;
+.mobile-menu-content {
+  padding: 1rem;
 }
 
 .mobile-user-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: 0.5rem;
-  padding-top: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mobile-user-info {
@@ -594,7 +710,8 @@ const openAuthModalAndCloseMenu = () => {
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  margin-bottom: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
 }
 
 .user-avatar-mobile {
@@ -611,56 +728,145 @@ const openAuthModalAndCloseMenu = () => {
   flex-shrink: 0;
 }
 
+.user-details {
+  flex: 1;
+  min-width: 0;
+}
+
 .mobile-user-name {
   font-weight: 600;
   color: white;
   margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mobile-user-email {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-nav-section {
+  margin-bottom: 1rem;
+}
+
+.mobile-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.mobile-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(5px);
+}
+
+.mobile-link.active {
+  background-color: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
+  font-weight: 600;
+}
+
+.mobile-link.logout {
+  color: #FFB3B3;
+}
+
+.mobile-link.logout:hover {
+  background-color: rgba(255, 75, 75, 0.15);
+}
+
+.mobile-auth {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* ========== TRANSICIONES ========== */
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
 }
 
-.slide-enter-from,
-.slide-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
+}
+
+.slide-in-enter-active,
+.slide-in-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-in-enter-from,
+.slide-in-leave-to {
+  transform: translateX(100%);
 }
 
 /* ========== RESPONSIVE ========== */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
+  .navbar-content {
+    padding: 0.875rem 2rem;
+  }
+
   .nav-links {
     gap: 0.25rem;
   }
-  
+
   .nav-link {
     padding: 0.5rem 0.75rem;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
   }
-  
-  .user-name-desktop {
+}
+
+@media (max-width: 1024px) {
+  .btn-text {
+    display: none;
+  }
+
+  .btn-text-short {
+    display: inline;
+  }
+
+  .user-name {
     display: none;
   }
 }
 
 @media (max-width: 768px) {
+  .navbar-content {
+    padding: 0.75rem 1rem;
+  }
+
   .desktop-only {
     display: none !important;
   }
-  
+
   .mobile-menu-btn {
     display: flex;
   }
-  
-  .publish-btn .btn-text {
+
+  .btn-text-short {
     display: none;
+  }
+
+  .publish-btn {
+    padding: 0.5rem 0.75rem;
   }
 }
 </style>
