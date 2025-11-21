@@ -1,9 +1,11 @@
 # 🛣️ ROADMAP - Guías Púrpuras V1.0
 
 ## 📊 Estado General del Proyecto
-**Última Actualización:** 2025-11-20
+**Última Actualización:** 2025-11-21
 **Rama:** main
 **Versión:** 1.0 (En Desarrollo)
+**Sesión Actual:** Sesión 2 (Completada - Mejoras UI/UX + Navbar)
+**Progreso General:** ~40% (Frontend básico completo, Backend parcial)
 
 ---
 
@@ -48,20 +50,45 @@
 - [x] Solucionado: Cambio de ruta a `/publicar` (ruta correcta en router)
 - [x] Mejorado: Styling del botón highlight con gradient y hover effects
 
+### 5. **Sincronización de Nombre de Perfil en Dashboard** ✓
+- [x] Implementado watch reactivo en DashboardHome.vue para observar cambios en authStore.user.name
+- [x] Actualizado handleProfileUpdated en DashboardView.vue para sincronizar estado
+- [x] Persistencia en localStorage de cambios de perfil
+
+### 6. **Mejora del Navbar - Propuesta A Implementada** ✓
+- [x] Agregado VaDropdown para categoría "Guías" (Desktop)
+- [x] Categoría Empleos (activa)
+- [x] Categorías futuras: Profesionales, Negocios, Restaurantes (deshabilitadas + label "Próximamente")
+- [x] Agregado link "Sobre Nosotros" en navegación desktop
+- [x] Implementado submenu expandible para Guías en mobile
+- [x] Estilos profesionales para dropdown con hover effects
+- [x] Transiciones suaves (.expand-enter/leave)
+- [x] Responsivo en desktop y mobile
+
 ---
 
 ## 🚀 POR HACER - PRÓXIMAS SESIONES
 
-### **FASE 2: Página de Publicación de Trabajos**
-- [ ] Revisar/completar PublishView.vue
-- [ ] Implementar todos los pasos del wizard:
-  - [ ] CategoryStep (seleccionar categoría)
-  - [ ] JobPublishStart (información básica)
-  - [ ] ApplicationConfigStep (configuración de aplicaciones)
-  - [ ] PublishStepsIndicator (indicador de progreso)
-- [ ] Validación de formularios
-- [ ] Preview antes de publicar
-- [ ] Endpoints backend para crear/actualizar trabajos
+### **🔴 FASE 2: Página de Publicación de Trabajos (CRITICAL PRIORITY - SESIÓN 3)**
+**Estado Actual:** Frontend 100% (wizard visual completo), Backend 0% (pendiente endpoints)
+
+#### Frontend (Ya Implementado):
+- [x] PublishView.vue con estructura completa
+- [x] CategoryStep (seleccionar categoría)
+- [x] JobPublishStart (información básica del trabajo)
+- [x] ApplicationConfigStep (configuración de cómo aceptar candidatos)
+- [x] PublishStepsIndicator (indicador de progreso visual)
+- [x] Validación de formularios frontend
+- [x] Preview visual del anuncio
+
+#### Backend (POR HACER - SESIÓN 3):
+- [ ] Crear/verificar modelo Job en Django (con todos los campos)
+- [ ] Endpoint POST `/api/jobs/publish/` para crear nuevo trabajo
+- [ ] Endpoint PATCH `/api/jobs/{job_id}/` para actualizar trabajo
+- [ ] Endpoint GET `/api/jobs/user/` para listado de trabajos del usuario
+- [ ] Validación en backend (campos requeridos, limites, etc.)
+- [ ] Asociar trabajos con usuario autenticado
+- [ ] Subida de imágenes para el anuncio (si aplica)
 
 ### **FASE 3: Gestión de Candidatos**
 - [ ] Componente CandidateManager (actualmente placeholder)

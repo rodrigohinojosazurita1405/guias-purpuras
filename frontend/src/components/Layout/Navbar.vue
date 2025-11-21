@@ -13,74 +13,83 @@
 
       <!-- Desktop Navigation -->
       <div class="nav-links desktop-only">
-        <router-link 
-          to="/" 
+        <router-link
+          to="/"
           class="nav-link"
           exact-active-class="active"
         >
           <va-icon name="home" size="small" />
           <span>Inicio</span>
         </router-link>
-        
-        <router-link 
-          to="/guias/profesionales" 
+
+        <!-- Guías Dropdown -->
+        <VaDropdown class="guias-dropdown" placement="bottom-start">
+          <template #anchor>
+            <button class="nav-link dropdown-anchor">
+              <va-icon name="category" size="small" />
+              <span>Guías</span>
+              <va-icon name="expand_more" size="small" />
+            </button>
+          </template>
+
+          <VaDropdownContent class="guias-dropdown-content">
+            <router-link to="/guias/trabajos" class="dropdown-item" @click="$event.stopPropagation()">
+              <va-icon name="business_center" size="small" />
+              <span>Empleos</span>
+            </router-link>
+
+            <button class="dropdown-item disabled" disabled>
+              <va-icon name="person" size="small" />
+              <span>Profesionales</span>
+              <span class="coming-soon">Próximamente</span>
+            </button>
+
+            <button class="dropdown-item disabled" disabled>
+              <va-icon name="storefront" size="small" />
+              <span>Negocios</span>
+              <span class="coming-soon">Próximamente</span>
+            </button>
+
+            <button class="dropdown-item disabled" disabled>
+              <va-icon name="restaurant" size="small" />
+              <span>Restaurantes</span>
+              <span class="coming-soon">Próximamente</span>
+            </button>
+          </VaDropdownContent>
+        </VaDropdown>
+
+        <!-- Sobre Nosotros Link -->
+        <router-link
+          to="/nosotros"
           class="nav-link"
           active-class="active"
         >
-          <va-icon name="work" size="small" />
-          <span>Profesionales</span>
-        </router-link>
-        
-        <router-link 
-          to="/guias/gastronomia" 
-          class="nav-link"
-          active-class="active"
-        >
-          <va-icon name="restaurant" size="small" />
-          <span>Gastronomía</span>
-        </router-link>
-        
-        <router-link 
-          to="/guias/trabajos" 
-          class="nav-link"
-          active-class="active"
-        >
-          <va-icon name="business_center" size="small" />
-          <span>Trabajos</span>
-        </router-link>
-        
-        <router-link 
-          to="/guias/negocios" 
-          class="nav-link"
-          active-class="active"
-        >
-          <va-icon name="store" size="small" />
-          <span>Negocios</span>
+          <va-icon name="info" size="small" />
+          <span>Sobre Nosotros</span>
         </router-link>
       </div>
 
       <!-- Actions -->
       <div class="nav-actions">
-        <!-- Botón Publicar (destacado) -->
+        <!-- Botón Publicar Empleo (destacado) -->
         <va-button
           @click="goToPublish"
           class="publish-btn"
         >
           <va-icon name="add_circle" size="small" />
-          <span class="btn-text">Publicar anuncio</span>
+          <span class="btn-text">Publicar empleo</span>
           <span class="btn-text-short">Publicar</span>
         </va-button>
 
         <!-- Auth: Login (NO logueado) -->
-        <va-button
+        <router-link
           v-if="!authStore.isAuthenticated"
-          @click="showAuthModal = true"
+          to="/login"
           class="login-btn desktop-only"
-          preset="secondary"
         >
           <va-icon name="login" size="small" />
           <span>Ingresar</span>
-        </va-button>
+        </router-link>
 
         <!-- User Menu (SÍ logueado) -->
         <VaDropdown v-else class="user-menu" placement="bottom-end">
@@ -99,9 +108,14 @@
               <div class="user-name-full">{{ authStore.user.name }}</div>
               <div class="user-email">{{ authStore.user.email }}</div>
             </div>
-            
+
             <VaDivider style="margin: 0.5rem 0;" />
-            
+
+            <button class="dropdown-item" @click="goToDashboard">
+              <va-icon name="dashboard" size="small" />
+              <span>Mi Dashboard</span>
+            </button>
+
             <button class="dropdown-item" @click="goToProfile">
               <va-icon name="person" size="small" />
               <span>Mi Perfil</span>
@@ -166,8 +180,8 @@
 
           <!-- Navigation Links -->
           <div class="mobile-nav-section">
-            <router-link 
-              to="/" 
+            <router-link
+              to="/"
               class="mobile-link"
               @click="closeMobileMenu"
               exact-active-class="active"
@@ -175,50 +189,83 @@
               <va-icon name="home" />
               <span>Inicio</span>
             </router-link>
-            
-            <router-link 
-              to="/guias/profesionales" 
+
+            <!-- Guías Submenu (Expandible) -->
+            <button
+              class="mobile-link guias-toggle"
+              @click="toggleGuiasMenu"
+            >
+              <va-icon name="category" />
+              <span>Guías</span>
+              <va-icon
+                name="expand_more"
+                size="small"
+                :class="{ rotate: guiasOpen }"
+                class="expand-icon"
+              />
+            </button>
+
+            <transition name="expand">
+              <div v-if="guiasOpen" class="mobile-submenu">
+                <router-link
+                  to="/guias/trabajos"
+                  class="mobile-sublink"
+                  @click="closeMobileMenuAndGuias"
+                  active-class="active"
+                >
+                  <va-icon name="business_center" />
+                  <span>Empleos</span>
+                </router-link>
+
+                <button class="mobile-sublink disabled" disabled>
+                  <va-icon name="person" />
+                  <span>Profesionales</span>
+                  <span class="coming-soon-mobile">Próximamente</span>
+                </button>
+
+                <button class="mobile-sublink disabled" disabled>
+                  <va-icon name="storefront" />
+                  <span>Negocios</span>
+                  <span class="coming-soon-mobile">Próximamente</span>
+                </button>
+
+                <button class="mobile-sublink disabled" disabled>
+                  <va-icon name="restaurant" />
+                  <span>Restaurantes</span>
+                  <span class="coming-soon-mobile">Próximamente</span>
+                </button>
+              </div>
+            </transition>
+
+            <!-- Sobre Nosotros Link -->
+            <router-link
+              to="/nosotros"
               class="mobile-link"
               @click="closeMobileMenu"
               active-class="active"
             >
-              <va-icon name="work" />
-              <span>Profesionales</span>
+              <va-icon name="info" />
+              <span>Sobre Nosotros</span>
             </router-link>
-            
-            <router-link 
-              to="/guias/gastronomia" 
+
+            <router-link
+              to="/publicar"
               class="mobile-link"
               @click="closeMobileMenu"
               active-class="active"
             >
-              <va-icon name="restaurant" />
-              <span>Gastronomía</span>
-            </router-link>
-            
-            <router-link 
-              to="/guias/trabajos" 
-              class="mobile-link"
-              @click="closeMobileMenu"
-              active-class="active"
-            >
-              <va-icon name="business_center" />
-              <span>Trabajos</span>
-            </router-link>
-            
-            <router-link 
-              to="/guias/negocios" 
-              class="mobile-link"
-              @click="closeMobileMenu"
-              active-class="active"
-            >
-              <va-icon name="store" />
-              <span>Negocios</span>
+              <va-icon name="add_circle" />
+              <span>Publicar empleo</span>
             </router-link>
           </div>
 
           <!-- User actions (si está logueado) -->
           <div v-if="authStore.isAuthenticated" class="mobile-nav-section">
+            <button class="mobile-link" @click="goToDashboard">
+              <va-icon name="dashboard" />
+              <span>Mi Dashboard</span>
+            </button>
+
             <button class="mobile-link" @click="goToProfileAndClose">
               <va-icon name="person" />
               <span>Mi Perfil</span>
@@ -237,26 +284,19 @@
 
           <!-- Auth button (si NO está logueado) -->
           <div v-else class="mobile-auth">
-            <va-button
-              @click="openAuthModalAndCloseMenu"
-              color="yellow-primary"
-              size="large"
-              block
+            <router-link
+              to="/login"
+              class="mobile-login-link"
+              @click="closeMobileMenu"
             >
               <va-icon name="login" />
               <span>Ingresar</span>
-            </va-button>
+            </router-link>
           </div>
         </div>
       </div>
     </transition>
 
-    <!-- Auth Modal -->
-    <AuthModal 
-      v-model="showAuthModal"
-      initial-tab="login"
-      @success="handleAuthSuccess" 
-    />
   </nav>
 </template>
 
@@ -265,7 +305,6 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useToast } from 'vuestic-ui'
-import AuthModal from '@/components/Auth/AuthModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -273,45 +312,44 @@ const { init: notify } = useToast()
 
 // State
 const mobileMenuOpen = ref(false)
-const showAuthModal = ref(false)
+const guiasOpen = ref(false)
 
 // Methods
 const goToPublish = () => {
   if (!authStore.isAuthenticated) {
-    showAuthModal.value = true
     notify({
       message: 'Debes iniciar sesión para publicar un anuncio',
       color: 'info'
     })
+    router.push('/login')
     return
   }
-  
+
   router.push('/publicar')
   closeMobileMenu()
 }
 
+const goToDashboard = () => {
+  router.push({ path: '/dashboard', query: { tab: 'home' } })
+  closeMobileMenu()
+}
+
 const goToProfile = () => {
-  notify({
-    message: '🚧 Ruta de perfil próximamente',
-    color: 'info'
-  })
+  router.push({ path: '/dashboard', query: { tab: 'profile' } })
+  closeMobileMenu()
 }
 
 const goToMyListings = () => {
-  notify({
-    message: '🚧 Ruta de mis anuncios próximamente',
-    color: 'info'
-  })
+  router.push({ path: '/dashboard', query: { tab: 'jobs' } })
+  closeMobileMenu()
 }
 
 const goToProfileAndClose = () => {
   goToProfile()
-  closeMobileMenu()
 }
 
 const goToMyListingsAndClose = () => {
   goToMyListings()
-  closeMobileMenu()
 }
 
 const handleLogout = () => {
@@ -328,13 +366,6 @@ const handleLogoutAndClose = () => {
   closeMobileMenu()
 }
 
-const handleAuthSuccess = () => {
-  notify({
-    message: '¡Bienvenido a Guías Púrpuras! 🎉',
-    color: 'success'
-  })
-}
-
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
   
@@ -348,11 +379,15 @@ const toggleMobileMenu = () => {
 
 const closeMobileMenu = () => {
   mobileMenuOpen.value = false
+  guiasOpen.value = false
   document.body.style.overflow = ''
 }
 
-const openAuthModalAndCloseMenu = () => {
-  showAuthModal.value = true
+const toggleGuiasMenu = () => {
+  guiasOpen.value = !guiasOpen.value
+}
+
+const closeMobileMenuAndGuias = () => {
   closeMobileMenu()
 }
 </script>
@@ -498,17 +533,42 @@ const openAuthModalAndCloseMenu = () => {
 }
 
 .login-btn {
-  background: rgba(255, 255, 255, 0.15) !important;
-  color: white !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  font-weight: 600 !important;
-  transition: all 0.3s ease !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  text-decoration: none;
 }
 
 .login-btn:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
+}
+
+.mobile-login-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background: var(--color-yellow-primary);
+  width: 100%;
+  text-align: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  border: none;
 }
 
 /* ========== USER MENU ========== */
@@ -846,6 +906,171 @@ const openAuthModalAndCloseMenu = () => {
   .user-name {
     display: none;
   }
+}
+
+/* ========== GUÍAS DROPDOWN (DESKTOP) ========== */
+.guias-dropdown {
+  position: relative;
+}
+
+.dropdown-anchor {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  padding: 0.625rem 1rem;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-decoration: none;
+  border-radius: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  position: relative;
+}
+
+.dropdown-anchor::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--color-yellow-primary);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.dropdown-anchor:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.dropdown-anchor:hover::after {
+  width: 80%;
+}
+
+.guias-dropdown-content {
+  min-width: 220px;
+  padding: 0.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  color: #333;
+  text-decoration: none;
+  position: relative;
+}
+
+.dropdown-item:not(.disabled):hover {
+  background: #F5F5F5;
+}
+
+.dropdown-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.coming-soon {
+  font-size: 0.75rem;
+  color: #999;
+  margin-left: auto;
+}
+
+/* ========== MOBILE SUBMENU (GUÍAS) ========== */
+.guias-toggle {
+  justify-content: space-between;
+}
+
+.expand-icon {
+  transition: transform 0.3s ease;
+  margin-left: auto;
+}
+
+.expand-icon.rotate {
+  transform: rotate(180deg);
+}
+
+.mobile-submenu {
+  padding-left: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-left: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.mobile-sublink {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.mobile-sublink:hover:not(.disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateX(3px);
+}
+
+.mobile-sublink.active {
+  background-color: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
+  font-weight: 600;
+}
+
+.mobile-sublink.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.coming-soon-mobile {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: auto;
+}
+
+/* ========== EXPAND TRANSITION ========== */
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 0.3s ease;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.expand-enter-to,
+.expand-leave-from {
+  opacity: 1;
+  max-height: 500px;
 }
 
 @media (max-width: 768px) {
