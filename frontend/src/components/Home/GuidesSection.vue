@@ -258,8 +258,8 @@ onMounted(async () => {
 
 .jobs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
 
 /* ==========================================
@@ -267,14 +267,14 @@ onMounted(async () => {
    ========================================== */
 .job-card {
   background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 12px;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
   color: #333;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -282,22 +282,22 @@ onMounted(async () => {
 }
 
 .job-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  transform: translateY(-6px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   border-color: #ddd;
 }
 
 /* Badge de Empleo */
 .job-badge {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 0.75rem;
+  right: 0.75rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  gap: 0.2rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
   font-weight: 600;
   z-index: 10;
 }
@@ -314,15 +314,15 @@ onMounted(async () => {
 
 /* Logo de Empresa */
 .company-logo-container {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
   overflow: hidden;
   background: #f5f5f5;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
 
 .company-logo {
@@ -338,10 +338,10 @@ onMounted(async () => {
 /* Título del Empleo */
 .job-title {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: var(--color-purple-darkest);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -350,7 +350,7 @@ onMounted(async () => {
 
 /* Nombre de Empresa */
 .company-name {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #666;
   margin: 0;
   font-weight: 500;
@@ -360,10 +360,10 @@ onMounted(async () => {
 .job-info {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
+  gap: 0.4rem;
+  font-size: 0.75rem;
   color: #555;
-  margin-top: 0.25rem;
+  margin-top: 0.15rem;
 }
 
 .job-info :deep(svg) {
@@ -375,14 +375,14 @@ onMounted(async () => {
 .job-salary {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
+  gap: 0.4rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--color-success);
-  margin-top: 0.5rem;
-  padding: 0.5rem;
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.5rem;
   background: rgba(16, 185, 129, 0.08);
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .job-salary :deep(svg) {
@@ -394,13 +394,13 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
   border-top: 1px solid #e5e5e5;
 }
 
 .job-date {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: #999;
 }
 
@@ -506,21 +506,21 @@ onMounted(async () => {
   }
 
   .jobs-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
   }
 
   .job-card {
-    padding: 1.25rem;
+    padding: 0.9rem;
   }
 
   .company-logo-container {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
   }
 
   .job-title {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 }
 
