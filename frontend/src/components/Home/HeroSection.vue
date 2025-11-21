@@ -203,7 +203,7 @@ const onCityChange = () => {
 
 const handleSearch = () => {
   router.push({
-    path: `/guias/${searchStore.selectedCategory}`,
+    path: '/guias/trabajos',
     query: searchStore.searchParams
   })
 }
