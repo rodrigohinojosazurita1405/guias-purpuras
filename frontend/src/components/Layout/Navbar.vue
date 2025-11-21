@@ -22,41 +22,15 @@
           <span>Inicio</span>
         </router-link>
 
-        <!-- Guías Dropdown -->
-        <VaDropdown class="guias-dropdown" placement="bottom-start">
-          <template #anchor>
-            <button class="nav-link dropdown-anchor">
-              <va-icon name="category" size="small" />
-              <span>Guías</span>
-              <va-icon name="expand_more" size="small" />
-            </button>
-          </template>
-
-          <VaDropdownContent class="guias-dropdown-content">
-            <router-link to="/guias/trabajos" class="dropdown-item" @click="$event.stopPropagation()">
-              <va-icon name="business_center" size="small" />
-              <span>Empleos</span>
-            </router-link>
-
-            <button class="dropdown-item disabled" disabled>
-              <va-icon name="person" size="small" />
-              <span>Profesionales</span>
-              <span class="coming-soon">Próximamente</span>
-            </button>
-
-            <button class="dropdown-item disabled" disabled>
-              <va-icon name="storefront" size="small" />
-              <span>Negocios</span>
-              <span class="coming-soon">Próximamente</span>
-            </button>
-
-            <button class="dropdown-item disabled" disabled>
-              <va-icon name="restaurant" size="small" />
-              <span>Restaurantes</span>
-              <span class="coming-soon">Próximamente</span>
-            </button>
-          </VaDropdownContent>
-        </VaDropdown>
+        <!-- Empleos Link -->
+        <router-link
+          to="/guias/trabajos"
+          class="nav-link"
+          active-class="active"
+        >
+          <va-icon name="business_center" size="small" />
+          <span>Empleos</span>
+        </router-link>
 
         <!-- Sobre Nosotros Link -->
         <router-link
@@ -190,52 +164,16 @@
               <span>Inicio</span>
             </router-link>
 
-            <!-- Guías Submenu (Expandible) -->
-            <button
-              class="mobile-link guias-toggle"
-              @click="toggleGuiasMenu"
+            <!-- Empleos Link -->
+            <router-link
+              to="/guias/trabajos"
+              class="mobile-link"
+              @click="closeMobileMenu"
+              active-class="active"
             >
-              <va-icon name="category" />
-              <span>Guías</span>
-              <va-icon
-                name="expand_more"
-                size="small"
-                :class="{ rotate: guiasOpen }"
-                class="expand-icon"
-              />
-            </button>
-
-            <transition name="expand">
-              <div v-if="guiasOpen" class="mobile-submenu">
-                <router-link
-                  to="/guias/trabajos"
-                  class="mobile-sublink"
-                  @click="closeMobileMenuAndGuias"
-                  active-class="active"
-                >
-                  <va-icon name="business_center" />
-                  <span>Empleos</span>
-                </router-link>
-
-                <button class="mobile-sublink disabled" disabled>
-                  <va-icon name="person" />
-                  <span>Profesionales</span>
-                  <span class="coming-soon-mobile">Próximamente</span>
-                </button>
-
-                <button class="mobile-sublink disabled" disabled>
-                  <va-icon name="storefront" />
-                  <span>Negocios</span>
-                  <span class="coming-soon-mobile">Próximamente</span>
-                </button>
-
-                <button class="mobile-sublink disabled" disabled>
-                  <va-icon name="restaurant" />
-                  <span>Restaurantes</span>
-                  <span class="coming-soon-mobile">Próximamente</span>
-                </button>
-              </div>
-            </transition>
+              <va-icon name="business_center" />
+              <span>Empleos</span>
+            </router-link>
 
             <!-- Sobre Nosotros Link -->
             <router-link
@@ -312,7 +250,6 @@ const { init: notify } = useToast()
 
 // State
 const mobileMenuOpen = ref(false)
-const guiasOpen = ref(false)
 
 // Methods
 const goToPublish = () => {
@@ -379,16 +316,7 @@ const toggleMobileMenu = () => {
 
 const closeMobileMenu = () => {
   mobileMenuOpen.value = false
-  guiasOpen.value = false
   document.body.style.overflow = ''
-}
-
-const toggleGuiasMenu = () => {
-  guiasOpen.value = !guiasOpen.value
-}
-
-const closeMobileMenuAndGuias = () => {
-  closeMobileMenu()
 }
 </script>
 
@@ -908,170 +836,6 @@ const closeMobileMenuAndGuias = () => {
   }
 }
 
-/* ========== GUÍAS DROPDOWN (DESKTOP) ========== */
-.guias-dropdown {
-  position: relative;
-}
-
-.dropdown-anchor {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  background: none;
-  border: none;
-  padding: 0.625rem 1rem;
-  color: white;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.95rem;
-  text-decoration: none;
-  border-radius: 10px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  white-space: nowrap;
-  position: relative;
-}
-
-.dropdown-anchor::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: var(--color-yellow-primary);
-  transition: all 0.3s ease;
-  transform: translateX(-50%);
-}
-
-.dropdown-anchor:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
-}
-
-.dropdown-anchor:hover::after {
-  width: 80%;
-}
-
-.guias-dropdown-content {
-  min-width: 220px;
-  padding: 0.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  width: 100%;
-  border: none;
-  background: none;
-  border-radius: 8px;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-  color: #333;
-  text-decoration: none;
-  position: relative;
-}
-
-.dropdown-item:not(.disabled):hover {
-  background: #F5F5F5;
-}
-
-.dropdown-item.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.coming-soon {
-  font-size: 0.75rem;
-  color: #999;
-  margin-left: auto;
-}
-
-/* ========== MOBILE SUBMENU (GUÍAS) ========== */
-.guias-toggle {
-  justify-content: space-between;
-}
-
-.expand-icon {
-  transition: transform 0.3s ease;
-  margin-left: auto;
-}
-
-.expand-icon.rotate {
-  transform: rotate(180deg);
-}
-
-.mobile-submenu {
-  padding-left: 1rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  border-left: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.mobile-sublink {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.875rem 1.25rem;
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 400;
-  transition: all 0.3s ease;
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  font-size: 0.95rem;
-  margin-bottom: 0.25rem;
-}
-
-.mobile-sublink:hover:not(.disabled) {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  transform: translateX(3px);
-}
-
-.mobile-sublink.active {
-  background-color: var(--color-yellow-primary);
-  color: var(--color-purple-darkest);
-  font-weight: 600;
-}
-
-.mobile-sublink.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.coming-soon-mobile {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin-left: auto;
-}
-
-/* ========== EXPAND TRANSITION ========== */
-.expand-enter-active,
-.expand-leave-active {
-  transition: all 0.3s ease;
-}
-
-.expand-enter-from,
-.expand-leave-to {
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-}
-
-.expand-enter-to,
-.expand-leave-from {
-  opacity: 1;
-  max-height: 500px;
-}
 
 @media (max-width: 768px) {
   .navbar-content {
