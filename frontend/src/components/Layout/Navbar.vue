@@ -153,7 +153,7 @@ const doLogout = () => {
   authStore.logout()
   console.log('✅ Logout completed')
 
-  notify({ message: '✅ Sesión cerrada', color: 'success' })
+  notify({ message: 'Sesión cerrada', color: 'info', duration: 2000 })
   closeMobileMenu()
 
   setTimeout(() => {
