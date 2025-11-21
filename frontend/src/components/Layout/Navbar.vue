@@ -1,10 +1,10 @@
-<!-- frontend/src/components/Layout/Navbar.vue -->
+<!-- Navbar - Clean & Minimal Version -->
 <template>
   <nav class="navbar">
     <div class="navbar-content">
       <!-- Logo -->
       <router-link to="/" class="logo" @click="closeMobileMenu">
-        <img src="/src/assets/guiaspurpuras.ico" alt="Logo Guías Púrpuras" class="logo-image" />
+        <img src="/src/assets/guiaspurpuras.ico" alt="Logo" class="logo-image" />
         <div class="logo-text-wrapper">
           <span class="logo-text">Guías Púrpuras</span>
           <span class="logo-country">Bolivia</span>
@@ -13,31 +13,17 @@
 
       <!-- Desktop Navigation -->
       <div class="nav-links desktop-only">
-        <router-link
-          to="/"
-          class="nav-link"
-          exact-active-class="active"
-        >
+        <router-link to="/" class="nav-link" exact-active-class="active">
           <va-icon name="home" size="small" />
           <span>Inicio</span>
         </router-link>
 
-        <!-- Empleos Link -->
-        <router-link
-          to="/guias/trabajos"
-          class="nav-link"
-          active-class="active"
-        >
+        <router-link to="/guias/trabajos" class="nav-link" active-class="active">
           <va-icon name="business_center" size="small" />
           <span>Empleos</span>
         </router-link>
 
-        <!-- Sobre Nosotros Link -->
-        <router-link
-          to="/nosotros"
-          class="nav-link"
-          active-class="active"
-        >
+        <router-link to="/nosotros" class="nav-link" active-class="active">
           <va-icon name="info" size="small" />
           <span>Sobre Nosotros</span>
         </router-link>
@@ -45,77 +31,27 @@
 
       <!-- Actions -->
       <div class="nav-actions">
-        <!-- Botón Publicar Empleo (destacado) -->
-        <va-button
-          @click="goToPublish"
-          class="publish-btn"
-        >
+        <!-- Publish Button -->
+        <va-button @click="handlePublish" class="publish-btn">
           <va-icon name="add_circle" size="small" />
           <span class="btn-text">Publicar empleo</span>
           <span class="btn-text-short">Publicar</span>
         </va-button>
 
-        <!-- Auth: Login (NO logueado) -->
-        <router-link
-          v-if="!authStore.isAuthenticated"
-          to="/login"
-          class="login-btn desktop-only"
-        >
+        <!-- NOT Authenticated: Show Login Button -->
+        <router-link v-if="!authStore.isAuthenticated" to="/login" class="login-btn desktop-only">
           <va-icon name="login" size="small" />
           <span>Ingresar</span>
         </router-link>
 
-        <!-- User Menu (SÍ logueado) -->
-        <VaDropdown v-else class="user-menu" placement="bottom-end">
-          <template #anchor>
-            <button class="user-avatar-btn">
-              <div class="user-avatar">
-                {{ authStore.userInitials }}
-              </div>
-              <span class="user-name desktop-only">{{ authStore.user.name }}</span>
-              <va-icon name="expand_more" size="small" />
-            </button>
-          </template>
+        <!-- Authenticated: Show Avatar Button (Simple - No Dropdown) -->
+        <button v-else @click="doLogout" class="user-avatar-btn desktop-only" title="Click para cerrar sesión">
+          <div class="user-avatar">{{ authStore.userInitials }}</div>
+          <va-icon name="logout" size="small" class="logout-icon" />
+        </button>
 
-          <VaDropdownContent class="user-dropdown">
-            <div class="user-info">
-              <div class="user-name-full">{{ authStore.user.name }}</div>
-              <div class="user-email">{{ authStore.user.email }}</div>
-            </div>
-
-            <VaDivider style="margin: 0.5rem 0;" />
-
-            <button class="dropdown-item" @click="goToDashboard">
-              <va-icon name="dashboard" size="small" />
-              <span>Mi Dashboard</span>
-            </button>
-
-            <button class="dropdown-item" @click="goToProfile">
-              <va-icon name="person" size="small" />
-              <span>Mi Perfil</span>
-            </button>
-            
-            <button class="dropdown-item" @click="goToMyListings">
-              <va-icon name="list" size="small" />
-              <span>Mis Anuncios</span>
-            </button>
-            
-            <VaDivider style="margin: 0.5rem 0;" />
-            
-            <button class="dropdown-item logout" @click="handleLogout">
-              <va-icon name="logout" size="small" />
-              <span>Cerrar Sesión</span>
-            </button>
-          </VaDropdownContent>
-        </VaDropdown>
-
-        <!-- Mobile Menu Toggle -->
-        <button
-          @click="toggleMobileMenu"
-          class="mobile-menu-btn"
-          :class="{ active: mobileMenuOpen }"
-          aria-label="Menú"
-        >
+        <!-- Mobile Menu Button -->
+        <button @click="toggleMobileMenu" class="mobile-menu-btn" :class="{ active: mobileMenuOpen }">
           <span class="hamburger-line"></span>
           <span class="hamburger-line"></span>
           <span class="hamburger-line"></span>
@@ -123,118 +59,68 @@
       </div>
     </div>
 
-    <!-- Mobile Menu Overlay -->
+    <!-- Mobile Overlay -->
     <transition name="fade">
       <div v-if="mobileMenuOpen" class="mobile-overlay" @click="closeMobileMenu"></div>
     </transition>
 
-    <!-- Mobile Menu Drawer -->
+    <!-- Mobile Menu -->
     <transition name="slide-in">
       <div v-if="mobileMenuOpen" class="mobile-menu">
         <div class="mobile-menu-header">
-          <span class="mobile-menu-title">Menú</span>
+          <span>Menú</span>
           <button @click="closeMobileMenu" class="close-btn">
             <va-icon name="close" />
           </button>
         </div>
 
-        <div class="mobile-menu-content">
-          <!-- User section (si está logueado) -->
-          <div v-if="authStore.isAuthenticated" class="mobile-user-section">
-            <div class="mobile-user-info">
-              <div class="user-avatar-mobile">
-                {{ authStore.userInitials }}
-              </div>
-              <div class="user-details">
-                <div class="mobile-user-name">{{ authStore.user.name }}</div>
-                <div class="mobile-user-email">{{ authStore.user.email }}</div>
-              </div>
+        <!-- Mobile Navigation -->
+        <div class="mobile-nav-section">
+          <router-link to="/" class="mobile-link" @click="closeMobileMenu" exact-active-class="active">
+            <va-icon name="home" />
+            <span>Inicio</span>
+          </router-link>
+
+          <router-link to="/guias/trabajos" class="mobile-link" @click="closeMobileMenu" active-class="active">
+            <va-icon name="business_center" />
+            <span>Empleos</span>
+          </router-link>
+
+          <router-link to="/nosotros" class="mobile-link" @click="closeMobileMenu" active-class="active">
+            <va-icon name="info" />
+            <span>Sobre Nosotros</span>
+          </router-link>
+
+          <router-link to="/publicar" class="mobile-link" @click="closeMobileMenu" active-class="active">
+            <va-icon name="add_circle" />
+            <span>Publicar</span>
+          </router-link>
+        </div>
+
+        <!-- Mobile Auth Section -->
+        <div class="mobile-auth-section">
+          <!-- If Logged In -->
+          <div v-if="authStore.isAuthenticated" class="mobile-user-info">
+            <div class="user-avatar-mobile">{{ authStore.userInitials }}</div>
+            <div class="user-details">
+              <div class="mobile-user-name">{{ authStore.user?.name }}</div>
+              <div class="mobile-user-email">{{ authStore.user?.email }}</div>
             </div>
           </div>
 
-          <!-- Navigation Links -->
-          <div class="mobile-nav-section">
-            <router-link
-              to="/"
-              class="mobile-link"
-              @click="closeMobileMenu"
-              exact-active-class="active"
-            >
-              <va-icon name="home" />
-              <span>Inicio</span>
-            </router-link>
+          <button v-if="authStore.isAuthenticated" @click="doLogout" class="mobile-logout-btn">
+            <va-icon name="logout" />
+            <span>Cerrar Sesión</span>
+          </button>
 
-            <!-- Empleos Link -->
-            <router-link
-              to="/guias/trabajos"
-              class="mobile-link"
-              @click="closeMobileMenu"
-              active-class="active"
-            >
-              <va-icon name="business_center" />
-              <span>Empleos</span>
-            </router-link>
-
-            <!-- Sobre Nosotros Link -->
-            <router-link
-              to="/nosotros"
-              class="mobile-link"
-              @click="closeMobileMenu"
-              active-class="active"
-            >
-              <va-icon name="info" />
-              <span>Sobre Nosotros</span>
-            </router-link>
-
-            <router-link
-              to="/publicar"
-              class="mobile-link"
-              @click="closeMobileMenu"
-              active-class="active"
-            >
-              <va-icon name="add_circle" />
-              <span>Publicar empleo</span>
-            </router-link>
-          </div>
-
-          <!-- User actions (si está logueado) -->
-          <div v-if="authStore.isAuthenticated" class="mobile-nav-section">
-            <button class="mobile-link" @click="goToDashboard">
-              <va-icon name="dashboard" />
-              <span>Mi Dashboard</span>
-            </button>
-
-            <button class="mobile-link" @click="goToProfileAndClose">
-              <va-icon name="person" />
-              <span>Mi Perfil</span>
-            </button>
-            
-            <button class="mobile-link" @click="goToMyListingsAndClose">
-              <va-icon name="list" />
-              <span>Mis Anuncios</span>
-            </button>
-            
-            <button class="mobile-link logout" @click="handleLogoutAndClose">
-              <va-icon name="logout" />
-              <span>Cerrar Sesión</span>
-            </button>
-          </div>
-
-          <!-- Auth button (si NO está logueado) -->
-          <div v-else class="mobile-auth">
-            <router-link
-              to="/login"
-              class="mobile-login-link"
-              @click="closeMobileMenu"
-            >
-              <va-icon name="login" />
-              <span>Ingresar</span>
-            </router-link>
-          </div>
+          <!-- If NOT Logged In -->
+          <router-link v-else to="/login" class="mobile-login-link" @click="closeMobileMenu">
+            <va-icon name="login" />
+            <span>Ingresar</span>
+          </router-link>
         </div>
       </div>
     </transition>
-
   </nav>
 </template>
 
@@ -247,108 +133,38 @@ import { useToast } from 'vuestic-ui'
 const router = useRouter()
 const authStore = useAuthStore()
 const { init: notify } = useToast()
-
-// State
 const mobileMenuOpen = ref(false)
 
-// Methods
-const goToPublish = () => {
+// Publish Button Handler
+const handlePublish = () => {
   if (!authStore.isAuthenticated) {
-    notify({
-      message: 'Debes iniciar sesión para publicar un anuncio',
-      color: 'info'
-    })
+    notify({ message: 'Debes iniciar sesión para publicar', color: 'info' })
     router.push('/login')
     return
   }
-
   router.push('/publicar')
   closeMobileMenu()
 }
 
-const goToDashboard = () => {
-  router.push({ path: '/dashboard', query: { tab: 'home' } })
-  closeMobileMenu()
-}
+// LOGOUT - Simple and Direct
+const doLogout = () => {
+  console.log('🚪 LOGOUT - Clearing everything...')
 
-const goToProfile = () => {
-  router.push({ path: '/dashboard', query: { tab: 'profile' } })
-  closeMobileMenu()
-}
-
-const goToMyListings = () => {
-  router.push({ path: '/dashboard', query: { tab: 'jobs' } })
-  closeMobileMenu()
-}
-
-const goToProfileAndClose = () => {
-  goToProfile()
-}
-
-const goToMyListingsAndClose = () => {
-  goToMyListings()
-}
-
-const handleLogout = () => {
-  console.log('🔓 handleLogout clicked - Before logout')
-  console.log('🔓 Before logout state:', {
-    isAuthenticated: authStore.isAuthenticated,
-    user: authStore.user?.email || 'null',
-    accessToken: authStore.accessToken ? '***' : 'null',
-    isInitialized: authStore.isInitialized
-  })
-
-  // logout() limpia el estado LOCAL inmediatamente, sin esperar al API
   authStore.logout()
+  console.log('✅ Logout completed')
 
-  console.log('🔓 After logout state:', {
-    isAuthenticated: authStore.isAuthenticated,
-    user: authStore.user,
-    accessToken: authStore.accessToken,
-    isInitialized: authStore.isInitialized
-  })
-
-  // Mostrar notificación
-  notify({
-    message: '✅ Sesión cerrada correctamente',
-    color: 'success'
-  })
-
-  // Redirigir al home (el estado ya está limpio)
-  console.log('🔓 handleLogout - Redirecting to home')
-
-  // SOLUCIÓN: Recargar la página COMPLETA para asegurar que se limpie todo
-  // Esto fuerza que el navegador vuelva a ejecutar initAuth() pero desde localStorage vacío
-  // Esperar 200ms asegura que:
-  // 1. El Promise.resolve() en logout() haya completado su limpieza adicional
-  // 2. Pinia haya procesado todos los cambios de estado
-  // 3. localStorage esté completamente limpio
-  setTimeout(() => {
-    // Verificación final de seguridad: comprobar que localStorage está vacío
-    console.log('🔍 [SEGURIDAD] Verificación final antes de reload:')
-    console.log('   access_token:', localStorage.getItem('access_token') ? '⚠️ PRESENTE' : '✅ LIMPIO')
-    console.log('   refresh_token:', localStorage.getItem('refresh_token') ? '⚠️ PRESENTE' : '✅ LIMPIO')
-    console.log('   auth_user:', localStorage.getItem('auth_user') ? '⚠️ PRESENTE' : '✅ LIMPIO')
-
-    // window.location = '/' causa una recarga HTTP completa desde el servidor
-    window.location = '/'
-  }, 200)
-}
-
-const handleLogoutAndClose = () => {
-  handleLogout()
+  notify({ message: '✅ Sesión cerrada', color: 'success' })
   closeMobileMenu()
+
+  setTimeout(() => {
+    window.location.href = '/'
+  }, 300)
 }
 
+// Mobile Menu Helpers
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
-  
-  // Prevenir scroll del body cuando el menú está abierto
-  if (mobileMenuOpen.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
+  document.body.style.overflow = mobileMenuOpen.value ? 'hidden' : ''
 }
 
 const closeMobileMenu = () => {
@@ -358,7 +174,7 @@ const closeMobileMenu = () => {
 </script>
 
 <style scoped>
-/* ========== NAVBAR PRINCIPAL ========== */
+/* NAVBAR */
 .navbar {
   background-color: var(--color-purple);
   color: white;
@@ -371,14 +187,14 @@ const closeMobileMenu = () => {
 .navbar-content {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0.875rem 3rem;
+  padding: 1rem 3rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 2rem;
 }
 
-/* ========== LOGO ========== */
+/* LOGO */
 .logo {
   display: flex;
   align-items: center;
@@ -386,6 +202,7 @@ const closeMobileMenu = () => {
   text-decoration: none;
   color: white;
   transition: transform 0.3s ease;
+  flex-shrink: 0;
 }
 
 .logo:hover {
@@ -395,7 +212,6 @@ const closeMobileMenu = () => {
 .logo-image {
   height: 36px;
   width: auto;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .logo-text-wrapper {
@@ -414,13 +230,12 @@ const closeMobileMenu = () => {
   color: var(--color-yellow-primary);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.5px;
 }
 
-/* ========== NAVEGACIÓN DESKTOP ========== */
+/* NAVIGATION LINKS */
 .nav-links {
   display: flex;
-  gap: 0.5rem;
+  gap: 1rem;
   flex: 1;
   justify-content: center;
   align-items: center;
@@ -430,36 +245,19 @@ const closeMobileMenu = () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.625rem 1rem;
+  padding: 0.5rem 1rem;
   color: white;
   text-decoration: none;
-  border-radius: 10px;
+  border-radius: 8px;
   font-weight: 500;
   font-size: 0.95rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  white-space: nowrap;
-  position: relative;
-}
-
-.nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: var(--color-yellow-primary);
   transition: all 0.3s ease;
-  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
 .nav-link:hover {
   background-color: rgba(255, 255, 255, 0.1);
   transform: translateY(-2px);
-}
-
-.nav-link:hover::after {
-  width: 80%;
 }
 
 .nav-link.active {
@@ -468,92 +266,79 @@ const closeMobileMenu = () => {
   font-weight: 600;
 }
 
-.nav-link.active::after {
-  display: none;
-}
-
-/* ========== ACTIONS ========== */
+/* ACTIONS SECTION */
 .nav-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .publish-btn {
   --va-background-color: var(--color-yellow-primary) !important;
+  --va-text-color: var(--color-purple-darkest) !important;
   color: var(--color-purple-darkest) !important;
   font-weight: 700 !important;
-  box-shadow: 0 4px 12px rgba(253, 197, 0, 0.35);
+  box-shadow: 0 4px 12px rgba(253, 197, 0, 0.3) !important;
   transition: all 0.3s ease !important;
-  border: none !important;
 }
 
 .publish-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(253, 197, 0, 0.5);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(253, 197, 0, 0.4) !important;
 }
 
 .btn-text-short {
   display: none;
 }
 
+/* LOGIN BUTTON */
 .login-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1rem;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  font-weight: 600;
-  transition: all 0.3s ease;
   border-radius: 8px;
   text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .login-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
 }
 
-.mobile-login-link {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  color: white;
-  text-decoration: none;
-  border-radius: 10px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  background: var(--color-yellow-primary);
-  width: 100%;
-  text-align: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 1rem;
-  border: none;
-}
-
-/* ========== USER MENU ========== */
+/* USER AVATAR BUTTON */
 .user-avatar-btn {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0.5rem 0.875rem;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   background: rgba(255, 255, 255, 0.12);
   border: 2px solid rgba(255, 255, 255, 0.25);
-  border-radius: 50px;
+  border-radius: 50%;
   cursor: pointer;
   transition: all 0.3s ease;
   color: white;
+  position: relative;
+  flex-shrink: 0;
 }
 
 .user-avatar-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.4);
-  transform: scale(1.05);
+  transform: scale(1.1);
 }
 
 .user-avatar {
@@ -567,78 +352,29 @@ const closeMobileMenu = () => {
   justify-content: center;
   font-weight: 700;
   font-size: 0.85rem;
-  flex-shrink: 0;
 }
 
-.user-name {
-  font-weight: 600;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.9rem;
+.logout-icon {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--color-yellow-primary);
+  border-radius: 50%;
+  padding: 2px;
+  color: var(--color-purple-darkest) !important;
 }
 
-.user-dropdown {
-  min-width: 240px;
-  padding: 0.5rem;
-}
-
-.user-info {
-  padding: 0.875rem 1rem;
-}
-
-.user-name-full {
-  font-weight: 600;
-  color: var(--color-purple-darkest);
-  margin-bottom: 0.25rem;
-}
-
-.user-email {
-  font-size: 0.8rem;
-  color: #666;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background: none;
-  border: none;
-  border-radius: 8px;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-  color: #333;
-}
-
-.dropdown-item:hover {
-  background: #F5F5F5;
-}
-
-.dropdown-item.logout {
-  color: #E34B4A;
-}
-
-.dropdown-item.logout:hover {
-  background: rgba(227, 75, 74, 0.1);
-}
-
-/* ========== MOBILE MENU BUTTON ========== */
+/* MOBILE MENU BUTTON */
 .mobile-menu-btn {
   display: none;
   flex-direction: column;
-  justify-content: space-around;
+  gap: 6px;
   width: 32px;
   height: 32px;
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 0;
-  z-index: 10;
 }
 
 .hamburger-line {
@@ -650,7 +386,7 @@ const closeMobileMenu = () => {
 }
 
 .mobile-menu-btn.active .hamburger-line:nth-child(1) {
-  transform: translateY(10px) rotate(45deg);
+  transform: translateY(9px) rotate(45deg);
 }
 
 .mobile-menu-btn.active .hamburger-line:nth-child(2) {
@@ -658,10 +394,10 @@ const closeMobileMenu = () => {
 }
 
 .mobile-menu-btn.active .hamburger-line:nth-child(3) {
-  transform: translateY(-10px) rotate(-45deg);
+  transform: translateY(-9px) rotate(-45deg);
 }
 
-/* ========== MOBILE OVERLAY ========== */
+/* MOBILE OVERLAY */
 .mobile-overlay {
   position: fixed;
   top: 0;
@@ -670,17 +406,16 @@ const closeMobileMenu = () => {
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
-  backdrop-filter: blur(2px);
 }
 
-/* ========== MOBILE MENU DRAWER ========== */
+/* MOBILE MENU */
 .mobile-menu {
   position: fixed;
   top: 0;
   right: 0;
-  bottom: 0;
   width: 85%;
   max-width: 320px;
+  height: 100vh;
   background: var(--color-purple-dark);
   z-index: 1001;
   overflow-y: auto;
@@ -693,12 +428,9 @@ const closeMobileMenu = () => {
   align-items: center;
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.mobile-menu-title {
-  font-size: 1.25rem;
-  font-weight: 700;
   color: white;
+  font-weight: 700;
+  font-size: 1.25rem;
 }
 
 .close-btn {
@@ -720,14 +452,39 @@ const closeMobileMenu = () => {
   transform: rotate(90deg);
 }
 
-.mobile-menu-content {
-  padding: 1rem;
+.mobile-nav-section {
+  padding: 0;
+  margin: 0;
 }
 
-.mobile-user-section {
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.mobile-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  color: white;
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.mobile-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  padding-left: 2rem;
+}
+
+/* MOBILE AUTH SECTION */
+.mobile-auth-section {
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 1rem;
 }
 
 .mobile-user-info {
@@ -737,6 +494,7 @@ const closeMobileMenu = () => {
   padding: 1rem;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
+  margin-bottom: 1rem;
 }
 
 .user-avatar-mobile {
@@ -761,68 +519,66 @@ const closeMobileMenu = () => {
 .mobile-user-name {
   font-weight: 600;
   color: white;
-  margin-bottom: 0.25rem;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-bottom: 0.25rem;
 }
 
 .mobile-user-email {
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.mobile-nav-section {
-  margin-bottom: 1rem;
-}
-
-.mobile-link {
+.mobile-logout-btn {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  color: white;
-  text-decoration: none;
-  border-radius: 10px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  background: none;
-  border: none;
+  justify-content: center;
+  gap: 0.5rem;
   width: 100%;
-  text-align: left;
+  padding: 1rem;
+  background: rgba(227, 75, 74, 0.2);
+  color: #ffb3b3;
+  border: 1px solid rgba(227, 75, 74, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.mobile-logout-btn:hover {
+  background: rgba(227, 75, 74, 0.3);
+  border-color: rgba(227, 75, 74, 0.5);
+}
+
+.mobile-login-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem;
+  background: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
   cursor: pointer;
   font-size: 1rem;
-  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
 }
 
-.mobile-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  transform: translateX(5px);
+.mobile-login-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(253, 197, 0, 0.3);
 }
 
-.mobile-link.active {
-  background-color: var(--color-yellow-primary);
-  color: var(--color-purple-darkest);
-  font-weight: 600;
-}
-
-.mobile-link.logout {
-  color: #FFB3B3;
-}
-
-.mobile-link.logout:hover {
-  background-color: rgba(255, 75, 75, 0.15);
-}
-
-.mobile-auth {
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* ========== TRANSICIONES ========== */
+/* TRANSITIONS */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
@@ -843,23 +599,12 @@ const closeMobileMenu = () => {
   transform: translateX(100%);
 }
 
-/* ========== RESPONSIVE ========== */
-@media (max-width: 1200px) {
-  .navbar-content {
-    padding: 0.875rem 2rem;
-  }
-
-  .nav-links {
-    gap: 0.25rem;
-  }
-
-  .nav-link {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-  }
-}
-
+/* RESPONSIVE */
 @media (max-width: 1024px) {
+  .publish-btn {
+    padding: 0.5rem 0.75rem !important;
+  }
+
   .btn-text {
     display: none;
   }
@@ -867,16 +612,12 @@ const closeMobileMenu = () => {
   .btn-text-short {
     display: inline;
   }
-
-  .user-name {
-    display: none;
-  }
 }
-
 
 @media (max-width: 768px) {
   .navbar-content {
     padding: 0.75rem 1rem;
+    gap: 1rem;
   }
 
   .desktop-only {
@@ -887,12 +628,8 @@ const closeMobileMenu = () => {
     display: flex;
   }
 
-  .btn-text-short {
-    display: none;
-  }
-
   .publish-btn {
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 0.75rem !important;
   }
 }
 </style>
