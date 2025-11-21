@@ -1,76 +1,95 @@
 <!-- frontend/src/components/Home/GuidesSection.vue -->
 <template>
-  <section class="marketing-guides">
-    <!-- Hero Section Full Width -->
-    <div class="compact-hero">
-      <div class="hero-container">
-        <div class="hero-content">
-          <div class="hero-badge">
-            <va-icon name="verified" size="1rem" />
-            <span>La plataforma #1 en Bolivia</span>
-          </div>
-          
-          <h1 class="hero-title">
-            Descubre las 
-            <span class="title-highlight">Mejores Oportunidades</span>
-          </h1>
-          
-          <p class="hero-subtitle">
-            Anuncios <strong>destacados y verificados</strong> en empleos, profesionales, 
-            gastronomía y negocios. Tu próximo éxito comienza aquí.
-          </p>
+  <section class="featured-jobs-section">
+    <!-- Encabezado de Empleos Destacados -->
+    <div class="section-header">
+      <h2 class="section-title">Empleos Destacados</h2>
+      <p class="section-subtitle">Oportunidades laborales seleccionadas actualizadas diariamente</p>
+    </div>
 
-          <!-- Stats con animación al hacer scroll -->
-          <div class="hero-stats" ref="statsSection">
-            <div 
-              v-for="(stat, index) in stats" 
-              :key="index"
-              class="stat"
-              :style="{ animationDelay: `${index * 0.1}s` }"
-            >
-              <div class="stat-number">{{ stat.number }}</div>
-              <div class="stat-label">{{ stat.label }}</div>
+    <!-- Grid de Empleos -->
+    <div class="jobs-container">
+      <div class="jobs-grid">
+        <!-- Mostrar todos los empleos dinámicamente (sin limitar a 4) -->
+        <div
+          v-for="job in displayedJobs"
+          :key="job.id"
+          class="job-card"
+          @click="navigateToJob(job.id)"
+        >
+          <!-- Badge Nuevo/Destacado -->
+          <div v-if="job.isNew" class="job-badge new-badge">
+            <va-icon name="new_releases" size="small" />
+            Nuevo
+          </div>
+          <div v-if="job.isFeatured" class="job-badge featured-badge">
+            <va-icon name="star" size="small" />
+            Destacado
+          </div>
+
+          <!-- Logo de Empresa -->
+          <div class="company-logo-container">
+            <img
+              v-if="job.companyLogo"
+              :src="job.companyLogo"
+              :alt="job.company"
+              class="company-logo"
+            />
+            <div v-else class="company-logo-placeholder">
+              <va-icon name="business" size="2rem" />
             </div>
           </div>
 
-          <!-- Botones de acción -->
-          <div class="hero-actions">
-            <button class="btn btn-primary" @click="goToPublish">
-              <va-icon name="add_circle" size="1.1rem" />
-              ¡Anuncia ahora!
-            </button>
-            <button class="btn btn-secondary" @click="scrollToContent">
-              <va-icon name="explore" size="1.1rem" />
-              Explorar
-            </button>
-          </div>
-        </div>
+          <!-- Información del Empleo -->
+          <h3 class="job-title">{{ job.title }}</h3>
+          <p class="company-name">{{ job.company }}</p>
 
-        <!-- Cards flotantes mejoradas -->
-        <div class="hero-visual">
-          <div class="floating-cards">
-            <div 
-              v-for="(category, index) in categories" 
-              :key="category.id"
-              class="card card-large"
-              :class="`card-${index + 1}`"
-              @click="goToCategory(category.id)"
-            >
-              <div class="card-icon">
-                <va-icon :name="category.icon" size="2.5rem" />
-              </div>
-              <span class="card-title">{{ category.label }}</span>
-              <span class="card-count">{{ category.count }}+ anuncios</span>
-            </div>
+          <!-- Ubicación -->
+          <div class="job-info">
+            <va-icon name="location_on" size="small" />
+            <span>{{ job.location }}</span>
+          </div>
+
+          <!-- Tipo de Trabajo -->
+          <div class="job-info">
+            <va-icon name="work_history" size="small" />
+            <span>{{ job.jobType }}</span>
+          </div>
+
+          <!-- Salario (si está disponible) -->
+          <div v-if="job.salary" class="job-salary">
+            <va-icon name="monetization_on" size="small" />
+            <span>{{ job.salary }}</span>
+          </div>
+
+          <!-- Footer con fecha -->
+          <div class="job-footer">
+            <span class="job-date">{{ formatDate(job.createdAt) }}</span>
+            <va-icon name="arrow_forward" size="small" class="forward-icon" />
           </div>
         </div>
       </div>
+
+      <!-- Mensaje si no hay empleos -->
+      <div v-if="displayedJobs.length === 0" class="empty-state">
+        <va-icon name="search_off" size="4rem" />
+        <h3>No hay empleos disponibles</h3>
+        <p>Intenta con otros filtros o vuelve más tarde</p>
+      </div>
+    </div>
+
+    <!-- CTA Ver Todos -->
+    <div class="section-cta">
+      <button class="btn-see-all" @click="goToAllJobs">
+        Ver todos los empleos
+        <va-icon name="arrow_forward" size="small" />
+      </button>
     </div>
   </section>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -78,584 +97,573 @@ const router = useRouter()
 // ==========================================
 // DATA
 // ==========================================
-const stats = [
-  { number: '+2,500', label: 'Empleos' },
-  { number: '+3,200', label: 'Profesionales' },
-  { number: '+2,100', label: 'Restaurantes' },
-  { number: '+2,500', label: 'Negocios' }
-]
+const jobs = ref([])
+const loading = ref(true)
 
-const categories = [
-  { 
-    id: 'trabajos', 
-    label: 'Trabajos', 
-    icon: 'work',
-    count: '2.5k'
+// Datos de ejemplo mientras no tenemos backend
+const mockJobs = [
+  {
+    id: 1,
+    title: 'Desarrollador Frontend React',
+    company: 'Tech Solutions Bolivia',
+    companyLogo: null,
+    location: 'La Paz',
+    jobType: 'Tiempo Completo',
+    salary: '$2,500 - $3,500/mes',
+    isNew: true,
+    isFeatured: true,
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
   },
-  { 
-    id: 'profesionales', 
-    label: 'Profesionales', 
-    icon: 'business_center',
-    count: '3.2k'
+  {
+    id: 2,
+    title: 'Diseñador UX/UI',
+    company: 'Digital Minds',
+    companyLogo: null,
+    location: 'Santa Cruz',
+    jobType: 'Remoto',
+    salary: '$2,000 - $2,800/mes',
+    isNew: true,
+    isFeatured: false,
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
   },
-  { 
-    id: 'gastronomia', 
-    label: 'Gastronomía', 
-    icon: 'restaurant',
-    count: '2.1k'
+  {
+    id: 3,
+    title: 'Especialista en Marketing Digital',
+    company: 'Growth Agency',
+    companyLogo: null,
+    location: 'Cochabamba',
+    jobType: 'Tiempo Completo',
+    salary: '$1,800 - $2,400/mes',
+    isNew: false,
+    isFeatured: true,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
   },
-  { 
-    id: 'negocios', 
-    label: 'Negocios', 
-    icon: 'store',
-    count: '2.5k'
+  {
+    id: 4,
+    title: 'Contador General',
+    company: 'Financial Consulting',
+    companyLogo: null,
+    location: 'La Paz',
+    jobType: 'Tiempo Completo',
+    salary: '$1,600 - $2,200/mes',
+    isNew: false,
+    isFeatured: false,
+    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000)
+  },
+  {
+    id: 5,
+    title: 'Community Manager Freelance',
+    company: 'Social Brands',
+    companyLogo: null,
+    location: 'Remoto',
+    jobType: 'Freelance',
+    salary: '$800 - $1,200/proyecto',
+    isNew: true,
+    isFeatured: false,
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
+  },
+  {
+    id: 6,
+    title: 'Practicante Desarrollo Backend',
+    company: 'Code Academy Bolivia',
+    companyLogo: null,
+    location: 'La Paz',
+    jobType: 'Pasantía',
+    salary: 'Pasantía remunerada',
+    isNew: true,
+    isFeatured: true,
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
   }
 ]
 
-const statsSection = ref(null)
+// ==========================================
+// COMPUTED
+// ==========================================
+const displayedJobs = computed(() => {
+  return jobs.value.length > 0 ? jobs.value : mockJobs
+})
 
 // ==========================================
 // METHODS
 // ==========================================
-const scrollToContent = () => {
-  window.scrollTo({ 
-    top: window.innerHeight, 
-    behavior: 'smooth' 
-  })
+const formatDate = (date) => {
+  const now = new Date()
+  const diffTime = Math.abs(now - date)
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return 'Hoy'
+  if (diffDays === 1) return 'Ayer'
+  if (diffDays < 7) return `Hace ${diffDays} días`
+  return date.toLocaleDateString('es-BO')
 }
 
-const goToPublish = () => {
-  router.push({ name: 'Publish' })
+const navigateToJob = (jobId) => {
+  router.push(`/guias/trabajos/${jobId}`)
 }
 
-const goToCategory = (categoryId) => {
-  router.push(`/guias/${categoryId}`)
+const goToAllJobs = () => {
+  router.push('/guias/trabajos')
 }
 
 // ==========================================
-// INTERSECTION OBSERVER (Animación al scroll)
+// LIFECYCLE
 // ==========================================
-let observer = null
+onMounted(async () => {
+  // TODO: Aquí irá la llamada a la API cuando esté lista
+  // const response = await fetch('/api/jobs/featured')
+  // jobs.value = await response.json()
 
-onMounted(() => {
-  // Configurar Intersection Observer para animar stats
-  if (statsSection.value) {
-    observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate-in')
-          }
-        })
-      },
-      { threshold: 0.2 }
-    )
-    
-    observer.observe(statsSection.value)
-  }
-})
-
-onBeforeUnmount(() => {
-  if (observer) {
-    observer.disconnect()
-  }
+  // Por ahora usamos datos mock
+  loading.value = false
 })
 </script>
 
 <style scoped>
 /* ==========================================
-   CONTENEDOR PRINCIPAL
+   SECCIÓN DE EMPLEOS DESTACADOS
    ========================================== */
-.marketing-guides {
+.featured-jobs-section {
   width: 100%;
   margin: 0;
-  padding: 0;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-purple-darkest);
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+.jobs-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-bottom: 3rem;
+}
+
+.jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
 }
 
 /* ==========================================
-   HERO SECTION
+   TARJETA DE EMPLEO
    ========================================== */
-.compact-hero {
-  background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-purple-dark) 100%);
-  color: white;
-  padding: 5rem 0;
+.job-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  color: #333;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
   position: relative;
   overflow: hidden;
-  width: 100%;
+  border: 1px solid #e5e5e5;
 }
 
-.compact-hero::before {
+.job-card::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" opacity="0.05"><polygon fill="white" points="0,1000 1000,0 1000,1000"/></svg>');
-  background-size: cover;
-  animation: subtle-move 20s ease-in-out infinite;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-purple) 0%, var(--color-yellow-primary) 100%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
 }
 
-@keyframes subtle-move {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(-10px, -10px); }
+.job-card:hover::before {
+  transform: scaleX(1);
 }
 
-.hero-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  align-items: center;
-  position: relative;
-  z-index: 2;
+.job-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  border-color: var(--color-purple);
 }
 
-/* ==========================================
-   CONTENIDO HERO
-   ========================================== */
-.hero-content {
-  max-width: 100%;
-}
-
-.hero-badge {
+/* Badge de Empleo */
+.job-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 0.6rem 1.2rem;
-  border-radius: 50px;
-  font-size: 0.9rem;
+  gap: 0.25rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
   font-weight: 600;
-  margin-bottom: 1.5rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  animation: badge-pulse 2s ease-in-out infinite;
+  z-index: 10;
 }
 
-@keyframes badge-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-.hero-title {
-  font-size: 3rem;
-  font-weight: 800;
-  line-height: 1.1;
-  margin-bottom: 1.5rem;
+.new-badge {
+  background: var(--color-success);
   color: white;
-  animation: fadeInUp 0.8s ease-out;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.featured-badge {
+  background: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
 }
 
-.title-highlight {
-  background: linear-gradient(135deg, var(--color-yellow-primary) 0%, var(--color-yellow-light) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  display: inline-block;
-}
-
-.hero-subtitle {
-  font-size: 1.3rem;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-  opacity: 0.95;
-  font-weight: 400;
-  animation: fadeInUp 0.8s ease-out 0.2s backwards;
-}
-
-.hero-subtitle strong {
-  color: var(--color-yellow-primary);
-  font-weight: 600;
-}
-
-/* ==========================================
-   STATS CON ANIMACIÓN
-   ========================================== */
-.hero-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s ease-out;
-}
-
-.hero-stats.animate-in {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.stat {
-  text-align: center;
-  padding: 1.5rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-  cursor: default;
-}
-
-.stat:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.stat-number {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--color-yellow-primary);
-  margin-bottom: 0.5rem;
-  display: block;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  opacity: 0.9;
-  font-weight: 600;
-}
-
-/* ==========================================
-   BOTONES
-   ========================================== */
-.hero-actions {
+/* Logo de Empresa */
+.company-logo-container {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f5f5f5;
   display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  animation: fadeInUp 0.8s ease-out 0.4s backwards;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
 }
 
-.btn {
+.company-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.company-logo-placeholder {
+  color: var(--color-purple);
+}
+
+/* Título del Empleo */
+.job-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-purple-darkest);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Nombre de Empresa */
+.company-name {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Info de Empleo (ubicación, tipo) */
+.job-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: 0.25rem;
+}
+
+.job-info :deep(svg) {
+  color: var(--color-purple);
+  flex-shrink: 0;
+}
+
+/* Salario */
+.job-salary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-success);
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(16, 185, 129, 0.08);
+  border-radius: 8px;
+}
+
+.job-salary :deep(svg) {
+  color: var(--color-success);
+}
+
+/* Footer con Fecha */
+.job-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.job-date {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.forward-icon {
+  color: var(--color-purple);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.3s ease;
+}
+
+.job-card:hover .forward-icon {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Estado Vacío */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #999;
+}
+
+.empty-state :deep(svg) {
+  color: #ddd;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  font-size: 1.3rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+  font-size: 1rem;
+  color: #999;
+}
+
+/* Botón Ver Todos */
+.section-cta {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.btn-see-all {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1.2rem 2.5rem;
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-purple-dark) 100%);
+  color: white;
   border: none;
   border-radius: 12px;
   font-weight: 700;
   font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(92, 0, 153, 0.2);
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--color-yellow-primary) 0%, var(--color-yellow-light) 100%);
-  color: var(--color-purple-darkest);
-  box-shadow: 0 4px 15px rgba(253, 197, 0, 0.3);
-}
-
-.btn-primary:hover {
+.btn-see-all:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(253, 197, 0, 0.5);
+  box-shadow: 0 8px 25px rgba(92, 0, 153, 0.35);
 }
 
-.btn-primary:active {
+.btn-see-all:active {
   transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(10px);
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-3px);
-}
-
-/* ==========================================
-   CARDS FLOTANTES MEJORADAS
-   ========================================== */
-.hero-visual {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-}
-
-.floating-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  width: 100%;
-  max-width: 450px;
-}
-
-.card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 24px;
-  padding: 2.5rem 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  color: var(--color-purple-darkest);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, #ffd755, #ffc403);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.4s ease;
-}
-
-.card:hover::before {
-  transform: scaleX(1);
-}
-
-.card-large {
-  min-height: 180px;
-  justify-content: center;
-}
-
-.card-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(92, 0, 153, 0.1) 0%, rgba(156, 17, 249, 0.1) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.card:hover .card-icon {
-  transform: scale(1.1) rotate(5deg);
-  background: linear-gradient(135deg, rgba(92, 0, 153, 0.2) 0%, rgba(156, 17, 249, 0.2) 100%);
-}
-
-.card-icon :deep(svg) {
-  color: var(--color-purple);
-}
-
-.card-title {
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: var(--color-purple-darkest);
-}
-
-.card-count {
-  font-size: 0.85rem;
-  color: #666;
-  font-weight: 500;
-}
-
-.card:hover {
-  transform: translateY(-10px) scale(1.05);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-}
-
-/* Animaciones de flotación específicas por card */
-.card-1 {
-  animation: float-1 4s ease-in-out infinite;
-}
-.card-2 {
-  animation: float-2 4.5s ease-in-out infinite;
-}
-.card-3 {
-  animation: float-3 5s ease-in-out infinite;
-}
-.card-4 {
-  animation: float-4 4.2s ease-in-out infinite;
-}
-
-@keyframes float-1 {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-15px) rotate(2deg); }
-}
-
-@keyframes float-2 {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-18px) rotate(-1deg); }
-}
-
-@keyframes float-3 {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-12px) rotate(1deg); }
-}
-
-@keyframes float-4 {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-16px) rotate(-2deg); }
-}
-
-.card:hover {
-  animation-play-state: paused;
 }
 
 /* ==========================================
    RESPONSIVE
    ========================================== */
 @media (max-width: 1200px) {
-  .hero-container {
-    gap: 3rem;
-    padding: 0 2rem;
+  .featured-jobs-section {
+    padding: 3.5rem 2rem;
   }
-  
-  .hero-title {
-    font-size: 2.6rem;
+
+  .section-title {
+    font-size: 2.2rem;
   }
-  
-  .floating-cards {
-    max-width: 380px;
+
+  .jobs-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   }
 }
 
 @media (max-width: 968px) {
-  .compact-hero {
-    padding: 4rem 0;
+  .featured-jobs-section {
+    padding: 3rem 1.5rem;
   }
-  
-  .hero-container {
-    grid-template-columns: 1fr;
-    gap: 3rem;
-    text-align: center;
-    padding: 0 1.5rem;
+
+  .section-header {
+    margin-bottom: 2.5rem;
   }
-  
-  .hero-title {
-    font-size: 2.3rem;
+
+  .section-title {
+    font-size: 2rem;
   }
-  
-  .hero-subtitle {
-    font-size: 1.1rem;
+
+  .section-subtitle {
+    font-size: 1rem;
   }
-  
-  .hero-stats {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+
+  .jobs-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
   }
-  
-  .hero-actions {
-    justify-content: center;
+
+  .job-card {
+    padding: 1.25rem;
   }
-  
-  .floating-cards {
-    max-width: 400px;
-    margin: 0 auto;
+
+  .company-logo-container {
+    width: 50px;
+    height: 50px;
   }
-  
-  .card {
-    padding: 2rem 1.5rem;
-    min-height: 160px;
+
+  .job-title {
+    font-size: 1rem;
   }
 }
 
 @media (max-width: 640px) {
-  .compact-hero {
-    padding: 3rem 0;
+  .featured-jobs-section {
+    padding: 2rem 1rem;
   }
 
-  .hero-container {
-    padding: 0 1rem;
-  }
-  
-  .hero-title {
-    font-size: 2rem;
+  .section-header {
+    margin-bottom: 2rem;
   }
 
-  .hero-subtitle {
+  .section-title {
+    font-size: 1.75rem;
+  }
+
+  .section-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .jobs-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .job-card {
+    padding: 1rem;
+  }
+
+  .job-badge {
+    top: 0.75rem;
+    right: 0.75rem;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .company-logo-container {
+    width: 50px;
+    height: 50px;
+  }
+
+  .job-title {
+    font-size: 0.95rem;
+  }
+
+  .company-name {
+    font-size: 0.85rem;
+  }
+
+  .job-info {
+    font-size: 0.8rem;
+  }
+
+  .btn-see-all {
+    width: 100%;
+    padding: 0.9rem 2rem;
     font-size: 1rem;
   }
-  
-  .hero-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .btn {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .hero-stats {
-    grid-template-columns: 1fr;
-  }
-  
-  .floating-cards {
-    grid-template-columns: 1fr;
-    max-width: 280px;
-  }
-  
-  .stat {
-    padding: 1.2rem 0.5rem;
+
+  .empty-state {
+    padding: 3rem 1rem;
   }
 
-  .card-icon {
-    width: 60px;
-    height: 60px;
-  }
-
-  .card-icon :deep(svg) {
-    font-size: 2rem;
+  .empty-state h3 {
+    font-size: 1.1rem;
   }
 }
 
 @media (max-width: 480px) {
-  .hero-badge {
-    font-size: 0.8rem;
-    padding: 0.5rem 1rem;
-  }
-
-  .hero-title {
-    font-size: 1.75rem;
-  }
-
-  .hero-subtitle {
-    font-size: 0.95rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .btn {
-    padding: 1rem 2rem;
-    font-size: 1rem;
-  }
-
-  .card {
+  .featured-jobs-section {
     padding: 1.5rem 1rem;
-    min-height: 140px;
   }
 
-  .card-title {
-    font-size: 1.1rem;
+  .section-title {
+    font-size: 1.5rem;
   }
 
-  .card-count {
+  .section-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .jobs-container {
+    margin-bottom: 2rem;
+  }
+
+  .job-card {
+    padding: 0.9rem;
+    gap: 0.5rem;
+  }
+
+  .job-badge {
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .company-logo-container {
+    width: 45px;
+    height: 45px;
+  }
+
+  .job-title {
+    font-size: 0.9rem;
+  }
+
+  .company-name {
     font-size: 0.8rem;
+  }
+
+  .job-info {
+    font-size: 0.75rem;
+  }
+
+  .job-salary {
+    font-size: 0.85rem;
+  }
+
+  .job-date {
+    font-size: 0.75rem;
+  }
+
+  .btn-see-all {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.95rem;
+    width: 100%;
   }
 }
 </style>

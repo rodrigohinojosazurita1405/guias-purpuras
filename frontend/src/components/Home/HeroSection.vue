@@ -16,25 +16,25 @@
     <div class="hero-content">
       <!-- Título Principal -->
       <h1 class="hero-title">
-        Una guía moderna para una 
-        <span class="highlight">Bolivia</span>
-        conectada 
+        Encuentra tu
+        <span class="highlight">trabajo ideal</span>
+        en Bolivia
       </h1>
-      
+
       <p class="hero-subtitle">
-        Somos el ecosistema digital que conecta el talento, gastronomía, las empresas PyMe y las oportunidades de Bolivia.
+        Descubre miles de oportunidades laborales con los mejores salarios y beneficios. Tu próxima oportunidad profesional te espera.
       </p>
 
-      <!-- Tabs de Categorías -->
+      <!-- Tabs de Tipos de Trabajo -->
       <div class="category-tabs">
         <button
-          v-for="cat in categories"
-          :key="cat.id"
-          @click="selectCategory(cat.id)"
-          :class="['category-tab', { active: searchStore.selectedCategory === cat.id }]"
+          v-for="jobType in jobTypes"
+          :key="jobType.id"
+          @click="selectCategory(jobType.id)"
+          :class="['category-tab', { active: searchStore.selectedCategory === jobType.id }]"
         >
-          <va-icon :name="cat.icon" size="small" />
-          {{ cat.label }}
+          <va-icon :name="jobType.icon" size="small" />
+          {{ jobType.label }}
         </button>
       </div>
 
@@ -158,22 +158,24 @@ const SLIDE_DURATION = 5000
 // ==========================================
 // DATOS
 // ==========================================
-const categories = [
-  { id: 'profesionales', label: 'Profesionales', icon: 'work' },
-  { id: 'gastronomia', label: 'Gastronomía', icon: 'restaurant' },
-  { id: 'trabajos', label: 'Trabajos', icon: 'business_center' },
-  { id: 'negocios', label: 'Negocios', icon: 'store' }
+const jobTypes = [
+  { id: 'todas', label: 'Todas', icon: 'work' },
+  { id: 'tiempo-completo', label: 'Tiempo Completo', icon: 'work_history' },
+  { id: 'remoto', label: 'Remoto', icon: 'laptop' },
+  { id: 'freelance', label: 'Freelance', icon: 'person_check' },
+  { id: 'practicas', label: 'Pasantía', icon: 'school' }
 ]
 
-// ✅ BÚSQUEDAS POPULARES DINÁMICAS SEGÚN CATEGORÍA
+// ✅ BÚSQUEDAS POPULARES DINÁMICAS SEGÚN TIPO DE TRABAJO
 const popularSearches = computed(() => {
   const searches = {
-    profesionales: ['Abogados', 'Doctores', 'Contadores', 'Arquitectos'],
-    gastronomia: ['Restaurantes', 'Pizzerías', 'Cafeterías', 'Heladerías'],
-    trabajos: ['Desarrollador', 'Diseñador', 'Contador', 'Ingeniero'],
-    negocios: ['Manufactura', 'Tecnología', 'Comercio', 'Servicios']
+    todas: ['Desarrollador', 'Diseñador', 'Contador', 'Ingeniero', 'Vendedor'],
+    'tiempo-completo': ['Gerente', 'Analista', 'Especialista', 'Coordinador'],
+    remoto: ['Frontend Developer', 'Backend Developer', 'UI/UX Designer', 'Virtual Assistant'],
+    freelance: ['Diseñador Gráfico', 'Copywriter', 'Community Manager', 'Programador'],
+    practicas: ['Practicante IT', 'Practicante RRHH', 'Practicante Ventas', 'Practicante Contabilidad']
   }
-  return searches[searchStore.selectedCategory] || searches.profesionales
+  return searches[searchStore.selectedCategory] || searches.todas
 })
 
 // ==========================================
@@ -181,12 +183,13 @@ const popularSearches = computed(() => {
 // ==========================================
 const getPlaceholder = () => {
   const placeholders = {
-    profesionales: 'Busca abogados, doctores, contadores...',
-    gastronomia: 'Busca restaurantes, cafeterías, comida rápida...',
-    trabajos: 'Busca empleos, ofertas laborales...',
-    negocios: 'Busca Empresas, PyMes, Industrias...'
+    todas: 'Busca empleos, ofertas laborales...',
+    'tiempo-completo': 'Busca trabajos de tiempo completo...',
+    remoto: 'Busca trabajos remotos...',
+    freelance: 'Busca trabajos por proyecto...',
+    practicas: 'Busca programas de pasantía...'
   }
-  return placeholders[searchStore.selectedCategory]
+  return placeholders[searchStore.selectedCategory] || placeholders.todas
 }
 
 const selectCategory = (categoryId) => {
