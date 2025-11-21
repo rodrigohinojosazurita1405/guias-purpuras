@@ -281,27 +281,10 @@ onMounted(async () => {
   border: 1px solid #e5e5e5;
 }
 
-.job-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, var(--color-purple) 0%, var(--color-yellow-primary) 100%);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s ease;
-}
-
-.job-card:hover::before {
-  transform: scaleX(1);
-}
-
 .job-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-  border-color: var(--color-purple);
+  border-color: #ddd;
 }
 
 /* Badge de Empleo */
