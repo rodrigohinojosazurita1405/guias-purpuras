@@ -133,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -170,6 +170,14 @@ const activities = ref([
 onMounted(() => {
   initializeDashboard()
   setCurrentDate()
+})
+
+// Observar cambios en el nombre del usuario
+watch(() => authStore.user?.name, (newName) => {
+  if (newName) {
+    userName.value = newName
+    console.log('Nombre actualizado en DashboardHome:', newName)
+  }
 })
 
 // ========== METHODS ==========
