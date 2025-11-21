@@ -290,12 +290,49 @@ const goToMyListingsAndClose = () => {
 }
 
 const handleLogout = () => {
+  console.log('🔓 handleLogout clicked - Before logout')
+  console.log('🔓 Before logout state:', {
+    isAuthenticated: authStore.isAuthenticated,
+    user: authStore.user?.email || 'null',
+    accessToken: authStore.accessToken ? '***' : 'null',
+    isInitialized: authStore.isInitialized
+  })
+
+  // logout() limpia el estado LOCAL inmediatamente, sin esperar al API
   authStore.logout()
+
+  console.log('🔓 After logout state:', {
+    isAuthenticated: authStore.isAuthenticated,
+    user: authStore.user,
+    accessToken: authStore.accessToken,
+    isInitialized: authStore.isInitialized
+  })
+
+  // Mostrar notificación
   notify({
     message: '✅ Sesión cerrada correctamente',
     color: 'success'
   })
-  router.push('/')
+
+  // Redirigir al home (el estado ya está limpio)
+  console.log('🔓 handleLogout - Redirecting to home')
+
+  // SOLUCIÓN: Recargar la página COMPLETA para asegurar que se limpie todo
+  // Esto fuerza que el navegador vuelva a ejecutar initAuth() pero desde localStorage vacío
+  // Esperar 200ms asegura que:
+  // 1. El Promise.resolve() en logout() haya completado su limpieza adicional
+  // 2. Pinia haya procesado todos los cambios de estado
+  // 3. localStorage esté completamente limpio
+  setTimeout(() => {
+    // Verificación final de seguridad: comprobar que localStorage está vacío
+    console.log('🔍 [SEGURIDAD] Verificación final antes de reload:')
+    console.log('   access_token:', localStorage.getItem('access_token') ? '⚠️ PRESENTE' : '✅ LIMPIO')
+    console.log('   refresh_token:', localStorage.getItem('refresh_token') ? '⚠️ PRESENTE' : '✅ LIMPIO')
+    console.log('   auth_user:', localStorage.getItem('auth_user') ? '⚠️ PRESENTE' : '✅ LIMPIO')
+
+    // window.location = '/' causa una recarga HTTP completa desde el servidor
+    window.location = '/'
+  }, 200)
 }
 
 const handleLogoutAndClose = () => {

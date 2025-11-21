@@ -2,14 +2,27 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+const API_BASE_URL = 'http://localhost:8000/api'
+
 export const useAuthStore = defineStore('auth', () => {
   // ========== STATE ==========
   const user = ref(null)
-  const token = ref(null)
+  const accessToken = ref(null)
+  const refreshToken = ref(null)
   const isLoading = ref(false)
+  const error = ref(null)
+  const isInitialized = ref(false)  // ¡NUEVO! Flag para rastrear si initAuth() ya se ejecutó
 
   // ========== GETTERS ==========
-  const isAuthenticated = computed(() => !!user.value && !!token.value)
+  const isAuthenticated = computed(() => {
+    const authState = !!user.value && !!accessToken.value
+    console.log('🔐 isAuthenticated check:', {
+      hasUser: !!user.value,
+      hasAccessToken: !!accessToken.value,
+      result: authState
+    })
+    return authState
+  })
   
   const userInitials = computed(() => {
     if (!user.value?.name) return '?'
@@ -25,66 +38,92 @@ export const useAuthStore = defineStore('auth', () => {
    * Inicializar auth desde localStorage al cargar la app
    */
   const initAuth = () => {
-    const storedToken = localStorage.getItem('auth_token')
+    // IMPORTANTE: Limpiar las claves de Vue DevTools que pueden interferir
+    const devToolsKeys = [
+      '__VUE_DEVTOOLS_NEXT_PLUGIN_SETTINGS__dev.esm.pinia__',
+      '__vue-devtools-frame-state__',
+      '__vue-devtools-theme__'
+    ]
+    devToolsKeys.forEach(key => {
+      localStorage.removeItem(key)
+    })
+
+    const storedAccessToken = localStorage.getItem('access_token')
+    const storedRefreshToken = localStorage.getItem('refresh_token')
     const storedUser = localStorage.getItem('auth_user')
-    
-    if (storedToken && storedUser) {
-      token.value = storedToken
+
+    console.log('🔍 initAuth - Verificando localStorage:', {
+      hasAccessToken: !!storedAccessToken,
+      hasRefreshToken: !!storedRefreshToken,
+      hasStoredUser: !!storedUser
+    })
+
+    // IMPORTANTE: Solo restaurar sesión si AMBOS tokens existen
+    // Si solo existe uno, significa logout parcial - limpiar todo
+    if (storedAccessToken && storedRefreshToken && storedUser) {
       try {
-        user.value = JSON.parse(storedUser)
+        const parsedUser = JSON.parse(storedUser)
+        // Solo asignar si el parse fue exitoso
+        accessToken.value = storedAccessToken
+        refreshToken.value = storedRefreshToken
+        user.value = parsedUser
+        console.log('✅ Auth restaurado desde localStorage:', parsedUser.email)
       } catch (error) {
-        console.error('Error parsing stored user:', error)
+        console.error('❌ Error parsing stored user, clearing auth:', error)
+        // Si hay error al parsear, limpiar todo
         logout()
       }
+    } else {
+      // Si faltan datos, asegurar que todo está vacío
+      user.value = null
+      accessToken.value = null
+      refreshToken.value = null
+      console.log('⚠️ No hay tokens válidos en localStorage, auth limpiado')
     }
+
+    // ¡IMPORTANTE! Marcar como inicializado
+    isInitialized.value = true
+    console.log('✅ initAuth completado, isInitialized = true')
   }
 
   /**
    * Login con email y password
-   * TODO: Conectar con Django API
    */
   const login = async (email, password) => {
     isLoading.value = true
-    
+    error.value = null
+
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password })
-      // })
-      // const data = await response.json()
-      
-      // MOCK - Simular respuesta del backend
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const mockUser = {
-        id: 1,
-        name: 'Juan Pérez',
-        email: email,
-        phone: '+591 70123456',
-        defaultCity: 'cochabamba',
-        defaultAddress: 'Av. Heroínas #123, Zona Central',
-        avatar: null
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Error al iniciar sesión')
       }
-      
-      const mockToken = 'mock_jwt_token_12345'
-      
-      // Guardar en state
-      user.value = mockUser
-      token.value = mockToken
-      
+
+      // Guardar tokens y usuario en state
+      accessToken.value = data.tokens.access
+      refreshToken.value = data.tokens.refresh
+      user.value = data.user
+
       // Guardar en localStorage
-      localStorage.setItem('auth_token', mockToken)
-      localStorage.setItem('auth_user', JSON.stringify(mockUser))
-      
+      localStorage.setItem('access_token', data.tokens.access)
+      localStorage.setItem('refresh_token', data.tokens.refresh)
+      localStorage.setItem('auth_user', JSON.stringify(data.user))
+
       return { success: true }
-      
-    } catch (error) {
-      console.error('Login error:', error)
-      return { 
-        success: false, 
-        error: 'Error al iniciar sesión. Verifica tus credenciales.' 
+
+    } catch (err) {
+      error.value = err.message
+      console.error('Login error:', err)
+      return {
+        success: false,
+        error: err.message
       }
     } finally {
       isLoading.value = false
@@ -93,50 +132,42 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * Registro de nuevo usuario
-   * TODO: Conectar con Django API
    */
-  const register = async (name, email, password, phone = null) => {
+  const register = async (name, email, password) => {
     isLoading.value = true
-    
+    error.value = null
+
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ name, email, password, phone })
-      // })
-      // const data = await response.json()
-      
-      // MOCK - Simular respuesta del backend
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      const mockUser = {
-        id: Date.now(),
-        name: name,
-        email: email,
-        phone: phone || null,
-        defaultCity: null,
-        defaultAddress: null,
-        avatar: null
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Error al registrarse')
       }
-      
-      const mockToken = `mock_jwt_token_${Date.now()}`
-      
-      // Guardar en state
-      user.value = mockUser
-      token.value = mockToken
-      
+
+      // Guardar tokens y usuario en state
+      accessToken.value = data.tokens.access
+      refreshToken.value = data.tokens.refresh
+      user.value = data.user
+
       // Guardar en localStorage
-      localStorage.setItem('auth_token', mockToken)
-      localStorage.setItem('auth_user', JSON.stringify(mockUser))
-      
+      localStorage.setItem('access_token', data.tokens.access)
+      localStorage.setItem('refresh_token', data.tokens.refresh)
+      localStorage.setItem('auth_user', JSON.stringify(data.user))
+
       return { success: true }
-      
-    } catch (error) {
-      console.error('Register error:', error)
-      return { 
-        success: false, 
-        error: 'Error al registrarse. Intenta nuevamente.' 
+
+    } catch (err) {
+      error.value = err.message
+      console.error('Register error:', err)
+      return {
+        success: false,
+        error: err.message
       }
     } finally {
       isLoading.value = false
@@ -144,13 +175,150 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Logout
+   * Logout - Limpia estado local INMEDIATAMENTE (SINCRÓNICO)
    */
   const logout = () => {
+    console.log('🚪 Iniciando logout...')
+
+    // Guardar el refresh token antes de limpiar (para notificar al backend después)
+    const oldRefreshToken = refreshToken.value
+
+    // PASO 1: Limpiar PRIMERO el estado reactivo (ANTES de localStorage)
+    // Esto previene que Pinia DevTools sincronice el estado de vuelta a localStorage
+    console.log('🔄 Paso 1: Limpiando estado reactivo...')
     user.value = null
-    token.value = null
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
+    accessToken.value = null
+    refreshToken.value = null
+    error.value = null
+    isLoading.value = false
+    isInitialized.value = false  // ¡CRUCIAL! Resetear el flag de inicialización
+    console.log('✅ Estado reactivo limpiado')
+    console.log('✅ isInitialized reset a false para forzar re-check en router guard')
+
+    // PASO 2: Ahora limpiar localStorage (cuando el estado reactivo ya está vacío)
+    console.log('🔄 Paso 2: Limpiando localStorage...')
+    const keysToRemove = [
+      'access_token',
+      'refresh_token',
+      'auth_user',
+      'authUser',
+      'user',
+      'rememberMe',
+      'userProfileId',
+      'token',
+      'jwt_token',
+      'user_data'
+    ]
+
+    keysToRemove.forEach(key => {
+      localStorage.removeItem(key)
+      console.log(`  → Removido: ${key}`)
+    })
+    console.log('✅ localStorage limpiado completamente')
+
+    // IMPORTANTE: Limpiar las claves de Vue DevTools también
+    console.log('🔄 Paso 2b: Limpiando cache de Vue DevTools...')
+    const devToolsKeys = [
+      '__VUE_DEVTOOLS_NEXT_PLUGIN_SETTINGS__dev.esm.pinia__',
+      '__vue-devtools-frame-state__',
+      '__vue-devtools-theme__'
+    ]
+    devToolsKeys.forEach(key => {
+      if (localStorage.getItem(key)) {
+        localStorage.removeItem(key)
+        console.log(`  → Removido (DevTools): ${key}`)
+      }
+    })
+
+    // Verificar que localStorage está realmente limpio
+    console.log('🔍 Verificando localStorage después de limpiar:', {
+      access_token: localStorage.getItem('access_token'),
+      refresh_token: localStorage.getItem('refresh_token'),
+      auth_user: localStorage.getItem('auth_user'),
+      authUser: localStorage.getItem('authUser'),
+      user: localStorage.getItem('user'),
+      token: localStorage.getItem('token'),
+      jwt_token: localStorage.getItem('jwt_token')
+    })
+
+    // También limpiar sessionStorage
+    sessionStorage.clear()
+    console.log('✅ sessionStorage limpiado')
+
+    // PASO 3: Hacer una limpieza adicional esperando un microtask
+    // Esto asegura que Pinia haya procesado todos los cambios de estado
+    console.log('🔄 Paso 3: Ejecutando limpieza adicional en microtask...')
+    Promise.resolve().then(() => {
+      // Verificar una vez más que localStorage sigue vacío
+      const keysToRemove = ['access_token', 'refresh_token', 'auth_user']
+      keysToRemove.forEach(key => {
+        if (localStorage.getItem(key)) {
+          console.warn(`⚠️ [SEGURIDAD] Se detectó ${key} en localStorage, removiendo nuevamente!`)
+          localStorage.removeItem(key)
+        }
+      })
+    })
+
+    // PASO 4: Notificar al backend de forma asincrónica (fire-and-forget)
+    // Esto NO bloquea el logout local
+    if (oldRefreshToken) {
+      console.log('📤 Enviando notificación de logout al backend...')
+      // Usar setTimeout para que sea verdaderamente asincrónico
+      setTimeout(() => {
+        fetch(`${API_BASE_URL}/auth/logout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh: oldRefreshToken })
+        })
+        .then(res => {
+          console.log('✅ Backend logout response:', res.status)
+          return res.json()
+        })
+        .then(data => console.log('✅ Backend logout data:', data))
+        .catch(err => {
+          console.error('⚠️ Backend logout falló:', err.message)
+        })
+      }, 0)
+    }
+  }
+
+  /**
+   * Refrescar access token usando el refresh token
+   */
+  const refreshAccessToken = async () => {
+    if (!refreshToken.value) {
+      return { success: false, error: 'No refresh token available' }
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: refreshToken.value })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Error refreshing token')
+      }
+
+      // Actualizar tokens
+      accessToken.value = data.tokens.access
+      refreshToken.value = data.tokens.refresh
+
+      // Guardar en localStorage
+      localStorage.setItem('access_token', data.tokens.access)
+      localStorage.setItem('refresh_token', data.tokens.refresh)
+
+      return { success: true }
+
+    } catch (err) {
+      console.error('Refresh token error:', err)
+      // Si el refresh falla, hacer logout
+      await logout()
+      return { success: false, error: err.message }
+    }
   }
 
   /**
@@ -182,23 +350,28 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Inicializar al cargar el store
-  initAuth()
+  // NO inicializar aquí - se llamará manualmente desde main.js
+  // initAuth()
 
   return {
     // State
     user,
-    token,
+    accessToken,
+    refreshToken,
     isLoading,
-    
+    error,
+    isInitialized,  // ¡NUEVO! Exportar el flag
+
     // Getters
     isAuthenticated,
     userInitials,
-    
+
     // Actions
     login,
     register,
     logout,
-    updateProfile
+    refreshAccessToken,
+    updateProfile,
+    initAuth
   }
 })
