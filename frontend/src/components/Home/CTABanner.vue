@@ -51,85 +51,47 @@
         </p>
       </div>
     </div>
-
-    <!-- Auth Modal -->
-    <AuthModal 
-      v-model="showAuthModal"
-      :initial-tab="modalTab"
-      @success="handleAuthSuccess" 
-    />
   </section>
 </template>
 
 <script setup>
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useToast } from 'vuestic-ui'
-import AuthModal from '@/components/Auth/AuthModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { init: notify } = useToast()
 
-// State
-const showAuthModal = ref(false)
-const modalTab = ref('register') // Tab dinámico
-
 /**
- * Manejar click en "Publicar Gratis"
+ * Handle "Publish" button click
  */
 const handlePublish = () => {
-  // Si no está autenticado, mostrar modal
   if (!authStore.isAuthenticated) {
-    modalTab.value = 'login' // Abrir en Login (asume que ya tiene cuenta)
-    showAuthModal.value = true
     notify({
-      message: 'Inicia sesión o crea una cuenta para publicar',
-      color: 'info',
-      duration: 3000
+      message: 'Inicia sesión para publicar un anuncio',
+      color: 'info'
     })
+    router.push('/login')
     return
   }
-  
-  // Si ya está autenticado, ir directo a publicar
+
   router.push('/publicar')
 }
 
 /**
- * Manejar click en "Regístrate Ahora"
+ * Handle "Register" button click
  */
 const handleRegister = () => {
-  // Si ya está autenticado, redirigir al perfil o dashboard
   if (authStore.isAuthenticated) {
     notify({
       message: '¡Ya tienes una cuenta activa! 🎉',
-      color: 'success',
-      duration: 3000
+      color: 'success'
     })
-    // TODO: Redirigir a /perfil o /dashboard cuando exista
     return
   }
-  
-  // Mostrar modal de auth en tab de registro
-  modalTab.value = 'register'
-  showAuthModal.value = true
-}
 
-/**
- * Manejar éxito en autenticación
- */
-const handleAuthSuccess = () => {
-  notify({
-    message: '¡Bienvenido a Guías Púrpuras! 🎉',
-    color: 'success',
-    duration: 4000
-  })
-  
-  // Opcional: redirigir automáticamente a publicar después de registro
-  setTimeout(() => {
-    router.push('/publicar')
-  }, 1500)
+  router.push('/login')
 }
 </script>
 
