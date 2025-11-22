@@ -493,7 +493,7 @@ const handleForgotPassword = async () => {
 /* Botón principal */
 .btn-submit {
   padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: white;
   font-size: 14px;
   font-weight: 600;
@@ -510,7 +510,7 @@ const handleForgotPassword = async () => {
 
 .btn-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
 }
 
 .btn-submit:active:not(:disabled) {
@@ -565,11 +565,11 @@ const handleForgotPassword = async () => {
 /* Botón de login */
 .btn-login-link {
   padding: 12px 24px;
-  background: #f5f5f5;
-  color: #667eea;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
   font-size: 14px;
   font-weight: 600;
-  border: 2px solid #e8e8e8;
+  border: none;
   border-radius: 8px;
   cursor: pointer;
   text-decoration: none;
@@ -579,11 +579,8 @@ const handleForgotPassword = async () => {
 }
 
 .btn-login-link:hover {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
 }
 
 /* Footer */

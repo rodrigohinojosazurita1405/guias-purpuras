@@ -631,11 +631,11 @@ const handleLogin = async () => {
 /* Botón de registro */
 .btn-register-link {
   padding: 12px 24px;
-  background: #f5f5f5;
-  color: #667eea;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
   font-size: 14px;
   font-weight: 600;
-  border: 2px solid #e8e8e8;
+  border: none;
   border-radius: 8px;
   cursor: pointer;
   text-decoration: none;
@@ -645,11 +645,8 @@ const handleLogin = async () => {
 }
 
 .btn-register-link:hover {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
 }
 
 /* Footer */
