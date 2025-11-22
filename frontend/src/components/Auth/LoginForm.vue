@@ -241,34 +241,17 @@ const handleLogin = async () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('@/assets/login/bg2login.png');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
   z-index: 0;
-}
-
-/* Overlay oscuro para mejor legibilidad del texto */
-.gradient-bg::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(15, 12, 41, 0.4);
-  z-index: 1;
 }
 
 /* Blobs animados */
 .gradient-blob {
   position: absolute;
   border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-  opacity: 0.15;
-  mix-blend-mode: overlay;
-  z-index: 2;
-  display: none; /* Ocultar blobs para mejor visualización de la imagen */
+  opacity: 0.3;
+  mix-blend-mode: screen;
+  z-index: 1;
 }
 
 .blob-1 {
@@ -576,7 +559,7 @@ const handleLogin = async () => {
 /* Botón principal */
 .btn-login {
   padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: white;
   font-size: 14px;
   font-weight: 600;
@@ -593,7 +576,7 @@ const handleLogin = async () => {
 
 .btn-login:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
 }
 
 .btn-login:active:not(:disabled) {
