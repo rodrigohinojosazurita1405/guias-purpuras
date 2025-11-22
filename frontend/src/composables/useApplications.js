@@ -12,6 +12,7 @@ export function useApplications() {
   const applications = ref([])
   const isLoading = ref(false)
   const error = ref(null)
+  const isLoaded = ref(false)
 
   // ========== COMPUTED ==========
   const totalApplications = computed(() => applications.value.length)
@@ -37,27 +38,37 @@ export function useApplications() {
    * Cargar todas las aplicaciones a trabajos del usuario autenticado
    */
   const loadApplications = async () => {
+    // Evitar cargas múltiples simultáneas
+    if (isLoading.value || isLoaded.value) {
+      return
+    }
+
     isLoading.value = true
     error.value = null
 
     try {
       if (!authStore.user?.email && !authStore.accessToken) {
-        console.log('Usuario no autenticado, no se pueden cargar aplicaciones')
+        console.log('❌ Usuario no autenticado, no se pueden cargar aplicaciones')
+        applications.value = []
         return
       }
 
       const email = authStore.user?.email
       if (!email) {
-        console.log('Email no disponible')
+        console.log('❌ Email no disponible')
+        applications.value = []
         return
       }
 
       const accessToken = authStore.accessToken || localStorage.getItem('access_token')
 
       if (!accessToken) {
-        console.warn('No hay token de autenticación disponible')
+        console.warn('❌ No hay token de autenticación disponible')
+        applications.value = []
         return
       }
+
+      console.log('📦 Cargando aplicaciones para:', email)
 
       // Obtener trabajos publicados por el usuario primero
       const jobsResponse = await fetch(
@@ -66,28 +77,31 @@ export function useApplications() {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
-          }
+          },
+          timeout: 10000 // Timeout de 10 segundos
         }
       )
 
       if (!jobsResponse.ok) {
-        throw new Error('Error al obtener trabajos publicados')
+        console.log('⚠️ Error al obtener trabajos publicados:', jobsResponse.status)
+        applications.value = []
+        return
       }
 
       const jobsData = await jobsResponse.json()
       if (!jobsData.success) {
-        console.log('Error al obtener trabajos publicados')
+        console.log('⚠️ Respuesta sin success en trabajos publicados')
         applications.value = []
-        isLoading.value = false
         return
       }
 
       if (!jobsData.jobs || jobsData.jobs.length === 0) {
-        console.log('No hay trabajos publicados')
+        console.log('📋 No hay trabajos publicados para este usuario')
         applications.value = []
-        isLoading.value = false
         return
       }
+
+      console.log(`📋 Se encontraron ${jobsData.jobs.length} trabajos publicados`)
 
       // Ahora cargar las aplicaciones para cada trabajo
       let allApplications = []
@@ -100,13 +114,15 @@ export function useApplications() {
               headers: {
                 'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
-              }
+              },
+              timeout: 10000 // Timeout de 10 segundos
             }
           )
 
           if (appResponse.ok) {
             const appData = await appResponse.json()
             if (appData.success && appData.applications) {
+              console.log(`📨 Se encontraron ${appData.applications.length} aplicaciones para ${job.title}`)
               // Añadir el título del job a cada aplicación
               const applicationsWithJob = appData.applications.map(app => ({
                 ...app,
@@ -117,17 +133,19 @@ export function useApplications() {
             }
           }
         } catch (err) {
-          console.warn(`Error cargando aplicaciones para trabajo ${job.id}:`, err)
+          console.warn(`⚠️ Error cargando aplicaciones para trabajo ${job.id}:`, err.message)
         }
       }
 
+      console.log(`✅ Total de aplicaciones cargadas: ${allApplications.length}`)
       applications.value = allApplications
     } catch (err) {
-      console.error('Error cargando aplicaciones:', err)
+      console.error('❌ Error cargando aplicaciones:', err)
       error.value = err.message
       applications.value = []
     } finally {
       isLoading.value = false
+      isLoaded.value = true
     }
   }
 
@@ -219,6 +237,7 @@ export function useApplications() {
   return {
     applications,
     isLoading,
+    isLoaded,
     error,
     totalApplications,
     receivedCount,

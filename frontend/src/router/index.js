@@ -150,6 +150,66 @@ const routes = [
       requiresAuth: true
     }
   },
+  {
+    path: '/dashboard/messages',
+    name: 'DashboardMessages',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'messages' },
+    meta: {
+      title: 'Mensajes - Guías Púrpuras',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/dashboard/blocked',
+    name: 'DashboardBlocked',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'blocked' },
+    meta: {
+      title: 'Bloqueados - Guías Púrpuras',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/dashboard/shortlisted',
+    name: 'DashboardShortlisted',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'shortlisted' },
+    meta: {
+      title: 'Favoritos - Guías Púrpuras',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/dashboard/users',
+    name: 'DashboardUsers',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'users' },
+    meta: {
+      title: 'Gestionar Usuarios - Guías Púrpuras',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/dashboard/history',
+    name: 'DashboardHistory',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'history' },
+    meta: {
+      title: 'Registro De Actividad - Guías Púrpuras',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/dashboard/notifications',
+    name: 'DashboardNotifications',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'notifications' },
+    meta: {
+      title: 'Alertas - Guías Púrpuras',
+      requiresAuth: true
+    }
+  },
 
   // ========== PÁGINAS ESTÁTICAS ==========
   {

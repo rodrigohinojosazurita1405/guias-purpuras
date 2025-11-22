@@ -230,7 +230,10 @@ const filteredApplications = computed(() => {
 
 // ========== LIFECYCLE ==========
 onMounted(() => {
-  applicationMgr.loadApplications()
+  // Solo cargar si aún no se han cargado (evitar bucle infinito)
+  if (!applicationMgr.isLoaded.value) {
+    applicationMgr.loadApplications()
+  }
 })
 
 // ========== METHODS ==========

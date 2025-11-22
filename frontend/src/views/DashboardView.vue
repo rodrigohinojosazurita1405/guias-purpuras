@@ -116,8 +116,10 @@ const initializeFromRoute = () => {
   // Si la ruta es /dashboard/profile, /dashboard/company, etc.
   if (route.path.includes('/dashboard/')) {
     const pathParts = route.path.split('/')
-    const section = pathParts[pathParts.length - 1]
+    let section = pathParts[pathParts.length - 1]
     if (section && section !== 'dashboard') {
+      // Convertir guiones a guiones bajos (jobs-manager -> jobs_manager)
+      section = section.replace(/-/g, '_')
       tab = section
     }
   }
