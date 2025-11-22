@@ -387,53 +387,117 @@ const handleRegister = async () => {
   background: #0f0c29;
 }
 
-/* Gradiente animado de fondo */
+/* Gradiente animado de fondo - Efecto dinámico */
 .gradient-bg {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  background: linear-gradient(
+    -45deg,
+    #0f0c29 0%,
+    #1a1847 25%,
+    #302b63 50%,
+    #2a1f5e 75%,
+    #24243e 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
   z-index: 0;
 }
 
-/* Blobs animados */
+/* Blobs animados con efecto de pulsación */
 .gradient-blob {
   position: absolute;
   border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-  opacity: 0.3;
+  opacity: 0.25;
   mix-blend-mode: screen;
+  filter: blur(40px);
   z-index: 1;
 }
 
 .blob-1 {
-  width: 400px;
-  height: 400px;
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  top: -100px;
-  left: -100px;
-  animation: float 6s ease-in-out infinite;
+  width: 500px;
+  height: 500px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 50%, #c084fc 100%);
+  top: -150px;
+  left: -150px;
+  animation: blobFloat1 20s ease-in-out infinite;
+  box-shadow: 0 0 100px rgba(124, 58, 237, 0.4);
 }
 
 .blob-2 {
-  width: 300px;
-  height: 300px;
-  background: linear-gradient(45deg, #f093fb, #f5576c);
-  bottom: -50px;
-  right: -50px;
-  animation: float 8s ease-in-out infinite reverse;
+  width: 450px;
+  height: 450px;
+  background: linear-gradient(135deg, #6d28d9 0%, #a78bfa 100%);
+  bottom: -200px;
+  right: -150px;
+  animation: blobFloat2 25s ease-in-out infinite;
+  box-shadow: 0 0 80px rgba(109, 40, 217, 0.3);
 }
 
-@keyframes float {
+/* Blob adicional para más dimensionalidad */
+.gradient-blob::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 30% 50%, rgba(124, 58, 237, 0.2), transparent 70%);
+  border-radius: inherit;
+  animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes blobFloat1 {
   0%, 100% {
-    transform: translate(0, 0);
+    transform: translate(0, 0) scale(1);
   }
-  33% {
-    transform: translate(30px, -50px);
+  25% {
+    transform: translate(50px, -80px) scale(1.05);
   }
-  66% {
-    transform: translate(-20px, 20px);
+  50% {
+    transform: translate(-30px, 40px) scale(0.95);
+  }
+  75% {
+    transform: translate(100px, -50px) scale(1.08);
+  }
+}
+
+@keyframes blobFloat2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(-60px, 80px) scale(0.95);
+  }
+  50% {
+    transform: translate(40px, -60px) scale(1.08);
+  }
+  75% {
+    transform: translate(-80px, 30px) scale(1.02);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.1);
   }
 }
 
@@ -454,14 +518,34 @@ const handleRegister = async () => {
   background: rgba(255, 255, 255, 0.98);
   border-radius: 20px;
   box-shadow:
-    0 8px 32px 0 rgba(31, 38, 135, 0.37),
-    0 20px 60px rgba(0, 0, 0, 0.3);
+    0 8px 32px 0 rgba(124, 58, 237, 0.25),
+    0 20px 60px rgba(109, 40, 217, 0.15),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
   padding: 48px 40px;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  animation: slideUp 0.6s ease-out;
+  backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(124, 58, 237, 0.2);
+  animation: slideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
   max-height: 90vh;
   overflow-y: auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.register-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer 3s infinite;
+  z-index: -1;
 }
 
 @keyframes slideUp {
@@ -472,6 +556,15 @@ const handleRegister = async () => {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
   }
 }
 
