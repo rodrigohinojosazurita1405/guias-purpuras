@@ -241,17 +241,34 @@ const handleLogin = async () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  background-image: url('@/assets/login/bg2login.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   z-index: 0;
+}
+
+/* Overlay oscuro para mejor legibilidad del texto */
+.gradient-bg::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 12, 41, 0.4);
+  z-index: 1;
 }
 
 /* Blobs animados */
 .gradient-blob {
   position: absolute;
   border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-  opacity: 0.3;
-  mix-blend-mode: screen;
-  z-index: 1;
+  opacity: 0.15;
+  mix-blend-mode: overlay;
+  z-index: 2;
+  display: none; /* Ocultar blobs para mejor visualización de la imagen */
 }
 
 .blob-1 {
@@ -287,7 +304,7 @@ const handleLogin = async () => {
 /* Contenido principal */
 .login-content {
   position: relative;
-  z-index: 10;
+  z-index: 20;
   width: 100%;
   max-width: 420px;
   padding: 20px;
@@ -298,11 +315,14 @@ const handleLogin = async () => {
 
 /* Card principal */
 .login-card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 20px;
+  box-shadow:
+    0 8px 32px 0 rgba(31, 38, 135, 0.37),
+    0 20px 60px rgba(0, 0, 0, 0.3);
   padding: 48px 40px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   animation: slideUp 0.6s ease-out;
 }
 
