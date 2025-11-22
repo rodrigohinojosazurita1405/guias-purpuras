@@ -232,6 +232,8 @@ export function useApplications() {
   const resetApplications = () => {
     applications.value = []
     error.value = null
+    isLoaded.value = false
+    isLoading.value = false
   }
 
   return {

@@ -73,7 +73,7 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="applicationMgr.isLoading" class="loading-state">
+    <div v-if="applicationMgr.isLoading && !applicationMgr.isLoaded" class="loading-state">
       <va-progress-bar indeterminate color="purple" size="large" />
       <p>Cargando candidatos...</p>
     </div>
@@ -82,7 +82,7 @@
     <div v-else-if="applicationMgr.error" class="error-state">
       <va-icon name="error" size="3rem" color="danger" />
       <p>{{ applicationMgr.error }}</p>
-      <button @click="applicationMgr.loadApplications()" class="retry-btn">
+      <button @click="resetAndLoad()" class="retry-btn">
         <va-icon name="refresh" />
         Reintentar
       </button>
@@ -91,8 +91,11 @@
     <!-- Empty State -->
     <div v-else-if="filteredApplications.length === 0" class="empty-state">
       <va-icon name="person_add" size="3rem" />
-      <h3>No hay candidatos</h3>
+      <h3>No hay candidatos registrados</h3>
       <p>Los candidatos aparecerán aquí cuando postulen a tus publicaciones</p>
+      <p style="font-size: 0.9rem; color: #9CA3AF; margin-top: 1rem;">
+        💡 Tip: Publica un anuncio de trabajo para empezar a recibir candidatos
+      </p>
     </div>
 
     <!-- Applications List -->
@@ -326,6 +329,11 @@ const saveNotes = async (application) => {
   } finally {
     updating.value = false
   }
+}
+
+const resetAndLoad = () => {
+  applicationMgr.resetApplications()
+  applicationMgr.loadApplications()
 }
 </script>
 
