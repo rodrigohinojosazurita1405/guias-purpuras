@@ -394,34 +394,17 @@ const handleRegister = async () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('@/assets/login/bg2login.png');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
   z-index: 0;
-}
-
-/* Overlay oscuro para mejor legibilidad del texto */
-.gradient-bg::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(15, 12, 41, 0.4);
-  z-index: 1;
 }
 
 /* Blobs animados */
 .gradient-blob {
   position: absolute;
   border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-  opacity: 0.15;
-  mix-blend-mode: overlay;
-  z-index: 2;
-  display: none; /* Ocultar blobs para mejor visualización de la imagen */
+  opacity: 0.3;
+  mix-blend-mode: screen;
+  z-index: 1;
 }
 
 .blob-1 {
