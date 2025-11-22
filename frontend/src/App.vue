@@ -18,16 +18,22 @@
   --color-purple-darkest: #3D0066;
   --color-purple-dark: #510087;
   --color-purple: #5C0099;
-  
+
   /* Amarillos */
   --color-yellow-primary: rgb(253, 197, 0);
   --color-yellow-light: #FFD500;
-  
+
+  /* Estados */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #3B82F6;
+
   /* Grises */
   --color-gray-light: #F5F5F5;
   --color-gray-medium: #E0E0E0;
   --color-gray-dark: #666666;
-  
+
   /* Fuentes */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }

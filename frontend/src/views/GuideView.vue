@@ -66,47 +66,12 @@
             </select>
           </div>
 
-          <!-- Grid con Cards -->
+          <!-- Grid con Cards - SOLO TRABAJOS -->
           <div class="listings-grid">
-            <!-- ✅ NEGOCIOS -->
-            <BusinessCard 
-              v-if="category === 'negocios'"
-              v-for="listing in paginatedListings" 
-              :key="listing.id"
-              :business="listing"
-            />
-
-            <!-- Profesionales -->
-            <ProfessionalCard 
-              v-else-if="category === 'profesionales'"
-              v-for="listing in paginatedListings" 
+            <JobCard
+              v-for="listing in paginatedListings"
               :key="listing.id"
               :listing="listing"
-            />
-
-            <!-- Gastronomía -->
-            <RestaurantCard 
-              v-else-if="category === 'gastronomia'"
-              v-for="listing in paginatedListings" 
-              :key="listing.id"
-              :listing="listing"
-            />
-
-            <!-- Trabajos -->
-            <JobCard 
-              v-else-if="category === 'trabajos'"
-              v-for="listing in paginatedListings" 
-              :key="listing.id"
-              :listing="listing"
-            />
-
-            <!-- Servicios (Genérico) -->
-            <ListingCard 
-              v-else
-              v-for="listing in paginatedListings" 
-              :key="listing.id"
-              :listing="listing"
-              @click="viewListing"
             />
           </div>
 
@@ -165,25 +130,19 @@ import { watch } from 'vue'
 import MainLayout from '@/components/Layout/MainLayout.vue'
 import TopFiltersBar from '@/components/Filters/TopFiltersBar.vue'
 import FiltersSidebar from '@/components/Filters/FiltersSidebar.vue'
-import ProfessionalCard from '@/components/Cards/ProfessionalCard.vue'
-import RestaurantCard from '@/components/Cards/RestaurantCard.vue'
 import JobCard from '@/components/Cards/JobCard.vue'
-import BusinessCard from '@/components/Cards/BusinessCard.vue'
 import ListingCard from '@/components/Cards/ListingCard.vue'
 import { useSearchStore } from '@/stores/useSearchStore'
 import { mockBusinesses } from '@/data/mockBusinesses.js'
 
 export default {
   name: 'GuideView',
-  components: { 
-    MainLayout, 
+  components: {
+    MainLayout,
     TopFiltersBar,
-    FiltersSidebar, 
-    ProfessionalCard,
-    RestaurantCard,
+    FiltersSidebar,
     JobCard,
-    BusinessCard,
-    ListingCard 
+    ListingCard
   },
   
   props: {
@@ -203,14 +162,15 @@ export default {
     return {
       showMobileFilters: false,
       sortBy: 'recent',
-      
+      loading: false,
+
       // Filtros superiores (ahora sincronizados con el store)
       topFilters: {
         subcategory: '',
         city: '',
         search: ''
       },
-      
+
       // Paginación
       currentPage: 1,
       itemsPerPage: 9,
@@ -448,6 +408,27 @@ export default {
       this.currentPage = page
     },
 
+    /**
+     * Cargar trabajos desde la API
+     */
+    async loadJobsFromAPI() {
+      try {
+        this.loading = true
+        const response = await fetch('/api/jobs/')
+        if (!response.ok) throw new Error('Error al cargar trabajos')
+
+        const data = await response.json()
+        if (data.success && data.jobs) {
+          this.allListings = data.jobs
+        }
+      } catch (error) {
+        console.error('Error cargando trabajos desde API:', error)
+        this.allListings = [] // Mostrar lista vacía si hay error
+      } finally {
+        this.loading = false
+      }
+    },
+
     loadMockData() {
       if (this.category === 'negocios') {
         this.allListings = [...mockBusinesses]
@@ -587,63 +568,8 @@ export default {
         ]
       }
       else if (this.category === 'trabajos') {
-        this.allListings = [
-          {
-            id: 1,
-            title: 'Desarrollador Full Stack Senior',
-            companyName: 'TechCorp Bolivia',
-            companyLogo: 'https://via.placeholder.com/150x60/5C0099/FFFFFF?text=TECH',
-            city: 'La Paz',
-            contractType: 'Tiempo Completo',
-            modality: 'Remoto',
-            salary: 'Bs. 8000 - 12000',
-            tags: ['JavaScript', 'Vue.js', 'Node.js', 'PostgreSQL'],
-            publishedDaysAgo: 1,
-            plan: 'destacado',
-            verified: true,
-            confidential: false,
-            urgent: true,
-            subcategory: 'Tiempo Completo',
-            description: 'Buscamos desarrollador senior para liderar proyectos de desarrollo web con tecnologías modernas.'
-          },
-          {
-            id: 2,
-            title: 'Diseñador UX/UI',
-            companyName: 'Importante Empresa',
-            companyLogo: null,
-            city: 'Cochabamba',
-            contractType: 'Tiempo Completo',
-            modality: 'Híbrido',
-            salary: 'Bs. 5000 - 7500',
-            tags: ['Figma', 'Adobe XD', 'Prototipado', 'Design System'],
-            publishedDaysAgo: 2,
-            plan: 'premium',
-            verified: false,
-            confidential: false,
-            importantCompany: true,
-            urgent: false,
-            subcategory: 'Tiempo Completo',
-            description: 'Diseñador creativo para mejorar la experiencia de usuario en nuestras aplicaciones digitales.'
-          },
-          {
-            id: 3,
-            title: 'Contador Senior',
-            companyName: 'Consultora ABC',
-            companyLogo: 'https://via.placeholder.com/150x60/2E7D32/FFFFFF?text=ABC',
-            city: 'Santa Cruz',
-            contractType: 'Tiempo Completo',
-            modality: 'Presencial',
-            salary: 'Bs. 6000 - 9000',
-            tags: ['Contabilidad', 'SIAF', 'Auditoría', 'Tributación'],
-            publishedDaysAgo: 5,
-            plan: 'premium',
-            verified: true,
-            confidential: false,
-            urgent: false,
-            subcategory: 'Tiempo Completo',
-            description: 'Contador experimentado para manejar la contabilidad general y asesoría tributaria de clientes.'
-          }
-        ]
+        // Cargar trabajos desde la API
+        this.loadJobsFromAPI()
       } 
       else if (this.category === 'servicios') {
         this.allListings = [

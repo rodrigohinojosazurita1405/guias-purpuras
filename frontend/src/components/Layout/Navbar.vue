@@ -44,11 +44,53 @@
           <span>Ingresar</span>
         </router-link>
 
-        <!-- Authenticated: Show Avatar Button (Simple - No Dropdown) -->
-        <button v-else @click="doLogout" class="user-avatar-btn desktop-only" title="Click para cerrar sesión">
-          <div class="user-avatar">{{ authStore.userInitials }}</div>
-          <va-icon name="logout" size="small" class="logout-icon" />
-        </button>
+        <!-- Authenticated: Show Avatar Dropdown Menu -->
+        <div v-else class="user-dropdown desktop-only">
+          <button @click="toggleDropdown" class="user-avatar-btn" :class="{ active: dropdownOpen }">
+            <div class="user-avatar">{{ authStore.userInitials }}</div>
+            <va-icon name="expand_more" size="small" class="dropdown-arrow" :class="{ rotated: dropdownOpen }" />
+          </button>
+
+          <!-- Dropdown Menu -->
+          <transition name="dropdown">
+            <div v-if="dropdownOpen" class="dropdown-menu">
+              <!-- User Info -->
+              <div class="dropdown-header">
+                <div class="dropdown-user-avatar">{{ authStore.userInitials }}</div>
+                <div class="dropdown-user-info">
+                  <div class="dropdown-user-name">{{ authStore.user?.name }}</div>
+                  <div class="dropdown-user-email">{{ authStore.user?.email }}</div>
+                </div>
+              </div>
+
+              <div class="dropdown-divider"></div>
+
+              <!-- Menu Items -->
+              <router-link to="/dashboard" class="dropdown-item" @click="closeDropdown">
+                <va-icon name="dashboard" size="small" />
+                <span>Mi Dashboard</span>
+              </router-link>
+
+              <router-link to="/dashboard/jobs-manager" class="dropdown-item" @click="closeDropdown">
+                <va-icon name="list_alt" size="small" />
+                <span>Mis Anuncios</span>
+              </router-link>
+
+              <div class="dropdown-divider"></div>
+
+              <!-- Logout -->
+              <button @click="handleDropdownLogout" class="dropdown-item logout-item">
+                <va-icon name="logout" size="small" />
+                <span>Cerrar Sesión</span>
+              </button>
+            </div>
+          </transition>
+
+          <!-- Backdrop to close dropdown -->
+          <transition name="fade">
+            <div v-if="dropdownOpen" class="dropdown-backdrop" @click="closeDropdown"></div>
+          </transition>
+        </div>
 
         <!-- Mobile Menu Button -->
         <button @click="toggleMobileMenu" class="mobile-menu-btn" :class="{ active: mobileMenuOpen }">
@@ -100,18 +142,31 @@
         <!-- Mobile Auth Section -->
         <div class="mobile-auth-section">
           <!-- If Logged In -->
-          <div v-if="authStore.isAuthenticated" class="mobile-user-info">
-            <div class="user-avatar-mobile">{{ authStore.userInitials }}</div>
-            <div class="user-details">
-              <div class="mobile-user-name">{{ authStore.user?.name }}</div>
-              <div class="mobile-user-email">{{ authStore.user?.email }}</div>
+          <div v-if="authStore.isAuthenticated">
+            <div class="mobile-user-info">
+              <div class="user-avatar-mobile">{{ authStore.userInitials }}</div>
+              <div class="user-details">
+                <div class="mobile-user-name">{{ authStore.user?.name }}</div>
+                <div class="mobile-user-email">{{ authStore.user?.email }}</div>
+              </div>
             </div>
-          </div>
 
-          <button v-if="authStore.isAuthenticated" @click="doLogout" class="mobile-logout-btn">
-            <va-icon name="logout" />
-            <span>Cerrar Sesión</span>
-          </button>
+            <!-- User Menu Items for Mobile -->
+            <router-link to="/dashboard" class="mobile-link" @click="closeMobileMenu">
+              <va-icon name="dashboard" />
+              <span>Mi Dashboard</span>
+            </router-link>
+
+            <router-link to="/dashboard/jobs-manager" class="mobile-link" @click="closeMobileMenu">
+              <va-icon name="list_alt" />
+              <span>Mis Anuncios</span>
+            </router-link>
+
+            <button @click="doLogout" class="mobile-logout-btn">
+              <va-icon name="logout" />
+              <span>Cerrar Sesión</span>
+            </button>
+          </div>
 
           <!-- If NOT Logged In -->
           <router-link v-else to="/login" class="mobile-login-link" @click="closeMobileMenu">
@@ -134,6 +189,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const { init: notify } = useToast()
 const mobileMenuOpen = ref(false)
+const dropdownOpen = ref(false)
 
 // Publish Button Handler
 const handlePublish = () => {
@@ -144,6 +200,21 @@ const handlePublish = () => {
   }
   router.push('/publicar')
   closeMobileMenu()
+}
+
+// Dropdown Menu Handlers
+const toggleDropdown = () => {
+  dropdownOpen.value = !dropdownOpen.value
+}
+
+const closeDropdown = () => {
+  dropdownOpen.value = false
+}
+
+// Logout from dropdown
+const handleDropdownLogout = () => {
+  closeDropdown()
+  doLogout()
 }
 
 // LOGOUT - Simple and Direct
@@ -316,29 +387,36 @@ const closeMobileMenu = () => {
   transform: translateY(-2px);
 }
 
+/* USER DROPDOWN */
+.user-dropdown {
+  position: relative;
+}
+
 /* USER AVATAR BUTTON */
 .user-avatar-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  width: 44px;
-  height: 44px;
-  padding: 0;
+  padding: 0.5rem 0.75rem;
   background: rgba(255, 255, 255, 0.12);
   border: 2px solid rgba(255, 255, 255, 0.25);
-  border-radius: 50%;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   color: white;
-  position: relative;
   flex-shrink: 0;
 }
 
 .user-avatar-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.4);
-  transform: scale(1.1);
+  transform: translateY(-2px);
+}
+
+.user-avatar-btn.active {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .user-avatar {
@@ -352,16 +430,131 @@ const closeMobileMenu = () => {
   justify-content: center;
   font-weight: 700;
   font-size: 0.85rem;
+  flex-shrink: 0;
 }
 
-.logout-icon {
+.dropdown-arrow {
+  transition: transform 0.3s ease;
+  color: white !important;
+}
+
+.dropdown-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+/* DROPDOWN MENU */
+.dropdown-menu {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  background: var(--color-yellow-primary);
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  min-width: 280px;
+  z-index: 1000;
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #eff2f7 100%);
+  border-bottom: 1px solid #e8ebf0;
+}
+
+.dropdown-user-avatar {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  padding: 2px;
-  color: var(--color-purple-darkest) !important;
+  background: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.dropdown-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dropdown-user-name {
+  font-weight: 600;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.25rem;
+}
+
+.dropdown-user-email {
+  font-size: 0.8rem;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e8ebf0;
+  margin: 0.5rem 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: none;
+  border: none;
+  color: #333;
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.dropdown-item:hover {
+  background: #f5f7fa;
+  padding-left: 1.25rem;
+}
+
+.dropdown-item :deep(svg) {
+  color: var(--color-purple) !important;
+  flex-shrink: 0;
+}
+
+.dropdown-item.logout-item {
+  color: #e34b4a;
+  border-top: 1px solid #e8ebf0;
+}
+
+.dropdown-item.logout-item:hover {
+  background: rgba(227, 75, 74, 0.08);
+}
+
+.dropdown-item.logout-item :deep(svg) {
+  color: #e34b4a !important;
+}
+
+/* DROPDOWN BACKDROP */
+.dropdown-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
 }
 
 /* MOBILE MENU BUTTON */
@@ -597,6 +790,22 @@ const closeMobileMenu = () => {
 .slide-in-enter-from,
 .slide-in-leave-to {
   transform: translateX(100%);
+}
+
+/* DROPDOWN TRANSITIONS */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdown-enter-from {
+  opacity: 0;
+  transform: translateY(-10px) scaleY(0.95);
+}
+
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scaleY(0.95);
 }
 
 /* RESPONSIVE */

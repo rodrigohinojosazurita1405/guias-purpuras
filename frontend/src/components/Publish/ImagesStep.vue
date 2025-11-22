@@ -22,25 +22,12 @@
 
     <h2 class="step-title">
       <va-icon name="image" color="purple" size="large" />
-      Imágenes de tu Anuncio
+      Imagen de Perfil
     </h2>
 
     <p class="step-description">
-      Las imágenes aumentan hasta 10x la visibilidad de tu anuncio. ¡Sube fotos de calidad!
+      Sube tu foto profesional o logotipo (850x850px recomendado)
     </p>
-
-    <!-- ==========================================
-         INFORMACIÓN DEL PLAN
-         ========================================== -->
-    <div class="plan-info">
-      <va-icon name="info" color="info" />
-      <div class="plan-info-text">
-        <strong>Límite según tu plan:</strong>
-        <span v-if="maxImages === 3">Plan Gratis - Hasta 3 imágenes</span>
-        <span v-else-if="maxImages === 5">Plan Destacado - Hasta 5 imágenes</span>
-        <span v-else>Plan TOP - Imágenes ilimitadas</span>
-      </div>
-    </div>
 
     <!-- ==========================================
          ÁREA DE CARGA
@@ -57,7 +44,6 @@
         ref="fileInput"
         type="file"
         accept="image/jpeg,image/png,image/webp"
-        multiple
         @change="handleFileSelect"
         style="display: none"
       />
@@ -65,13 +51,13 @@
       <div class="upload-content">
         <va-icon name="cloud_upload" size="4rem" color="purple" />
         <h3 class="upload-title">
-          {{ images.length === 0 ? 'Sube tus imágenes' : 'Agregar más imágenes' }}
+          {{ images.length === 0 ? 'Sube tu imagen' : 'Cambiar imagen' }}
         </h3>
         <p class="upload-text">
-          Haz clic o arrastra imágenes aquí
+          Haz clic o arrastra tu imagen aquí
         </p>
         <p class="upload-hint">
-          JPG, PNG o WEBP - Máximo 5MB por imagen
+          JPG, PNG o WEBP - 850x850px - Máximo 5MB
         </p>
       </div>
     </div>
@@ -92,7 +78,7 @@
          ========================================== -->
     <div v-if="images.length > 0" class="images-preview">
       <h3 class="preview-title">
-        Tus imágenes ({{ images.length }}/{{ maxImages === 999 ? '∞' : maxImages }})
+        Tu imagen de perfil
       </h3>
 
       <div class="images-grid">
@@ -100,30 +86,13 @@
           v-for="(image, index) in images" 
           :key="index"
           class="image-item"
-          :class="{ 'is-main': index === 0 }"
         >
-          <!-- Badge de imagen principal -->
-          <div v-if="index === 0" class="main-badge">
-            <va-icon name="star" size="small" />
-            Principal
-          </div>
-
           <!-- Preview de la imagen -->
           <img :src="image.preview" :alt="`Imagen ${index + 1}`" class="image-preview" />
 
           <!-- Overlay con acciones -->
           <div class="image-overlay">
             <div class="image-actions">
-              <!-- Mover a principal -->
-              <button 
-                v-if="index !== 0"
-                @click="setAsMain(index)"
-                class="action-btn"
-                title="Establecer como principal"
-              >
-                <va-icon name="star" size="small" />
-              </button>
-
               <!-- Eliminar -->
               <button 
                 @click="removeImage(index)"
@@ -139,20 +108,9 @@
               <span class="image-size">{{ formatFileSize(image.size) }}</span>
             </div>
           </div>
-
-          <!-- Indicador de orden -->
-          <div class="image-order">{{ index + 1 }}</div>
         </div>
 
-        <!-- Botón agregar más (si no alcanzó el límite) -->
-        <div 
-          v-if="images.length < maxImages"
-          class="add-more-card"
-          @click="triggerFileInput"
-        >
-          <va-icon name="add" size="3rem" color="purple" />
-          <span>Agregar más</span>
-        </div>
+        <!-- Botón agregar más reemplazado cuando ya hay 1 imagen -->
       </div>
     </div>
 
@@ -162,13 +120,13 @@
     <div class="tips-section">
       <h4 class="tips-title">
         <va-icon name="lightbulb" color="warning" />
-        Tips para buenas fotos
+        Tips para tu foto de perfil
       </h4>
       <ul class="tips-list">
-        <li><va-icon name="check" size="small" color="success" /> Usa buena iluminación natural</li>
-        <li><va-icon name="check" size="small" color="success" /> Muestra el producto/servicio claramente</li>
-        <li><va-icon name="check" size="small" color="success" /> Usa fondos limpios y sin distracciones</li>
-        <li><va-icon name="check" size="small" color="success" /> La primera imagen es la más importante</li>
+        <li><va-icon name="check" size="small" color="success" /> Usa una imagen cuadrada de 850x850px</li>
+        <li><va-icon name="check" size="small" color="success" /> Fondo limpio y profesional</li>
+        <li><va-icon name="check" size="small" color="success" /> Buena iluminación y alta calidad</li>
+        <li><va-icon name="check" size="small" color="success" /> Tu rostro o logotipo debe ser claro y visible</li>
       </ul>
     </div>
   </div>
@@ -212,9 +170,7 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 // COMPUTED
 // ==========================================
 const maxImages = computed(() => {
-  if (props.plan === 'free') return 3
-  if (props.plan === 'featured') return 5
-  return 999 // TOP = ilimitadas
+  return 1 // Solo 1 imagen permitida
 })
 
 // ==========================================
@@ -241,7 +197,7 @@ const validateFile = (file) => {
   if (images.value.length >= maxImages.value) {
     return {
       valid: false,
-      error: `Límite alcanzado: Máximo ${maxImages.value} imágenes en tu plan`
+      error: 'Ya tienes una imagen. Elimínala primero para subir otra'
     }
   }
 
@@ -263,13 +219,14 @@ const processFile = (file) => {
   const reader = new FileReader()
   
   reader.onload = (e) => {
-    images.value.push({
+    // Reemplazar imagen si ya existe una
+    images.value = [{
       file: file,
       preview: e.target.result,
       name: file.name,
       size: file.size,
       type: file.type
-    })
+    }]
     
     // Emitir cambios al padre
     emit('update:modelValue', images.value)
@@ -289,8 +246,10 @@ const triggerFileInput = () => {
 }
 
 const handleFileSelect = (event) => {
-  const files = Array.from(event.target.files)
-  files.forEach(processFile)
+  const file = event.target.files[0] // Solo tomar el primer archivo
+  if (file) {
+    processFile(file)
+  }
   
   // Reset input para permitir subir la misma imagen nuevamente
   event.target.value = ''
@@ -298,8 +257,10 @@ const handleFileSelect = (event) => {
 
 const handleDrop = (event) => {
   isDragging.value = false
-  const files = Array.from(event.dataTransfer.files)
-  files.forEach(processFile)
+  const file = event.dataTransfer.files[0] // Solo tomar el primer archivo
+  if (file) {
+    processFile(file)
+  }
 }
 
 // ==========================================
@@ -516,31 +477,9 @@ defineExpose({
   transition: all 0.3s ease;
 }
 
-.image-item.is-main {
-  border-color: var(--color-yellow-primary);
-  box-shadow: 0 4px 12px rgba(253, 197, 0, 0.3);
-}
-
 .image-item:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-}
-
-.main-badge {
-  position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
-  background: var(--color-yellow-primary);
-  color: var(--color-purple-darkest);
-  padding: 0.4rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .image-preview {
@@ -613,47 +552,6 @@ defineExpose({
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 500;
-}
-
-.image-order {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  font-weight: 700;
-  z-index: 2;
-}
-
-/* ==========================================
-   AGREGAR MÁS
-   ========================================== */
-.add-more-card {
-  aspect-ratio: 1;
-  border: 2px dashed var(--color-purple);
-  border-radius: 12px;
-  background: rgba(92, 0, 153, 0.02);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: var(--color-purple);
-  font-weight: 600;
-}
-
-.add-more-card:hover {
-  background: rgba(92, 0, 153, 0.05);
-  transform: scale(1.05);
 }
 
 /* ==========================================

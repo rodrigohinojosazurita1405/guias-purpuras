@@ -1,117 +1,85 @@
 <!-- frontend/src/components/Guide/JobCard.vue -->
 <template>
   <div class="job-card" @click="goToDetail">
-    <!-- Logo de la Empresa -->
-    <div class="card-logo">
-      <img 
-        v-if="!listing.confidential && listing.companyLogo" 
-        :src="listing.companyLogo" 
-        :alt="listing.companyName"
-      />
-      <div v-else class="placeholder-logo">
-        <va-icon 
-          :name="listing.confidential ? 'visibility_off' : 'business'" 
-          size="2.5rem" 
-          color="#999" 
-        />
-      </div>
-      
-      <!-- Badge de Publicación Confidencial -->
-      <div v-if="listing.confidential" class="badge-confidential">
-        <va-icon name="visibility_off" size="small" />
-        Confidencial
-      </div>
-
-      <!-- Badge Destacado -->
-      <div v-else-if="listing.plan === 'destacado' || listing.plan === 'premium'" class="badge-destacado">
-        <va-icon name="star" size="small" />
-        {{ listing.plan === 'premium' ? 'Premium' : 'Destacado' }}
-      </div>
-    </div>
-
-    <!-- Contenido -->
-    <div class="card-content">
-      <!-- Título del Puesto -->
-      <h3 class="job-title">{{ listing.title }}</h3>
-      
-      <!-- Nombre de la Empresa -->
-      <p class="company-name">
-        <va-icon 
-          v-if="listing.verified && !listing.confidential" 
-          name="verified" 
-          size="small" 
-          color="success" 
-        />
-        {{ getCompanyDisplayName }}
-      </p>
-
-      <!-- Meta información -->
-      <div class="meta-info">
-        <!-- Ciudad -->
-        <div class="meta-item">
-          <va-icon name="place" size="small" />
-          <span>{{ listing.city }}</span>
+    <!-- Contenedor principal -->
+    <div class="card-body">
+      <!-- Badges encima del contenido -->
+      <div class="badges-row">
+        <div v-if="listing.confidential" class="badge-confidential">
+          <va-icon name="visibility_off" size="small" />
+          Confidencial
         </div>
 
-        <!-- Tipo de Contrato -->
+        <div v-else-if="listing.plan === 'destacado' || listing.plan === 'premium'" class="badge-destacado">
+          <va-icon name="star" size="small" />
+          {{ listing.plan === 'premium' ? 'Premium' : 'Destacado' }}
+        </div>
+      </div>
+
+      <!-- Logo cuadrado + Título clickeable -->
+      <div class="header-section">
+        <div class="logo-square">
+          <img 
+            v-if="!listing.confidential && listing.companyLogo" 
+            :src="listing.companyLogo" 
+            :alt="listing.companyName"
+          />
+          <va-icon 
+            v-else
+            :name="listing.confidential ? 'visibility_off' : 'business'" 
+            size="2rem" 
+            color="#999" 
+          />
+        </div>
+        
+        <div class="header-text">
+          <h3 class="job-title">{{ listing.title }}</h3>
+          <p class="company-name">
+            <va-icon 
+              v-if="listing.verified && !listing.confidential" 
+              name="verified" 
+              size="small" 
+              color="#10B981" 
+            />
+            {{ getCompanyDisplayName }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Metadata con iconos -->
+      <div class="metadata-grid">
+        <div class="meta-item">
+          <va-icon name="place" size="small" color="#6B7280" />
+          <span>{{ listing.city }}</span>
+        </div>
+        
         <div v-if="listing.contractType" class="meta-item">
-          <va-icon name="work" size="small" />
+          <va-icon name="work" size="small" color="#6B7280" />
           <span>{{ listing.contractType }}</span>
         </div>
 
-        <!-- Modalidad -->
         <div v-if="listing.modality" class="meta-item">
-          <va-icon 
-            :name="getModalityIcon" 
-            size="small" 
-          />
+          <va-icon :name="getModalityIcon" size="small" color="#6B7280" />
           <span>{{ listing.modality }}</span>
+        </div>
+
+        <div v-if="listing.jobCategory" class="meta-item">
+          <va-icon name="category" size="small" color="#6B7280" />
+          <span>{{ listing.jobCategory }}</span>
         </div>
       </div>
 
-      <!-- Salario -->
-      <div v-if="listing.salary && listing.salary !== 'No Declarado'" class="salary-info">
-        <va-icon name="payments" size="small" />
+      <!-- Salario destacado -->
+      <div v-if="listing.salary && listing.salary !== 'No Declarado'" class="salary-highlight">
+        <va-icon name="payments" size="small" color="#10B981" />
         <span class="salary-text">{{ listing.salary }}</span>
       </div>
 
-      <!-- Tags/Etiquetas -->
-      <div v-if="listing.tags && listing.tags.length > 0" class="tags">
-        <span 
-          v-for="(tag, index) in listing.tags.slice(0, 3)" 
-          :key="index"
-          class="tag"
-        >
-          {{ tag }}
-        </span>
-        <span v-if="listing.tags.length > 3" class="tag more-tags">
-          +{{ listing.tags.length - 3 }}
-        </span>
-      </div>
-
-      <!-- Fecha de Publicación -->
+      <!-- Fecha de publicación -->
       <div class="publish-date">
-        <va-icon name="schedule" size="small" />
+        <va-icon name="schedule" size="small" color="#9CA3AF" />
         <span>{{ getPublishDate }}</span>
       </div>
-
-      <!-- Badges Adicionales -->
-      <div class="badges-row">
-        <span v-if="listing.urgent" class="badge urgent">
-          <va-icon name="error" size="small" />
-          Urgente
-        </span>
-        <span v-if="listing.featured" class="badge featured">
-          <va-icon name="emoji_events" size="small" />
-          Destacada
-        </span>
-      </div>
-
-      <!-- Botón -->
-      <button class="view-job-btn">
-        Ver oferta completa
-        <va-icon name="arrow_forward" size="small" />
-      </button>
     </div>
   </div>
 </template>
@@ -175,101 +143,107 @@ const goToDetail = () => {
 
 <style scoped>
 .job-card {
+  position: relative;
   background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  border: 2px solid transparent;
+  overflow: hidden;
+  max-width: 370px;
+  width: 100%;
 }
 
 .job-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   transform: translateY(-4px);
-  border-color: var(--color-purple-light);
+  box-shadow: 0 8px 24px rgba(92, 0, 153, 0.15);
 }
 
-/* ========== Logo ========== */
-.card-logo {
-  position: relative;
-  width: 100%;
-  height: 140px;
-  background: #F5F5F5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 2px solid #E0E0E0;
+.job-card:hover .job-title {
+  color: var(--color-purple);
 }
 
-.card-logo img {
-  max-width: 120px;
-  max-height: 100px;
-  object-fit: contain;
-  padding: 1rem;
-}
-
-.placeholder-logo {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #F5F5F5 0%, #E0E0E0 100%);
-}
-
-/* ========== Badges ========== */
-.badge-confidencial {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: rgba(158, 158, 158, 0.95);
-  color: white;
-  padding: 0.4rem 0.875rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(4px);
-}
-
-.badge-destacado {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: var(--color-yellow-primary);
-  color: var(--color-purple-darkest);
-  padding: 0.4rem 0.875rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  box-shadow: 0 2px 8px rgba(253, 197, 0, 0.4);
-}
-
-/* ========== Contenido ========== */
-.card-content {
+/* ========== BODY ========== */
+.card-body {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
+  gap: 1rem;
+}
+
+/* ========== BADGES ========== */
+.badges-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.badge-confidential {
+  background: #6B7280;
+  color: white;
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+}
+
+.badge-destacado {
+  background: linear-gradient(135deg, #FDC500, #FFA500);
+  color: #5C0099;
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  box-shadow: 0 2px 8px rgba(253, 197, 0, 0.3);
+}
+
+/* ========== HEADER SECTION ========== */
+.header-section {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.logo-square {
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F9FAFB;
+}
+
+.logo-square img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 0.5rem;
+}
+
+.header-text {
   flex: 1;
+  min-width: 0;
 }
 
 .job-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-purple-darkest);
-  margin: 0;
+  color: #1F2937;
+  margin: 0 0 0.25rem 0;
   line-height: 1.3;
+  transition: color 0.3s ease;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -278,153 +252,99 @@ const goToDetail = () => {
 
 .company-name {
   font-size: 1rem;
-  color: #666;
+  color: #6B7280;
   margin: 0;
-  font-weight: 500;
+  line-height: 1.4;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
-/* ========== Meta Info ========== */
-.meta-info {
+/* ========== METADATA GRID ========== */
+.metadata-grid {
   display: flex;
-  flex-wrap: wrap;
   gap: 1rem;
-  padding: 0.75rem 0;
-  border-top: 1px solid #F0F0F0;
-  border-bottom: 1px solid #F0F0F0;
+  flex-wrap: wrap;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
   font-size: 0.875rem;
-  color: #666;
+  color: #6B7280;
+  font-weight: 500;
 }
 
-/* ========== Salario ========== */
-.salary-info {
+/* ========== SALARIO DESTACADO ========== */
+.salary-highlight {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(46, 125, 50, 0.05) 100%);
-  border-left: 3px solid #4CAF50;
-  border-radius: 6px;
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+  border-left: 4px solid #10B981;
+  border-radius: 8px;
 }
 
 .salary-text {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #2E7D32;
+  color: #059669;
 }
 
-/* ========== Tags ========== */
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.tag {
-  padding: 0.35rem 0.75rem;
-  background: rgba(92, 0, 153, 0.08);
-  color: var(--color-purple);
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.more-tags {
-  background: #F0F0F0;
-  color: #666;
-}
-
-/* ========== Fecha ========== */
+/* ========== FECHA ========== */
 .publish-date {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.85rem;
-  color: #999;
+  font-size: 0.875rem;
+  color: #9CA3AF;
+  font-weight: 500;
 }
 
-/* ========== Badges Adicionales ========== */
-.badges-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.badge {
-  padding: 0.35rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.badge.urgent {
-  background: rgba(244, 67, 54, 0.1);
-  color: #D32F2F;
-}
-
-.badge.featured {
-  background: rgba(255, 193, 7, 0.15);
-  color: #F57C00;
-}
-
-/* ========== Botón ========== */
-.view-job-btn {
-  margin-top: auto;
-  padding: 0.875rem 1.5rem;
-  background: var(--color-purple);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.view-job-btn:hover {
-  background: var(--color-purple-dark);
-  transform: translateX(4px);
-}
-
-/* ========== Responsive ========== */
+/* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
-  .card-logo {
-    height: 120px;
-  }
-
-  .card-content {
+  .card-body {
     padding: 1.25rem;
   }
 
+  .logo-square {
+    width: 70px;
+    height: 70px;
+    min-width: 70px;
+  }
+
   .job-title {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
   }
 
   .company-name {
-    font-size: 0.95rem;
+    font-size: 0.9375rem;
   }
 
-  .meta-info {
-    gap: 0.75rem;
+  .badge-confidential,
+  .badge-destacado {
+    font-size: 0.8125rem;
+    padding: 0.3125rem 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .job-card {
+    max-width: 100%;
   }
 
-  .meta-item {
-    font-size: 0.8rem;
+  .card-body {
+    padding: 1rem;
+  }
+
+  .job-title {
+    font-size: 1.125rem;
+  }
+
+  .salary-text {
+    font-size: 0.9375rem;
   }
 }
 </style>

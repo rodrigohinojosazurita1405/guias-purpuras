@@ -1,0 +1,688 @@
+# 🐍 ESTRUCTURA DJANGO SUGERIDA
+
+## 📁 Estructura de Archivos
+
+```
+backend/
+├── ratings/
+│   ├── __init__.py
+│   ├── models.py           # Modelos Rating, HelpfulVote, ReviewReport
+│   ├── serializers.py      # Serializers para API
+│   ├── views.py            # ViewSets y vistas
+│   ├── permissions.py      # Permisos personalizados
+│   ├── validators.py       # Validadores personalizados
+│   ├── urls.py             # URLs de la app
+│   └── admin.py            # Configuración admin
+└── manage.py
+```
+
+---
+
+## 📝 MODELOS (models.py)
+
+```python
+from django.db import models
+from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
+
+
+class Rating(models.Model):
+    """
+    Modelo para ratings y reviews de entidades
+    """
+    ENTITY_TYPES = [
+        ('professional', 'Professional'),
+        ('business', 'Business'),
+        ('restaurant', 'Restaurant'),
+        ('job', 'Job'),
+    ]
+    
+    # Identificación de la entidad
+    entity_type = models.CharField(max_length=50, choices=ENTITY_TYPES)
+    entity_id = models.IntegerField()
+    
+    # Usuario que califica
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings')
+    
+    # Calificación y review
+    rating = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Rating entre 1 y 5 estrellas"
+    )
+    review = models.TextField(
+        max_length=500,
+        blank=True,
+        help_text="Comentario opcional (máx 500 caracteres)"
+    )
+    
+    # Metadata
+    is_verified = models.BooleanField(
+        default=False,
+        help_text="Usuario verificado (compró/contrató el servicio)"
+    )
+    helpful_votes = models.IntegerField(default=0)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('entity_type', 'entity_id', 'user')
+        indexes = [
+            models.Index(fields=['entity_type', 'entity_id']),
+            models.Index(fields=['user']),
+            models.Index(fields=['-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.entity_type}:{self.entity_id} - {self.rating}★"
+    
+    @property
+    def user_name(self):
+        return f"{self.user.first_name} {self.user.last_name}".strip() or self.user.username
+    
+    @property
+    def user_avatar(self):
+        # Implementar lógica de avatar
+        return f"https://api.dicebear.com/7.x/avataaars/svg?seed={self.user.username}"
+
+
+class HelpfulVote(models.Model):
+    """
+    Modelo para rastrear votos de 'útil' en reviews
+    """
+    rating = models.ForeignKey(Rating, on_delete=models.CASCADE, related_name='helpful_votes_list')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('rating', 'user')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.username} found rating {self.rating.id} helpful"
+
+
+class ReviewReport(models.Model):
+    """
+    Modelo para reportes de reviews inapropiadas
+    """
+    REPORT_REASONS = [
+        ('inappropriate', 'Contenido inapropiado'),
+        ('spam', 'Spam o publicidad'),
+        ('fake', 'Información falsa'),
+        ('offensive', 'Lenguaje ofensivo'),
+        ('personal_info', 'Información personal'),
+        ('other', 'Otro motivo'),
+    ]
+    
+    rating = models.ForeignKey(Rating, on_delete=models.CASCADE, related_name='reports')
+    reported_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    reason = models.CharField(max_length=50, choices=REPORT_REASONS)
+    details = models.TextField(blank=True, max_length=200)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Report by {self.reported_by.username} on rating {self.rating.id}"
+
+
+class OwnerResponse(models.Model):
+    """
+    Modelo para respuestas del propietario a reviews
+    """
+    rating = models.OneToOneField(Rating, on_delete=models.CASCADE, related_name='owner_response')
+    message = models.TextField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Response to rating {self.rating.id}"
+```
+
+---
+
+## 🔧 SERIALIZERS (serializers.py)
+
+```python
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from .models import Rating, HelpfulVote, ReviewReport, OwnerResponse
+from .validators import validate_review_content
+import re
+
+
+class OwnerResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OwnerResponse
+        fields = ['message', 'created_at', 'updated_at']
+
+
+class RatingListSerializer(serializers.ModelSerializer):
+    """
+    Serializer para listar ratings (incluye datos del usuario)
+    """
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
+    user_name = serializers.CharField(read_only=True)
+    user_avatar = serializers.CharField(read_only=True)
+    helpful_by = serializers.SerializerMethodField()
+    owner_response = OwnerResponseSerializer(read_only=True)
+    
+    class Meta:
+        model = Rating
+        fields = [
+            'id', 'user_id', 'user_name', 'user_avatar',
+            'rating', 'review', 'is_verified',
+            'helpful_votes', 'helpful_by',
+            'created_at', 'updated_at',
+            'owner_response'
+        ]
+        read_only_fields = ['id', 'helpful_votes', 'created_at', 'updated_at']
+    
+    def get_helpful_by(self, obj):
+        """Retorna lista de user_ids que marcaron como útil"""
+        return list(obj.helpful_votes_list.values_list('user_id', flat=True))
+
+
+class RatingCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer para crear/actualizar ratings
+    """
+    class Meta:
+        model = Rating
+        fields = ['entity_type', 'entity_id', 'rating', 'review']
+    
+    def validate_rating(self, value):
+        """Validar que rating esté entre 1 y 5"""
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("La calificación debe ser entre 1 y 5 estrellas")
+        return value
+    
+    def validate_review(self, value):
+        """
+        Validar contenido de la review
+        CRÍTICO: Debe coincidir con frontend (useRating.js línea 368)
+        """
+        if not value or value.strip() == '':
+            return value  # Review es opcional
+        
+        # Longitud mínima
+        if len(value.strip()) < 10:
+            raise serializers.ValidationError("La reseña debe tener al menos 10 caracteres")
+        
+        # Longitud máxima
+        if len(value) > 500:
+            raise serializers.ValidationError("La reseña no puede exceder 500 caracteres")
+        
+        # Validar contenido inapropiado
+        inappropriate_patterns = [
+            (r'\b(telefono|celular|whatsapp|email|@)\b', 'No incluyas información de contacto en tu reseña'),
+            (r'\b\d{7,}\b', 'No incluyas números de teléfono en tu reseña'),
+            (r'@\w+\.\w+', 'No incluyas direcciones de correo en tu reseña'),
+            (r'\b(http|www)\b', 'No incluyas enlaces en tu reseña'),
+        ]
+        
+        for pattern, message in inappropriate_patterns:
+            if re.search(pattern, value, re.IGNORECASE):
+                raise serializers.ValidationError(message)
+        
+        return value.strip()
+    
+    def validate(self, data):
+        """Validar que el usuario no haya calificado antes"""
+        request = self.context.get('request')
+        if request and request.method == 'POST':
+            existing = Rating.objects.filter(
+                entity_type=data['entity_type'],
+                entity_id=data['entity_id'],
+                user=request.user
+            ).exists()
+            
+            if existing:
+                raise serializers.ValidationError("Ya has calificado este elemento")
+        
+        return data
+
+
+class RatingStatsSerializer(serializers.Serializer):
+    """
+    Serializer para estadísticas de ratings
+    """
+    average_rating = serializers.FloatField()
+    total_reviews = serializers.IntegerField()
+    rating_distribution = serializers.DictField()
+
+
+class HelpfulVoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HelpfulVote
+        fields = ['rating', 'user', 'created_at']
+        read_only_fields = ['user', 'created_at']
+
+
+class ReviewReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReviewReport
+        fields = ['rating', 'reason', 'details']
+    
+    def validate(self, data):
+        """Validar que el usuario no reporte su propia review"""
+        request = self.context.get('request')
+        rating = data.get('rating')
+        
+        if request and rating and rating.user == request.user:
+            raise serializers.ValidationError("No puedes reportar tu propia reseña")
+        
+        return data
+```
+
+---
+
+## 🎯 VIEWS (views.py)
+
+```python
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.db.models import Avg, Count, Q
+from django.shortcuts import get_object_or_404
+from .models import Rating, HelpfulVote, ReviewReport
+from .serializers import (
+    RatingListSerializer, RatingCreateSerializer, 
+    RatingStatsSerializer, ReviewReportSerializer
+)
+from .permissions import IsAuthorOrReadOnly
+
+
+class RatingViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para manejar ratings
+    """
+    queryset = Rating.objects.all()
+    permission_classes = [IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve', 'get_ratings']:
+            return RatingListSerializer
+        return RatingCreateSerializer
+    
+    def get_permissions(self):
+        """Solo lectura para no autenticados"""
+        if self.action in ['list', 'retrieve', 'get_ratings']:
+            return [AllowAny()]
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            return [IsAuthenticated(), IsAuthorOrReadOnly()]
+        return [IsAuthenticated()]
+    
+    def perform_create(self, serializer):
+        """Asignar usuario al crear rating"""
+        serializer.save(user=self.request.user)
+    
+    @action(detail=False, methods=['get'], url_path='(?P<entity_type>[^/.]+)/(?P<entity_id>[0-9]+)')
+    def get_ratings(self, request, entity_type=None, entity_id=None):
+        """
+        GET /api/ratings/{entity_type}/{entity_id}/
+        
+        Retorna ratings y estadísticas para una entidad
+        """
+        # Obtener ratings
+        ratings = Rating.objects.filter(
+            entity_type=entity_type,
+            entity_id=entity_id
+        ).select_related('user').prefetch_related('helpful_votes_list', 'owner_response')
+        
+        # Calcular estadísticas
+        stats = ratings.aggregate(
+            average_rating=Avg('rating'),
+            total_reviews=Count('id')
+        )
+        
+        # Calcular distribución
+        distribution = {str(i): 0 for i in range(1, 6)}
+        for rating in ratings:
+            distribution[str(rating.rating)] += 1
+        
+        # Serializar reviews
+        reviews_serializer = RatingListSerializer(ratings, many=True)
+        
+        return Response({
+            'ratings': {
+                'average_rating': round(stats['average_rating'] or 0, 1),
+                'total_reviews': stats['total_reviews'],
+                'rating_distribution': distribution
+            },
+            'reviews': reviews_serializer.data
+        })
+    
+    @action(detail=True, methods=['post'])
+    def helpful(self, request, pk=None):
+        """
+        POST /api/reviews/{id}/helpful/
+        
+        Marcar review como útil
+        """
+        rating = self.get_object()
+        
+        # Validar que no sea el autor
+        if rating.user == request.user:
+            return Response(
+                {'error': 'No puedes marcar tu propia reseña como útil'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Verificar si ya marcó como útil
+        helpful_vote, created = HelpfulVote.objects.get_or_create(
+            rating=rating,
+            user=request.user
+        )
+        
+        if created:
+            # Incrementar contador
+            rating.helpful_votes += 1
+            rating.save()
+            
+            return Response({'success': True, 'message': 'Marcado como útil'})
+        else:
+            return Response(
+                {'error': 'Ya has marcado esta reseña como útil'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    @action(detail=True, methods=['post'])
+    def report(self, request, pk=None):
+        """
+        POST /api/reviews/{id}/report/
+        
+        Reportar review inapropiada
+        """
+        rating = self.get_object()
+        
+        # Validar que no sea el autor
+        if rating.user == request.user:
+            return Response(
+                {'error': 'No puedes reportar tu propia reseña'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        serializer = ReviewReportSerializer(
+            data={'rating': rating.id, **request.data},
+            context={'request': request}
+        )
+        
+        if serializer.is_valid():
+            serializer.save(reported_by=request.user)
+            return Response({'success': True, 'message': 'Reseña reportada'})
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+```
+
+---
+
+## 🔒 PERMISSIONS (permissions.py)
+
+```python
+from rest_framework import permissions
+
+
+class IsAuthorOrReadOnly(permissions.BasePermission):
+    """
+    Permiso personalizado: solo el autor puede editar/eliminar
+    """
+    def has_object_permission(self, request, view, obj):
+        # Lectura permitida para todos
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        
+        # Escritura solo para el autor
+        return obj.user == request.user
+```
+
+---
+
+## 🛣️ URLS (urls.py)
+
+```python
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import RatingViewSet
+
+router = DefaultRouter()
+router.register(r'ratings', RatingViewSet, basename='rating')
+
+urlpatterns = [
+    path('', include(router.urls)),
+]
+```
+
+---
+
+## 🔧 ADMIN (admin.py)
+
+```python
+from django.contrib import admin
+from .models import Rating, HelpfulVote, ReviewReport, OwnerResponse
+
+
+@admin.register(Rating)
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ['id', 'entity_type', 'entity_id', 'user', 'rating', 'is_verified', 'helpful_votes', 'created_at']
+    list_filter = ['entity_type', 'rating', 'is_verified', 'created_at']
+    search_fields = ['user__username', 'review', 'entity_id']
+    readonly_fields = ['created_at', 'updated_at', 'helpful_votes']
+    date_hierarchy = 'created_at'
+
+
+@admin.register(HelpfulVote)
+class HelpfulVoteAdmin(admin.ModelAdmin):
+    list_display = ['id', 'rating', 'user', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['user__username', 'rating__id']
+    date_hierarchy = 'created_at'
+
+
+@admin.register(ReviewReport)
+class ReviewReportAdmin(admin.ModelAdmin):
+    list_display = ['id', 'rating', 'reported_by', 'reason', 'reviewed', 'created_at']
+    list_filter = ['reason', 'reviewed', 'created_at']
+    search_fields = ['reported_by__username', 'details']
+    readonly_fields = ['created_at']
+    date_hierarchy = 'created_at'
+    
+    actions = ['mark_as_reviewed']
+    
+    def mark_as_reviewed(self, request, queryset):
+        queryset.update(reviewed=True)
+    mark_as_reviewed.short_description = "Marcar como revisado"
+
+
+@admin.register(OwnerResponse)
+class OwnerResponseAdmin(admin.ModelAdmin):
+    list_display = ['id', 'rating', 'created_at']
+    search_fields = ['message', 'rating__id']
+    readonly_fields = ['created_at', 'updated_at']
+    date_hierarchy = 'created_at'
+```
+
+---
+
+## ⚙️ SETTINGS.PY
+
+Agregar a `INSTALLED_APPS`:
+```python
+INSTALLED_APPS = [
+    # ...
+    'rest_framework',
+    'corsheaders',  # Para permitir requests desde Vue
+    'ratings',
+]
+```
+
+Configurar CORS:
+```python
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    # ...
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Vue dev server
+    "http://localhost:8080",
+]
+
+# O para desarrollo:
+CORS_ALLOW_ALL_ORIGINS = True  # Solo en desarrollo!
+```
+
+Configurar REST Framework:
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 100,
+}
+```
+
+---
+
+## 🗄️ MIGRATIONS
+
+```bash
+# Crear migraciones
+python manage.py makemigrations ratings
+
+# Aplicar migraciones
+python manage.py migrate ratings
+
+# Crear superuser (para admin)
+python manage.py createsuperuser
+```
+
+---
+
+## 🧪 TESTING DJANGO
+
+Crear `ratings/tests.py`:
+
+```python
+from django.test import TestCase
+from django.contrib.auth.models import User
+from rest_framework.test import APIClient
+from .models import Rating, HelpfulVote
+
+
+class RatingTestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        self.client.force_authenticate(user=self.user)
+    
+    def test_create_rating(self):
+        """Test crear un rating"""
+        response = self.client.post('/api/ratings/', {
+            'entity_type': 'professional',
+            'entity_id': 1,
+            'rating': 5,
+            'review': 'Excelente servicio profesional'
+        })
+        
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Rating.objects.count(), 1)
+    
+    def test_cannot_rate_twice(self):
+        """Test que no se puede calificar dos veces"""
+        # Crear primer rating
+        Rating.objects.create(
+            entity_type='professional',
+            entity_id=1,
+            user=self.user,
+            rating=5
+        )
+        
+        # Intentar crear segundo rating
+        response = self.client.post('/api/ratings/', {
+            'entity_type': 'professional',
+            'entity_id': 1,
+            'rating': 4,
+        })
+        
+        self.assertEqual(response.status_code, 400)
+    
+    def test_helpful_vote(self):
+        """Test marcar como útil"""
+        # Crear rating de otro usuario
+        other_user = User.objects.create_user(username='other', password='pass')
+        rating = Rating.objects.create(
+            entity_type='professional',
+            entity_id=1,
+            user=other_user,
+            rating=5
+        )
+        
+        # Marcar como útil
+        response = self.client.post(f'/api/ratings/{rating.id}/helpful/')
+        
+        self.assertEqual(response.status_code, 200)
+        rating.refresh_from_db()
+        self.assertEqual(rating.helpful_votes, 1)
+
+# Ejecutar tests:
+# python manage.py test ratings
+```
+
+---
+
+## 📊 EJEMPLO DE RESPONSE REAL
+
+```json
+GET /api/ratings/professional/123/
+
+{
+  "ratings": {
+    "average_rating": 4.5,
+    "total_reviews": 12,
+    "rating_distribution": {
+      "5": 6,
+      "4": 4,
+      "3": 1,
+      "2": 1,
+      "1": 0
+    }
+  },
+  "reviews": [
+    {
+      "id": 1,
+      "user_id": 456,
+      "user_name": "Juan Pérez",
+      "user_avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=juan",
+      "rating": 5,
+      "review": "Excelente servicio profesional",
+      "is_verified": true,
+      "helpful_votes": 3,
+      "helpful_by": [789, 101, 202],
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-15T10:30:00Z",
+      "owner_response": null
+    }
+  ]
+}
+```
+
+---
+
+**Siguiente paso:** Implementar esta estructura en tu proyecto Django!

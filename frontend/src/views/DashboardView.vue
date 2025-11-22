@@ -39,7 +39,7 @@
 
       <!-- Candidates Section -->
       <div v-else-if="activeSection === 'candidates'" class="dashboard-section">
-        <CandidateManager />
+        <CandidatesView />
       </div>
 
       <!-- Placeholder Sections -->
@@ -62,7 +62,7 @@ import CompanyProfileEdit from '@/components/Profile/CompanyProfileEdit.vue'
 import DashboardHome from '@/components/Dashboard/DashboardHome.vue'
 import JobsManager from '@/components/Dashboard/JobsManager.vue'
 import MisOrdenes from '@/components/Dashboard/MisOrdenes.vue'
-import CandidateManager from '@/components/Process/CandidateManager.vue'
+import CandidatesView from '@/components/Dashboard/CandidatesView.vue'
 
 // ========== COMPOSABLES ==========
 const route = useRoute()
@@ -76,15 +76,20 @@ const companyProfileId = ref(null)
 
 // ========== LIFECYCLE ==========
 onMounted(async () => {
-  initializeFromRoute()
-
-  // Esperar a que el authStore esté inicializado
-  if (!authStore.isAuthenticated && authStore.accessToken === null) {
-    await authStore.initAuth()
-  }
+  // ¡IMPORTANTE! NO volver a llamar initAuth() aquí
+  // Ya se ejecutó en main.js al startup
+  // initAuth() solo debe ejecutarse UNA VEZ
+  console.log('📋 DashboardView mounted - authStore.isInitialized:', authStore.isInitialized)
+  console.log('📋 DashboardView mounted - authStore.isAuthenticated:', authStore.isAuthenticated)
 
   // Luego cargar el perfil del usuario
   await loadUserProfile()
+
+  // Cargar empresa ANTES de inicializar la ruta (para evitar race condition)
+  await loadUserCompany()
+
+  // Finalmente inicializar la ruta (cambiar activeSection)
+  initializeFromRoute()
 })
 
 // Observar cambios en la ruta
@@ -94,6 +99,13 @@ watch(() => route.path, () => {
 
 watch(() => route.query.tab, () => {
   initializeFromRoute()
+})
+
+// Recargar empresa cuando se cambia a la sección de empresa
+watch(() => activeSection.value, async (newSection) => {
+  if (newSection === 'company') {
+    await loadUserCompany()
+  }
 })
 
 // ========== METHODS ==========
@@ -142,8 +154,50 @@ const loadUserProfile = async () => {
       const errorData = await response.json()
       console.error('Error al obtener el perfil:', response.status, errorData)
     }
+
+    // Cargar empresa del usuario si existe
+    await loadUserCompany()
   } catch (err) {
     console.error('Error cargando perfil:', err)
+  }
+}
+
+const loadUserCompany = async () => {
+  try {
+    if (!authStore.accessToken) {
+      console.log('⚠️ No access token available')
+      return
+    }
+
+    const url = 'http://localhost:8000/api/profiles/company/me/'
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authStore.accessToken}`
+    }
+
+    console.log('📦 Llamando a loadUserCompany:', url)
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: headers
+    })
+
+    console.log('📦 Response status:', response.status)
+    if (response.ok) {
+      const data = await response.json()
+      console.log('📦 Company data:', data)
+      if (data.success && data.company) {
+        console.log('✅ Company found:', data.company.id)
+        companyProfileId.value = data.company.id
+        localStorage.setItem('companyProfileId', data.company.id)
+      } else {
+        console.log('⚠️ No company found:', data)
+      }
+    } else {
+      const errorData = await response.json()
+      console.error('❌ Error response:', response.status, errorData)
+    }
+  } catch (err) {
+    console.error('❌ Error cargando empresa:', err)
   }
 }
 

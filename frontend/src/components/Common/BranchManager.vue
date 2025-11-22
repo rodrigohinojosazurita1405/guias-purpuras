@@ -4,7 +4,7 @@
   Similar al componente de preguntas del reclutador en JobCreate
   
   @author: Sistema de Guías Púrpuras
-  @version: 1.0
+  @version: 1.1 - Con soporte para deshabilitar restricciones de plan
 -->
 
 <template>
@@ -125,11 +125,11 @@
               </span>
             </div>
 
-            <!-- Teléfono -->
+            <!-- Celular -->
             <div class="form-group">
               <label class="form-label">
                 <va-icon name="phone" size="small" />
-                Teléfono de contacto
+                Celular de contacto
               </label>
               <input
                 v-model="branch.phone"
@@ -202,15 +202,15 @@
         <!-- Contador y límite -->
         <div class="branch-counter">
           <span class="counter-text">
-            {{ localBranches.length }} / {{ planLimitDisplay }} sucursales
+            {{ localBranches.length }} {{ disablePlanRestrictions ? (localBranches.length === 1 ? 'sucursal agregada' : 'sucursales agregadas') : `/ ${planLimitDisplay} sucursales` }}
           </span>
-          <span v-if="planLimit !== Infinity" class="limit-badge">
+          <span v-if="!disablePlanRestrictions && planLimit !== Infinity" class="limit-badge">
             Plan {{ userPlan }}
           </span>
         </div>
 
         <!-- Mensaje de límite alcanzado -->
-        <div v-if="isLimitReached" class="limit-reached">
+        <div v-if="!disablePlanRestrictions && isLimitReached" class="limit-reached">
           <va-icon name="info" size="small" color="#F59E0B" />
           <span>
             Has alcanzado el límite de tu plan actual. 
@@ -244,6 +244,11 @@ const props = defineProps({
   cities: {
     type: Array,
     required: true
+  },
+  // 🆕 Nuevo prop para deshabilitar restricciones de plan
+  disablePlanRestrictions: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -263,13 +268,19 @@ const PLAN_LIMITS = {
 }
 
 // ========== COMPUTED ==========
-const planLimit = computed(() => PLAN_LIMITS[props.userPlan] || 0)
+const planLimit = computed(() => {
+  // Si las restricciones están deshabilitadas, límite infinito
+  if (props.disablePlanRestrictions) return Infinity
+  return PLAN_LIMITS[props.userPlan] || 0
+})
 
 const planLimitDisplay = computed(() => {
   return planLimit.value === Infinity ? '∞' : planLimit.value
 })
 
 const isPlanBlocked = computed(() => {
+  // Si las restricciones están deshabilitadas, nunca bloquear
+  if (props.disablePlanRestrictions) return false
   return props.userPlan === 'free'
 })
 
@@ -502,7 +513,7 @@ defineExpose({
   align-items: center;
   gap: 0.75rem;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #5C0099, #9333EA);
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: white;
   font-size: 1rem;
   font-weight: 600;

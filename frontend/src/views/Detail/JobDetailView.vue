@@ -1,16 +1,32 @@
-<!-- frontend/src/views/JobDetailView.vue -->
+<!-- frontend/src/views/Detail/JobDetailView.vue -->
 <template>
   <MainLayout>
     <section class="job-detail-section">
       <div class="container">
-        <!-- Breadcrumb -->
-        <nav class="breadcrumb">
-          <router-link to="/">Inicio</router-link>
-          <span class="separator">/</span>
-          <router-link to="/guias/trabajos">Trabajos</router-link>
-          <span class="separator">/</span>
-          <span class="current">{{ job.title }}</span>
-        </nav>
+        <!-- Loading State -->
+        <div v-if="loading" class="loading-state">
+          <va-progress-bar indeterminate color="purple" size="large" />
+          <p>Cargando detalles del empleo...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="error-state">
+          <va-icon name="error" size="4rem" color="danger" />
+          <h2>Error al cargar el empleo</h2>
+          <p>{{ error }}</p>
+          <va-button @click="$router.back()" color="purple" class="btn-back">Volver</va-button>
+        </div>
+
+        <!-- Content -->
+        <div v-else>
+          <!-- Breadcrumb -->
+          <nav class="breadcrumb">
+            <router-link to="/">Inicio</router-link>
+            <span class="separator">/</span>
+            <router-link to="/guias/trabajos">Trabajos</router-link>
+            <span class="separator">/</span>
+            <span class="current">{{ job.title }}</span>
+          </nav>
 
         <!-- Header Card -->
         <div class="job-header">
@@ -89,7 +105,7 @@
               </div>
               <div class="info-item">
                 <span class="info-label">Categoría:</span>
-                <span class="info-value">{{ job.category }}</span>
+                <span class="info-value">{{ job.jobCategory }}</span>
               </div>
             </div>
 
@@ -131,44 +147,44 @@
           <!-- Botones de Acción -->
           <div class="job-actions">
             <!-- BOTÓN NUEVO -->
-            <VaButton
-              @click="handlePostular"
+            <va-button
+              @click="showApplicationForm = !showApplicationForm"
               color="purple"
               class="postular-btn"
               size="large"
             >
               <va-icon name="celebration" class="btn-icon" />
-              <span class="btn-text">Quiero postularme</span>
-            </VaButton>
+              <span class="btn-text">{{ showApplicationForm ? 'Cancelar' : 'Quiero postularme' }}</span>
+            </va-button>
 
             <!-- Otros botones (guardar, compartir, denunciar) -->
             <div class="secondary-actions">
-              <VaButton
+              <va-button
                 preset="plain"
                 color="purple"
                 @click="guardarEmpleo"
               >
                 <va-icon name="bookmark_border" />
                 Guardar Empleo
-              </VaButton>
+              </va-button>
 
-              <VaButton
+              <va-button
                 preset="plain"
                 color="purple"
                 @click="compartirEmpleo"
               >
                 <va-icon name="share" />
                 Compartir
-              </VaButton>
+              </va-button>
 
-              <VaButton
+              <va-button
                 preset="plain"
                 color="danger"
                 @click="denunciarEmpleo"
               >
                 <va-icon name="flag" />
                 Denunciar
-              </VaButton>
+              </va-button>
             </div>
           </div>
         </div>
@@ -208,101 +224,297 @@
           </div>
         </div>
 
+        <!-- Application Form -->
+        <div v-if="showApplicationForm" class="application-form-section">
+          <div class="form-container">
+            <div class="form-header">
+              <h2>Aplicar para: {{ job.title }}</h2>
+              <va-button
+                preset="plain"
+                color="textPrimary"
+                @click="showApplicationForm = false"
+              >
+                <va-icon name="close" size="large" />
+              </va-button>
+            </div>
+
+            <!-- Información del Candidato -->
+            <div class="form-section">
+              <h3 class="form-section-title">Tus Datos</h3>
+
+              <div class="form-group">
+                <label class="form-label">Nombre Completo *</label>
+                <va-input
+                  v-model="applicantData.applicantName"
+                  placeholder="Juan Pérez"
+                  type="text"
+                  class="form-input"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Email *</label>
+                <va-input
+                  v-model="applicantData.applicantEmail"
+                  placeholder="juan@example.com"
+                  type="email"
+                  class="form-input"
+                />
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Teléfono</label>
+                  <va-input
+                    v-model="applicantData.applicantPhone"
+                    placeholder="+591..."
+                    type="tel"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">WhatsApp</label>
+                  <va-input
+                    v-model="applicantData.applicantWhatsapp"
+                    placeholder="+591..."
+                    type="tel"
+                    class="form-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Screening Questions -->
+            <div v-if="job.screeningQuestions && job.screeningQuestions.length > 0" class="form-section">
+              <h3 class="form-section-title">Preguntas de Filtrado</h3>
+
+              <div
+                v-for="(question, index) in job.screeningQuestions"
+                :key="index"
+                class="form-group"
+              >
+                <label class="form-label">{{ question }}</label>
+                <va-textarea
+                  v-model="formAnswers[index]"
+                  :placeholder="`Responde la pregunta ${index + 1}...`"
+                  class="form-textarea"
+                  rows="3"
+                />
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-actions">
+              <va-button
+                @click="handlePostular"
+                color="purple"
+                size="large"
+                class="btn-submit"
+                :loading="submitting"
+                :disabled="submitting"
+              >
+                <va-icon name="send" class="btn-icon" />
+                <span>{{ submitting ? 'Enviando...' : 'Enviar Aplicación' }}</span>
+              </va-button>
+            </div>
+          </div>
+        </div>
+
+        </div>
+
       </div>
     </section>
   </MainLayout>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/useAuthStore'
 import { useToast } from 'vuestic-ui'
 import MainLayout from '@/components/Layout/MainLayout.vue'
 
 // ========== COMPOSABLES ==========
 const router = useRouter()
 const route = useRoute()
-const authStore = useAuthStore()
 const { init: notify } = useToast()
 
 // ========== DATA ==========
 const job = ref({
-  id: route.params.id || '1',
-  title: 'Técnico(a) Comercial Agrónomo(a)',
-  companyName: 'Agropartners S.R.L.',
-  companyLogo: null,
-  verified: true,
-  confidential: false,
-  plan: 'destacado',
-  urgent: true,
-  contractType: 'Tiempo Completo',
-  city: 'Santa Cruz de la Sierra',
-  publishDate: 'Hace 2 días',
-  expiryDate: '30/11/2025',
-  category: 'Agronomía y Veterinaria',
-  tags: ['Agronomía', 'Ventas', 'Servicio al Cliente'],
-  salary: 'Bs. 5,000 - 7,000',
-  status: 'abierta',
-  description: `
-    <p>Estamos buscando un <strong>Técnico(a) Comercial Agrónomo(a)</strong> para unirse a nuestro equipo en Santa Cruz de la Sierra.</p>
-    <p>La persona seleccionada será responsable de brindar asesoría técnica a nuestros clientes en el sector agrícola, promover nuestros productos y servicios, y mantener relaciones comerciales sólidas.</p>
-  `,
-  requirements: `
-    <ul>
-      <li>Título profesional en Agronomía o carreras afines</li>
-      <li>Experiencia mínima de 2 años en ventas técnicas o asesoría agronómica</li>
-      <li>Conocimientos en cultivos, fertilización y manejo de plagas</li>
-      <li>Excelentes habilidades de comunicación y negociación</li>
-      <li>Licencia de conducir vigente</li>
-      <li>Disponibilidad para viajar</li>
-    </ul>
-  `,
-  benefits: `
-    <ul>
-      <li>Salario competitivo más comisiones</li>
-      <li>Seguro médico privado</li>
-      <li>Bono por cumplimiento de metas</li>
-      <li>Vehículo de la empresa</li>
-      <li>Capacitación continua</li>
-      <li>Oportunidades de crecimiento profesional</li>
-    </ul>
-  `,
-  responsibilities: `
-    <ul>
-      <li>Brindar asesoría técnica a clientes actuales y potenciales</li>
-      <li>Promover y vender productos agroquímicos y servicios</li>
-      <li>Realizar visitas técnicas a campos y cultivos</li>
-      <li>Elaborar informes técnicos y reportes de ventas</li>
-      <li>Participar en eventos y capacitaciones del sector</li>
-      <li>Mantener actualizado el conocimiento sobre productos y tendencias del mercado</li>
-    </ul>
-  `
+  id: '',
+  title: '',
+  companyName: '',
+  companyAnonymous: false,
+  description: '',
+  requirements: '',
+  responsibilities: '',
+  benefits: '',
+  jobCategory: '',
+  city: '',
+  contractType: '',
+  modality: 'Presencial',
+  salary: 'No Declarado',
+  status: 'active',
+  email: '',
+  whatsapp: '',
+  website: '',
+  expiryDate: '',
+  createdAt: '',
+  views: 0,
+  applications: 0,
+  publishedDaysAgo: 0,
+  selectedPlan: 'free',
+  screeningQuestions: [],
+  companyAnonymous: false
+})
+
+const loading = ref(true)
+const error = ref(null)
+const submitting = ref(false)
+const showApplicationForm = ref(false)
+const formAnswers = ref({})
+const applicantData = ref({
+  applicantName: '',
+  applicantEmail: '',
+  applicantPhone: '',
+  applicantWhatsapp: ''
 })
 
 // ========== COMPUTED ==========
 const getCompanyDisplayName = computed(() => {
-  return job.value.confidential ? 'Empresa Confidencial' : job.value.companyName
+  return job.value.companyAnonymous ? 'Empresa Confidencial' : job.value.companyName
+})
+
+const getPlanName = computed(() => {
+  const planMap = {
+    'free': 'Gratuita',
+    'featured': 'Destacada',
+    'top': 'TOP',
+    'premium': 'Premium'
+  }
+  return planMap[job.value.selectedPlan] || job.value.selectedPlan
+})
+
+const getPublishDate = computed(() => {
+  if (job.value.publishedDaysAgo === 0) return 'Publicado hoy'
+  if (job.value.publishedDaysAgo === 1) return 'Publicado hace 1 día'
+  return `Publicado hace ${job.value.publishedDaysAgo} días`
+})
+
+// ========== LIFECYCLE ==========
+onMounted(() => {
+  loadJobDetail()
 })
 
 // ========== METHODS ==========
-const handlePostular = () => {
-  // Verificar si está autenticado
-  if (!authStore.isAuthenticated) {
-    notify({
-      message: '⚠️ Debes iniciar sesión para postular a este empleo',
-      color: 'warning',
-      duration: 3000
-    })
-    // TODO: Abrir modal de login
-    return
-  }
+const loadJobDetail = async () => {
+  try {
+    loading.value = true
+    error.value = null
+    const jobId = route.params.id
+    const response = await fetch(`/api/jobs/${jobId}/`)
 
-  // Redirigir a formulario de postulación
-  router.push({
-    name: 'ApplicationProcess',  // ← CORREGIDO: nombre con mayúsculas
-    params: { id: job.value.id }
-  })
+    if (!response.ok) {
+      throw new Error('No se pudo cargar el empleo')
+    }
+
+    const data = await response.json()
+    if (data.success && data.job) {
+      job.value = data.job
+      // Inicializar formulario de screening questions
+      if (job.value.screeningQuestions && Array.isArray(job.value.screeningQuestions)) {
+        job.value.screeningQuestions.forEach((q, idx) => {
+          formAnswers.value[idx] = ''
+        })
+      }
+    }
+  } catch (err) {
+    error.value = err.message
+    notify({
+      message: `Error: ${err.message}`,
+      color: 'danger',
+      duration: 5000
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+const handlePostular = async () => {
+  try {
+    // Validar datos del candidato
+    if (!applicantData.value.applicantName.trim()) {
+      notify({
+        message: '⚠️ Por favor, ingresa tu nombre',
+        color: 'warning',
+        duration: 3000
+      })
+      return
+    }
+
+    if (!applicantData.value.applicantEmail.trim()) {
+      notify({
+        message: '⚠️ Por favor, ingresa tu email',
+        color: 'warning',
+        duration: 3000
+      })
+      return
+    }
+
+    submitting.value = true
+    const response = await fetch(`/api/jobs/${job.value.id}/apply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        applicantName: applicantData.value.applicantName,
+        applicantEmail: applicantData.value.applicantEmail,
+        applicantPhone: applicantData.value.applicantPhone,
+        applicantWhatsapp: applicantData.value.applicantWhatsapp,
+        screeningAnswers: formAnswers.value
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Error al aplicar')
+    }
+
+    const data = await response.json()
+    if (data.success) {
+      notify({
+        message: '✅ ¡Aplicación registrada exitosamente!',
+        color: 'success',
+        duration: 5000
+      })
+      // Actualizar contador
+      job.value.applications += 1
+      // Limpiar formulario y ocultarlo
+      showApplicationForm.value = false
+      applicantData.value = {
+        applicantName: '',
+        applicantEmail: '',
+        applicantPhone: '',
+        applicantWhatsapp: ''
+      }
+      formAnswers.value = {}
+      // Reinicializar formulario
+      if (job.value.screeningQuestions && Array.isArray(job.value.screeningQuestions)) {
+        job.value.screeningQuestions.forEach((q, idx) => {
+          formAnswers.value[idx] = ''
+        })
+      }
+    }
+  } catch (err) {
+    notify({
+      message: `Error: ${err.message}`,
+      color: 'danger',
+      duration: 5000
+    })
+  } finally {
+    submitting.value = false
+  }
 }
 
 const guardarEmpleo = () => {
@@ -310,11 +522,9 @@ const guardarEmpleo = () => {
     message: '💾 Empleo guardado en tus favoritos',
     color: 'success'
   })
-  // TODO: Guardar en favoritos
 }
 
 const compartirEmpleo = () => {
-  // Copiar al portapapeles
   const url = window.location.href
   navigator.clipboard.writeText(url).then(() => {
     notify({
@@ -329,7 +539,6 @@ const denunciarEmpleo = () => {
     message: '🚨 Denuncia enviada. Gracias por tu reporte.',
     color: 'info'
   })
-  // TODO: Abrir modal de denuncia
 }
 </script>
 
@@ -339,6 +548,40 @@ const denunciarEmpleo = () => {
   min-height: 100vh;
   background: linear-gradient(135deg, #F5F3FF 0%, #FFFFFF 100%);
   padding: 2rem 0;
+}
+
+/* ========== LOADING STATE ========== */
+.loading-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.loading-state p {
+  margin-top: 1.5rem;
+  color: #666;
+  font-size: 1rem;
+}
+
+/* ========== ERROR STATE ========== */
+.error-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.error-state h2 {
+  margin: 1rem 0 0.5rem;
+  color: var(--color-purple-darkest);
+}
+
+.error-state p {
+  margin-bottom: 1.5rem;
+  color: #666;
 }
 
 .container {
@@ -809,5 +1052,165 @@ const denunciarEmpleo = () => {
 
 .postular-btn:disabled:hover {
   transform: none !important;
+}
+
+/* ========== APPLICATION FORM ========== */
+.application-form-section {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-top: 2rem;
+  padding: 2.5rem;
+  animation: slideDown 0.3s ease-in-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.form-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-purple-darkest);
+  margin: 0;
+}
+
+.form-section {
+  margin-bottom: 2.5rem;
+}
+
+.form-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-purple-darkest);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-purple);
+  box-shadow: 0 0 0 3px rgba(92, 0, 153, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.btn-submit {
+  flex: 1;
+  padding: 1rem !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  background: linear-gradient(135deg, #5C0099 0%, #3D0066 100%) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  color: white !important;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(92, 0, 153, 0.3) !important;
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .application-form-section {
+    padding: 1.5rem;
+  }
+
+  .form-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .form-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-submit {
+    width: 100%;
+  }
 }
 </style>

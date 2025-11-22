@@ -5,7 +5,7 @@
       <!-- Ubicación detectada -->
       <div class="top-left">
         <div class="location-display">
-          <p>Anuncios para:</p>
+          <p>Mostrando anuncios para:</p>
           <va-icon 
             :name="searchStore.isLoadingLocation ? 'refresh' : 'location_on'" 
             :class="['location-icon', { spinning: searchStore.isLoadingLocation }]"
@@ -25,6 +25,10 @@
 
       <!-- Enlaces de contacto y ayuda -->
       <div class="top-right">
+        <a href="/" class="top-link top-link-home" title="Ir a inicio">
+          <va-icon name="home" size="small" />
+          <span class="link-text">Inicio</span>
+        </a>
         <a href="tel:+59165324767" class="top-link">
           <va-icon name="phone" size="small" />
           <span class="link-text">+591 65324767</span>
@@ -264,6 +268,20 @@ const showHelp = () => {
 .top-link:hover {
   color: var(--color-yellow-primary);
   background: rgba(255, 255, 255, 0.05);
+}
+
+/* ========== HOME BUTTON ========== */
+.top-link-home {
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.top-link-home:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: var(--color-yellow-primary);
 }
 
 .language-selector {

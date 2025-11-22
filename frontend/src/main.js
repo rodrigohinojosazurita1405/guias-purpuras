@@ -6,6 +6,7 @@ import 'vuestic-ui/css'
 
 import App from './App.vue'
 import router from './router'
+import { useAuthStore } from './stores/useAuthStore'
 import { vuesticSpanishConfig } from './config/vuestic-i18n-config'
 
 // ==========================================
@@ -49,6 +50,13 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.use(createVuestic({ config: vuesticConfig }))
+
+// ==========================================
+// INICIALIZAR AUTH STORE (SOLO UNA VEZ AL INICIO)
+// ==========================================
+const authStore = useAuthStore(pinia)
+authStore.initAuth()
+console.log('✅ Auth store inicializado en main.js')
 
 // ==========================================
 // MONTAR APP

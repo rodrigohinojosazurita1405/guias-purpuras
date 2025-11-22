@@ -1,116 +1,51 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 // ========== VIEWS PRINCIPALES ==========
 import HomeView from '@/views/HomeView.vue'
 import GuideView from '@/views/GuideView.vue'
 import PublishView from '@/views/PublishView.vue'
 
-// ========== VIEWS DE CREACIÓN (NUEVA ESTRUCTURA) ==========
-import BusinessCreate from '@/views/Create/BusinessCreate.vue'
-import JobCreate from '@/views/Create/JobCreate.vue'
-import ProfessionalCreate from '@/views/Create/ProfessionalCreate.vue'
-import RestaurantCreate from '@/views/Create/RestaurantCreate.vue'
-
-// ========== VIEWS DE DETALLE (NUEVA ESTRUCTURA) ==========
-import ProfessionalDetailView from '@/views/Detail/ProfessionalDetailView.vue'
-import RestaurantDetailView from '@/views/Detail/RestaurantDetailView.vue'
-import BusinessDetail from '@/views/Detail/BusinessDetail.vue'
-import ListingDetailView from '@/views/Detail/ListingDetailView.vue'
+// ========== VIEWS DE DETALLE - SOLO TRABAJOS ==========
 import JobDetailView from '@/views/Detail/JobDetailView.vue'
 
 // ========== VIEWS DE PROCESO ==========
-import ApplicationProcess from '@/views/Process/ApplicationProcess.vue'
+import ApplicationProcess from '@/components/Process/ApplicationProcess.vue'
 
-// ========== VIEWS ESTÁTICAS (NUEVA ESTRUCTURA) ==========
+// ========== VIEWS ESTÁTICAS ==========
 import AboutView from '@/views/Static/AboutView.vue'
-import BlogPage from '@/views/Static/BlogPage.vue'
 import ContactPage from '@/views/Static/ContactPage.vue'
 
+// ========== VIEWS DE AUTENTICACIÓN ==========
+import LoginView from '@/views/Auth/LoginView.vue'
+import RegisterView from '@/views/Auth/RegisterView.vue'
+import ForgotPasswordView from '@/views/Auth/ForgotPasswordView.vue'
+
 const routes = [
-  // ========== HOME ==========
+  // ========== HOME - SOLO TRABAJOS ==========
   {
     path: '/',
     name: 'Home',
-    component: HomeView
+    component: HomeView,
+    meta: {
+      title: 'Guías Púrpuras - Ofertas de Trabajo',
+      description: 'Encuentra las mejores oportunidades laborales en Bolivia'
+    }
   },
 
-  // ========== PUBLICAR ANUNCIO (LANDING) ==========
+  // ========== PUBLICAR TRABAJO ==========
   {
     path: '/publicar',
-    name: 'Publish',
+    name: 'PublishJob',
     component: PublishView,
     meta: {
-      title: 'Publicar Anuncio - Guías Púrpuras',
-      description: 'Elige el tipo de anuncio que quieres publicar',
-      requiresAuth: false
+      title: 'Publicar Oferta de Trabajo - Guías Púrpuras',
+      description: 'Publica tu oferta de trabajo de forma rápida y segura',
+      requiresAuth: true
     }
   },
 
-  // ========== RUTAS DE CREACIÓN (NUEVA ESTRUCTURA) ==========
-  {
-    path: '/crear/negocio',
-    name: 'CreateBusiness',
-    component: BusinessCreate,
-    meta: {
-      title: 'Crear Negocio - Guías Púrpuras',
-      description: 'Publica tu negocio y llega a miles de clientes',
-      requiresAuth: false
-    }
-  },
-  {
-    path: '/crear/trabajo',
-    name: 'CreateJob',
-    component: JobCreate,
-    meta: {
-      title: 'Publicar Trabajo - Guías Púrpuras',
-      description: 'Encuentra al candidato ideal para tu empresa',
-      requiresAuth: false
-    }
-  },
-  {
-    path: '/crear/profesional',
-    name: 'CreateProfessional',
-    component: ProfessionalCreate,
-    meta: {
-      title: 'Crear Perfil Profesional - Guías Púrpuras',
-      description: 'Crea tu perfil y encuentra oportunidades laborales',
-      requiresAuth: false
-    }
-  },
-  {
-    path: '/crear/restaurante',
-    name: 'CreateRestaurant',
-    component: RestaurantCreate,
-    meta: {
-      title: 'Publicar Restaurante - Guías Púrpuras',
-      description: 'Promociona tu restaurante y atrae más clientes',
-      requiresAuth: false
-    }
-  },
-
-  // ========== RUTAS DE LISTAS - TODAS USANDO GUIDEVIEW ==========
-  {
-    path: '/guias/negocios',
-    name: 'BusinessList',
-    component: GuideView,  // ✅ CAMBIO: Ahora usa GuideView
-    props: { category: 'negocios' },  // ✅ CAMBIO: Nueva categoría
-    meta: {
-      title: 'Guías de Negocios en Bolivia',
-      description: 'Encuentra empresas y PyMEs verificadas en Bolivia',
-      requiresAuth: false
-    }
-  },
-  {
-    path: '/guias/profesionales',
-    name: 'ProfessionalsList',
-    component: GuideView,
-    props: { category: 'profesionales' },
-    meta: {
-      title: 'Profesionales en Bolivia',
-      description: 'Encuentra profesionales calificados en Bolivia',
-      requiresAuth: false
-    }
-  },
+  // ========== LISTADO DE TRABAJOS ==========
   {
     path: '/guias/trabajos',
     name: 'JobsList',
@@ -122,38 +57,8 @@ const routes = [
       requiresAuth: false
     }
   },
-  {
-    path: '/guias/gastronomia',
-    name: 'RestaurantsList',
-    component: GuideView,
-    props: { category: 'gastronomia' },
-    meta: {
-      title: 'Restaurantes y Gastronomía en Bolivia',
-      description: 'Descubre los mejores lugares para comer',
-      requiresAuth: false
-    }
-  },
 
-  // ========== RUTAS DE DETALLE ==========
-  {
-    path: '/guias/negocios/:slug',
-    name: 'BusinessDetail',
-    component: BusinessDetail,
-    meta: {
-      title: 'Detalle de Negocio',
-      requiresAuth: false
-    }
-  },
-  {
-    path: '/guias/profesionales/:slug',
-    name: 'ProfessionalDetail',
-    component: ProfessionalDetailView
-  },
-  {
-    path: '/guias/gastronomia/:slug',
-    name: 'RestaurantDetail',
-    component: RestaurantDetailView
-  },
+  // ========== DETALLE DE TRABAJO ==========
   {
     path: '/guias/trabajos/:id',
     name: 'JobDetail',
@@ -163,68 +68,87 @@ const routes = [
       requiresAuth: false
     }
   },
-  {
-    path: '/anuncio/:id',
-    name: 'ListingDetail',
-    component: ListingDetailView
-  },
 
-  // ========== RUTAS DE PROCESO ==========
+  // ========== POSTULAR A TRABAJO ==========
   {
-    path: '/guias/trabajos/:id/postular',
+    path: '/guias/trabajos/:id/aplicar',
     name: 'ApplicationProcess',
     component: ApplicationProcess,
     meta: {
-      requiresAuth: false // TODO: Cambiar a true cuando haya autenticación
+      title: 'Aplicar a Oferta de Trabajo',
+      requiresAuth: false // Se puede aplicar sin autenticación
     }
   },
 
-  // ========== COMPATIBILIDAD CON RUTAS ANTERIORES (REDIRECTS) ==========
+  // ========== REDIRECCIONES PARA COMPATIBILIDAD ==========
   {
-    path: '/guias/negocios/crear',
-    redirect: '/crear/negocio'
+    path: '/crear/trabajo',
+    redirect: '/publicar'
   },
   {
-    path: '/guias/trabajos/crear',
-    redirect: '/crear/trabajo'
-  },
-  {
-    path: '/negocios/crear',
-    redirect: '/crear/negocio'
-  },
-  {
-    path: '/trabajos/crear',
-    redirect: '/crear/trabajo'
-  },
-  {
-    path: '/profesionales/crear',
-    redirect: '/crear/profesional'
-  },
-  {
-    path: '/gastronomia/crear',
-    redirect: '/crear/restaurante'
-  },
-  {
-    path: '/restaurantes/crear',
-    redirect: '/crear/restaurante'
+    path: '/publicar/trabajo',
+    redirect: '/publicar'
   },
 
-  // ========== RUTAS ALTERNATIVAS CORTAS ==========
+  // ========== DASHBOARD - USER PROFILE ==========
   {
-    path: '/profesionales',
-    redirect: '/guias/profesionales'
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import('@/views/DashboardView.vue'),
+    meta: {
+      title: 'Mi Dashboard - Guías Púrpuras',
+      requiresAuth: true
+    }
   },
   {
-    path: '/gastronomia',
-    redirect: '/guias/gastronomia'
+    path: '/dashboard/profile',
+    name: 'DashboardProfile',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'profile' },
+    meta: {
+      title: 'Mi Perfil - Guías Púrpuras',
+      requiresAuth: true
+    }
   },
   {
-    path: '/trabajos',
-    redirect: '/guias/trabajos'
+    path: '/dashboard/company',
+    name: 'DashboardCompany',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'company' },
+    meta: {
+      title: 'Perfil De La Empresa - Guías Púrpuras',
+      requiresAuth: true
+    }
   },
   {
-    path: '/negocios',
-    redirect: '/guias/negocios'
+    path: '/dashboard/jobs',
+    name: 'DashboardJobs',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'jobs' },
+    meta: {
+      title: 'Mis Órdenes - Guías Púrpuras',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/dashboard/jobs-manager',
+    name: 'DashboardJobsManager',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'jobs_manager' },
+    meta: {
+      title: 'Administrador De Empleos - Guías Púrpuras',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/dashboard/candidates',
+    name: 'DashboardCandidates',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'candidates' },
+    meta: {
+      title: 'Mi Base De Talento - Guías Púrpuras',
+      requiresAuth: true
+    }
   },
 
   // ========== PÁGINAS ESTÁTICAS ==========
@@ -235,16 +159,39 @@ const routes = [
     meta: { title: 'Sobre Nosotros' }
   },
   {
-    path: '/blog',
-    name: 'Blog',
-    component: BlogPage,
-    meta: { title: 'Blog' }
-  },
-  {
     path: '/contacto',
     name: 'Contact',
     component: ContactPage,
     meta: { title: 'Contacto' }
+  },
+
+  // ========== AUTENTICACIÓN ==========
+  {
+    path: '/login',
+    name: 'Login',
+    component: LoginView,
+    meta: {
+      title: 'Iniciar Sesión - Guías Púrpuras',
+      requiresAuth: false
+    }
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: RegisterView,
+    meta: {
+      title: 'Crear Cuenta - Guías Púrpuras',
+      requiresAuth: false
+    }
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPasswordView,
+    meta: {
+      title: 'Recuperar Contraseña - Guías Púrpuras',
+      requiresAuth: false
+    }
   },
 
   // ========== 404 - NOT FOUND ==========
@@ -276,13 +223,44 @@ router.beforeEach((to, from, next) => {
 
   // Verificar autenticación si es requerida
   if (to.meta.requiresAuth) {
-    const isAuthenticated = false // TODO: Cambiar por lógica real
-    if (!isAuthenticated) {
+    const authStore = useAuthStore()
+
+    console.log(`🛡️ [GUARD] Ruta protegida: ${to.path}`)
+    console.log(`🛡️ [GUARD] isInitialized: ${authStore.isInitialized}`)
+    console.log(`🛡️ [GUARD] isAuthenticated: ${authStore.isAuthenticated}`)
+    console.log(`🛡️ [GUARD] user: ${authStore.user?.email || 'null'}`)
+    console.log(`🛡️ [GUARD] accessToken: ${authStore.accessToken ? '***' : 'null'}`)
+
+    // Si NO está inicializado, reinicializar desde localStorage
+    // Esto es importante cuando se hace logout y luego se intenta acceder a ruta protegida
+    if (!authStore.isInitialized) {
+      console.log(`🛡️ [GUARD] Store no inicializado, ejecutando initAuth()...`)
+      authStore.initAuth()
+
+      // Después de initAuth(), chequear si está autenticado
+      if (!authStore.isAuthenticated) {
+        console.log(`🛡️ [GUARD] No autenticado después de initAuth(), redirigiendo a /login`)
+        next({
+          path: '/login',
+          query: { redirect: to.fullPath }
+        })
+        return
+      } else {
+        console.log(`🛡️ [GUARD] Autenticado después de initAuth(), permitiendo acceso`)
+        next()
+        return
+      }
+    }
+
+    // Si ya está inicializado, solo verificar isAuthenticated
+    if (!authStore.isAuthenticated) {
+      console.log(`🛡️ [GUARD] No autenticado, redirigiendo a /login`)
       next({
         path: '/login',
         query: { redirect: to.fullPath }
       })
     } else {
+      console.log(`🛡️ [GUARD] Autenticado, permitiendo acceso`)
       next()
     }
   } else {

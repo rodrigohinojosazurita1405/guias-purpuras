@@ -14,28 +14,28 @@
 
     <!-- Stats Grid -->
     <div class="stats-grid">
-      <!-- Card: Trabajos Publicados -->
+      <!-- Card: Publicaciones -->
       <div class="stat-card" @click="goToSection('jobs')">
         <div class="stat-icon jobs">
-          <va-icon name="work" />
+          <va-icon name="list_alt" />
         </div>
         <div class="stat-content">
-          <h3>Trabajos Publicados</h3>
-          <div class="stat-number">{{ stats.jobsPublished }}</div>
-          <p class="stat-subtitle">{{ stats.jobsActive }} activos</p>
+          <h3>Publicaciones</h3>
+          <div class="stat-number">{{ stats.totalPublished }}</div>
+          <p class="stat-subtitle">{{ stats.activeListings }} activas</p>
         </div>
         <va-icon name="arrow_forward" class="stat-arrow" />
       </div>
 
-      <!-- Card: Aplicaciones -->
+      <!-- Card: Interacciones -->
       <div class="stat-card" @click="goToSection('candidates')">
         <div class="stat-icon applications">
           <va-icon name="people" />
         </div>
         <div class="stat-content">
-          <h3>Aplicaciones</h3>
-          <div class="stat-number">{{ stats.applications }}</div>
-          <p class="stat-subtitle">{{ stats.applicationsNew }} nuevas</p>
+          <h3>Interacciones</h3>
+          <div class="stat-number">{{ stats.totalApplications }}</div>
+          <p class="stat-subtitle">{{ stats.newApplications }} nuevas</p>
         </div>
         <va-icon name="arrow_forward" class="stat-arrow" />
       </div>
@@ -74,15 +74,15 @@
       <div class="actions-grid">
         <button class="action-btn" @click="goToPublish">
           <va-icon name="add_circle" />
-          <span>Publicar Trabajo</span>
+          <span>Nueva Publicación</span>
         </button>
-        <button class="action-btn" @click="goToSection('jobs')">
+        <button class="action-btn" @click="goToSection('jobs_manager')">
           <va-icon name="folder" />
           <span>Ver Publicaciones</span>
         </button>
         <button class="action-btn" @click="goToSection('candidates')">
           <va-icon name="people" />
-          <span>Ver Candidatos</span>
+          <span>Ver Interacciones</span>
         </button>
         <button class="action-btn" @click="goToSection('profile')">
           <va-icon name="person" />
@@ -97,11 +97,11 @@
       <div v-if="activities.length > 0" class="activity-list">
         <div v-for="activity in activities.slice(0, 5)" :key="activity.id" class="activity-item">
           <div class="activity-icon" :class="activity.type">
-            <va-icon :name="getActivityIcon(activity.type)" />
+            <va-icon :name="dashboardActivities.getActivityIcon(activity.type)" />
           </div>
           <div class="activity-content">
             <p class="activity-title">{{ activity.title }}</p>
-            <p class="activity-time">{{ formatTime(activity.date) }}</p>
+            <p class="activity-time">{{ dashboardActivities.formatTime(activity.date) }}</p>
           </div>
         </div>
       </div>
@@ -116,16 +116,50 @@
       <h2>Consejos</h2>
       <div class="tips-grid">
         <div class="tip-card">
-          <h4>Agrega un logo</h4>
-          <p>Las publicaciones con logo reciben 3x más vistas</p>
+          <h4>Contenido de calidad</h4>
+          <p>Las publicaciones completas reciben más interacciones y vistas</p>
         </div>
         <div class="tip-card">
           <h4>Descripción clara</h4>
-          <p>Describe bien el puesto para atraer mejores candidatos</p>
+          <p>Describe bien lo que ofreces para atraer mejores candidatos</p>
         </div>
         <div class="tip-card">
           <h4>Responde rápido</h4>
-          <p>Los candidatos valoran las respuestas inmediatas</p>
+          <p>Los usuarios valoran las respuestas inmediatas</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coming Soon Section - Other Guides -->
+    <div class="coming-soon-section">
+      <div class="coming-soon-header">
+        <h2>Próximas Guías</h2>
+        <p>Estamos trabajando en expandir Guías Púrpuras</p>
+      </div>
+      <div class="coming-soon-grid">
+        <div class="coming-soon-card">
+          <div class="coming-soon-icon gastronomy">
+            <va-icon name="restaurant" />
+          </div>
+          <h3>Guías Gastronomía</h3>
+          <p>Descubre y publica los mejores restaurantes</p>
+          <div class="coming-soon-badge">Próximamente</div>
+        </div>
+        <div class="coming-soon-card">
+          <div class="coming-soon-icon business">
+            <va-icon name="business" />
+          </div>
+          <h3>Guías Negocios</h3>
+          <p>Promociona y gestiona tu negocio</p>
+          <div class="coming-soon-badge">Próximamente</div>
+        </div>
+        <div class="coming-soon-card">
+          <div class="coming-soon-icon professionals">
+            <va-icon name="person" />
+          </div>
+          <h3>Guías Profesionales</h3>
+          <p>Conecta con los mejores profesionales</p>
+          <div class="coming-soon-badge">Próximamente</div>
         </div>
       </div>
     </div>
@@ -133,38 +167,36 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { useDashboardStats } from '@/composables/useDashboardStats'
+import { useDashboardActivities } from '@/composables/useDashboardActivities'
 
 // ========== COMPOSABLES ==========
 const router = useRouter()
 const { init: notify } = useToast()
 const authStore = useAuthStore()
+const dashboardStats = useDashboardStats()
+const dashboardActivities = useDashboardActivities()
 
 // ========== DATA ==========
 const userName = ref('Usuario')
 const currentDate = ref('')
 
+// Variables para asegurar reactividad
 const stats = ref({
-  jobsPublished: 0,
-  jobsActive: 0,
-  applications: 0,
-  applicationsNew: 0,
+  totalPublished: 0,
+  activeListings: 0,
+  totalApplications: 0,
+  newApplications: 0,
   totalViews: 0,
   profileComplete: false,
   profilePercentage: 0
 })
 
-const activities = ref([
-  {
-    id: 1,
-    type: 'job',
-    title: 'Cargando actividades...',
-    date: new Date()
-  }
-])
+const activities = ref([])
 
 // ========== LIFECYCLE ==========
 onMounted(() => {
@@ -186,112 +218,36 @@ const initializeDashboard = async () => {
     // Obtener nombre del usuario desde authStore (tiene prioridad)
     if (authStore.user?.name) {
       userName.value = authStore.user.name
-      console.log('Nombre del usuario desde authStore:', userName.value)
     } else {
       // Fallback a localStorage
       const storedUser = localStorage.getItem('auth_user')
       if (storedUser) {
         const user = JSON.parse(storedUser)
         userName.value = user.name || 'Usuario'
-        console.log('Nombre del usuario desde localStorage:', userName.value)
       }
     }
 
-    // Cargar estadísticas y actividades
-    await loadStats()
-    await loadActivities()
+    // Cargar estadísticas
+    await dashboardStats.loadStats()
+    // Copiar datos a nuestra variable local reactiva
+    stats.value = { ...dashboardStats.stats }
+
+    // Cargar actividades
+    await dashboardActivities.loadActivities(5)
+    // Copiar datos a nuestra variable local reactiva
+    activities.value = [...dashboardActivities.activities]
   } catch (err) {
     console.error('Error inicializando dashboard:', err)
-  }
-}
-
-const loadStats = async () => {
-  try {
-    const storedUser = localStorage.getItem('authUser')
-    if (!storedUser) {
-      console.log('Mostrando estadísticas por defecto (usuario no autenticado aún)')
-      // Mostrar valores por defecto mientras se carga
-      stats.value = {
-        jobsPublished: 0,
-        jobsActive: 0,
-        applications: 0,
-        applicationsNew: 0,
-        totalViews: 0,
-        profileComplete: false,
-        profilePercentage: 0
-      }
-      return
+    // Si falla, al menos mostrar dummy data
+    stats.value = {
+      totalPublished: 3,
+      activeListings: 2,
+      totalApplications: 12,
+      newApplications: 3,
+      totalViews: 124,
+      profileComplete: true,
+      profilePercentage: 85
     }
-
-    const user = JSON.parse(storedUser)
-    const email = user.email || ''
-
-    console.log('Intentando cargar estadísticas para:', email)
-
-    // Intentar cargar del endpoint si existe
-    try {
-      const response = await fetch(
-        `http://localhost:8000/api/user/stats?email=${encodeURIComponent(email)}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        }
-      )
-
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success && data.statistics) {
-          stats.value = {
-            jobsPublished: data.statistics.jobsPublished || 0,
-            jobsActive: data.statistics.jobsActive || 0,
-            applications: data.statistics.applications || 0,
-            applicationsNew: data.statistics.applicationsNew || 0,
-            totalViews: data.statistics.totalViews || 0,
-            profileComplete: data.statistics.profileComplete || false,
-            profilePercentage: data.statistics.profileComplete ? 100 : 0
-          }
-        }
-      }
-    } catch (err) {
-      console.log('Endpoint de estadísticas no disponible, usando valores por defecto')
-      // Mantener datos por defecto si hay error
-    }
-  } catch (err) {
-    console.error('Error en loadStats:', err)
-  }
-}
-
-const loadActivities = async () => {
-  try {
-    const storedUser = localStorage.getItem('authUser')
-    if (!storedUser) {
-      return
-    }
-
-    const user = JSON.parse(storedUser)
-    const email = user.email || ''
-
-    const response = await fetch(
-      `/api/user/activities?email=${encodeURIComponent(email)}`
-    )
-
-    if (!response.ok) {
-      throw new Error('Error cargando actividades')
-    }
-
-    const data = await response.json()
-    if (data.success && data.activities) {
-      activities.value = data.activities.map((activity, index) => ({
-        id: index + 1,
-        type: activity.type || 'job',
-        title: activity.title,
-        date: new Date(activity.date)
-      }))
-    }
-  } catch (err) {
-    console.error('Error cargando actividades:', err)
-    // Mantener estado actual si hay error
   }
 }
 
@@ -304,28 +260,6 @@ const setCurrentDate = () => {
   }
   const today = new Date()
   currentDate.value = today.toLocaleDateString('es-ES', options)
-}
-
-const getActivityIcon = (type) => {
-  const icons = {
-    job: 'work',
-    application: 'people',
-    message: 'mail',
-    profile: 'person'
-  }
-  return icons[type] || 'circle'
-}
-
-const formatTime = (date) => {
-  const now = new Date()
-  const diff = now - date
-  const hours = Math.floor(diff / (1000 * 60 * 60))
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
-  if (hours < 1) return 'Hace poco'
-  if (hours < 24) return `Hace ${hours}h`
-  if (days === 1) return 'Hace 1 día'
-  return `Hace ${days} días`
 }
 
 const goToSection = (section) => {
@@ -681,6 +615,123 @@ const goToPublish = () => {
   font-weight: 500;
 }
 
+/* ========== COMING SOON SECTION ========== */
+.coming-soon-section {
+  margin-bottom: 2rem;
+}
+
+.coming-soon-header {
+  margin-bottom: 2rem;
+}
+
+.coming-soon-header h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.coming-soon-header p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #6B7280;
+}
+
+.coming-soon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.coming-soon-card {
+  position: relative;
+  background: white;
+  border: 2px solid #E4E7EC;
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.coming-soon-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #7c3aed, #6d28d9);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.coming-soon-card:hover::before {
+  transform: scaleX(1);
+}
+
+.coming-soon-card:hover {
+  border-color: var(--color-purple);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+  transform: translateY(-4px);
+}
+
+.coming-soon-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  margin: 0 auto 1rem;
+  font-size: 2rem;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.coming-soon-card:hover .coming-soon-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.coming-soon-icon.gastronomy {
+  background: linear-gradient(135deg, #F59E0B, #F97316);
+}
+
+.coming-soon-icon.business {
+  background: linear-gradient(135deg, #8B5CF6, #7c3aed);
+}
+
+.coming-soon-icon.professionals {
+  background: linear-gradient(135deg, #06B6D4, #3B82F6);
+}
+
+.coming-soon-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.coming-soon-card p {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: #6B7280;
+  line-height: 1.5;
+}
+
+.coming-soon-badge {
+  display: inline-block;
+  padding: 0.4rem 0.875rem;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .dashboard-home {
@@ -752,6 +803,28 @@ const goToPublish = () => {
 
   .tip-card {
     padding: 1.25rem;
+  }
+
+  .coming-soon-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .coming-soon-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .coming-soon-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.75rem;
+  }
+
+  .coming-soon-card h3 {
+    font-size: 1rem;
+  }
+
+  .coming-soon-card p {
+    font-size: 0.85rem;
   }
 }
 </style>

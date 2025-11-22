@@ -12,7 +12,7 @@
       </h2>
 
       <p class="step-description">
-        Elige dónde aparecerá tu anuncio para que las personas correctas lo encuentren
+       Bienvenido a nuestro  ecosistema digital aquí podras elegir dónde aparecerá tu anuncio para que las personas correctas lo encuentren.
       </p>
 
       <!-- Categorías con Cards Visuales -->
@@ -337,27 +337,27 @@ const errors = ref({
 const categories = [
   { 
     id: 'profesionales', 
-    name: 'Profesionales', 
+    name: 'Guias Profesionales', 
     icon: 'work',
     description: 'Abogados, médicos, arquitectos'
   },
   { 
     id: 'gastronomia', 
-    name: 'Gastronomía', 
+    name: 'Guias Gastronómicas', 
     icon: 'restaurant',
     description: 'Restaurantes, cafés y comida'
   },
   { 
     id: 'trabajos', 
-    name: 'Trabajos', 
+    name: 'Guías de Trabajos', 
     icon: 'badge',
-    description: 'Ofertas laborales y empleos'
+    description: 'Crea ofertas laborales y empleos'
   },
   { 
     id: 'negocios', 
-    name: 'Negocios', 
+    name: 'Guías de Negocios', 
     icon: 'store',
-    description: 'Tiendas, empresas y comercios'
+    description: 'empresas, pymes, comercios, importadoras, firmas legales, clínicas, hospitales'
   }
 ]
 

@@ -8,7 +8,9 @@
       </div>
 
       <nav class="sidebar-menu">
-        <!-- Main Sections -->
+        <!-- ========== SECCIÓN PRINCIPAL ========== -->
+        <div class="menu-section-title">NAVEGACIÓN</div>
+
         <router-link
           to="/dashboard"
           class="menu-item"
@@ -18,13 +20,16 @@
           <span>Tablero</span>
         </router-link>
 
+        <!-- ========== SECCIÓN PERFIL ========== -->
+        <div class="menu-section-title">MI PERFIL</div>
+
         <router-link
           to="/dashboard/profile"
           class="menu-item"
           :class="{ active: activeSection === 'profile' }"
         >
           <va-icon name="person" />
-          <span>Mi Perfil</span>
+          <span>Editar Perfil Personal</span>
         </router-link>
 
         <router-link
@@ -36,23 +41,8 @@
           <span>Perfil De La Empresa</span>
         </router-link>
 
-        <router-link
-          to="/dashboard/jobs"
-          class="menu-item"
-          :class="{ active: activeSection === 'jobs' }"
-        >
-          <va-icon name="work" />
-          <span>Mis Órdenes</span>
-        </router-link>
-
-        <router-link
-          to="/publicar"
-          class="menu-item highlight"
-          :class="{ active: activeSection === 'publish' }"
-        >
-          <va-icon name="add_circle" />
-          <span>Publicar Un Nuevo Trabajo</span>
-        </router-link>
+        <!-- ========== SECCIÓN PUBLICACIONES ========== -->
+        <div class="menu-section-title">PUBLICACIONES</div>
 
         <router-link
           to="/dashboard/jobs-manager"
@@ -60,13 +50,21 @@
           :class="{ active: activeSection === 'jobs_manager' }"
         >
           <va-icon name="folder" />
-          <span>Mis Publicaciones</span>
+          <span>Mis Anuncios</span>
         </router-link>
 
-        <!-- Divider -->
-        <div class="menu-divider"></div>
+        <router-link
+          to="/dashboard/jobs"
+          class="menu-item"
+          :class="{ active: activeSection === 'jobs' }"
+        >
+          <va-icon name="work" />
+          <span>Solicitudes Recibidas</span>
+        </router-link>
 
-        <!-- Additional Options -->
+        <!-- ========== SECCIÓN INTERACCIONES ========== -->
+        <div class="menu-section-title">INTERACCIONES</div>
+
         <router-link
           to="/dashboard/candidates"
           class="menu-item"
@@ -74,15 +72,6 @@
         >
           <va-icon name="people" />
           <span>Candidatos Guardados</span>
-        </router-link>
-
-        <router-link
-          to="/dashboard/blocked"
-          class="menu-item"
-          :class="{ active: activeSection === 'blocked' }"
-        >
-          <va-icon name="block" />
-          <span>Usuarios Bloqueados</span>
         </router-link>
 
         <router-link
@@ -100,13 +89,21 @@
           :class="{ active: activeSection === 'messages' }"
         >
           <va-icon name="mail" />
-          <span>Comunicaciones</span>
+          <span>Mensajes</span>
         </router-link>
 
-        <!-- Divider -->
-        <div class="menu-divider"></div>
+        <router-link
+          to="/dashboard/blocked"
+          class="menu-item"
+          :class="{ active: activeSection === 'blocked' }"
+        >
+          <va-icon name="block" />
+          <span>Bloqueados</span>
+        </router-link>
 
-        <!-- Settings -->
+        <!-- ========== SECCIÓN ADMINISTRACIÓN ========== -->
+        <div class="menu-section-title">ADMINISTRACIÓN</div>
+
         <router-link
           to="/dashboard/users"
           class="menu-item"
@@ -124,40 +121,52 @@
           <va-icon name="history" />
           <span>Registro De Actividad</span>
         </router-link>
-
-        <router-link
-          to="/dashboard/notifications"
-          class="menu-item"
-          :class="{ active: activeSection === 'notifications' }"
-        >
-          <va-icon name="notifications" />
-          <span>Alertas</span>
-        </router-link>
-
-        <!-- Account Settings -->
-        <div class="menu-divider"></div>
-
-        <div
-          @click="showChangePassword = true"
-          class="menu-item"
-          :class="{ active: activeSection === 'password' }"
-        >
-          <va-icon name="lock" />
-          <span>Cambiar Contraseña</span>
-        </div>
-
-        <div
-          @click="handleLogout"
-          class="menu-item"
-        >
-          <va-icon name="logout" />
-          <span>Cerrar Sesión</span>
-        </div>
       </nav>
     </div>
 
     <!-- Main Content -->
     <div class="dashboard-content">
+      <!-- Dashboard Navbar -->
+      <div class="dashboard-navbar">
+        <div class="navbar-actions">
+          <router-link to="/publicar" class="navbar-btn navbar-btn-primary">
+            <va-icon name="add_circle" />
+            <span>Publicar Nuevo Anuncio</span>
+          </router-link>
+
+          <router-link to="/" class="navbar-btn navbar-btn-secondary">
+            <va-icon name="home" />
+            <span>Volver a Inicio</span>
+          </router-link>
+        </div>
+
+        <div class="navbar-menu">
+          <div class="dropdown-wrapper">
+            <button class="navbar-btn navbar-btn-config" @click="showMenu = !showMenu">
+              <va-icon name="person" />
+              <span>Cuenta</span>
+              <va-icon name="expand_more" class="dropdown-arrow" :class="{ open: showMenu }" />
+            </button>
+            <div v-if="showMenu" class="dropdown-content">
+              <div class="dropdown-item" @click="goToAlerts; showMenu = false">
+                <va-icon name="notifications" size="small" />
+                <span>Alertas</span>
+              </div>
+
+              <div class="dropdown-item" @click="showChangePassword = true; showMenu = false">
+                <va-icon name="lock" size="small" />
+                <span>Cambiar Contraseña</span>
+              </div>
+
+              <div class="dropdown-item dropdown-item-logout" @click="handleLogout">
+                <va-icon name="logout" size="small" />
+                <span>Cerrar Sesión</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <slot></slot>
     </div>
 
@@ -177,15 +186,18 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useToast } from 'vuestic-ui'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 // ========== COMPOSABLES ==========
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 const { init: notify } = useToast()
 
 // ========== DATA ==========
 const activeSection = ref('home')
 const showChangePassword = ref(false)
+const showMenu = ref(false)
 
 // ========== LIFECYCLE ==========
 onMounted(() => {
@@ -228,15 +240,22 @@ const updateActiveSection = () => {
   }
 }
 
+const goToAlerts = () => {
+  activeSection.value = 'notifications'
+  router.push('/dashboard/notifications')
+}
+
 const handleLogout = () => {
-  notify({
-    message: 'Cerrando sesión...',
-    color: 'info'
-  })
-  // TODO: Implementar logout
+  console.log('🚪 LOGOUT desde Dashboard - Clearing everything...')
+
+  authStore.logout()
+  console.log('✅ Logout completado')
+
+  notify({ message: 'Sesión cerrada', color: 'info', duration: 2000 })
+
   setTimeout(() => {
-    router.push('/')
-  }, 1000)
+    window.location.href = '/'
+  }, 300)
 }
 </script>
 
@@ -275,14 +294,32 @@ const handleLogout = () => {
 }
 
 .sidebar-menu {
-  padding: 0.5rem 0;
+  padding: 1rem 0;
 }
 
+/* ========== SECTION TITLES ========== */
+.menu-section-title {
+  padding: 1rem 1.5rem 0.5rem 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.menu-section-title:first-child {
+  margin-top: 0;
+}
+
+/* ========== MENU ITEMS ========== */
 .menu-item {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.875rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   color: #6B7280;
   text-decoration: none;
   border-left: 3px solid transparent;
@@ -290,47 +327,72 @@ const handleLogout = () => {
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
+  position: relative;
 }
 
 .menu-item:hover {
   background: #F3F4F6;
-  color: var(--color-purple);
+  color: #7c3aed;
+  border-left-color: #7c3aed;
 }
 
 .menu-item.active {
   background: white;
-  color: var(--color-purple);
-  border-left-color: var(--color-purple);
+  color: #7c3aed;
+  border-left-color: #7c3aed;
   border-left-width: 3px;
   font-weight: 600;
 }
 
-.menu-item.highlight {
+/* ========== PRIMARY HIGHLIGHT BUTTON (PUBLICAR) ========== */
+.menu-item.highlight-primary {
   background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: white;
-  margin: 0.5rem 0.5rem;
-  font-weight: 600;
-  border-radius: 6px;
+  margin: 0.75rem 0.5rem;
+  font-weight: 700;
+  border-radius: 8px;
   border-left: none;
-  padding-left: 1.5rem;
-  transition: all 0.3s ease;
+  padding: 1.1rem 1.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+  position: relative;
+  gap: 0.75rem;
+  font-size: 0.95rem;
 }
 
-.menu-item.highlight:hover {
+.menu-item.highlight-primary:hover {
   background: linear-gradient(135deg, #6d28d9, #5b21b6);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
 }
 
-.menu-item.highlight.active {
+.menu-item.highlight-primary.active {
   color: white;
   background: linear-gradient(135deg, #6d28d9, #5b21b6);
 }
 
-.menu-divider {
-  height: 1px;
-  background: #E5E7EB;
-  margin: 0.75rem 0;
+.menu-item.menu-item-cta {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.menu-item-badge {
+  position: relative;
+  color: currentColor;
+}
+
+/* ========== LOGOUT BUTTON ========== */
+.menu-item.menu-item-logout {
+  color: #DC2626;
+  border-left: 3px solid transparent;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+.menu-item.menu-item-logout:hover {
+  background: #FEE2E2;
+  color: #991B1B;
+  border-left-color: #DC2626;
 }
 
 /* ========== MAIN CONTENT ========== */
@@ -338,6 +400,158 @@ const handleLogout = () => {
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
+}
+
+/* ========== DASHBOARD NAVBAR ========== */
+.dashboard-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 1.5rem;
+  background: white;
+  border-bottom: 1px solid #E5E7EB;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  color: white;
+}
+
+.navbar-btn-primary {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+}
+
+.navbar-btn-primary:hover {
+  background: linear-gradient(135deg, #6d28d9, #5b21b6);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  transform: translateY(-2px);
+}
+
+.navbar-btn-secondary {
+  background: #F3F4F6;
+  color: #1F2937;
+  border: 1px solid #E5E7EB;
+}
+
+.navbar-btn-secondary:hover {
+  background: #E5E7EB;
+  border-color: #D1D5DB;
+}
+
+.navbar-btn-config {
+  background: #F3F4F6;
+  color: #1F2937;
+  border: 1px solid #E5E7EB;
+  gap: 0.5rem;
+}
+
+.navbar-btn-config:hover {
+  background: #E5E7EB;
+  border-color: #D1D5DB;
+}
+
+.navbar-btn-config span {
+  font-weight: 600;
+}
+
+.dropdown-arrow {
+  font-size: 1.25rem;
+  transition: transform 0.2s ease;
+  margin-left: 0.25rem;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-wrapper {
+  position: relative;
+}
+
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 220px;
+  z-index: 1000;
+  margin-top: 0.5rem;
+  overflow: hidden;
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+  color: #6B7280;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dropdown-header va-icon {
+  color: #7c3aed;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  color: #1F2937;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: #F3F4F6;
+}
+
+.dropdown-item-logout {
+  color: #DC2626;
+}
+
+.dropdown-item-logout:hover {
+  background: #FEE2E2;
 }
 
 /* ========== RESPONSIVE ========== */
@@ -363,6 +577,23 @@ const handleLogout = () => {
   .menu-item {
     padding: 0.75rem 1rem;
     font-size: 0.9rem;
+  }
+
+  .dashboard-navbar {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .navbar-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .navbar-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>
