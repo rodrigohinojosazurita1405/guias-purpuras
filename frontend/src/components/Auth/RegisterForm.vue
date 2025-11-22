@@ -11,10 +11,7 @@
         <!-- Header -->
         <div class="register-header">
           <div class="logo-circle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
+            <img src="@/assets/guiaspurpuras.ico" alt="Guías Púrpuras" class="logo-img" />
           </div>
           <h1>Crea tu Cuenta</h1>
           <p>Únete a la comunidad de Guías Púrpuras</p>
@@ -502,21 +499,23 @@ const handleRegister = async () => {
 }
 
 .logo-circle {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   margin: 0 auto 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3);
 }
 
-.logo-circle svg {
-  width: 32px;
-  height: 32px;
+.logo-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }
 
 @keyframes popIn {

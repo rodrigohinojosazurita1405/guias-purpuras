@@ -11,9 +11,7 @@
         <!-- Header -->
         <div class="login-header">
           <div class="logo-circle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
-            </svg>
+            <img src="@/assets/guiaspurpuras.ico" alt="Guías Púrpuras" class="logo-img" />
           </div>
           <h1>Bienvenido</h1>
           <p>Accede a tu cuenta de Guías Púrpuras</p>
@@ -327,21 +325,23 @@ const handleLogin = async () => {
 }
 
 .logo-circle {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   margin: 0 auto 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3);
 }
 
-.logo-circle svg {
-  width: 32px;
-  height: 32px;
+.logo-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }
 
 @keyframes popIn {
