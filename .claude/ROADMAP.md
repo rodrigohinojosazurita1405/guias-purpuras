@@ -21,7 +21,60 @@ MEJORAS RECIENTES:
 
 ---
 
-## ✅ COMPLETADO EN ESTA SESIÓN (Sesión 4 - Dashboard Navigation Mejorado)
+## ✅ COMPLETADO EN ESTA SESIÓN (Sesión 5 - Fix Sidebar Infinite Loop + UX Improvements)
+
+### Dashboard Sidebar - Arreglo de Bucle Infinito ✅
+**Descripción**: Corrección del problema que causaba bucle infinito al navegar por el sidebar
+
+#### 🔧 Problemas Identificados y Solucionados
+
+1. **Rutas Faltantes en Router**
+   - ❌ Problema: El sidebar tenía links a `/dashboard/messages`, `/dashboard/blocked`, etc.
+   - ✅ Solución: Agregadas 7 rutas faltantes a `router/index.js`
+     * `/dashboard/messages` → Mensajes
+     * `/dashboard/blocked` → Usuarios Bloqueados
+     * `/dashboard/shortlisted` → Favoritos
+     * `/dashboard/users` → Gestionar Usuarios
+     * `/dashboard/history` → Registro De Actividad
+     * `/dashboard/notifications` → Alertas
+     * Todas redirigen a DashboardView.vue con placeholder
+
+2. **Route Mapping Issue**
+   - ❌ Problema: Rutas con guiones (`/dashboard/jobs-manager`) no mapeaban a `jobs_manager`
+   - ✅ Solución: Agregada conversión en `DashboardView.vue`:
+     ```javascript
+     section = section.replace(/-/g, '_')
+     ```
+
+3. **Race Condition en Carga de Aplicaciones**
+   - ❌ Problema: `useApplications.loadApplications()` podría ejecutarse múltiples veces
+   - ✅ Solución: Agregado guard:
+     ```javascript
+     if (isLoading.value || isLoaded.value) return
+     ```
+
+4. **Better Empty State UX**
+   - ❌ Problema: "Base de Talento" mostraba línea de carga sin mensaje
+   - ✅ Solución: Mejorado template de CandidatesView:
+     * Loading solo se muestra si `isLoading && !isLoaded`
+     * Empty state muestra mensaje cuando no hay candidatos
+     * Botón "Reintentar" para recargar datos
+     * Tip: "Publica un anuncio de trabajo para empezar a recibir candidatos"
+
+#### 📝 Cambios Implementados
+- ✅ `frontend/src/router/index.js` - Agregadas 7 rutas del dashboard
+- ✅ `frontend/src/views/DashboardView.vue` - Arreglado mapeo de rutas
+- ✅ `frontend/src/composables/useApplications.js` - Mejorado con guard y logging
+- ✅ `frontend/src/components/Dashboard/CandidatesView.vue` - UX mejorado
+- ✅ Mejor logging con emojis (📦, ✅, ❌, ⚠️) para debugging
+
+#### ✅ Estado Actual
+- ✅ Sin bucles infinitos en el sidebar
+- ✅ Todas las rutas están definidas (muestran placeholder si no tienen componente)
+- ✅ Cargas de datos seguras sin race conditions
+- ✅ Mensajes claros al usuario en todos los estados
+
+---
 
 ### FASE 5: Perfiles de Empresa - COMPLETADO ✅
 **Descripción**: Sistema completo de perfiles de empresa con CRUD, subida de logo/banner y gestión
