@@ -38,7 +38,7 @@
                 option="internal"
                 @update:model-value="updateData('applicationType', 'internal')"
               />
-              <h4>Aplicación Interna</h4>
+              <h4>Interna</h4>
             </div>
             <p class="option-description">
               Los candidatos aplican directamente en Guías Púrpuras
@@ -71,7 +71,7 @@
                 option="external"
                 @update:model-value="updateData('applicationType', 'external')"
               />
-              <h4>Aplicación Externa</h4>
+              <h4>Externa</h4>
             </div>
             <p class="option-description">
               Los candidatos aplican en tu sitio o plataforma externa
@@ -104,7 +104,7 @@
                 option="both"
                 @update:model-value="updateData('applicationType', 'both')"
               />
-              <h4>Ambas (Recomendado)</h4>
+              <h4>Ambas</h4>
             </div>
             <p class="option-description">
               Ofrece aplicación interna y externa
@@ -170,9 +170,9 @@
         </div>
 
         <div class="screening-tip-box">
-          <va-icon name="lightbulb" color="#FFC107" size="1.5rem" />
+          <va-icon name="lightbulb" color="#7C3AED" size="1.5rem" />
           <div class="tip-content">
-            <strong>💡 Consejo:</strong>
+            <strong>Consejo:</strong>
             <p>Las preguntas te ayudan a recibir solo candidatos calificados y ahorran tiempo en selección.</p>
           </div>
         </div>
@@ -219,9 +219,9 @@
 
       <!-- Info Box -->
       <div class="info-box">
-        <va-icon name="info" color="#0EA5E9" size="1.5rem" />
+        <va-icon name="info" color="#7C3AED" size="1.5rem" />
         <div class="info-content">
-          <strong>✨ Nota Importante:</strong>
+          <strong>Nota Importante:</strong>
           <p>Los candidatos que apliquen internamente recibirán un email de confirmación automático.</p>
         </div>
       </div>
@@ -337,7 +337,7 @@ const validate = () => {
   align-items: center;
   gap: 1.5rem;
   margin-bottom: 2.5rem;
-  max-width: 900px;
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
   padding: 2.5rem;
@@ -370,7 +370,7 @@ const validate = () => {
 }
 
 .form-container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   background: white;
   padding: 2.5rem;
@@ -511,8 +511,8 @@ const validate = () => {
   display: flex;
   gap: 1.25rem;
   padding: 1.75rem;
-  background: linear-gradient(135deg, #FEF3C7 0%, #FEE2B8 100%);
-  border-left: 4px solid #F59E0B;
+  background: linear-gradient(135deg, #F3E8FF 0%, #FAF5FF 100%);
+  border-left: 4px solid #7C3AED;
   border-radius: 12px;
   margin-bottom: 2rem;
 }
@@ -523,13 +523,13 @@ const validate = () => {
 
 .tip-content strong {
   display: block;
-  color: #B45309;
+  color: #6D28D9;
   margin-bottom: 0.5rem;
 }
 
 .tip-content p {
   margin: 0;
-  color: #78350F;
+  color: #5B21B6;
   font-size: 0.95rem;
   line-height: 1.5;
 }
@@ -660,8 +660,8 @@ const validate = () => {
   display: flex;
   gap: 1.25rem;
   padding: 1.75rem;
-  background: linear-gradient(135deg, #E0F2FE 0%, #F0F9FF 100%);
-  border-left: 4px solid #0EA5E9;
+  background: linear-gradient(135deg, #F3E8FF 0%, #FAF5FF 100%);
+  border-left: 4px solid #7C3AED;
   border-radius: 12px;
   margin-top: 2rem;
 }
@@ -672,13 +672,13 @@ const validate = () => {
 
 .info-content strong {
   display: block;
-  color: #0284C7;
+  color: #6D28D9;
   margin-bottom: 0.5rem;
 }
 
 .info-content p {
   margin: 0;
-  color: #0C4A6E;
+  color: #5B21B6;
   font-size: 0.95rem;
   line-height: 1.5;
 }
@@ -691,7 +691,7 @@ const validate = () => {
   padding-top: 2rem;
   margin-top: 2rem;
   border-top: 2px solid #E2E8F0;
-  max-width: 900px;
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
 }
