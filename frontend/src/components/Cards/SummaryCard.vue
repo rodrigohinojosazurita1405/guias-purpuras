@@ -843,6 +843,7 @@
                   <div class="accordion-title">
                     <va-icon name="payment" size="small" />
                     <span>Información de Pago</span>
+                    <span class="accordion-hint">• Haz clic para desplegar</span>
                   </div>
                   <va-icon
                     :name="paymentAccordionOpen ? 'expand_less' : 'expand_more'"
@@ -2223,6 +2224,14 @@ watch(() => props.formData.coordinates, (newCoords) => {
   color: #7C3AED;
 }
 
+.accordion-hint {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #9CA3AF;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 .accordion-icon {
   color: #9CA3AF;
   transition: transform 0.3s ease;
@@ -2721,6 +2730,10 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
   .summary-ref {
     font-size: 0.7rem;
+  }
+
+  .accordion-hint {
+    display: none;
   }
 
   .payment-container {
