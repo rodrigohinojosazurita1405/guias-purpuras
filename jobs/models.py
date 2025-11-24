@@ -99,11 +99,11 @@ class Job(models.Model):
     selectedPlan = models.CharField(
         max_length=20,
         choices=[
-            ('free', 'Gratis'),
-            ('featured', 'Destacado'),
-            ('top', 'TOP')
+            ('escencial', 'Plan Escencial (35 Bs)'),
+            ('purpura', 'Plan Púrpura (79 Bs)'),
+            ('impulso', 'Plan Impulso Pro (169 Bs)')
         ],
-        default='free',
+        default='escencial',
         verbose_name="Plan seleccionado"
     )
 

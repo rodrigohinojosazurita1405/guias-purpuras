@@ -12,154 +12,148 @@
 
     <!-- Grid de Planes -->
     <div class="plans-grid">
-      <!-- Plan Gratis -->
-      <div 
-        @click="selectPlan('free')"
+      <!-- Plan Escencial (35 Bs) -->
+      <div
+        @click="selectPlan('escencial')"
         class="plan-card"
-        :class="{ selected: selectedPlan === 'free' }"
+        :class="{ selected: selectedPlan === 'escencial' }"
       >
         <div class="plan-header">
-          <va-icon name="check_circle" size="2.5rem" color="success" />
-          <h3 class="plan-name">Gratis</h3>
+          <va-icon name="workspace_premium" size="2.5rem" color="success" />
+          <h3 class="plan-name">Escencial</h3>
           <div class="plan-price">
             <span class="currency">Bs.</span>
-            <span class="amount">0</span>
+            <span class="amount">35</span>
           </div>
-          <span class="plan-duration">7 días activo</span>
+          <span class="plan-duration">15 días (1 aviso)</span>
         </div>
 
         <div class="plan-features">
           <div class="feature-item">
             <va-icon name="check" size="small" color="success" />
-            <span>Publicación por 7 días</span>
+            <span>Visibilidad Normal</span>
           </div>
           <div class="feature-item">
             <va-icon name="check" size="small" color="success" />
-            <span>Hasta 3 imágenes</span>
+            <span>1 post en Facebook/Instagram</span>
           </div>
           <div class="feature-item">
-            <va-icon name="check" size="small" color="success" />
-            <span>Información básica</span>
+            <va-icon name="remove" size="small" />
+            <span>Etiqueta Urgente no incluida</span>
           </div>
           <div class="feature-item">
-            <va-icon name="check" size="small" color="success" />
-            <span>Visible en búsquedas</span>
+            <va-icon name="remove" size="small" />
+            <span>Sin sustitución de aviso</span>
           </div>
         </div>
 
-        <button 
-          @click.stop="selectPlan('free')"
+        <button
+          @click.stop="selectPlan('escencial')"
           class="plan-button"
-          :class="{ active: selectedPlan === 'free' }"
+          :class="{ active: selectedPlan === 'escencial' }"
         >
-          <va-icon v-if="selectedPlan === 'free'" name="check_circle" />
-          {{ selectedPlan === 'free' ? 'Seleccionado' : 'Seleccionar' }}
+          <va-icon v-if="selectedPlan === 'escencial'" name="check_circle" />
+          {{ selectedPlan === 'escencial' ? 'Seleccionado' : 'Seleccionar' }}
         </button>
       </div>
 
-      <!-- Plan Destacado -->
-      <div 
-        @click="selectPlan('featured')"
+      <!-- Plan Púrpura (79 Bs) -->
+      <div
+        @click="selectPlan('purpura')"
         class="plan-card featured"
-        :class="{ selected: selectedPlan === 'featured' }"
+        :class="{ selected: selectedPlan === 'purpura' }"
       >
-        <div class="plan-badge">⭐ Recomendado</div>
-        
+        <div class="plan-badge">
+          <va-icon name="star" size="small" />
+          Recomendado
+        </div>
+
         <div class="plan-header">
           <va-icon name="star" size="2.5rem" color="warning" />
-          <h3 class="plan-name">Destacado</h3>
+          <h3 class="plan-name">Púrpura</h3>
           <div class="plan-price">
             <span class="currency">Bs.</span>
-            <span class="amount">25</span>
+            <span class="amount">79</span>
           </div>
-          <span class="plan-duration">30 días activo</span>
+          <span class="plan-duration">30 días (1 aviso)</span>
         </div>
 
         <div class="plan-features">
-          <div class="feature-item">
-            <va-icon name="check" size="small" color="success" />
-            <span>Todo lo del plan Gratis</span>
+          <div class="feature-item highlight">
+            <va-icon name="check" size="small" color="warning" />
+            <span>Destacado (10 días)</span>
           </div>
           <div class="feature-item highlight">
             <va-icon name="check" size="small" color="warning" />
-            <span>Hasta 5 imágenes</span>
+            <span>1 FB/IG + 1 LinkedIn + 1 TikTok</span>
           </div>
           <div class="feature-item highlight">
             <va-icon name="check" size="small" color="warning" />
-            <span>Aparece destacado</span>
+            <span>Etiqueta "Urgente"</span>
           </div>
           <div class="feature-item highlight">
             <va-icon name="check" size="small" color="warning" />
-            <span>3x más visibilidad</span>
-          </div>
-          <div class="feature-item highlight">
-            <va-icon name="check" size="small" color="warning" />
-            <span>Badge "Destacado"</span>
+            <span>1 cambio permitido</span>
           </div>
         </div>
 
-        <button 
-          @click.stop="selectPlan('featured')"
+        <button
+          @click.stop="selectPlan('purpura')"
           class="plan-button featured"
-          :class="{ active: selectedPlan === 'featured' }"
+          :class="{ active: selectedPlan === 'purpura' }"
         >
-          <va-icon v-if="selectedPlan === 'featured'" name="check_circle" />
-          {{ selectedPlan === 'featured' ? 'Seleccionado' : 'Seleccionar' }}
+          <va-icon v-if="selectedPlan === 'purpura'" name="check_circle" />
+          {{ selectedPlan === 'purpura' ? 'Seleccionado' : 'Seleccionar' }}
         </button>
       </div>
 
-      <!-- Plan TOP -->
-      <div 
-        @click="selectPlan('top')"
+      <!-- Plan Impulso Pro (169 Bs) -->
+      <div
+        @click="selectPlan('impulso')"
         class="plan-card premium"
-        :class="{ selected: selectedPlan === 'top' }"
+        :class="{ selected: selectedPlan === 'impulso' }"
       >
-        <div class="plan-badge premium">🏆 Premium</div>
-        
+        <div class="plan-badge premium">
+          <va-icon name="trending_up" size="small" />
+          Premium
+        </div>
+
         <div class="plan-header">
-          <va-icon name="stars" size="2.5rem" color="yellow-primary" />
-          <h3 class="plan-name">TOP</h3>
+          <va-icon name="bolt" size="2.5rem" color="yellow-primary" />
+          <h3 class="plan-name">Impulso Pro</h3>
           <div class="plan-price">
             <span class="currency">Bs.</span>
-            <span class="amount">60</span>
+            <span class="amount">169</span>
           </div>
-          <span class="plan-duration">60 días activo</span>
+          <span class="plan-duration">30 días (hasta 3 avisos)</span>
         </div>
 
         <div class="plan-features">
-          <div class="feature-item">
-            <va-icon name="check" size="small" color="success" />
-            <span>Todo lo del plan Destacado</span>
+          <div class="feature-item highlight premium">
+            <va-icon name="check" size="small" color="yellow-primary" />
+            <span>Patrocinado (10 días)</span>
           </div>
           <div class="feature-item highlight premium">
             <va-icon name="check" size="small" color="yellow-primary" />
-            <span>Imágenes ilimitadas</span>
+            <span>3 FB/IG + 2 LinkedIn + 1 TikTok</span>
           </div>
           <div class="feature-item highlight premium">
             <va-icon name="check" size="small" color="yellow-primary" />
-            <span>Aparece en TOP</span>
+            <span>Etiqueta "Urgente"</span>
           </div>
           <div class="feature-item highlight premium">
             <va-icon name="check" size="small" color="yellow-primary" />
-            <span>10x más visibilidad</span>
-          </div>
-          <div class="feature-item highlight premium">
-            <va-icon name="check" size="small" color="yellow-primary" />
-            <span>Badge "TOP"</span>
-          </div>
-          <div class="feature-item highlight premium">
-            <va-icon name="check" size="small" color="yellow-primary" />
-            <span>Soporte prioritario</span>
+            <span>1 cambio por aviso</span>
           </div>
         </div>
 
-        <button 
-          @click.stop="selectPlan('top')"
+        <button
+          @click.stop="selectPlan('impulso')"
           class="plan-button premium"
-          :class="{ active: selectedPlan === 'top' }"
+          :class="{ active: selectedPlan === 'impulso' }"
         >
-          <va-icon v-if="selectedPlan === 'top'" name="check_circle" />
-          {{ selectedPlan === 'top' ? 'Seleccionado' : 'Seleccionar' }}
+          <va-icon v-if="selectedPlan === 'impulso'" name="check_circle" />
+          {{ selectedPlan === 'impulso' ? 'Seleccionado' : 'Seleccionar' }}
         </button>
       </div>
     </div>
@@ -174,44 +168,64 @@
       <div class="comparison-table">
         <div class="comparison-row header">
           <div class="feature-name">Característica</div>
-          <div class="plan-col">Gratis</div>
-          <div class="plan-col">Destacado</div>
-          <div class="plan-col">TOP</div>
+          <div class="plan-col">Escencial</div>
+          <div class="plan-col">Púrpura</div>
+          <div class="plan-col">Impulso Pro</div>
+        </div>
+
+        <div class="comparison-row">
+          <div class="feature-name">Precio (Bs.)</div>
+          <div class="plan-col">35</div>
+          <div class="plan-col">79</div>
+          <div class="plan-col premium-text">169</div>
         </div>
 
         <div class="comparison-row">
           <div class="feature-name">Duración</div>
-          <div class="plan-col">7 días</div>
+          <div class="plan-col">15 días</div>
           <div class="plan-col">30 días</div>
-          <div class="plan-col premium-text">60 días</div>
+          <div class="plan-col premium-text">30 días</div>
         </div>
 
         <div class="comparison-row">
-          <div class="feature-name">Imágenes</div>
-          <div class="plan-col">Hasta 3</div>
-          <div class="plan-col">Hasta 5</div>
-          <div class="plan-col premium-text">Ilimitadas ∞</div>
+          <div class="feature-name">Cantidad de Avisos</div>
+          <div class="plan-col">1</div>
+          <div class="plan-col">1</div>
+          <div class="plan-col premium-text">Hasta 3</div>
         </div>
 
         <div class="comparison-row">
-          <div class="feature-name">Posición</div>
+          <div class="feature-name">Visibilidad Web</div>
           <div class="plan-col">Normal</div>
-          <div class="plan-col">Destacado</div>
-          <div class="plan-col premium-text">TOP</div>
+          <div class="plan-col">Destacado (10d)</div>
+          <div class="plan-col premium-text">Patrocinado (10d)</div>
         </div>
 
         <div class="comparison-row">
-          <div class="feature-name">Visibilidad</div>
-          <div class="plan-col">1x</div>
-          <div class="plan-col">3x</div>
-          <div class="plan-col premium-text">10x</div>
+          <div class="feature-name">Redes Sociales</div>
+          <div class="plan-col">1 post</div>
+          <div class="plan-col">4 posts</div>
+          <div class="plan-col premium-text">6 posts</div>
         </div>
 
         <div class="comparison-row">
-          <div class="feature-name">Soporte</div>
-          <div class="plan-col">Estándar</div>
-          <div class="plan-col">Estándar</div>
-          <div class="plan-col premium-text">Prioritario</div>
+          <div class="feature-name">Etiqueta Urgente</div>
+          <div class="plan-col">
+            <va-icon name="close" size="small" color="danger" />
+          </div>
+          <div class="plan-col">
+            <va-icon name="check" size="small" color="success" />
+          </div>
+          <div class="plan-col premium-text">
+            <va-icon name="check" size="small" color="success" />
+          </div>
+        </div>
+
+        <div class="comparison-row">
+          <div class="feature-name">Sustitución de Aviso</div>
+          <div class="plan-col">No</div>
+          <div class="plan-col">1 cambio</div>
+          <div class="plan-col premium-text">1 por aviso</div>
         </div>
       </div>
     </div>
@@ -246,6 +260,18 @@
       <va-icon name="info" color="warning" />
       <span>Selecciona un plan para continuar</span>
     </div>
+
+    <!-- Navigation Buttons -->
+    <div class="navigation-buttons">
+      <button class="btn btn-secondary" @click="$emit('back')">
+        <va-icon name="arrow_back" size="small" />
+        Atrás
+      </button>
+      <button class="btn btn-primary" @click="handleNext">
+        Siguiente
+        <va-icon name="arrow_forward" size="small" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -259,7 +285,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'next', 'back'])
 
 const selectedPlan = ref(props.modelValue)
 
@@ -273,6 +299,12 @@ const validate = () => {
     return false
   }
   return true
+}
+
+const handleNext = () => {
+  if (validate()) {
+    emit('next')
+  }
 }
 
 watch(() => props.modelValue, (newValue) => {
@@ -626,6 +658,48 @@ defineExpose({
   }
 }
 
+/* Navigation Buttons */
+.navigation-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 2rem;
+  margin-top: 2rem;
+  border-top: 2px solid #E0E0E0;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.btn-secondary {
+  background: #F3F4F6;
+  color: #1F2937;
+  border: 2px solid #E5E7EB;
+}
+
+.btn-secondary:hover {
+  background: #E5E7EB;
+}
+
 @media (max-width: 768px) {
   .step-title {
     font-size: 1.5rem;
@@ -647,6 +721,14 @@ defineExpose({
 
   .comparison-row.header {
     display: none;
+  }
+
+  .navigation-buttons {
+    flex-direction: column;
+  }
+
+  .btn {
+    justify-content: center;
   }
 }
 </style>

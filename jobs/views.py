@@ -49,7 +49,7 @@ def publish_job(request):
     - applicationInstructions (str)
     - applicationType (str: 'internal'|'external'|'both', default: 'internal')
     - externalApplicationUrl (str)
-    - selectedPlan (str: 'free'|'featured'|'top', default: 'free')
+    - selectedPlan (str: 'escencial'|'purpura'|'impulso', default: 'escencial')
     - screeningQuestions (list)
 
     RESPUESTA EXITOSA (201):
@@ -145,9 +145,9 @@ def publish_job(request):
             errors['applicationType'] = "Debe ser 'internal', 'external' o 'both'"
 
         # Selected Plan
-        plan = (data.get('selectedPlan') or 'free').lower()
-        if plan not in ['free', 'featured', 'top']:
-            errors['selectedPlan'] = "Debe ser 'free', 'featured' o 'top'"
+        plan = (data.get('selectedPlan') or 'escencial').lower()
+        if plan not in ['escencial', 'purpura', 'impulso']:
+            errors['selectedPlan'] = "Debe ser 'escencial', 'purpura' o 'impulso'"
 
         # Salary validation (si es tipo range)
         if salary_type == 'range':
