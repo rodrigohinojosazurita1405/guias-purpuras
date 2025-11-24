@@ -1,17 +1,6 @@
 <!-- frontend/src/components/Home/HeroSection.vue -->
 <template>
   <section class="hero-section">
-    <!-- Slider de Imágenes de Fondo -->
-    <div class="hero-background-slider">
-      <transition name="fade-slide" mode="out-in">
-        <div 
-          :key="currentSlide" 
-          class="hero-slide"
-          :style="{ backgroundImage: `url(${backgroundImages[currentSlide]})` }"
-        ></div>
-      </transition>
-      <div class="hero-overlay"></div>
-    </div>
 
     <div class="hero-content">
       <!-- Título Principal -->
@@ -129,31 +118,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSearchStore } from '@/stores/useSearchStore'
 
 const router = useRouter()
 const searchStore = useSearchStore()
 
-// ==========================================
-// STATE
-// ==========================================
-const currentSlide = ref(0)
-
-// ==========================================
-// IMÁGENES DEL SLIDER
-// ==========================================
-const backgroundImages = [
-  new URL('@/assets/hero/bg1.jpg', import.meta.url).href,
-  // Agrega más imágenes aquí
-]
-
-// ==========================================
-// CONFIGURACIÓN DEL SLIDER
-// ==========================================
-let sliderInterval = null
-const SLIDE_DURATION = 5000
 
 // ==========================================
 // DATOS
@@ -214,98 +185,30 @@ const quickSearch = (term) => {
 }
 
 // ==========================================
-// SLIDER AUTOMÁTICO
-// ==========================================
-const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % backgroundImages.length
-}
-
-const startSlider = () => {
-  if (backgroundImages.length > 1) {
-    sliderInterval = setInterval(nextSlide, SLIDE_DURATION)
-  }
-}
-
-const stopSlider = () => {
-  if (sliderInterval) {
-    clearInterval(sliderInterval)
-  }
-}
-
-// ==========================================
 // LIFECYCLE HOOKS
 // ==========================================
 onMounted(async () => {
-  startSlider()
-  
   // 🎯 DETECTAR UBICACIÓN AUTOMÁTICAMENTE AL CARGAR
   await searchStore.detectUserLocation()
-})
-
-onBeforeUnmount(() => {
-  stopSlider()
 })
 </script>
 
 <style scoped>
 /* ==========================================
-   HERO SECTION
+   HERO SECTION - FULL WIDTH PÚRPURA
    ========================================== */
 .hero-section {
   position: relative;
-  padding: 4rem 1rem;
-  min-height: 600px;
+  width: 100%;
+  padding: 3.5rem 2rem;
+  min-height: calc(100vh - var(--navbar-height, 0px));
   display: flex;
   align-items: center;
+  justify-content: center;
   overflow: hidden;
-  /* ✅ MANTENER Z-INDEX BAJO PARA NO INTERFERIR CON MODALES */
+  background: linear-gradient(135deg, var(--color-purple-dark) 0%, var(--color-purple) 50%, var(--color-purple-darkest) 100%);
   z-index: 1;
-}
-
-/* ==========================================
-   SLIDER DE FONDO
-   ========================================== */
-.hero-background-slider {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
-
-.hero-slide {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.hero-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg,  rgba(61, 0, 102, 0.50) 0%,rgba(156, 17, 249, 0.40) 100%);
-  z-index: 1;
-}
-
-/* ==========================================
-   TRANSICIONES DEL SLIDER
-   ========================================== */
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: opacity 1.5s ease-in-out;
-}
-
-.fade-slide-enter-from,
-.fade-slide-leave-to {
-  opacity: 0;
+  margin: 0;
 }
 
 /* ==========================================
@@ -585,8 +488,8 @@ onBeforeUnmount(() => {
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: 3rem 1rem;
-    min-height: auto;
+    padding: 3rem 1.5rem;
+    min-height: calc(100vh - var(--navbar-height, 0px));
   }
 
   .hero-title {
