@@ -222,7 +222,7 @@ const proceedToWizard = () => {
 .job-publish-start {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 3rem 2rem;
+  padding: 1.5rem 2rem;
 }
 
 /* ========== HEADER ========== */

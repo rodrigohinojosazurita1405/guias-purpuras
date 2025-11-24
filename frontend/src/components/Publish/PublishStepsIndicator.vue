@@ -88,11 +88,11 @@ const getLineClass = (index) => {
 <style scoped>
 .publish-steps-indicator {
   background: linear-gradient(135deg, #FFFFFF 0%, #F9F5FF 100%);
-  padding: 2.5rem 2rem;
+  padding: 1.5rem 2rem;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(124, 58, 237, 0.08);
   border: 1px solid rgba(124, 58, 237, 0.1);
-  margin: 0 auto 2.5rem auto;
+  margin: 0 auto 1rem auto;
   max-width: 1200px;
   width: 100%;
 }
