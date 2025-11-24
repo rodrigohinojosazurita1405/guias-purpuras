@@ -180,7 +180,7 @@ const showHelp = () => {
   padding: 0.5rem 0;
   font-size: 0.85rem;
   width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border: none;
 }
 
 .top-bar-content {

@@ -200,13 +200,14 @@ onMounted(async () => {
 .hero-section {
   position: relative;
   width: 100%;
-  padding: 3.5rem 2rem;
-  min-height: calc(100vh - var(--navbar-height, 0px));
+  padding: 2rem 2rem;
+  min-height: 90vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: linear-gradient(135deg, var(--color-purple-dark) 0%, var(--color-purple) 50%, var(--color-purple-darkest) 100%);
+  background: var(--color-purple-dark);
   z-index: 1;
   margin: 0;
 }
@@ -224,7 +225,7 @@ onMounted(async () => {
 }
 
 .hero-title {
-  font-size: 3rem;
+  font-size: 3.8rem;
   font-weight: 800;
   color: white;
   text-align: center;
@@ -488,12 +489,12 @@ onMounted(async () => {
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: 3rem 1.5rem;
-    min-height: calc(100vh - var(--navbar-height, 0px));
+    padding: 2rem 1.5rem;
+    min-height: 85vh;
   }
 
   .hero-title {
-    font-size: 2rem;
+    font-size: 2.2rem;
   }
 
   .hero-subtitle {

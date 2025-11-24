@@ -11,36 +11,29 @@
         </div>
       </router-link>
 
-      <!-- Desktop Navigation -->
+      <!-- Desktop Navigation - Simplificado -->
       <div class="nav-links desktop-only">
         <router-link to="/" class="nav-link" exact-active-class="active">
-          <va-icon name="home" size="small" />
           <span>Inicio</span>
         </router-link>
 
         <router-link to="/guias/trabajos" class="nav-link" active-class="active">
-          <va-icon name="business_center" size="small" />
           <span>Empleos</span>
         </router-link>
 
-        <router-link to="/nosotros" class="nav-link" active-class="active">
-          <va-icon name="info" size="small" />
-          <span>Sobre Nosotros</span>
+        <router-link to="/about" class="nav-link" active-class="active">
+          <span>Nosotros</span>
         </router-link>
       </div>
 
       <!-- Actions -->
       <div class="nav-actions">
-        <!-- Publish Button -->
-        <va-button @click="handlePublish" class="publish-btn">
-          <va-icon name="add_circle" size="small" />
-          <span class="btn-text">Publicar empleo</span>
-          <span class="btn-text-short">Publicar</span>
-        </va-button>
-
-        <!-- NOT Authenticated: Show Login Button -->
+        <!-- NOT Authenticated: Show Register & Login Buttons -->
         <router-link v-if="!authStore.isAuthenticated" to="/login" class="login-btn desktop-only">
-          <va-icon name="login" size="small" />
+          <span>Registrarse</span>
+        </router-link>
+
+        <router-link v-if="!authStore.isAuthenticated" to="/login" class="login-btn desktop-only login-link">
           <span>Ingresar</span>
         </router-link>
 
@@ -116,26 +109,14 @@
           </button>
         </div>
 
-        <!-- Mobile Navigation -->
+        <!-- Mobile Navigation - Simplificado -->
         <div class="mobile-nav-section">
           <router-link to="/" class="mobile-link" @click="closeMobileMenu" exact-active-class="active">
-            <va-icon name="home" />
             <span>Inicio</span>
           </router-link>
 
           <router-link to="/guias/trabajos" class="mobile-link" @click="closeMobileMenu" active-class="active">
-            <va-icon name="business_center" />
             <span>Empleos</span>
-          </router-link>
-
-          <router-link to="/nosotros" class="mobile-link" @click="closeMobileMenu" active-class="active">
-            <va-icon name="info" />
-            <span>Sobre Nosotros</span>
-          </router-link>
-
-          <router-link to="/publicar" class="mobile-link" @click="closeMobileMenu" active-class="active">
-            <va-icon name="add_circle" />
-            <span>Publicar</span>
           </router-link>
         </div>
 
@@ -191,17 +172,6 @@ const { init: notify } = useToast()
 const mobileMenuOpen = ref(false)
 const dropdownOpen = ref(false)
 
-// Publish Button Handler
-const handlePublish = () => {
-  if (!authStore.isAuthenticated) {
-    notify({ message: 'Debes iniciar sesión para publicar', color: 'info' })
-    router.push('/login')
-    return
-  }
-  router.push('/publicar')
-  closeMobileMenu()
-}
-
 // Dropdown Menu Handlers
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
@@ -247,12 +217,13 @@ const closeMobileMenu = () => {
 <style scoped>
 /* NAVBAR */
 .navbar {
-  background-color: var(--color-purple);
+  background: var(--color-purple-dark);
   color: white;
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: none;
+  border: none;
 }
 
 .navbar-content {
@@ -345,36 +316,22 @@ const closeMobileMenu = () => {
   flex-shrink: 0;
 }
 
-.publish-btn {
-  --va-background-color: var(--color-yellow-primary) !important;
-  --va-text-color: var(--color-purple-darkest) !important;
-  color: var(--color-purple-darkest) !important;
-  font-weight: 700 !important;
-  box-shadow: 0 4px 12px rgba(253, 197, 0, 0.3) !important;
-  transition: all 0.3s ease !important;
-}
-
-.publish-btn:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(253, 197, 0, 0.4) !important;
-}
-
 .btn-text-short {
   display: none;
 }
 
-/* LOGIN BUTTON */
+/* LOGIN BUTTON - Registrarse */
 .login-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  background: rgba(255, 255, 255, 0.12);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.625rem 1.25rem;
+  background: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
+  border: none;
   border-radius: 8px;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.9rem;
   transition: all 0.3s ease;
   cursor: pointer;
@@ -382,9 +339,21 @@ const closeMobileMenu = () => {
 }
 
 .login-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(253, 197, 0, 0.6), 0 4px 12px rgba(253, 197, 0, 0.3);
+}
+
+/* LOGIN BUTTON - Ingresar (variante outline) */
+.login-btn.login-link {
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+  padding: 0.5rem 1.25rem;
+}
+
+.login-btn.login-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.8);
 }
 
 /* USER DROPDOWN */
