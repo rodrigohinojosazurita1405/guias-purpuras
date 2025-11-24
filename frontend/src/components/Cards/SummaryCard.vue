@@ -9,32 +9,55 @@
 
 <template>
   <div class="summary-card">
-    <!-- 
-      ==========================================
-      HEADER
-      ==========================================
-    -->
-    <div class="summary-header">
-      <div class="header-icon">
-        <va-icon name="assignment" size="2rem" color="purple" />
+    <!-- Para tipos no-job, mostrar el resumen antiguo -->
+    <template v-if="type !== 'job'">
+      <!--
+        ==========================================
+        HEADER
+        ==========================================
+      -->
+      <div class="summary-header">
+        <div class="header-icon">
+          <va-icon name="assignment" size="2rem" color="purple" />
+        </div>
+        <div>
+          <h2 class="summary-title">Resumen de tu Anuncio</h2>
+          <p class="summary-subtitle">
+            Verifica que toda la información sea correcta antes de publicar
+          </p>
+        </div>
       </div>
-      <div>
-        <h2 class="summary-title">Resumen de tu Anuncio</h2>
-        <p class="summary-subtitle">
-          Verifica que toda la información sea correcta antes de publicar
-        </p>
-      </div>
-    </div>
 
-    <!-- 
-      ==========================================
-      SECCIONES DE RESUMEN
-      ==========================================
-    -->
-    <div class="summary-content">
-      
+      <!--
+        ==========================================
+        SECCIONES DE RESUMEN
+        ==========================================
+      -->
+      <div class="summary-content">
+
+      <!-- SELECCIÓN INICIAL (JOBS ONLY) -->
+      <div v-if="type === 'job' && jobData && (jobData.subcategory || jobData.city)" class="summary-section">
+        <div class="section-header">
+          <h3 class="section-title">
+            <va-icon name="check_circle" size="1.25rem" />
+            Selección Inicial
+          </h3>
+        </div>
+
+        <div class="section-content">
+          <div v-if="jobData.subcategory" class="info-row">
+            <span class="label">Tipo de Empleo:</span>
+            <span class="value">{{ jobData.subcategory }}</span>
+          </div>
+          <div v-if="jobData.city" class="info-row">
+            <span class="label">Ubicación:</span>
+            <span class="value">{{ jobData.city }}</span>
+          </div>
+        </div>
+      </div>
+
       <!-- CATEGORÍA Y UBICACIÓN -->
-      <div class="summary-section">
+      <div v-if="type !== 'job'" class="summary-section">
         <div class="section-header">
           <h3 class="section-title">
             <va-icon name="category" size="1.25rem" />
@@ -70,8 +93,8 @@
         </div>
       </div>
 
-      <!-- INFORMACIÓN GENERAL -->
-      <div class="summary-section">
+      <!-- INFORMACIÓN GENERAL (NO para jobs) -->
+      <div v-if="type !== 'job'" class="summary-section">
         <div class="section-header">
           <h3 class="section-title">
             <va-icon name="info" size="1.25rem" />
@@ -218,8 +241,8 @@
         </div>
       </div>
 
-      <!-- IMÁGENES DEL NEGOCIO -->
-      <div class="summary-section">
+      <!-- IMÁGENES DEL NEGOCIO (NO para jobs) -->
+      <div v-if="type !== 'job'" class="summary-section">
         <div class="section-header">
           <h3 class="section-title">
             <va-icon name="image" size="1.25rem" />
@@ -234,7 +257,7 @@
             Editar
           </va-button>
         </div>
-        
+
         <div class="section-content">
           <div v-if="formData.images && formData.images.length > 0" class="images-grid">
             <div
@@ -242,8 +265,8 @@
               :key="index"
               class="image-preview"
             >
-              <img 
-                :src="getImageUrl(img)" 
+              <img
+                :src="getImageUrl(img)"
                 :alt="`Imagen ${index + 1}`"
               />
               <div v-if="index === 0" class="main-badge">Principal</div>
@@ -575,8 +598,8 @@
         </div>
       </div>
 
-      <!-- PLAN SELECCIONADO -->
-      <div class="summary-section">
+      <!-- PLAN SELECCIONADO (GENERIC) -->
+      <div v-if="type !== 'job' && formData.plan" class="summary-section">
         <div class="section-header">
           <h3 class="section-title">
             <va-icon name="workspace_premium" size="1.25rem" />
@@ -591,7 +614,7 @@
             Editar
           </va-button>
         </div>
-        
+
         <div class="section-content">
           <div class="plan-card" :class="`plan-${formData.plan}`">
             <div class="plan-badge">
@@ -602,11 +625,308 @@
           </div>
         </div>
       </div>
+      </div>
+    </template>
 
-    </div>
+    <!-- ==========================================
+      LAYOUT PRINCIPAL PARA JOBS (Estilo Trabajito)
+      ========================================== -->
+      <template v-if="type === 'job'">
+        <div class="job-listing-card">
+          <!-- ========== HEADER: ESTRUCTURA TRABAJITO (Logo + Empresa ARRIBA, Título ABAJO) ========== -->
+          <div class="job-header">
+            <!-- SECCIÓN 1: Logo + Nombre de Empresa (en línea) -->
+            <div class="company-section">
+              <!-- Logo de Empresa -->
+              <div class="company-logo-container">
+                <div v-if="jobData.logo" class="company-logo">
+                  <img :src="jobData.logo" :alt="jobData.companyName" class="logo-image" />
+                </div>
+                <div v-else class="company-logo-placeholder">
+                  <va-icon name="business" size="large" />
+                </div>
+              </div>
 
-    <!-- BOTÓN PUBLICAR (JOBS ONLY) -->
+              <!-- Nombre Empresa (al lado del logo) -->
+              <div class="company-info">
+                <p class="company-name">
+                  {{ jobData.companyAnonymous ? 'Empresa Confidencial' : jobData.companyName }}
+                </p>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 2: Título Grande (debajo) -->
+            <h1 class="job-title">{{ jobData.title }}</h1>
+
+            <!-- SECCIÓN 3: Badges + Meta información -->
+            <div class="header-bottom">
+              <!-- Badges en línea -->
+              <div class="header-badges">
+                <span class="badge badge-plan" :class="`plan-${jobData.selectedPlan}`">
+                  {{ getJobPlanName(jobData.selectedPlan).replace('Plan ', '') }}
+                </span>
+                <!-- Plan feature badges -->
+                <span v-for="planBadge in planBadges" :key="planBadge" class="badge" :class="`badge-${getBadgeClass(planBadge)}`">
+                  <va-icon v-if="getBadgeIcon(planBadge)" :name="getBadgeIcon(planBadge)" size="small" class="badge-icon" />
+                  {{ planBadge }}
+                </span>
+                <span class="badge badge-type">{{ jobData.contractType }}</span>
+                <span class="badge badge-location">
+                  <va-icon name="location_on" size="x-small" />
+                  {{ jobData.city }}
+                </span>
+              </div>
+
+              <!-- Información secundaria: vacantes, fecha y estado -->
+              <div class="header-meta">
+                <span class="meta-item" v-if="jobData.vacancies">
+                  <va-icon name="person" size="small" />
+                  {{ jobData.vacancies }} {{ jobData.vacancies === 1 ? 'vacante' : 'vacantes' }}
+                </span>
+                <span v-if="jobData.expiryDate" class="meta-item" :class="{ 'expired': isExpired }">
+                  <va-icon :name="isExpired ? 'close_circle' : 'calendar_today'" size="small" />
+                  {{ isExpired ? 'CONVOCATORIA CERRADA' : `Vence el ${formatDate(jobData.expiryDate)}` }}
+                </span>
+                <span v-if="jobData.publishedDate" class="meta-item">
+                  <va-icon name="schedule" size="small" />
+                  Publicado {{ formatPublishedDate(jobData.publishedDate) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========== CONTENIDO PRINCIPAL (Secciones fluidas) ========== -->
+          <div class="job-content">
+            <!-- ===== DESCRIPCIÓN ===== -->
+            <section class="content-block description-block">
+              <h2 class="block-title">
+                <va-icon name="description" size="small" />
+                Descripción del Puesto
+              </h2>
+              <p class="block-text">{{ jobData.description }}</p>
+            </section>
+
+            <!-- ===== REQUISITOS ===== -->
+            <section class="content-block requirements-block">
+              <h2 class="block-title">
+                <va-icon name="checklist" size="small" />
+                Requisitos
+              </h2>
+              <p v-if="jobData.requirements" class="block-text">{{ jobData.requirements }}</p>
+
+              <!-- Detalles de Requisitos como viñetas -->
+              <ul v-if="jobData.education || jobData.experience || jobData.languages || jobData.technicalSkills" class="requirements-list">
+                <li v-if="jobData.education" class="requirement-item">
+                  <va-icon name="school" class="requirement-icon" />
+                  <div>
+                    <strong>Formación:</strong> {{ jobData.education }}
+                  </div>
+                </li>
+                <li v-if="jobData.experience" class="requirement-item">
+                  <va-icon name="work_history" class="requirement-icon" />
+                  <div>
+                    <strong>Experiencia:</strong> {{ jobData.experience }}
+                  </div>
+                </li>
+                <li v-if="jobData.languages" class="requirement-item">
+                  <va-icon name="language" class="requirement-icon" />
+                  <div>
+                    <strong>Idiomas:</strong> {{ jobData.languages }}
+                  </div>
+                </li>
+                <li v-if="jobData.technicalSkills" class="requirement-item">
+                  <va-icon name="build" class="requirement-icon" />
+                  <div>
+                    <strong>Habilidades:</strong> {{ jobData.technicalSkills }}
+                  </div>
+                </li>
+              </ul>
+            </section>
+
+            <!-- ===== BENEFICIOS ===== -->
+            <section v-if="jobData.benefits" class="content-block benefits-block">
+              <h2 class="block-title">
+                <va-icon name="card_giftcard" size="small" />
+                Beneficios
+              </h2>
+              <ul class="benefits-list">
+                <li v-for="(benefit, idx) in jobData.benefits.split('\n').filter(b => b.trim())" :key="idx" class="benefit-item">
+                  <va-icon name="check_circle" class="benefit-icon" />
+                  {{ benefit.trim() }}
+                </li>
+              </ul>
+            </section>
+
+            <!-- ===== COMPENSACIÓN ===== -->
+            <section class="content-block salary-block">
+              <h2 class="block-title">
+                <va-icon name="attach_money" size="small" />
+                Compensación
+              </h2>
+
+              <!-- Salario Destacado -->
+              <div class="salary-container">
+                <p class="salary-label">Rango Salarial:</p>
+                <p class="salary-amount">
+                  <template v-if="jobData.salaryType === 'range'">
+                    Bs. {{ jobData.salaryMin?.toLocaleString() }} - {{ jobData.salaryMax?.toLocaleString() }}
+                  </template>
+                  <template v-else-if="jobData.salaryType === 'fixed'">
+                    Bs. {{ jobData.salaryFixed?.toLocaleString() }}
+                  </template>
+                  <template v-else-if="jobData.salaryType === 'negotiable'">
+                    A convenir
+                  </template>
+                  <template v-else>
+                    No especificado
+                  </template>
+                </p>
+              </div>
+            </section>
+
+            <!-- ===== SECCIÓN PAGO Y COMPROBANTE ===== -->
+            <section class="content-block payment-section">
+              <h2 class="block-title">
+                <va-icon name="payment" size="small" />
+                Información de Pago
+              </h2>
+
+              <div class="payment-container">
+                <!-- Columna 1: QR y Referencia -->
+                <div class="payment-qr-column">
+                  <div class="qr-card">
+                    <h3 class="qr-title">Escanea para Pagar</h3>
+                    <div class="qr-image-container">
+                      <img
+                        :src="getPaymentQRPath(jobData.selectedPlan)"
+                        :alt="`QR - ${getJobPlanName(jobData.selectedPlan)}`"
+                        class="qr-image"
+                      />
+                    </div>
+                    <p class="qr-plan">{{ getJobPlanName(jobData.selectedPlan) }}</p>
+                    <p class="qr-amount">{{ getPaymentAmount(jobData.selectedPlan) }}</p>
+                    <div class="reference-box">
+                      <small class="reference-label">Referencia de Pago:</small>
+                      <code class="reference-code">{{ paymentReference }}</code>
+                      <button @click="copyToClipboard(paymentReference)" class="copy-btn" title="Copiar referencia">
+                        <va-icon name="content_copy" size="small" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Columna 2: Comprobante de Pago -->
+                <div class="payment-proof-column">
+                  <div class="proof-card">
+                    <h3 class="proof-title">Comprobante de Pago</h3>
+
+                    <!-- Zona de carga de archivo -->
+                    <div class="proof-upload-zone">
+                      <input
+                        type="file"
+                        ref="proofFileInput"
+                        accept="image/*"
+                        @change="handleProofUpload"
+                        class="hidden-input"
+                      />
+                      <div @click="$refs.proofFileInput?.click()" class="upload-area">
+                        <va-icon name="cloud_upload" size="large" color="purple" />
+                        <p class="upload-text">Haz clic para seleccionar o arrastra aquí</p>
+                        <small class="upload-hint">PNG, JPG, JPEG - Máx 5MB</small>
+                      </div>
+                    </div>
+
+                    <!-- Preview de imagen subida -->
+                    <div v-if="proofOfPaymentPreview" class="proof-preview">
+                      <img :src="proofOfPaymentPreview" :alt="'Comprobante de pago'" class="preview-image" />
+                      <button @click="clearProofUpload" class="remove-btn">
+                        <va-icon name="close" size="small" />
+                      </button>
+                    </div>
+
+                    <!-- Estado de verificación -->
+                    <div v-if="proofOfPaymentPreview" class="proof-status">
+                      <va-icon name="check_circle" color="success" />
+                      <span>Comprobante cargado correctamente</span>
+                    </div>
+                    <div v-else class="proof-required">
+                      <va-icon name="info" color="warning" />
+                      <span>Carga obligatoria para publicar</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Aviso importante -->
+              <div class="payment-notice">
+                <va-icon name="info" size="small" color="info" />
+                <p>
+                  Por favor, escanea el código QR con tu aplicación móvil para realizar el pago.
+                  Luego, sube la captura de pantalla o foto del comprobante de transferencia.
+                </p>
+              </div>
+            </section>
+
+            <!-- ===== INFORMACIÓN TÉCNICA (Fondo diferenciado) ===== -->
+            <section class="content-block info-technical">
+              <h2 class="block-title">
+                <va-icon name="info" size="small" />
+                Más Información
+              </h2>
+
+              <div class="info-grid">
+                <div class="info-group">
+                  <div class="info-item">
+                    <span class="info-label">Categoría:</span>
+                    <span class="info-value">{{ jobData.jobCategory }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Subcategoría:</span>
+                    <span class="info-value">{{ jobData.subcategory }}</span>
+                  </div>
+                </div>
+
+                <div class="info-group">
+                  <div class="info-item">
+                    <span class="info-label">Tipo de Aplicación:</span>
+                    <span class="info-value">
+                      <template v-if="jobData.applicationType === 'internal'">
+                        Interna
+                      </template>
+                      <template v-else-if="jobData.applicationType === 'external'">
+                        Externa
+                      </template>
+                      <template v-else>
+                        Ambas
+                      </template>
+                    </span>
+                  </div>
+                  <div class="info-item" v-if="jobData.email">
+                    <span class="info-label">Email de Contacto:</span>
+                    <a :href="`mailto:${jobData.email}`" class="info-link">{{ jobData.email }}</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- URL de Aplicación Externa (si aplica) -->
+              <div v-if="['external', 'both'].includes(jobData.applicationType)" class="info-external">
+                <p><span class="info-label">URL de Aplicación:</span></p>
+                <a :href="jobData.externalApplicationUrl" target="_blank" class="info-link external-link">
+                  {{ jobData.externalApplicationUrl }}
+                  <va-icon name="open_in_new" size="small" />
+                </a>
+              </div>
+            </section>
+          </div>
+        </div>
+      </template>
+
+    <!-- BOTONES DE ACCIÓN (JOBS ONLY) -->
     <div v-if="type === 'job'" class="action-buttons">
+      <button class="btn btn-secondary" @click="$emit('back')">
+        <va-icon name="arrow_back" size="small" />
+        ATRÁS
+      </button>
       <button class="btn btn-primary" @click="$emit('submit')">
         <va-icon name="publish" size="small" />
         PUBLICAR OFERTA
@@ -616,7 +936,8 @@
 </template>
 
 <script setup>
-import { onMounted, watch, nextTick } from 'vue'
+import { onMounted, watch, nextTick, computed, ref } from 'vue'
+import { PAYMENT_CONFIG } from '@/config/paymentConfig'
 
 // ==========================================
 // PROPS & EMITS
@@ -643,8 +964,53 @@ const props = defineProps({
 const emit = defineEmits(['edit-step', 'submit'])
 
 // ==========================================
-// METHODS
+// REFERENCIAS Y STATE
 // ==========================================
+const proofFileInput = ref(null)
+const proofOfPaymentPreview = ref(null)
+const paymentReference = computed(() => {
+  if (!props.jobData?.selectedPlan) return ''
+  return PAYMENT_CONFIG.generatePaymentReference(props.jobData.selectedPlan)
+})
+
+// ==========================================
+// COMPUTED PROPERTIES Y MÉTODOS
+// ==========================================
+
+// Verificar si la convocatoria está cerrada
+const isExpired = computed(() => {
+  if (!props.jobData?.expiryDate) return false
+  const expiryDate = new Date(props.jobData.expiryDate)
+  return expiryDate < new Date()
+})
+
+// Formatear fecha de vencimiento
+const formatDate = (date) => {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString('es-BO', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+}
+
+// Formatear fecha de publicación con texto relativo
+const formatPublishedDate = (date) => {
+  if (!date) return ''
+  const published = new Date(date)
+  const now = new Date()
+  const diffMs = now - published
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'hace unos momentos'
+  if (diffMins < 60) return `hace ${diffMins} min`
+  if (diffHours < 24) return `hace ${diffHours}h`
+  if (diffDays < 1) return 'hoy'
+  if (diffDays === 1) return 'ayer'
+  return `hace ${diffDays} días`
+}
 
 const getCategoryName = (category) => {
   const categories = {
@@ -724,6 +1090,123 @@ const getQuestionTypeLabel = (type) => {
     multiple: 'Opción múltiple'
   }
   return labels[type] || type
+}
+
+const getJobPlanName = (plan) => {
+  const plans = {
+    escencial: 'Plan Escencial',
+    purpura: 'Plan Púrpura',
+    impulso: 'Plan Impulso Pro'
+  }
+  return plans[plan] || plan
+}
+
+const getJobPlanIcon = (plan) => {
+  const icons = {
+    escencial: 'check_circle',
+    purpura: 'star',
+    impulso: 'workspace_premium'
+  }
+  return icons[plan] || 'check_circle'
+}
+
+const getJobPlanDescription = (plan) => {
+  const descriptions = {
+    escencial: 'Plan Escencial - 35 Bs. Tu oferta de trabajo estará visible por 30 días.',
+    purpura: 'Plan Púrpura - 79 Bs. Tu oferta será destacada con mayor visibilidad por 30 días.',
+    impulso: 'Plan Impulso Pro - 169 Bs. Tu oferta tendrá máxima visibilidad y aparecerá primero por 30 días.'
+  }
+  return descriptions[plan] || ''
+}
+
+// Obtener badges del plan seleccionado
+const getPlanBadges = (plan) => {
+  const badges = {
+    escencial: ['Básico'],
+    purpura: ['Destacado', 'Urgente'],
+    impulso: ['Patrocinado', 'Urgente']
+  }
+  return badges[plan] || []
+}
+
+// Computar badges a mostrar
+const planBadges = computed(() => {
+  return getPlanBadges(props.jobData?.selectedPlan)
+})
+
+// Obtener clase CSS para el badge basado en su tipo
+const getBadgeClass = (badgeText) => {
+  const classList = {
+    'Básico': 'basic',
+    'Destacado': 'featured',
+    'Patrocinado': 'sponsored',
+    'Urgente': 'urgent'
+  }
+  return classList[badgeText] || 'basic'
+}
+
+// Obtener ícono para cada badge
+const getBadgeIcon = (badgeText) => {
+  const icons = {
+    'Básico': 'verified',
+    'Destacado': 'verified_user',
+    'Patrocinado': 'workspace_premium',
+    'Urgente': 'priority_high'
+  }
+  return icons[badgeText] || null
+}
+
+// Obtener ruta del QR del plan
+const getPaymentQRPath = (planKey) => {
+  return PAYMENT_CONFIG.getQRPath(planKey)
+}
+
+// Obtener monto a pagar
+const getPaymentAmount = (planKey) => {
+  return PAYMENT_CONFIG.getPlanPrice(planKey)
+}
+
+// Manejar carga de archivo de comprobante
+const handleProofUpload = (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  // Validar tamaño (máx 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('El archivo es muy grande. Máximo 5MB')
+    return
+  }
+
+  // Validar tipo de archivo
+  if (!file.type.startsWith('image/')) {
+    alert('Por favor, selecciona una imagen válida (PNG, JPG, JPEG)')
+    return
+  }
+
+  // Crear preview
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    proofOfPaymentPreview.value = e.target?.result
+  }
+  reader.readAsDataURL(file)
+}
+
+// Limpiar carga de comprobante
+const clearProofUpload = () => {
+  proofOfPaymentPreview.value = null
+  if (proofFileInput.value) {
+    proofFileInput.value.value = ''
+  }
+}
+
+// Copiar referencia de pago al portapapeles
+const copyToClipboard = (text) => {
+  if (!text) return
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Referencia de pago copiada al portapapeles')
+  }).catch(() => {
+    alert('No se pudo copiar al portapapeles')
+  })
 }
 
 // ==========================================
@@ -814,6 +1297,11 @@ watch(() => props.formData.coordinates, (newCoords) => {
    ========================================== */
 .summary-card {
   width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  min-height: 100vh;
 }
 
 /* ==========================================
@@ -824,8 +1312,11 @@ watch(() => props.formData.coordinates, (newCoords) => {
   align-items: center;
   gap: 1.5rem;
   margin-bottom: 2.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid #E0E0E0;
+  padding: 2.5rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-top: 3px solid #7C3AED;
 }
 
 .header-icon {
@@ -865,10 +1356,11 @@ watch(() => props.formData.coordinates, (newCoords) => {
    SECCIONES
    ========================================== */
 .summary-section {
-  background: #F8F8F8;
+  background: white;
   border-radius: 12px;
-  padding: 1.5rem;
-  border: 1px solid #E0E0E0;
+  padding: 2rem;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .section-header {
@@ -1094,12 +1586,13 @@ watch(() => props.formData.coordinates, (newCoords) => {
 .plan-card {
   background: white;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 2rem;
   border: 2px solid #E0E0E0;
 }
 
 .plan-card.plan-free {
-  border-color: var(--va-success);
+  border-color: #4CAF50;
+  background: #F1F8F4;
 }
 
 .plan-card.plan-featured {
@@ -1112,20 +1605,36 @@ watch(() => props.formData.coordinates, (newCoords) => {
   background: linear-gradient(135deg, #F5F0FF 0%, #FFFFFF 100%);
 }
 
+.plan-card.plan-escencial {
+  border-color: #4CAF50;
+  background: #F1F8F4;
+}
+
+.plan-card.plan-purpura {
+  border-color: var(--color-purple);
+  background: linear-gradient(135deg, #F5F0FF 0%, #FFFFFF 100%);
+}
+
+.plan-card.plan-impulso {
+  border-color: var(--color-purple-dark);
+  background: linear-gradient(135deg, #EDE9FE 0%, #F3E8FF 100%);
+}
+
 .plan-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1.125rem;
+  gap: 0.75rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-purple-darkest);
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .plan-description {
   font-size: 0.95rem;
   color: #666;
   margin: 0;
+  line-height: 1.6;
 }
 
 /* ==========================================
@@ -1198,11 +1707,15 @@ watch(() => props.formData.coordinates, (newCoords) => {
 .action-buttons {
   display: flex;
   gap: 1.5rem;
-  justify-content: center;
-  padding: 2.5rem;
-  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  justify-content: flex-end;
+  padding: 2rem 2.5rem;
+  background: white;
   border-top: 2px solid #E2E8F0;
-  margin-top: 2rem;
+  margin-top: 0;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 0 0 8px 8px;
 }
 
 .btn {
@@ -1232,10 +1745,770 @@ watch(() => props.formData.coordinates, (newCoords) => {
   transform: translateY(0);
 }
 
+.btn-secondary {
+  background: #F3F4F6;
+  color: #4B5563;
+  font-size: 1rem;
+  border: 1px solid #D1D5DB;
+}
+
+.btn-secondary:hover {
+  background: #E5E7EB;
+  border-color: #9CA3AF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
 /* ==========================================
-   RESPONSIVE
+   JOB LISTING STYLE - FLUIDO Y SIN DIVISIONES
    ========================================== */
+
+/* CONTENEDOR PRINCIPAL */
+.job-listing-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.job-listing-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* ========== HEADER - LOGO, TÍTULO, EMPRESA ========== */
+/* ==========================================
+   HEADER PRINCIPAL (ESTILO TRABAJITO)
+   ========================================== */
+.job-header {
+  padding: 2.5rem;
+  border-bottom: 2px solid #F0F3FF;
+  background: linear-gradient(135deg, #FAFBFF 0%, #F5F3FF 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* SECCIÓN 1: LOGO + NOMBRE DE EMPRESA (En línea) */
+.company-section {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+/* LOGO DE EMPRESA */
+.company-logo-container {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.company-logo {
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+  border: 2px solid #E2E8F0;
+  overflow: hidden;
+}
+
+.logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.company-logo-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #E0E7FF 0%, #F0EBFF 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7C3AED;
+  font-size: 2.4rem;
+  border: 2px solid #E2E8F0;
+}
+
+/* NOMBRE EMPRESA */
+.company-info {
+  flex: 1;
+}
+
+.company-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #7C3AED;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+/* SECCIÓN 2: TÍTULO GRANDE */
+.job-title {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+}
+
+/* SECCIÓN 3: BADGES + META */
+.header-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.header-badges {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.badge-plan {
+  background: #F5F0FF;
+  color: #7C3AED;
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+.badge-plan.plan-escencial {
+  background: #F0FDF4;
+  color: #16A34A;
+  border: 1px solid rgba(22, 163, 74, 0.2);
+}
+
+.badge-plan.plan-purpura {
+  background: #F5F0FF;
+  color: #7C3AED;
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+.badge-plan.plan-impulso {
+  background: #FEF3C7;
+  color: #D97706;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.badge-type {
+  background: #F3F4F6;
+  color: #6B7280;
+  border: 1px solid #E5E7EB;
+}
+
+.badge-location {
+  background: #E0F2FE;
+  color: #0369A1;
+  border: 1px solid rgba(3, 105, 161, 0.2);
+}
+
+.badge-basic {
+  background: #F0F4F8;
+  color: #475569;
+  border: 1px solid #CBD5E1;
+}
+
+.badge-featured {
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  color: white;
+  border: 1px solid rgba(124, 58, 237, 0.5);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+.badge-sponsored {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.badge-urgent {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  color: white;
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.badge-icon {
+  margin-right: 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* METADATOS DEL HEADER */
+.header-meta {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(124, 58, 237, 0.1);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.meta-item :deep(.va-icon) {
+  color: #7C3AED;
+  opacity: 0.7;
+}
+
+.meta-item.expired {
+  color: #DC2626;
+  font-weight: 600;
+}
+
+.meta-item.expired :deep(.va-icon) {
+  color: #DC2626;
+  opacity: 1;
+}
+
+/* ========== CONTENIDO PRINCIPAL ========== */
+.job-content {
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.content-block {
+  padding-bottom: 2.5rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.content-block:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+/* TÍTULO DE SECCIÓN */
+.block-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 1.25rem 0;
+  letter-spacing: -0.3px;
+}
+
+.block-title :deep(.va-icon) {
+  color: #7C3AED;
+  font-size: 1.2rem;
+}
+
+/* TEXTO DE BLOQUES */
+.block-text {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: #475569;
+  margin: 0 0 1rem 0;
+}
+
+/* ===== SECCIÓN REQUISITOS ===== */
+.requirements-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.requirement-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #F9FAFB;
+  border-left: 3px solid #7C3AED;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.95rem;
+  color: #334155;
+  line-height: 1.6;
+  transition: all 0.2s ease;
+}
+
+.requirement-item:hover {
+  background: #F3F4F6;
+  border-left-color: #6D28D9;
+}
+
+.requirement-icon {
+  color: #7C3AED;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+
+.requirement-item strong {
+  color: #0F172A;
+  font-weight: 700;
+  margin-right: 0.5rem;
+}
+
+.requirements-list .requirement-item div {
+  flex: 1;
+}
+
+/* ===== SECCIÓN BENEFICIOS ===== */
+.benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.25rem 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 1rem 1.25rem;
+  background: #FAFBFF;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #334155;
+  line-height: 1.6;
+  border-left: 3px solid #10B981;
+  transition: all 0.2s ease;
+}
+
+.benefit-item:hover {
+  background: #F0FDF4;
+}
+
+.benefit-icon {
+  color: #10B981;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+
+.salary-container {
+  margin-top: 1.25rem;
+}
+
+.salary-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 0.5rem 0;
+}
+
+.salary-amount {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #7C3AED;
+  margin: 0;
+  letter-spacing: -0.5px;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #F5F0FF 0%, #FAF5FF 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(124, 58, 237, 0.1);
+  display: inline-block;
+  min-width: fit-content;
+}
+
+/* ===== SECCIÓN PAGO Y COMPROBANTE ===== */
+.payment-section {
+  background: linear-gradient(135deg, #F5F3FF 0%, #FAFBFF 100%);
+  border-top: 3px solid #7C3AED;
+}
+
+.payment-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 1.5rem 0;
+}
+
+.payment-qr-column {
+  display: flex;
+  justify-content: center;
+}
+
+.qr-card {
+  background: white;
+  border: 2px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+  max-width: 280px;
+}
+
+.qr-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0 0 1.5rem 0;
+}
+
+.qr-image-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #F9FAFB;
+  border-radius: 12px;
+}
+
+.qr-image {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.qr-plan {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #7C3AED;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.qr-amount {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #1F2937;
+  margin: 0 0 1.5rem 0;
+}
+
+.reference-box {
+  background: #F3F4F6;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.reference-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.reference-code {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #7C3AED;
+  background: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  flex: 1;
+  word-break: break-all;
+}
+
+.copy-btn {
+  background: #7C3AED;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+  background: #6D28D9;
+  transform: scale(1.1);
+}
+
+/* Proof of Payment Card */
+.payment-proof-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.proof-card {
+  background: white;
+  border: 2px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+}
+
+.proof-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0 0 1.5rem 0;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.proof-upload-zone {
+  margin-bottom: 1.5rem;
+}
+
+.upload-area {
+  border: 3px dashed #E5E7EB;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #F9FAFB;
+}
+
+.upload-area:hover {
+  border-color: #7C3AED;
+  background: #F5F3FF;
+  transform: translateY(-2px);
+}
+
+.upload-area :deep(.va-icon) {
+  color: #7C3AED;
+  margin-bottom: 0.75rem;
+}
+
+.upload-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0.75rem 0 0.5rem 0;
+}
+
+.upload-hint {
+  font-size: 0.85rem;
+  color: #9CA3AF;
+  display: block;
+}
+
+.proof-preview {
+  position: relative;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.preview-image {
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.remove-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.remove-btn:hover {
+  background: rgba(220, 38, 38, 1);
+  transform: scale(1.1);
+}
+
+.proof-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #F0FDF4;
+  border: 1px solid #86EFAC;
+  border-radius: 8px;
+  color: #16A34A;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.proof-required {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #FEF3C7;
+  border: 1px solid #FCD34D;
+  border-radius: 8px;
+  color: #92400E;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.payment-notice {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #E0E7FF;
+  border-left: 4px solid #7C3AED;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+}
+
+.payment-notice p {
+  margin: 0;
+  color: #4C1D95;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.payment-notice :deep(.va-icon) {
+  color: #7C3AED;
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+
+/* ===== SECCIÓN INFORMACIÓN TÉCNICA ===== */
+.info-technical {
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  padding: 2rem;
+  margin-left: -2.5rem;
+  margin-right: -2.5rem;
+  margin-bottom: -2.5rem;
+  margin-top: 0;
+  border-top: 2px solid #CBD5E1;
+  border-bottom: none;
+  border-radius: 0 0 12px 12px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.info-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.info-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 0.95rem;
+  color: #334155;
+  font-weight: 600;
+}
+
+.info-external {
+  padding-top: 2rem;
+  border-top: 1px solid #CBD5E1;
+}
+
+.info-external p {
+  margin: 0 0 0.5rem 0;
+}
+
+/* ========== LINKS ========== */
+.info-link {
+  color: #7C3AED;
+  text-decoration: none;
+  font-weight: 600;
+  word-break: break-all;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.info-link:hover {
+  color: #6D28D9;
+  text-decoration: underline;
+}
+
+.external-link {
+  font-size: 0.9rem;
+}
+
+.external-link :deep(.va-icon) {
+  font-size: 0.8rem;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+
+/* TABLET: 768px y menor */
 @media (max-width: 768px) {
+  /* GENERIC SUMMARY STYLES */
   .summary-header {
     flex-direction: column;
     text-align: center;
@@ -1261,9 +2534,287 @@ watch(() => props.formData.coordinates, (newCoords) => {
   .menu-items-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .map-preview {
     height: 250px;
+  }
+
+  /* JOB LISTING RESPONSIVE */
+  .job-listing-card {
+    border-radius: 8px;
+    margin-top: 1.5rem;
+  }
+
+  .job-header {
+    padding: 2rem;
+    background: linear-gradient(135deg, #FAFBFF 0%, #F5F3FF 100%);
+  }
+
+  .company-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .company-logo {
+    width: 85px;
+    height: 85px;
+  }
+
+  .company-logo-placeholder {
+    width: 85px;
+    height: 85px;
+    font-size: 2.1rem;
+  }
+
+  .company-name {
+    font-size: 1.35rem;
+  }
+
+  .job-title {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+
+  .header-badges {
+    justify-content: center;
+  }
+
+  .header-meta {
+    justify-content: center;
+  }
+
+  .job-content {
+    padding: 2rem;
+  }
+
+  .content-block {
+    padding-bottom: 2rem;
+  }
+
+  .requirements-list {
+    gap: 0.75rem;
+  }
+
+  .requirement-item {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .benefits-list {
+    gap: 0.5rem;
+  }
+
+  .benefit-item {
+    padding: 0.85rem 1rem;
+    gap: 0.6rem;
+  }
+
+  .salary-amount {
+    font-size: 1.6rem;
+    padding: 1.25rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .payment-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .payment-qr-column {
+    justify-content: flex-start;
+  }
+
+  .qr-card {
+    max-width: 100%;
+  }
+
+  .info-technical {
+    margin-left: -2rem;
+    margin-right: -2rem;
+    margin-bottom: -2rem;
+    padding: 1.75rem 2rem;
+  }
+
+  .block-title {
+    font-size: 1rem;
+  }
+
+  .block-text {
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+}
+
+/* MOBILE: 480px y menor */
+@media (max-width: 480px) {
+  /* JOB LISTING MOBILE */
+  .job-listing-card {
+    border-radius: 8px;
+    margin-top: 1rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  .job-header {
+    padding: 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .company-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.8rem;
+  }
+
+  .company-logo {
+    width: 75px;
+    height: 75px;
+  }
+
+  .company-logo-placeholder {
+    width: 75px;
+    height: 75px;
+    font-size: 1.9rem;
+  }
+
+  .company-name {
+    font-size: 1.25rem;
+  }
+
+  .job-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .header-meta {
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+  }
+
+  .meta-item {
+    font-size: 0.8rem;
+  }
+
+  .header-badges {
+    gap: 0.5rem;
+  }
+
+  .badge {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.7rem;
+  }
+
+  .job-content {
+    padding: 1.5rem;
+  }
+
+  .content-block {
+    padding-bottom: 1.5rem;
+  }
+
+  .content-block:not(:last-child) {
+    border-bottom: 1px solid #E2E8F0;
+  }
+
+  .block-title {
+    font-size: 1rem;
+    margin: 0 0 1rem 0;
+  }
+
+  .block-text {
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  .requirements-list {
+    margin: 1rem 0 0 0;
+    gap: 0.75rem;
+  }
+
+  .requirement-item {
+    padding: 1rem;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .requirement-icon {
+    font-size: 1.1rem;
+    margin-right: 0.3rem;
+  }
+
+  .benefits-list {
+    margin: 1rem 0 0 0;
+    gap: 0.5rem;
+  }
+
+  .benefit-item {
+    padding: 0.85rem 1rem;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .benefit-icon {
+    font-size: 1rem;
+    margin-right: 0.3rem;
+  }
+
+  .salary-label {
+    font-size: 0.8rem;
+  }
+
+  .salary-amount {
+    font-size: 1.4rem;
+    padding: 1rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .info-group {
+    gap: 1rem;
+  }
+
+  .info-item {
+    gap: 0.3rem;
+  }
+
+  .info-label {
+    font-size: 0.75rem;
+    color: #64748B;
+  }
+
+  .info-value {
+    font-size: 0.9rem;
+  }
+
+  .info-link {
+    font-size: 0.9rem;
+  }
+
+  .info-technical {
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    margin-bottom: -1.5rem;
+    padding: 1.5rem;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .info-external {
+    padding-top: 1.5rem;
+  }
+
+  .external-link {
+    font-size: 0.85rem;
+    word-break: break-word;
   }
 }
 </style>

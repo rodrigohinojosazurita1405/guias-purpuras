@@ -28,3 +28,9 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# QR Codes - Sensitive payment data
+public/qr-codes/*.png
+public/qr-codes/*.jpg
+public/qr-codes/*.jpeg
+!public/qr-codes/README.md
