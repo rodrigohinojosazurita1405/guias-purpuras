@@ -782,31 +782,22 @@
                   </template>
                 </p>
               </div>
-            </section>
+              <!-- ===== INFORMACIÓN ADICIONAL (Sin fondo diferenciado) ===== -->
+              <div class="info-additional">
+                <h3 class="additional-title">Más Información</h3>
 
-            <!-- ===== INFORMACIÓN TÉCNICA (Fondo diferenciado) ===== -->
-            <section class="content-block info-technical">
-              <h2 class="block-title">
-                <va-icon name="info" size="small" />
-                Más Información
-              </h2>
-
-              <div class="info-grid">
-                <div class="info-group">
-                  <div class="info-item">
-                    <span class="info-label">Categoría:</span>
-                    <span class="info-value">{{ jobData.jobCategory }}</span>
+                <div class="additional-grid">
+                  <div class="additional-item">
+                    <span class="additional-label">Categoría:</span>
+                    <span class="additional-value">{{ jobData.jobCategory }}</span>
                   </div>
-                  <div class="info-item">
-                    <span class="info-label">Subcategoría:</span>
-                    <span class="info-value">{{ jobData.subcategory }}</span>
+                  <div class="additional-item">
+                    <span class="additional-label">Subcategoría:</span>
+                    <span class="additional-value">{{ jobData.subcategory }}</span>
                   </div>
-                </div>
-
-                <div class="info-group">
-                  <div class="info-item">
-                    <span class="info-label">Tipo de Aplicación:</span>
-                    <span class="info-value">
+                  <div class="additional-item">
+                    <span class="additional-label">Tipo de Aplicación:</span>
+                    <span class="additional-value">
                       <template v-if="jobData.applicationType === 'internal'">
                         Interna
                       </template>
@@ -818,20 +809,20 @@
                       </template>
                     </span>
                   </div>
-                  <div class="info-item" v-if="jobData.email">
-                    <span class="info-label">Email de Contacto:</span>
-                    <a :href="`mailto:${jobData.email}`" class="info-link">{{ jobData.email }}</a>
+                  <div class="additional-item" v-if="jobData.email">
+                    <span class="additional-label">Email de Contacto:</span>
+                    <a :href="`mailto:${jobData.email}`" class="additional-link">{{ jobData.email }}</a>
                   </div>
                 </div>
-              </div>
 
-              <!-- URL de Aplicación Externa (si aplica) -->
-              <div v-if="['external', 'both'].includes(jobData.applicationType)" class="info-external">
-                <p><span class="info-label">URL de Aplicación:</span></p>
-                <a :href="jobData.externalApplicationUrl" target="_blank" class="info-link external-link">
-                  {{ jobData.externalApplicationUrl }}
-                  <va-icon name="open_in_new" size="small" />
-                </a>
+                <!-- URL de Aplicación Externa (si aplica) -->
+                <div v-if="['external', 'both'].includes(jobData.applicationType)" class="additional-external">
+                  <span class="additional-label">URL de Aplicación:</span>
+                  <a :href="jobData.externalApplicationUrl" target="_blank" class="additional-link">
+                    {{ jobData.externalApplicationUrl }}
+                    <va-icon name="open_in_new" size="small" />
+                  </a>
+                </div>
               </div>
             </section>
 
@@ -842,7 +833,7 @@
                 <div @click="togglePaymentAccordion" class="accordion-header">
                   <div class="accordion-title">
                     <va-icon name="payment" size="small" />
-                    <span>Información de Pago</span>
+                    <span>Información y método de pago de su anuncio</span>
                     <span class="accordion-hint">• Haz clic para desplegar</span>
                   </div>
                   <va-icon
@@ -2572,6 +2563,73 @@ watch(() => props.formData.coordinates, (newCoords) => {
   text-decoration: underline;
 }
 
+/* ===== INFORMACIÓN ADICIONAL (Sin divisiones) ===== */
+.info-additional {
+  margin-top: 1.5rem;
+}
+
+.additional-title {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.additional-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.additional-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.additional-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.additional-value {
+  font-size: 0.95rem;
+  color: #334155;
+  font-weight: 600;
+}
+
+.additional-external {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.additional-link {
+  color: #7C3AED;
+  text-decoration: none;
+  font-weight: 600;
+  word-break: break-all;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+}
+
+.additional-link:hover {
+  color: #6D28D9;
+  text-decoration: underline;
+}
+
+.additional-link :deep(.va-icon) {
+  font-size: 0.8rem;
+}
+
 /* ===== SECCIÓN INFORMACIÓN TÉCNICA ===== */
 .info-technical {
   background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
@@ -2833,6 +2891,11 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
   .support-text {
     font-size: 0.8rem;
+  }
+
+  .additional-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .info-technical {
