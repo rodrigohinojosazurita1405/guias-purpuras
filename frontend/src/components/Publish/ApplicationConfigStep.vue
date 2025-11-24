@@ -443,19 +443,16 @@ const validate = () => {
   color: #1E293B;
 }
 
-.option-header :deep(.va-radio__container) {
-  display: none !important;
-}
-
-.option-header :deep(.va-radio) {
-  margin: 0 !important;
+.option-header :deep(.va-radio__option-label) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
   padding: 0 !important;
-  width: auto !important;
-  height: auto !important;
-}
-
-.option-header :deep(.va-radio input) {
-  display: none !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border-width: 0 !important;
 }
 
 .option-description {
