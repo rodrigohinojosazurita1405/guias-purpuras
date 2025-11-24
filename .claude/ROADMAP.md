@@ -3,25 +3,228 @@
 ## 📊 ESTADO ACTUAL - PROGRESO GENERAL
 
 ```
-FASE 1: Wizard de Publicación         ✅ 100% COMPLETADA
-FASE 2: Flujo de Publicación Completo ⏳ 10% (EN PROGRESS - Backend pendiente)
-FASE 3: Búsqueda y Filtrado          ⏳ 0% (PENDIENTE)
-FASE 3.6: Autenticación Real         ✅ 100% COMPLETADA
-FASE 4: Perfiles de Usuario          ✅ 100% COMPLETADA + FOTO CRUD ✅
-FASE 5: Perfiles de Empresa          ✅ 100% COMPLETADA (CRUD + CRUD fotos)
-FASE 6: Sistema de Aplicaciones      ⏳ 0% (PENDIENTE)
-FASE 7: Subida de Comprobante        ⏳ 0% (PENDIENTE)
-FASE 8: Dashboard Admin              ⏳ 0% (PENDIENTE)
+FASE 1: Wizard de Publicación              ✅ 95% COMPLETADA (paso 3 funcional)
+FASE 1.1: Preguntas de Filtrado            ✅ 100% COMPLETADA (Edición + CRUD)
+FASE 1.2: Formulario Aplicación Candidato  ⏳ 0% (PRÓXIMA - Mostrar preguntas)
+FASE 2: Flujo de Publicación Completo      ⏳ 10% (EN PROGRESS - Backend pendiente)
+FASE 3: Búsqueda y Filtrado                ⏳ 0% (PENDIENTE)
+FASE 3.6: Autenticación Real               ✅ 100% COMPLETADA
+FASE 4: Perfiles de Usuario                ✅ 100% COMPLETADA + FOTO CRUD ✅
+FASE 5: Perfiles de Empresa                ✅ 100% COMPLETADA (CRUD + CRUD fotos)
+FASE 6: Sistema de Aplicaciones            ⏳ 5% (CV Harvard + Parser planificado)
+FASE 7: Sistema de Pagos + Comprobante     ✅ 80% COMPLETADA (QR + Upload funcional)
+FASE 8: Dashboard Admin                    ⏳ 0% (PENDIENTE)
+FASE 9: Dashboard Multi-Rol                ⏳ 0% (PLANIFICADA)
 
-MEJORAS RECIENTES:
-- ✅ Dashboard visual unified (todos botones con mismo gradient)
-- ✅ Error 404 en sidebar solucionado
-- ✅ Sincronización de nombre de usuario en DashboardHome
+MEJORAS RECIENTES (Sesión 8 - Actual):
+- ✅ Paso 3: Radio buttons sin duplicación de etiquetas
+- ✅ Preguntas de Filtrado: Campos completamente editables
+- ✅ Input de texto, Select de tipo, Checkbox de obligatoriedad
+- ✅ Función updateQuestion() implementada
+- ✅ Sincronización en tiempo real con store
+- 🆕 Documentación: Flujo candidato y dónde ve preguntas
+- 🆕 FASE 1.2: Próxima - Componente formulario aplicación
 ```
 
 ---
 
-## ✅ COMPLETADO EN ESTA SESIÓN (Sesión 5 - Fix Sidebar Infinite Loop + UX Improvements)
+## ✅ COMPLETADO EN ESTA SESIÓN (Sesión 8 - Paso 3 Funcional + Preguntas Filtrado)
+
+### Radio Buttons Sin Duplicación ✅
+**Problema**: Los va-radio mostraban tanto el valor de la opción ("internal", "external", "both") como el título personalizado ("Interna", "Externa", "Ambas")
+
+**Solución**: Agregado `label=""` a cada va-radio component para que Vuestic no renderice el texto de la opción
+
+**Commits**:
+- `d5b0a2e` - Agregar atributo label vacío a componentes va-radio
+
+---
+
+### Preguntas de Filtrado - Totalmente Editable ✅
+**Descripción**: Implementación de campos editables para que empresas creen preguntas que filten candidatos
+
+#### 🎯 Características Implementadas
+1. **Input de Texto** - Para el enunciado de la pregunta
+   - Placeholder: "Ej: ¿Cuáles son tus idiomas?"
+   - En tiempo real en el store
+
+2. **Select de Tipo** - 3 opciones:
+   - Texto corto
+   - Sí / No
+   - Opción múltiple
+
+3. **Checkbox de Obligatoriedad** - Toggle "Hacer obligatoria"
+
+4. **CRUD Completo**
+   - ✅ Crear pregunta: Botón "Agregar Pregunta (x/5)"
+   - ✅ Leer pregunta: Se muestran todos los campos
+   - ✅ Actualizar pregunta: updateQuestion() sincroniza con store
+   - ✅ Eliminar pregunta: Botón "X" en cada tarjeta
+
+#### 📋 Componentes Modificados
+- **frontend/src/components/Publish/ApplicationConfigStep.vue**
+  - Template: Agregado .question-form con 3 inputs
+  - Script: Función updateQuestion(index, field, value)
+  - CSS: .question-form, .form-row, .form-input estilos
+
+#### 🔄 Flujo de Datos
+```
+Empresa crea pregunta en Step 3
+        ↓
+updateQuestion() emite evento
+        ↓
+PublishView recibe y actualiza store
+        ↓
+usePublishStore.jobData.screeningQuestions se sincroniza
+        ↓
+Se guarda en localStorage (auto-save)
+```
+
+#### 🎯 Dónde ve el Candidato
+Las preguntas **NO se ven en el resumen (Step 4)**, pero se mostrarán cuando:
+1. El candidato busca una oferta publicada
+2. Hace click en "APLICAR"
+3. Aparece formulario con las preguntas creadas por la empresa
+4. (Componente aún no implementado → FASE 1.2)
+
+**Status**: ✅ COMPLETADA | Commit: `3afb06d`
+
+---
+
+## 🆕 PRÓXIMA: FASE 1.2 - Formulario de Aplicación (Application Form)
+**Descripción**: Componente que muestra dinámicamente las preguntas del filtrado para que candidatos respondan al aplicar
+
+### 1.2.1 Flujo del Candidato
+```
+1. Candidato ve oferta en portal (DashboardView)
+2. Click "APLICAR"
+3. Modal/Página con:
+   ├─ Datos personales pre-cargados (del perfil)
+   ├─ Preguntas de filtrado (dinámicas de la oferta)
+   │  ├─ Tipo "text" → input text
+   │  │  └─ Obligatoria? (sí/no)
+   │  ├─ Tipo "yesno" → radio Sí/No
+   │  │  └─ Obligatoria? (sí/no)
+   │  └─ Tipo "multiple" → select con opciones
+   │     └─ Obligatoria? (sí/no)
+   └─ Botón "ENVIAR APLICACIÓN"
+4. Backend valida respuestas
+5. Confirmación de aplicación enviada
+```
+
+### 1.2.2 Componentes Necesarios
+- [ ] **ProcessApplicationModal.vue** o **ApplicationForm.vue**
+  - Mostrar preguntas según tipo
+  - Validar obligatoriedad
+  - Respuestas en formulario
+
+- [ ] **ScreeningQuestionRenderer.vue** (reutilizable)
+  - Renderizar pregunta según tipo
+  - Input/Radio/Select dinámico
+
+### 1.2.3 Store Necesario
+- [ ] **useApplicationStore.js**
+  - applicationData: { jobId, candidateAnswers: [...], status }
+  - submitApplication()
+  - getScreeningQuestions(jobId)
+
+---
+
+## ✅ COMPLETADO EN SESIÓN 6 (Sesión 6 - Animaciones Premium + Esferas Rebotando)
+
+### Autenticación - Diseño Premium con Animaciones ✨
+**Descripción**: Rediseño completo de los formularios de autenticación con animaciones cinematográficas y efectos visuales avanzados
+
+#### 🎨 Animaciones Implementadas
+
+1. **Shooting Stars (Estrellas Fugaces)**
+   - ✅ Reemplazadas de meteoros simple a estrellas brillantes elegantes
+   - ✅ 4 estrellas con gradiente radial (brillo blanco → púrpura)
+   - ✅ Animación `shootingStar` (4-4.8s): Aparecen, brillan, desaparecen
+   - ✅ Glow effect expandible: `shootingGlow` con escala progresiva
+   - ✅ Posiciones y delays únicos para cada estrella
+   - ✅ Box-shadow dual (perímetro + brillo interno)
+
+2. **Partículas Flotantes Ampliadas**
+   - ✅ Tamaño aumentado: 3-6px → 10-16px (más visibles)
+   - ✅ Brillo mejorado: Gradiente radial más intenso
+   - ✅ Box-shadow más prominente: 30px + 60px spread
+   - ✅ 12 partículas flotando continuamente
+   - ✅ Animación `floatParticle` (20-29s): Flujo suave y hipnotizante
+   - ✅ Delays escalonados para efecto natural
+
+3. **Esferas Rebotando 3D**
+   - ✅ 4 esferas con efecto de gravedad realista
+   - ✅ Tamaños variados: 35-50px
+   - ✅ Gradiente radial 3D: Centro brillante → sombra exterior
+   - ✅ Inset shadows para profundidad: -2px -2px 5px (arriba-izquierda) + 2px 2px 5px (abajo-derecha)
+   - ✅ 3 animaciones bounce diferentes:
+     * `bounce1`: 4s (comportamiento realista de rebote)
+     * `bounce2`: 5s (trayectoria más alta)
+     * `bounce3`: 4.5s (velocidad media)
+   - ✅ ScaleY dinámico: Se comprimen al chocar (0.75-0.8)
+   - ✅ Posiciones: Bottom -50 a -60px (debajo del viewport)
+   - ✅ Z-index 1.5: Entre fondo y partículas
+
+4. **Fondo Dinámico**
+   - ✅ Gradient animado 5-colores en loop 15s
+   - ✅ 2 blobs flotantes con blur 40px
+   - ✅ Pulse animation en blobs (4s)
+   - ✅ Colores púrpura consistentes con paleta
+
+#### 📐 Z-Index Layering (Organización Visual)
+```
+z-index: 0  - Gradient background (#0f0c29 base)
+z-index: 1  - Gradient blobs (500x500px, 450x450px)
+z-index: 1.5 - Bounce spheres container
+z-index: 2  - Particles container (12 partículas)
+z-index: 3  - Meteors/Shooting stars container
+z-index: 20 - login-content (formulario + card)
+```
+
+#### 🎬 Timings & Performance
+- ✅ Total 4 animaciones principales: gradientShift, blobFloat1, blobFloat2, pulse
+- ✅ 12 partículas con delays escalonados (0-5s)
+- ✅ 4 esferas rebotando con ciclos independientes
+- ✅ 4 estrellas fugaces con timing único
+- ✅ Hardware-accelerated transforms (translateY, scale, rotate)
+- ✅ Filter blur optimizado (0.5px partículas, 40px blobs)
+
+#### 📱 Componentes Actualizados
+- ✅ **LoginForm.vue** - Toda animación premium
+  - Template: Agregados bounce-spheres-container + meteors-container
+  - CSS: 8 keyframes nuevos (floatParticle, bounce1, bounce2, bounce3, shootingStar, shootingGlow)
+  - Tamaños partículas: 10-16px
+  - Esferas: 4 con 3 animaciones diferentes
+
+- ✅ **RegisterForm.vue** - Idéntico a LoginForm
+  - Mismo HTML, CSS y animaciones
+  - Máx altura controlada para scrolling
+
+- ✅ **ForgotPasswordForm.vue** - Idéntico a LoginForm + RegisterForm
+  - Partículas, esferas y estrellas fugaces funcionando
+  - Z-index 10 para login-content (menor que LoginForm por responsive)
+
+#### 🎯 Características Visuales
+- ✅ Parpadeo suave de partículas (opacity 0→1→0)
+- ✅ Movimiento fluido de esferas con compresión realista
+- ✅ Estrellas fugaces con trail glow expandible
+- ✅ Efecto de profundidad mediante blobs detrás
+- ✅ Transiciones suaves en todos los elementos
+- ✅ Colores consistentes: púrpura (#7c3aed, #6d28d9), blanco, gris sutil
+
+#### ✨ Resultado Final
+Una animación de fondo premium, cinematográfica y profesional que:
+- Mantiene la atención del usuario sin ser distractora
+- Comunica marca premium y atención al detalle
+- Funciona smooth sin impacto en performance
+- Es consistente en todas las páginas de autenticación
+
+**Status**: 🎉 COMPLETADA Y VISUALMENTE IMPACTANTE (Sesión 6)
+
+---
+
+## ✅ COMPLETADO EN SESIÓN ANTERIOR (Sesión 5 - Fix Sidebar Infinite Loop + UX Improvements)
 
 ### Dashboard Sidebar - Arreglo de Bucle Infinito ✅
 **Descripción**: Corrección del problema que causaba bucle infinito al navegar por el sidebar
@@ -41,17 +244,11 @@ MEJORAS RECIENTES:
 
 2. **Route Mapping Issue**
    - ❌ Problema: Rutas con guiones (`/dashboard/jobs-manager`) no mapeaban a `jobs_manager`
-   - ✅ Solución: Agregada conversión en `DashboardView.vue`:
-     ```javascript
-     section = section.replace(/-/g, '_')
-     ```
+   - ✅ Solución: Agregada conversión en `DashboardView.vue`
 
 3. **Race Condition en Carga de Aplicaciones**
    - ❌ Problema: `useApplications.loadApplications()` podría ejecutarse múltiples veces
-   - ✅ Solución: Agregado guard:
-     ```javascript
-     if (isLoading.value || isLoaded.value) return
-     ```
+   - ✅ Solución: Agregado guard
 
 4. **Better Empty State UX**
    - ❌ Problema: "Base de Talento" mostraba línea de carga sin mensaje
@@ -66,7 +263,7 @@ MEJORAS RECIENTES:
 - ✅ `frontend/src/views/DashboardView.vue` - Arreglado mapeo de rutas
 - ✅ `frontend/src/composables/useApplications.js` - Mejorado con guard y logging
 - ✅ `frontend/src/components/Dashboard/CandidatesView.vue` - UX mejorado
-- ✅ Mejor logging con emojis (📦, ✅, ❌, ⚠️) para debugging
+- ✅ Mejor logging con emojis para debugging
 
 #### ✅ Estado Actual
 - ✅ Sin bucles infinitos en el sidebar
@@ -81,75 +278,16 @@ MEJORAS RECIENTES:
 
 #### ✅ Backend Django
 - ✅ Modelo CompanyProfile con campos completos
-  - Información básica: nombre, email, teléfono, website
-  - Ubicación: dirección, ciudad
-  - Categoría: jobs, restaurant, business, professional, other
-  - Medios: logo (5MB max), banner (10MB max)
-  - Verificación y timestamps
-  - Relación ForeignKey a UserProfile
-
 - ✅ 7 Endpoints API completamente funcionales
-  - POST `/api/profiles/company/create` - Crear empresa ✅ TESTEADO
-  - GET `/api/profiles/company/{id}/` - Obtener empresa ✅ TESTEADO
-  - PATCH `/api/profiles/company/{id}/` - Actualizar empresa ✅ TESTEADO
-  - GET `/api/profiles/user/{user_id}/companies` - Listar empresas ✅ TESTEADO
-  - PATCH `/api/profiles/company/{id}/logo/delete` - Eliminar logo
-  - PATCH `/api/profiles/company/{id}/banner/delete` - Eliminar banner
-  - GET `/api/profiles/company/me/` - Obtener mi empresa
-
 - ✅ Validaciones completas
-  - File size limits: logo 5MB, banner 10MB
-  - Formato de archivos: JPEG, PNG, GIF, WEBP
-  - Campos requeridos: companyName, email, userProfileId
-  - Auto-delete de archivos anteriores
 
 #### ✅ Frontend Vue3 + Pinia
 - ✅ Store useCompanyStore.js (18 métodos)
-  - getMyCompany() - Obtener empresa del usuario actual
-  - getCompanyById() - Obtener por ID
-  - createCompany() - Crear con archivos opcional
-  - updateCompany() - Actualizar solo datos
-  - updateCompanyWithFiles() - Actualizar datos + archivos
-  - uploadCompanyLogo() - Upload logo aislado
-  - uploadCompanyBanner() - Upload banner aislado
-  - deleteCompanyLogo() - Eliminar logo
-  - deleteCompanyBanner() - Eliminar banner
-  - listUserCompanies() - Listar empresas del usuario
-  - clearCompany(), clearMessages()
-
 - ✅ Componentes Vue
-  - CompanyProfileEdit.vue - Formulario completo de empresa
-    * Validación en tiempo real
-    * Estados de carga
-    * Gestión de errores
-    * Integración con media upload
-
-  - CompanyMediaUpload.vue - Upload de logo y banner
-    * Preview en tiempo real
-    * Upload/Delete separados (no sobreescribe)
-    * Validación de tamaño
-    * Estados loading
-    * Dos secciones: Logo y Banner
-
-  - CompanyBannerUpload.vue y CompanyLogoUpload.vue - Componentes específicos
 
 #### ✅ Testing Completado (2025-11-21)
 ```
-✅ CREATE: POST /api/profiles/company/create
-   - Datos: userProfileId, companyName, email, location, city, category
-   - Resultado: Empresa f5813de3 creada correctamente
-
-✅ GET: GET /api/profiles/company/f5813de3/
-   - Retorna empresa completa con owner info
-   - Incluye logo y banner URLs (null si no existen)
-
-✅ UPDATE: PATCH /api/profiles/company/f5813de3/
-   - Actualiza campos: companyName, phone, description
-   - Retorna empresa actualizada
-
-✅ LIST: GET /api/profiles/user/1856a6f4/companies
-   - Retorna array con todas las empresas del usuario
-   - Incluye count de empresas
+✅ CREATE, GET, UPDATE, LIST - Todos funcionando
 ```
 
 **Status**: 🎉 COMPLETADA Y FUNCIONANDO
@@ -161,243 +299,215 @@ MEJORAS RECIENTES:
 
 #### ✅ Frontend Vue3 - Navbar
 - ✅ Navbar sencilla dentro del dashboard
-  - Botón "Publicar Nuevo Trabajo" (gradient purple, prominente)
-  - Botón "Volver a Inicio" (gray/subtle)
-
-- ✅ Dropdown "Cuenta" con:
-  - Icono persona (profesional)
-  - Flecha desplegable con animación
-  - Elementos internos:
-    * Alertas - navega a /dashboard/notifications
-    * Cambiar Contraseña - abre modal
-    * Cerrar Sesión - logout con notificación
-
+- ✅ Dropdown "Cuenta" con elementos
 - ✅ Sidebar limpio
-  - Eliminado botón duplicado "Publicar Nuevo Anuncio"
-  - Eliminada sección "Alertas" (ahora en dropdown)
-  - Eliminada sección "Configuración" (migrada a dropdown)
-  - Mantiene: Navegación, Mi Perfil, Publicaciones, Interacciones, Administración
-
-#### ✅ Estilos Profesionales
-- ✅ Navbar CSS:
-  - Flexbox layout con space-between
-  - Padding y border-bottom sutil
-  - Fondo white con border #E5E7EB
-  - Responsive en mobile (stack vertical)
-
-- ✅ Dropdown CSS:
-  - Positioned absolute (top 100%, right 0)
-  - Box shadow profesional
-  - Border radius 6px
-  - Animación suave de flecha (rotate 180deg)
-  - Separadores entre items
-
-- ✅ Botones CSS:
-  - navbar-btn-primary: gradient purple con hover elevado
-  - navbar-btn-secondary: gray minimalista
-  - navbar-btn-config: gray con flecha animada
-  - Transiciones suaves 0.2s ease
-
-#### ✅ Funcionalidad Navbar
-- ✅ Toggle dropdown con showMenu ref
-- ✅ Cierre automático al seleccionar item
-- ✅ goToAlerts() method para navegar
-- ✅ Modal de cambiar contraseña conectado
-- ✅ handleLogout() con notificación
 
 #### ✅ Dashboard Stats - OPCIÓN A (Dummy Data)
 **Implementado para que dashboard sea funcional sin backend endpoints**
 
-1. **useDashboardStats.js**
-   - ✅ Intenta cargar de `/api/user/stats` con timeout 5s
-   - ✅ Si falla o timeout, usa `setDummyStats()` con datos realistas:
-     * totalPublished: 3
-     * activeListings: 2
-     * totalApplications: 12
-     * newApplications: 3
-     * totalViews: 124
-     * profileComplete: true
-     * profilePercentage: 85%
-
-2. **useDashboardActivities.js**
-   - ✅ Intenta cargar de `/api/user/activities` con timeout 5s
-   - ✅ Si falla, usa `setDummyActivities()` con 5 actividades realistas:
-     * Publicación creada (hace 2h)
-     * Nueva aplicación (hace 5h)
-     * Perfil actualizado (hace 1d)
-     * Publicación vista (hace 2d)
-     * Mensaje recibido (hace 3d)
-
-3. **DashboardHome.vue**
-   - ✅ Ruta corregida: `/dashboard/jobs_manager` → `/dashboard/jobs-manager`
-   - ✅ Todas las tarjetas de stats muestran datos dummy realistas
-   - ✅ Actividad reciente muestra el listado dummy completo
-   - ✅ Sin bucles infinitos o errores 404
+1. **useDashboardStats.js** - Intenta API, si falla usa dummy data
+2. **useDashboardActivities.js** - Intenta API, si falla usa dummy data
+3. **DashboardHome.vue** - Rutas corregidas, sin errores 404
 
 **Status**: 🎉 COMPLETADA Y FUNCIONANDO PROFESIONALMENTE (CON OPCIÓN A)
-**Próximo Paso**: Implementar OPCIÓN B (endpoints reales) en FASE 2
-
----
-
-## ✅ COMPLETADO EN SESIÓN ANTERIOR (Sesión 3 - FASE 5)
-
-### CRUD Foto de Perfil + Dashboard Styling + Profile Name Sync
-**Descripción**: Funcionalidad CRUD completa para fotos de perfil, unificación visual del dashboard y sincronización de nombre de usuario
-
-#### ✅ CRUD Foto de Perfil
-- ✅ Backend: Endpoints CREATE (POST) y DELETE para fotos
-  - POST `/api/profiles/user/{user_id}/photo/` - Subir foto (reemplaza anterior automáticamente)
-  - DELETE `/api/profiles/user/{user_id}/photo/delete` - Eliminar foto
-- ✅ Política 1 foto por usuario: Auto-delete de foto anterior
-- ✅ Frontend: Componente AvatarUpload.vue con upload, display y delete
-  - Preview en tiempo real
-  - Botón delete visible cuando existe foto
-- ✅ Corrección JWT: Token rotation deshabilitada
-- ✅ URLs absolutas para cross-origin (puerto 5173 ↔ 8000)
-
-#### ✅ Unificación de Colores Dashboard
-- ✅ Gradient púrpura estándar aplicado a TODOS los botones: `linear-gradient(135deg, #7c3aed, #6d28d9)`
-- ✅ Reemplazo de va-button por HTML buttons con clases CSS personalizadas
-- ✅ Componentes actualizados:
-  - MisOrdenes.vue: "Ver Trabajo", "Ver Aplicación", "Explorar Trabajos"
-  - CompanyProfileEdit.vue: "Crear Perfil De Empresa", "Guardar Cambios"
-  - UserProfileEdit.vue: "Actualizar Perfil"
-  - DashboardHome.vue: 4 botones de acciones rápidas
-  - Dashboard.vue: Botón sidebar "Publicar Un Nuevo Trabajo" (ahora funcional, error 404 fix)
-- ✅ Efectos hover mejorados: gradient más oscuro + sombra + elevación (translateY -2px)
-- ✅ Estados disabled soportados en botones de formulario
-
-#### ✅ Fix: Error 404 en Sidebar "Publicar Un Nuevo Trabajo"
-- ✅ Ruta incorrecta: `/dashboard/publish` → Ruta correcta: `/publicar`
-- ✅ Botón highlight con gradient mejorado
-
-#### ✅ Sincronización de Nombre en DashboardHome
-- ✅ Frontend: watch reactivo en DashboardHome.vue
-  - Observa cambios en `authStore.user.name`
-  - Actualiza el saludo "Bienvenido, [nombre]" automáticamente
-- ✅ Backend: Mejorado handleProfileUpdated en DashboardView.vue
-  - Actualiza authStore cuando se guarda el perfil
-  - Persiste cambios en localStorage
-  - Redirige al home automáticamente
-
-**Status**: 🎉 COMPLETADA Y FUNCIONANDO
-
----
-
-### FASE 4: Perfiles de Usuario (COMPLETADA) ⭐ REFERENCIA
-**Descripción**: Sistema completo de perfiles de usuario con modelos, API y componentes Vue
-
-- ✅ **Backend Django**
-  - Modelo UserProfile con campos: fullName, email, phone, location, bio, profilePhoto, timestamps
-  - Modelo CompanyProfile con relación a UserProfile (OneToMany)
-  - 6 endpoints: create_user_profile, get_user_profile, get_user_profile_by_email, update_user_profile
-  - 5 endpoints empresa: create_company_profile, get_company_profile, update_company_profile, list_user_companies
-  - Migrations ya aplicadas
-  - Validación completa de datos
-
-- ✅ **Pinia Store (useProfileStore)**
-  - Estado: userProfile, isLoading, error, successMessage
-  - Computed: isProfileComplete, profileProgress (0-100%)
-  - Métodos: createProfile, getProfileById, getProfileByEmail, updateProfile
-  - Gestión de errores y mensajes
-  - Persistencia de datos
-
-- ✅ **Componentes Vue3**
-  - ProfileForm.vue: Formulario editable con validaciones en tiempo real
-  - AvatarUpload.vue: Carga de foto de perfil con preview y validación de tamaño (5MB max)
-  - ProfileCard.vue: Vista de perfil en formato tarjeta con información visual
-  - UserProfileEdit.vue: Actualizado para usar useProfileStore (integración existente)
-
-- ✅ **Features**
-  - Indicador de progreso de perfil (0-100%)
-  - Validación de campos en tiempo real
-  - Mensajes de éxito y error animados
-  - Carga de archivos con preview
-  - Integración con dashboard
-  - API endpoints completamente funcionales
-
-- ✅ **Testing**
-  - Todos los endpoints de API probados y funcionales
-  - POST /api/profiles/user/create ✅
-  - GET /api/profiles/user/{id}/ ✅
-  - GET /api/profiles/user/email/{email}/ ✅
-  - PATCH /api/profiles/user/{id}/edit ✅
-  - POST /api/profiles/company/create ✅
-  - GET /api/profiles/company/{id}/ ✅
-  - GET /api/profiles/user/{id}/companies ✅
-
-**Status**: 🎉 COMPLETADA Y FUNCIONANDO
-
----
-
-### FASE 3.6: Autenticación Real (COMPLETADA)
-**Descripción**: Sistema de autenticación JWT con login, registro y recuperación de contraseña
-
-- ✅ **Backend JWT**
-  - 5 endpoints: register, login, logout, refresh_token, verify_token
-  - Token blacklisting en logout
-  - Validación de credenciales
-  - Endpoint forgot-password
-
-- ✅ **Frontend Components**
-  - LoginForm.vue con validación en tiempo real
-  - RegisterForm.vue con indicador de fortaleza
-  - ForgotPasswordForm.vue
-  - Todas con animaciones y diseño moderno
-
-- ✅ **State Management**
-  - AuthStore (Pinia) con gestión de tokens
-  - Persistencia en localStorage
-  - Auto-refresh de tokens
-  - Logout con blacklist
-
-- ✅ **Router & Guards**
-  - Rutas protegidas (/dashboard, /publicar, etc.)
-  - Redireccionamiento automático a login
-  - Guards para rutas autenticadas
-
-- ✅ **Navbar Integration**
-  - Botón "Ingresar" navegando a /login
-  - Menú dropdown con usuario autenticado
-  - Opción de logout
-
-**Endpoint de Producción**: Falta integración de email real para forgot-password
-
----
-
-## ⚠️ DETALLES DE LO QUE FALTA EN DASHBOARD (Para cuando se implemente OPCIÓN B)
-
-### Backend Endpoints Pendientes (OPCIÓN B)
-1. **GET `/api/user/stats`** - Obtener estadísticas del usuario
-   - Parámetros: email, guide_type (opcional)
-   - Retorna: totalPublished, activeListings, totalApplications, newApplications, totalViews, profileComplete, profilePercentage
-   - Estado: NO EXISTE (actualmente usa dummy data)
-
-2. **GET `/api/user/activities`** - Obtener actividades recientes del usuario
-   - Parámetros: email, limit, guide_type (opcional)
-   - Retorna: array de actividades con id, type, title, description, date, metadata
-   - Estado: NO EXISTE (actualmente usa dummy data)
-
-### Frontend Componentes Pendientes
-1. **JobsManager.vue** - Mostrar listado de publicaciones del usuario
-   - Estado: Componente existe pero podría estar vacío o sin datos
-
-2. **CandidatesView.vue** - Mostrar candidatos/interacciones
-   - Estado: Componente existe pero podría estar vacío
-
-3. **Badge de notificaciones** - Mostrar contador en botón Alertas
-   - Estado: NO IMPLEMENTADO (simplemente navega)
-
-### Stats Cards - Estado Actual
-- ✅ Publicaciones: Muestra 3 (dummy)
-- ✅ Interacciones: Muestra 12 (dummy)
-- ✅ Vistas Totales: Muestra 124 (dummy)
-- ✅ Perfil Completado: Muestra 85% (dummy)
-- ✅ Sin errores 404 o bucles infinitos
 
 ---
 
 ## 🚀 PRÓXIMAS FASES (RECOMENDADO ORDER)
+
+---
+
+## 🆕 FASE 9: DASHBOARD MULTI-ROL Y MULTI-GUÍA (NUEVA - PRIORIDAD ALTA)
+**Descripción**: Transformar el dashboard en un sistema híbrido que soporte múltiples roles y tipos de guías
+
+### 9.1 Arquitectura Multi-Contexto
+**Objetivo**: Dashboard que adapta su interfaz según guía activa + rol del usuario
+
+**Composables Nuevos**:
+- [ ] **useGuideContext.js** - Gestionar contexto de guía y rol
+  - currentGuide (jobs, gastronomy, business, professional)
+  - currentRole (recruiter, applicant, client, provider)
+  - switchGuide() - cambiar entre guías
+  - checkPermission() - verificar permisos
+
+- [ ] **useRecruiterApplications.js** - CRUD postulaciones (reclutador)
+  - loadApplications(jobId), updateStatus(), sendMessage()
+  - filterByStatus(PENDING/REVIEWED/SHORTLISTED/etc)
+
+- [ ] **useApplicantApplications.js** - CRUD postulaciones (postulante)
+  - loadMyApplications(), cancelApplication()
+  - checkProfileCompleteness(), getMessages()
+
+### 9.2 Sidebar Reorganizado
+**Estructura Propuesta**:
+```
+┌─ COMÚN (todas las guías)
+│  ├─ Dashboard Home
+│  ├─ Mi Perfil
+│  ├─ Notificaciones
+│  └─ Configuración
+│
+├─ GUÍA ACTIVA: Trabajos (dinámico)
+│  ├─ Reclutador:
+│  │  ├─ Mis Ofertas
+│  │  ├─ Postulaciones (badge: 3)
+│  │  └─ Mensajes (badge: 2)
+│  │
+│  └─ Postulante:
+│     ├─ Buscar Trabajos
+│     ├─ Mis Postulaciones
+│     └─ CV Completo (60%)
+│
+└─ SELECTOR DE GUÍA (header)
+   └─ [🏠 Trabajos ▼] → Gastronomía, Negocios, Profesionales
+```
+
+**Componentes Sidebar**:
+- [ ] **SidebarGuideSelector.vue** - Dropdown para cambiar guía activa
+- [ ] **SidebarCommonMenu.vue** - Menú común (Dashboard, Perfil, Config)
+- [ ] **SidebarGuideMenu.vue** - Menú dinámico según guía + rol
+- [ ] **SidebarStats.vue** - Mini-stats con badges de notificaciones
+
+### 9.3 Sistema de Postulaciones (Guía Trabajos)
+
+**Estados de Postulación**:
+| Estado | Color | Acción Reclutador | Acción Postulante |
+|--------|-------|-------------------|-------------------|
+| PENDING | Amarillo | Revisar | Cancelar |
+| REVIEWED | Azul | Preseleccionar/Rechazar | Ver estado |
+| SHORTLISTED | Verde | Aceptar/Rechazar | Ver estado |
+| REJECTED | Rojo | N/A | N/A |
+| ACCEPTED | Verde Oscuro | N/A | N/A |
+| WITHDRAWN | Gris | N/A | N/A |
+
+**Vista Reclutador** (Jobs/Recruiter/):
+- [ ] **ApplicationsList.vue** - Tabla de postulantes por oferta
+  - Filtros por estado
+  - Búsqueda por nombre/email
+  - Acciones rápidas (Ver, Cambiar estado, Mensaje)
+
+- [ ] **ApplicationDetail.vue** - Detalle de postulante
+  - CV descargable
+  - Historial de interacciones
+  - Sistema de notas privadas
+  - Comparar con otros
+
+- [ ] **RecruiterMessages.vue** - Bandeja de mensajes
+  - Respuestas rápidas
+  - Templates predefinidos
+  - Notificaciones en tiempo real
+
+**Vista Postulante** (Jobs/Applicant/):
+- [ ] **MyApplications.vue** - Mis postulaciones
+  - Lista con estado visual
+  - Mensajes no leídos (badge)
+  - Acción: Ver, Cancelar
+
+- [ ] **ApplicationStatus.vue** - Detalle de postulación
+  - Timeline del proceso
+  - Mensajes del reclutador
+  - Retirar postulación
+
+- [ ] **ProfileCompleteness.vue** - Indicador CV
+  - Barra de progreso (0-100%)
+  - Campos faltantes
+  - Acciones rápidas
+  - Alert si < 80%
+
+### 9.4 Backend Requerido (Django)
+
+**Modelos Nuevos**:
+- [ ] **UserGuideRole** - Relación usuario-guía-rol
+  - user (FK), guide_type, role, is_active
+
+- [ ] **Application** - Postulaciones
+  - job (FK), applicant (FK), status, notes
+  - applied_at, updated_at
+
+- [ ] **ApplicationMessage** - Mensajería
+  - application (FK), sender (FK), message
+  - is_read, sent_at
+
+**API Endpoints Necesarios**:
+```
+Reclutador:
+GET  /api/jobs/recruiter/applications/?job_id=X&status=PENDING
+POST /api/jobs/recruiter/applications/:id/update-status/
+POST /api/jobs/recruiter/applications/:id/send-message/
+
+Postulante:
+GET  /api/jobs/applicant/applications/
+POST /api/jobs/applicant/applications/:id/withdraw/
+GET  /api/jobs/applicant/applications/:id/messages/
+GET  /api/jobs/applicant/profile-completeness/
+```
+
+### 9.5 Pinia Stores Nuevos
+- [ ] **stores/guideContext.js** - Estado de guía y rol activo
+- [ ] **stores/recruiterApplications.js** - Postulaciones (reclutador)
+- [ ] **stores/applicantApplications.js** - Postulaciones (postulante)
+
+### 9.6 Roadmap de Implementación
+
+**Sprint 1: Fundación (2-3 días)**
+- [ ] Crear useGuideContext.js
+- [ ] Implementar SidebarGuideSelector.vue
+- [ ] Reorganizar DashboardSidebar.vue (Común + Dinámico)
+- [ ] Agregar badges de notificaciones
+
+**Sprint 2: Reclutador (3-4 días)**
+- [ ] Crear useRecruiterApplications.js
+- [ ] Implementar ApplicationsList.vue con filtros
+- [ ] Implementar ApplicationDetail.vue
+- [ ] Sistema de cambio de estados
+
+**Sprint 3: Postulante (2-3 días)**
+- [ ] Crear useApplicantApplications.js
+- [ ] Implementar MyApplications.vue
+- [ ] Implementar ProfileCompleteness.vue
+- [ ] Sistema de mensajería inbox
+
+**Sprint 4: Pulido (1-2 días)**
+- [ ] Notificaciones en tiempo real
+- [ ] Optimización de UX
+- [ ] Testing exhaustivo
+
+**Estimación Total**: 8-12 días desarrollo full-time
+
+### 9.7 Preguntas Críticas a Resolver
+
+1. ❓ **¿Un usuario puede ser reclutador Y postulante simultáneamente?**
+   - Si SÍ → necesitamos switcher de rol
+
+2. ❓ **¿Mensajería completa o solo notificaciones?**
+   - Completa → componentes de chat
+   - Solo notificaciones → más simple
+
+3. ❓ **¿CV es PDF o formulario estructurado?**
+   - PDF → visor y descarga
+   - Formulario → control sobre completitud
+
+4. ❓ **¿Cuántas postulaciones por oferta?**
+   - <50 → tabla simple
+   - >50 → paginación avanzada
+
+### 9.8 Beneficios
+
+✅ **Separación de Roles**: Cada rol tiene sus componentes, sin `v-if` mezclados
+✅ **Escalabilidad Horizontal**: Agregar guía = duplicar estructura Jobs/
+✅ **Escalabilidad Vertical**: Agregar rol = crear carpeta dentro de guía
+✅ **Mantenibilidad**: Bugs aislados por rol y guía
+✅ **Reutilización**: Composables compartidos entre roles
+
+### 9.9 Advertencias Críticas
+
+⚠️ **NO sidebar monolítico** → Componentes pequeños
+⚠️ **NO mezclar lógica de roles** → Separar por carpetas
+⚠️ **NO olvidar responsive** → Sidebar colapsable móvil
+⚠️ **NO implementar todo junto** → Sprints incrementales
+⚠️ **NO asumir permisos** → Verificar en backend y frontend
+
+**Estado**: 📋 PLANIFICADA | Prioridad ALTA después de FASE 2
 
 ---
 
@@ -410,24 +520,17 @@ MEJORAS RECIENTES:
 
 ### 2.2 Backend Integration
 - [ ] POST /api/jobs/publish - Crear trabajo
-  - Validar datos
-  - Asociar con usuario autenticado
-  - Guardar en BD
-  - Retornar ID
 - [ ] Manejo de errores
 
 ### 2.3 Frontend Integration
 - [ ] Integrar endpoint en PublishView
-- [ ] Loading states
-- [ ] Error handling
-- [ ] Confirmación de éxito
-- [ ] Redireccionar a detalle
+- [ ] Loading states, Error handling
+- [ ] Confirmación de éxito, Redireccionar
 
 ### 2.4 Mejoras
 - [ ] Auto-save de borradores
 - [ ] Validación completa antes de submit
 - [ ] Toast notifications
-- [ ] Confirmación antes de publicar
 
 ---
 
@@ -437,15 +540,13 @@ MEJORAS RECIENTES:
 ### 3.1 Backend
 - [ ] GET /api/jobs - Con parámetros de filtro
 - [ ] Filtros: categoría, ubicación, salario, tipo contrato
-- [ ] Búsqueda por texto
-- [ ] Paginación
+- [ ] Búsqueda por texto, Paginación
 
 ### 3.2 Frontend
 - [ ] SearchBar en header
 - [ ] FilterPanel con opciones
 - [ ] ResultsGrid responsive
 - [ ] Pagination
-- [ ] No results message
 
 ### 3.3 Features
 - [ ] Guardado de filtros favoritos
@@ -458,30 +559,78 @@ MEJORAS RECIENTES:
 **Descripción**: Usuarios pueden aplicar a trabajos, empresas ven candidatos
 
 ### 6.1 Modelo Backend
-- [ ] Modelo Application con:
-  - Job (FK)
-  - Applicant (FK)
-  - Respuestas a preguntas
-  - Estado (pendiente, revisada, etc.)
-  - Timestamps
+- [ ] Modelo Application con campos
+- [ ] **Modelo CVData** (Formato Harvard) 🆕
+  - Secciones: Personal Info, Education, Experience, Skills, Certifications, Languages, References
+  - JSON field para almacenar estructura completa
+  - FK a UserProfile (1-to-1 relationship)
+  - Timestamps (created_at, updated_at)
+  - Completeness percentage (auto-calculado)
 
 ### 6.2 API REST
 - [ ] POST /api/applications - Crear aplicación
 - [ ] GET /api/jobs/{id}/applications - Ver candidatos
 - [ ] PUT /api/applications/{id}/status - Cambiar estado
 - [ ] GET /api/me/applications - Mis aplicaciones
+- [ ] **POST /api/cv/create** - Crear CV formato Harvard 🆕
+- [ ] **PATCH /api/cv/update** - Actualizar CV por secciones 🆕
+- [ ] **GET /api/cv/me** - Obtener CV del usuario autenticado 🆕
+- [ ] **GET /api/cv/completeness** - Calcular % completitud 🆕
+- [ ] **POST /api/cv/parse** - Parsear CV subido (PDF → JSON) 🆕
 
-### 6.3 Frontend
+### 6.3 Frontend - Refactorización CV 🆕
+- [ ] **CVFormWizard.vue** - Adaptación formato Harvard
+  - Step 1: Información Personal (nombre, contacto, dirección)
+  - Step 2: Educación (instituciones, títulos, fechas, GPA)
+  - Step 3: Experiencia Laboral (empresa, cargo, fechas, logros bullet points)
+  - Step 4: Habilidades (técnicas, blandas, idiomas con nivel)
+  - Step 5: Certificaciones y Referencias
+  - Validación por step (campos requeridos según estándar Harvard)
+  - Preview en tiempo real (formato visual Harvard)
+  - Auto-save en cada step (localStorage + backend sync)
+
+- [ ] **Process/ProcessApplication.vue** - Integración con CV 🆕
+  - Pre-carga datos de CV existente si usuario tiene
+  - Botón "Usar mi CV" → auto-completa campos
+  - Indicador de completitud CV (badge %)
+  - Link directo a CVFormWizard si CV incompleto
+  - Validación: No aplicar con CV < 70%
+
+### 6.4 Frontend - Componentes Existentes
 - [ ] ApplicationForm.vue
 - [ ] CandidatesList.vue
 - [ ] ApplicationDetail.vue
-- [ ] Integración en dashboard
 
-### 6.4 Features
+### 6.5 Sincronización Dashboard 🆕
+- [ ] **DashboardHome.vue** - Widget CV Status
+  - Card "Mi CV" con barra de progreso
+  - % completitud en tiempo real
+  - Acceso rápido a CVFormWizard
+  - Alert si CV < 80%
+  
+- [ ] **useCVStore.js** - Pinia Store 🆕
+  - Estado: cvData, isLoading, completeness, lastUpdated
+  - Acciones: loadCV(), updateSection(), calculateCompleteness()
+  - Getters: cvExists, isComplete, missingSections
+  - Persistencia: sync con backend al guardar cada sección
+
+### 6.6 Features
 - [ ] Preguntas de screening dinámicas
-- [ ] Estados de aplicación (pendiente/revisada/aceptada/rechazada)
+- [ ] Estados de aplicación
 - [ ] Contacto con candidato
-- [ ] Historial de aplicaciones
+- [ ] **CV formato Harvard estandarizado** 🆕
+  - Estructura JSON normalizada
+  - Validación de campos según estándares académicos
+  - Export a PDF con template Harvard
+  - Versionado de CV (histórico de cambios)
+- [ ] **Parser de CV automático** 🆕
+  - Upload PDF/DOCX → extracción automática de datos
+  - IA para mapear campos a estructura Harvard
+  - Revisión manual post-parse
+- [ ] **Auto-completado inteligente** 🆕
+  - Sugerencias de habilidades basadas en experiencia
+  - Templates de descripción de logros
+  - Validación de fechas (edu/exp no overlap incorrectamente)
 
 ---
 
@@ -489,11 +638,7 @@ MEJORAS RECIENTES:
 **Descripción**: Sistema de planes y subida de comprobante de pago
 
 ### 7.1 Modelos Backend
-- [ ] Modelo Payment con:
-  - Plan (Estándar/Top/Destacado)
-  - Comprobante (URL)
-  - Estado (pendiente/aprobado/rechazado)
-  - Monto
+- [ ] Modelo Payment con campos
 
 ### 7.2 API REST
 - [ ] POST /api/payments - Crear pago
@@ -504,16 +649,13 @@ MEJORAS RECIENTES:
 - [ ] PaymentModal.vue
 - [ ] PlanSelector.vue
 - [ ] ProofUpload.vue
-- [ ] PaymentStatus.vue
 
 ### 7.4 QR Predefinidos
 - [ ] Generar QR para cada plan
 - [ ] Mostrar en modal de pago
-- [ ] Instrucciones de pago
 
 ### 7.5 Features
 - [ ] Validación de comprobante
-- [ ] Previsualización de imagen
 - [ ] Estados de pago
 - [ ] Historial de pagos
 
@@ -523,7 +665,6 @@ MEJORAS RECIENTES:
 **Descripción**: Panel admin para aprobar pagos y activar anuncios
 
 ### 8.1 Backend
-- [ ] Crear modelo Admin (o usar Django admin mejorado)
 - [ ] API para obtener pagos pendientes
 - [ ] API para aprobar/rechazar pagos
 - [ ] API para activar/desactivar anuncios
@@ -532,45 +673,57 @@ MEJORAS RECIENTES:
 - [ ] AdminDashboard.vue
 - [ ] PendingPayments.vue
 - [ ] JobApproval.vue
-- [ ] PaymentManagement.vue
-- [ ] Analytics/Stats.vue
 
 ### 8.3 Features
 - [ ] Visualización de comprobantes
 - [ ] Aprobación en masa
 - [ ] Rechazo con motivo
 - [ ] Estadísticas de pagos
-- [ ] Historial de acciones
 
 ---
 
-## 📊 TAREAS INMEDIATAS (PRÓXIMA SESIÓN - Sesión 4)
+## 📊 TAREAS INMEDIATAS (PRÓXIMA SESIÓN)
 
 ### 🎯 Prioridad 1: FASE 2 - Publicación de Trabajos (CRITICAL)
-**Estado**: Frontend 100% (wizard completo), Backend 0% (pendiente)
+**Estado**: Frontend 100%, Backend 0%
 1. **Backend**:
-   - ✅ Job model exists - Revisar campos faltantes
-   - [ ] Endpoint POST `/api/jobs/publish` - Crear trabajo
-   - [ ] Endpoint GET `/api/jobs/{id}` - Obtener detalle
-   - [ ] Endpoint PATCH `/api/jobs/{id}/edit` - Editar trabajo
-   - [ ] Validación completa de datos
-   - [ ] Asociar con usuario autenticado
+   - [ ] Endpoint POST `/api/jobs/publish`
+   - [ ] Endpoint GET `/api/jobs/{id}`
+   - [ ] Endpoint PATCH `/api/jobs/{id}/edit`
 
 2. **Frontend Integration**:
    - [ ] Conectar PublishView.vue con endpoint
-   - [ ] Implementar submit del wizard
-   - [ ] Loading states
-   - [ ] Error handling
+   - [ ] Loading states, Error handling
    - [ ] Success confirmation + redirect
 
-3. **Testing**:
-   - [ ] Probar creación de trabajo
-   - [ ] Probar validaciones
-   - [ ] Probar redirección
+### 🎯 Prioridad 2: FASE 9 - Dashboard Multi-Rol (RECOMENDADO)
+**Estado**: 0% (planificada)
+**Cuándo**: Después de FASE 2 O en paralelo si hay tiempo
 
-### 🎯 Prioridad 2: FASE 3 - Búsqueda y Filtrado (SIGUIENTE)
-**Estado**: 0% (no iniciada)
-- Será para después de FASE 2
+**Razón para priorizar**: 
+- FASE 6 (postulaciones) necesita esta arquitectura
+- Mejor hacerlo antes que el dashboard crezca
+- Evita refactorización masiva después
+
+### 🎯 Prioridad 3: FASE 6 - CV Formato Harvard + Sistema Aplicaciones (RECOMENDADO)
+**Estado**: 0% (planificada)
+**Componentes Críticos**:
+- CVFormWizard.vue → Refactorización formato Harvard (5 steps)
+- ProcessApplication.vue → Integración con CV existente
+- useCVStore.js → Sincronización backend-dashboard
+- CV Parser (PDF/DOCX → JSON Harvard structure)
+
+**Razón para priorizar**:
+- CV es requisito para aplicar a trabajos
+- Sincronización con dashboard mejora UX
+- Parser automático reduce fricción de usuario
+
+**Dependencias**:
+- FASE 4 (Perfiles Usuario) ✅ Completada
+- FASE 9 (Dashboard Multi-Rol) recomendada antes
+
+### 🎯 Prioridad 4: FASE 3 - Búsqueda y Filtrado
+**Estado**: 0% - Después de FASE 2
 
 ---
 
@@ -582,116 +735,72 @@ Primary: #7C3AED (Purple)
 Secondary: #10B981 (Green)
 Warning: #FF8F00 (Orange)
 Error: #EF4444 (Red)
-Gray: #E2E8F0 (Borders)
-Dark: #1A1A2E (Text)
 ```
-
-### Componentes reutilizables
-- ✅ LoginForm (con validación y animaciones)
-- ✅ RegisterForm (con strength indicator)
-- ✅ ForgotPasswordForm
-- ⏳ ProfileForm (FASE 4)
-- ⏳ CompanyForm (FASE 5)
-- ⏳ ApplicationForm (FASE 6)
-- ⏳ PaymentModal (FASE 7)
 
 ---
 
 ## 📈 CRITERIOS DE ÉXITO POR FASE
-
-### FASE 4 ✅
-- Usuario puede completar su perfil
-- Foto se guarda correctamente
-- Perfil es visible en URL pública
-- Cambios persisten en BD
-
-### FASE 5 ✅
-- Usuario puede crear empresa
-- Logo se guarda
-- Empresa vinculada a usuario
 
 ### FASE 2 ✅
 - Trabajo se publica en BD
 - Usuario ve confirmación
 - Puede ver su publicación
 
-### FASE 3 ✅
-- Búsqueda funciona
-- Filtros aplican correctamente
-- Paginación funciona
-
 ### FASE 6 ✅
-- Usuario puede aplicar
-- Empresa ve candidatos
-- Estados funcionan
+- CV formato Harvard completado y guardado
+- Parser automático extrae datos de PDF/DOCX
+- CVFormWizard con 5 steps funcionales
+- ProcessApplication pre-carga CV del usuario
+- Dashboard muestra % completitud CV
+- Sincronización backend-frontend en tiempo real
+- No permite aplicar con CV < 70%
 
-### FASE 7 ✅
-- Comprobante se sube
-- Sistema de pagos funciona
-- Anuncio se activa al aprobar
-
-### FASE 8 ✅
-- Admin aprueba/rechaza pagos
-- Anuncios se activan automáticamente
-- Estadísticas se muestran
-
----
-
-## 🔗 RECURSOS CLAVE
-
-### Backend Paths
-```
-auth_api/views.py - Endpoints de autenticación ✅
-profiles/views.py - Perfiles (CREAR FASE 4)
-companies/views.py - Empresas (CREAR FASE 5)
-jobs/views.py - Trabajos existentes
-applications/views.py - Aplicaciones (CREAR FASE 6)
-payments/views.py - Pagos (CREAR FASE 7)
-```
-
-### Frontend Paths
-```
-src/views/Auth/* - Auth pages ✅
-src/views/DashboardView.vue - Dashboard (actualizar)
-src/components/Auth/* - Auth forms ✅
-src/components/Profile/* - Profiles (CREAR)
-src/components/Company/* - Company (CREAR)
-src/components/Job/* - Jobs
-src/stores/ - Pinia stores (ampliar)
-```
-
----
-
-## 💡 NOTAS IMPORTANTES
-
-1. **Autenticación**: ✅ Ya está implementada y funcionando
-2. **Próximo paso**: FASE 4 (Perfiles) es el más lógico
-3. **Testing**: Probar completamente cada fase antes de siguiente
-4. **API**: Documentar endpoints a medida que se crean
-5. **DB**: Hacer backups antes de migrations importantes
+### FASE 9 ✅
+- Sidebar se adapta a rol
+- Reclutador ve postulaciones
+- Postulante ve sus aplicaciones
+- Sistema de estados funciona
 
 ---
 
 ## 📅 ÚLTIMA ACTUALIZACIÓN
-- **Fecha**: 2025-11-21 (Sesión 4)
-- **Sesión**: Dashboard Navigation Mejorado + FASE 5 Refinamiento
-- **Completado en esta sesión**:
-  - ✅ Dashboard Navigation: Navbar profesional dentro del dashboard
-  - ✅ Botón "Publicar Nuevo Trabajo" prominente (gradient purple)
-  - ✅ Botón "Volver a Inicio" (home navigation)
-  - ✅ Dropdown "Cuenta" con Alertas, Cambiar Contraseña, Logout
-  - ✅ Limpieza de sidebar (eliminación de duplicados)
-  - ✅ CSS profesional con animaciones suaves
-  - ✅ Responsive design (mobile friendly)
-  - ✅ Compilación exitosa sin errores
+- **Fecha**: 2025-11-24 (Sesión 8)
+- **Sesión**: Paso 3 Funcional + Preguntas de Filtrado Completamente Editable
 
-- **Sesión anterior (Sesión 3)**:
-  - ✅ FASE 5: Perfiles de Empresa 100% funcional
-  - ✅ Modelo CompanyProfile con campos completos
-  - ✅ 7 Endpoints de API testeados y funcionales
-  - ✅ Store Pinia con 18 métodos
-  - ✅ Componentes Vue (form, logo, banner upload)
+- **Sesión actual (Sesión 8)**:
+  - ✅ Fix: Radio buttons sin duplicación de etiquetas (label="")
+  - ✅ Implementación: Preguntas de Filtrado totalmente editable
+  - ✅ Input de texto para enunciado de pregunta
+  - ✅ Select para elegir tipo (Texto corto, Sí/No, Opción múltiple)
+  - ✅ Checkbox para marcar como obligatoria
+  - ✅ Función updateQuestion() implementada
+  - ✅ Sincronización en tiempo real con usePublishStore
+  - ✅ CRUD completo: Create, Read, Update, Delete
+  - ✅ Documentación: Flujo del candidato y dónde ve preguntas
+  - 🆕 FASE 1.2 planificada: Formulario de Aplicación para candidatos
+  - 🆕 Roadmap actualizado con estado actual
 
-- **Próximo foco**: FASE 2 - Publicación de Trabajos (Backend + Integration)
-- **Status**: Dashboard Navigation ✅ COMPLETADA. FASE 5 ✅ COMPLETADA. Listo para FASE 2.
+- **Commits de sesión 8**:
+  - `d5b0a2e` - Agregar atributo label vacío a va-radio
+  - `3afb06d` - Implementar campos editable para Preguntas de Filtrado
 
+- **Sesión anterior (Sesión 7)**:
+  - ✅ Análisis completo de arquitectura multi-rol (FASE 9)
+  - ✅ Planificación: Dashboard Multi-Rol y Multi-Guía
+  - ✅ FASE 6 ampliada: CV Formato Harvard + Parser automático
+
+- **Sesión anterior (Sesión 6)**:
+  - ✅ Autenticación: Animaciones cinematográficas
+  - ✅ Shooting Stars, Partículas, Esferas 3D
+
+- **Próximas tareas recomendadas**:
+  1. **FASE 1.2** - Formulario de Aplicación (ProcessApplicationModal)
+  2. **FASE 2** - Publicación en Backend + Integration
+  3. **FASE 9 Sprint 1** - Fundación Multi-Rol
+
+- **Status actual**:
+  - ✅ FASE 1: 95% completada (Paso 3 + Preguntas filtrado funcionales)
+  - ✅ FASE 7: 80% completada (QR + Upload funcionales)
+  - 📋 FASE 1.2: Planificada y documentada
+  - 📋 FASE 2: Esperando backend
+  - 📋 FASE 9: Planificada y documentada
