@@ -443,8 +443,18 @@ const validate = () => {
   color: #1E293B;
 }
 
-.option-header :deep(.va-radio__option-label),
-.option-header :deep(.va-radio__label) {
+.option-header :deep(.va-radio__container) {
+  display: none !important;
+}
+
+.option-header :deep(.va-radio) {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.option-header :deep(.va-radio input) {
   display: none !important;
 }
 
