@@ -17,83 +17,230 @@ def publish_job(request):
     """
     Endpoint para publicar una nueva oferta de trabajo
     POST /api/jobs/publish
+
+    CAMPOS REQUERIDOS:
+    - title (str, 5-200 chars): Título del puesto
+    - description (str, min 20 chars): Descripción del trabajo
+    - email (str): Email de contacto
+    - city (str): Ciudad
+    - contractType (str): Tipo de contrato
+    - expiryDate (str ISO): Fecha de vencimiento (YYYY-MM-DD)
+    - requirements (str): Requisitos
+
+    CAMPOS OPCIONALES:
+    - companyName (str, default: 'Empresa Confidencial')
+    - companyAnonymous (bool, default: False)
+    - jobCategory (str)
+    - subcategory (str)
+    - modality (str: 'presencial'|'remoto'|'hibrido', default: 'presencial')
+    - responsibilities (str)
+    - education (str)
+    - experience (str)
+    - languages (str)
+    - technicalSkills (str)
+    - salaryType (str: 'range'|'fixed'|'negotiable'|'hidden', default: 'range')
+    - salaryMin (float)
+    - salaryMax (float)
+    - salaryFixed (float)
+    - benefits (str)
+    - vacancies (int, default: 1)
+    - whatsapp (str)
+    - website (str)
+    - applicationInstructions (str)
+    - applicationType (str: 'internal'|'external'|'both', default: 'internal')
+    - externalApplicationUrl (str)
+    - selectedPlan (str: 'free'|'featured'|'top', default: 'free')
+    - screeningQuestions (list)
+
+    RESPUESTA EXITOSA (201):
+    {
+        'success': True,
+        'message': 'string',
+        'id': 'job_id',
+        'createdAt': 'ISO timestamp'
+    }
+
+    RESPUESTA ERROR (400, 401, 500):
+    {
+        'success': False,
+        'message': 'string',
+        'errors': {field: error_message} (opcional)
+    }
     """
     try:
-        # Parsear datos JSON del request
+        # Parsear JSON
         data = json.loads(request.body)
+        print(f'📝 [PUBLISH_JOB] Usuario: {request.user.email}, Campos recibidos: {list(data.keys())}')
 
-        # Validaciones básicas
-        if not data.get('title'):
+        # ========== VALIDACIONES DE CAMPOS REQUERIDOS ==========
+        errors = {}
+
+        # 1. Title
+        title = (data.get('title') or '').strip()
+        if not title:
+            errors['title'] = 'El título del puesto es requerido'
+        elif len(title) < 5:
+            errors['title'] = 'El título debe tener al menos 5 caracteres'
+        elif len(title) > 200:
+            errors['title'] = 'El título no puede exceder 200 caracteres'
+
+        # 2. Description
+        description = (data.get('description') or '').strip()
+        if not description:
+            errors['description'] = 'La descripción es requerida'
+        elif len(description) < 20:
+            errors['description'] = 'La descripción debe tener al menos 20 caracteres'
+
+        # 3. Email
+        email = (data.get('email') or '').strip()
+        if not email:
+            errors['email'] = 'El email de contacto es requerido'
+        elif '@' not in email or '.' not in email:
+            errors['email'] = 'Email inválido (ej: user@example.com)'
+
+        # 4. City
+        city = (data.get('city') or '').strip()
+        if not city:
+            errors['city'] = 'La ciudad es requerida'
+
+        # 5. Contract Type
+        contract_type = (data.get('contractType') or '').strip()
+        if not contract_type:
+            errors['contractType'] = 'El tipo de contrato es requerido'
+
+        # 6. Expiry Date
+        expiry_date = data.get('expiryDate')
+        if not expiry_date:
+            errors['expiryDate'] = 'La fecha de vencimiento es requerida (formato: YYYY-MM-DD)'
+
+        # 7. Requirements
+        requirements = (data.get('requirements') or '').strip()
+        if not requirements:
+            errors['requirements'] = 'Los requisitos son requeridos'
+
+        # Retornar errores si existen
+        if errors:
+            print(f'❌ [PUBLISH_JOB] Errores de validación: {errors}')
             return JsonResponse({
                 'success': False,
-                'message': 'El título del puesto es requerido'
+                'message': 'Errores de validación',
+                'errors': errors
             }, status=400)
 
-        if not data.get('description'):
+        # ========== VALIDACIONES OPCIONALES ==========
+
+        # Modality
+        modality = (data.get('modality') or 'presencial').lower()
+        if modality not in ['presencial', 'remoto', 'hibrido']:
+            errors['modality'] = "Debe ser 'presencial', 'remoto' o 'hibrido'"
+
+        # Salary Type
+        salary_type = (data.get('salaryType') or 'range').lower()
+        if salary_type not in ['range', 'fixed', 'negotiable', 'hidden']:
+            errors['salaryType'] = "Debe ser 'range', 'fixed', 'negotiable' o 'hidden'"
+
+        # Application Type
+        app_type = (data.get('applicationType') or 'internal').lower()
+        if app_type not in ['internal', 'external', 'both']:
+            errors['applicationType'] = "Debe ser 'internal', 'external' o 'both'"
+
+        # Selected Plan
+        plan = (data.get('selectedPlan') or 'free').lower()
+        if plan not in ['free', 'featured', 'top']:
+            errors['selectedPlan'] = "Debe ser 'free', 'featured' o 'top'"
+
+        # Salary validation (si es tipo range)
+        if salary_type == 'range':
+            try:
+                salary_min = float(data.get('salaryMin', 0)) if data.get('salaryMin') else None
+                salary_max = float(data.get('salaryMax', 0)) if data.get('salaryMax') else None
+                if salary_min and salary_max and salary_min > salary_max:
+                    errors['salaryRange'] = 'El salario mínimo no puede ser mayor al máximo'
+            except (ValueError, TypeError):
+                errors['salaryRange'] = 'Valores de salario inválidos (deben ser números)'
+
+        if errors:
+            print(f'❌ [PUBLISH_JOB] Errores de validación opcional: {errors}')
             return JsonResponse({
                 'success': False,
-                'message': 'La descripción es requerida'
+                'message': 'Errores de validación',
+                'errors': errors
             }, status=400)
 
-        if not data.get('email'):
+        # ========== CREAR JOB ==========
+        try:
+            job = Job.objects.create(
+                title=title,
+                companyName=(data.get('companyName') or 'Empresa Confidencial').strip(),
+                companyAnonymous=bool(data.get('companyAnonymous', False)),
+                description=description,
+                jobCategory=(data.get('jobCategory') or '').strip(),
+                city=city,
+                subcategory=(data.get('subcategory') or '').strip(),
+                contractType=contract_type,
+                modality=modality,
+                expiryDate=expiry_date,
+                requirements=requirements,
+                responsibilities=(data.get('responsibilities') or '').strip(),
+                education=(data.get('education') or '').strip(),
+                experience=(data.get('experience') or '').strip(),
+                languages=(data.get('languages') or '').strip(),
+                technicalSkills=(data.get('technicalSkills') or '').strip(),
+                salaryType=salary_type,
+                salaryMin=float(data.get('salaryMin')) if data.get('salaryMin') else None,
+                salaryMax=float(data.get('salaryMax')) if data.get('salaryMax') else None,
+                salaryFixed=float(data.get('salaryFixed')) if data.get('salaryFixed') else None,
+                benefits=(data.get('benefits') or '').strip(),
+                vacancies=int(data.get('vacancies', 1)),
+                email=email,
+                whatsapp=(data.get('whatsapp') or '').strip(),
+                website=(data.get('website') or '').strip(),
+                applicationInstructions=(data.get('applicationInstructions') or '').strip(),
+                applicationType=app_type,
+                externalApplicationUrl=(data.get('externalApplicationUrl') or '').strip(),
+                selectedPlan=plan,
+                screeningQuestions=data.get('screeningQuestions', []),
+            )
+
+            print(f'✅ [PUBLISH_JOB] Éxito: ID={job.id}, Título="{job.title}", Plan={plan}')
+
+            return JsonResponse({
+                'success': True,
+                'message': '¡Oferta publicada exitosamente!',
+                'id': job.id,
+                'createdAt': job.createdAt.isoformat()
+            }, status=201)
+
+        except ValueError as ve:
+            print(f'❌ [PUBLISH_JOB] Error de conversión: {str(ve)}')
             return JsonResponse({
                 'success': False,
-                'message': 'El email de contacto es requerido'
+                'message': f'Error: Tipo de dato inválido - {str(ve)}'
             }, status=400)
 
-        # Crear objeto de trabajo
-        job = Job.objects.create(
-            title=data.get('title'),
-            companyName=data.get('companyName', 'Empresa Confidencial'),
-            companyAnonymous=data.get('companyAnonymous', False),
-            description=data.get('description'),
-            jobCategory=data.get('jobCategory'),
-            city=data.get('city'),
-            subcategory=data.get('subcategory', ''),
-            contractType=data.get('contractType'),
-            modality=data.get('modality', 'presencial'),
-            expiryDate=data.get('expiryDate'),
-            requirements=data.get('requirements'),
-            responsibilities=data.get('responsibilities', ''),
-            education=data.get('education', ''),
-            experience=data.get('experience', ''),
-            languages=data.get('languages', ''),
-            technicalSkills=data.get('technicalSkills', ''),
-            salaryType=data.get('salaryType', 'range'),
-            salaryMin=data.get('salaryMin'),
-            salaryMax=data.get('salaryMax'),
-            salaryFixed=data.get('salaryFixed'),
-            benefits=data.get('benefits', ''),
-            vacancies=data.get('vacancies', 1),
-            email=data.get('email'),
-            whatsapp=data.get('whatsapp'),
-            website=data.get('website', ''),
-            applicationInstructions=data.get('applicationInstructions', ''),
-            applicationType=data.get('applicationType', 'internal'),
-            externalApplicationUrl=data.get('externalApplicationUrl', ''),
-            selectedPlan=data.get('selectedPlan', 'free'),
-            screeningQuestions=data.get('screeningQuestions', []),
-        )
+        except Exception as db_error:
+            print(f'❌ [PUBLISH_JOB] Error BD: {str(db_error)}')
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al guardar en BD: {str(db_error)}'
+            }, status=500)
 
-        # Respuesta exitosa
-        return JsonResponse({
-            'success': True,
-            'message': '¡Oferta publicada exitosamente!',
-            'id': job.id,
-            'createdAt': job.createdAt.isoformat()
-        }, status=201)
-
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as je:
+        print(f'❌ [PUBLISH_JOB] JSON inválido: {str(je)}')
         return JsonResponse({
             'success': False,
-            'message': 'Error: formato JSON inválido'
+            'message': 'Error: JSON inválido o vacío'
         }, status=400)
 
     except Exception as e:
-        print(f'Error al publicar trabajo: {str(e)}')
+        print(f'❌ [PUBLISH_JOB] Error inesperado: {str(e)}')
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
-            'message': f'Error: {str(e)}'
+            'message': f'Error interno: {str(e)}'
         }, status=500)
 
 

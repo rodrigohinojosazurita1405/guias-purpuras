@@ -17,11 +17,11 @@
           <span>Inicio</span>
         </router-link>
 
-        <router-link to="/guias/trabajos" class="nav-link" active-class="active">
+        <router-link to="/guias/trabajos" class="nav-link" exact-active-class="active">
           <span>Empleos</span>
         </router-link>
 
-        <router-link to="/about" class="nav-link" active-class="active">
+        <router-link to="/nosotros" class="nav-link" exact-active-class="active">
           <span>Nosotros</span>
         </router-link>
       </div>
@@ -115,8 +115,12 @@
             <span>Inicio</span>
           </router-link>
 
-          <router-link to="/guias/trabajos" class="mobile-link" @click="closeMobileMenu" active-class="active">
+          <router-link to="/guias/trabajos" class="mobile-link" @click="closeMobileMenu" exact-active-class="active">
             <span>Empleos</span>
+          </router-link>
+
+          <router-link to="/nosotros" class="mobile-link" @click="closeMobileMenu" exact-active-class="active">
+            <span>Nosotros</span>
           </router-link>
         </div>
 
@@ -150,10 +154,14 @@
           </div>
 
           <!-- If NOT Logged In -->
-          <router-link v-else to="/login" class="mobile-login-link" @click="closeMobileMenu">
-            <va-icon name="login" />
-            <span>Ingresar</span>
-          </router-link>
+          <div v-else class="mobile-auth-buttons">
+            <router-link to="/login" class="mobile-login-link register" @click="closeMobileMenu">
+              <span>Registrarse</span>
+            </router-link>
+            <router-link to="/login" class="mobile-login-link login" @click="closeMobileMenu">
+              <span>Ingresar</span>
+            </router-link>
+          </div>
         </div>
       </div>
     </transition>
@@ -738,6 +746,24 @@ const closeMobileMenu = () => {
 .mobile-login-link:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(253, 197, 0, 0.3);
+}
+
+/* Mobile Auth Buttons Container */
+.mobile-auth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mobile-auth-buttons .mobile-login-link.register {
+  background: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
+}
+
+.mobile-auth-buttons .mobile-login-link.login {
+  background: transparent;
+  color: white;
+  border: 2px solid white;
 }
 
 /* TRANSITIONS */

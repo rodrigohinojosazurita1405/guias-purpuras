@@ -113,20 +113,50 @@ const proceedToWizard = () => {
 }
 
 const handleSubmit = async () => {
-  // Validar autenticación
+  // ========== VALIDACIÓN PREVIA ==========
   if (!authStore.isAuthenticated || !authStore.accessToken) {
+    console.warn('⚠️ Usuario no autenticado')
     notify({
       message: 'Debes iniciar sesión para publicar un trabajo',
-      color: 'warning'
+      color: 'warning',
+      duration: 3000
     })
     router.push('/login')
     return
   }
 
+  // ========== VALIDAR DATOS MÍNIMOS ==========
+  const { title, description, email, city, contractType, expiryDate, requirements } = publishStore.jobData
+  const fieldErrors = {}
+
+  if (!title?.trim()) fieldErrors.title = 'Título es requerido'
+  if (!description?.trim()) fieldErrors.description = 'Descripción es requerida'
+  if (!email?.trim()) fieldErrors.email = 'Email es requerido'
+  if (!city?.trim()) fieldErrors.city = 'Ciudad es requerida'
+  if (!contractType?.trim()) fieldErrors.contractType = 'Tipo de contrato es requerido'
+  if (!expiryDate) fieldErrors.expiryDate = 'Fecha de vencimiento es requerida'
+  if (!requirements?.trim()) fieldErrors.requirements = 'Requisitos son requeridos'
+
+  if (Object.keys(fieldErrors).length > 0) {
+    console.error('❌ Errores de validación frontend:', fieldErrors)
+    notify({
+      message: 'Por favor, completa todos los campos requeridos',
+      color: 'warning',
+      duration: 4000
+    })
+    return
+  }
+
   try {
     isSubmitting.value = true
-    console.log('📝 Enviando publicación al backend...')
-    console.log('Datos:', publishStore.jobData)
+    console.log('📝 Iniciando publicación...')
+    console.log('Usuario:', authStore.user?.email)
+    console.log('Datos:', {
+      title,
+      city,
+      company: publishStore.jobData.companyName,
+      plan: publishStore.jobData.selectedPlan
+    })
 
     // Preparar datos - asegurarse que email esté incluido
     const jobData = {
@@ -134,29 +164,114 @@ const handleSubmit = async () => {
       email: authStore.user?.email || publishStore.jobData.email
     }
 
+    console.log('📤 Enviando a http://localhost:8000/api/jobs/publish...')
+
     // Llamar al endpoint backend con autenticación
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
+
     const response = await fetch('http://localhost:8000/api/jobs/publish', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authStore.accessToken}`
       },
-      body: JSON.stringify(jobData)
+      body: JSON.stringify(jobData),
+      signal: controller.signal
     })
 
-    const result = await response.json()
+    clearTimeout(timeoutId)
+    console.log(`📥 Response status: ${response.status}`)
 
-    if (!response.ok) {
-      console.error('❌ Error del servidor:', result)
+    // Parsear respuesta
+    let result
+    try {
+      result = await response.json()
+    } catch (parseError) {
+      console.error('❌ Error al parsear JSON:', parseError)
       notify({
-        message: result.message || 'Error al publicar la oferta',
+        message: 'Error: Respuesta inválida del servidor',
         color: 'danger',
         duration: 4000
       })
       return
     }
 
-    console.log('✅ Publicación exitosa:', result)
+    // ========== MANEJO DE ERRORES ==========
+    if (!response.ok) {
+      console.error('❌ Error del servidor (status:', response.status, '):', result)
+
+      // Errores de validación (400)
+      if (response.status === 400) {
+        if (result.errors) {
+          const errorMessages = Object.entries(result.errors)
+            .map(([field, message]) => `• ${field}: ${message}`)
+            .join('\n')
+          console.error('Errores de campo:', errorMessages)
+          notify({
+            message: `Errores de validación:\n${errorMessages}`,
+            color: 'warning',
+            duration: 5000
+          })
+        } else {
+          notify({
+            message: result.message || 'Datos inválidos',
+            color: 'warning',
+            duration: 4000
+          })
+        }
+        return
+      }
+
+      // Error de autenticación (401)
+      if (response.status === 401) {
+        console.error('Token inválido o expirado')
+        notify({
+          message: 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.',
+          color: 'danger',
+          duration: 4000
+        })
+        authStore.logout()
+        router.push('/login')
+        return
+      }
+
+      // Error del servidor (500)
+      if (response.status === 500) {
+        console.error('Error interno del servidor')
+        notify({
+          message: 'Error interno del servidor. Por favor, intenta más tarde.',
+          color: 'danger',
+          duration: 4000
+        })
+        return
+      }
+
+      // Error genérico
+      notify({
+        message: result.message || `Error (${response.status}): No se pudo publicar la oferta`,
+        color: 'danger',
+        duration: 4000
+      })
+      return
+    }
+
+    // ========== ÉXITO ==========
+    // Validar respuesta exitosa
+    if (!result.success || !result.id) {
+      console.error('❌ Respuesta exitosa pero sin ID:', result)
+      notify({
+        message: 'Error: La oferta se publicó pero no se pudo obtener su ID',
+        color: 'danger',
+        duration: 4000
+      })
+      return
+    }
+
+    console.log('✅ Publicación exitosa:')
+    console.log('   ID:', result.id)
+    console.log('   Creado en:', result.createdAt)
+    console.log('   Mensaje:', result.message)
 
     // Mostrar éxito
     notify({
@@ -165,18 +280,40 @@ const handleSubmit = async () => {
       duration: 3000
     })
 
-    // Limpiar form y redirigir
+    // Limpiar form
     publishStore.resetForm()
+
+    // Redirigir a detalle del trabajo
+    console.log(`🔗 Redirigiendo a /guias/trabajos/${result.id}...`)
     setTimeout(() => {
       router.push(`/guias/trabajos/${result.id}`)
     }, 500)
+
   } catch (error) {
     console.error('❌ Error de conexión:', error)
-    notify({
-      message: `Error de conexión: ${error.message}`,
-      color: 'danger',
-      duration: 4000
-    })
+    console.error('Tipo de error:', error.name)
+    console.error('Mensaje:', error.message)
+
+    // Diferenciar tipos de error
+    if (error.name === 'AbortError') {
+      notify({
+        message: 'Timeout: El servidor tardó demasiado en responder (30s). Por favor, intenta nuevamente.',
+        color: 'danger',
+        duration: 5000
+      })
+    } else if (error instanceof TypeError && error.message.includes('fetch')) {
+      notify({
+        message: 'Error de conexión: No se pudo conectar al servidor. Verifica que esté disponible.',
+        color: 'danger',
+        duration: 5000
+      })
+    } else {
+      notify({
+        message: `Error de conexión: ${error.message}`,
+        color: 'danger',
+        duration: 4000
+      })
+    }
   } finally {
     isSubmitting.value = false
   }
