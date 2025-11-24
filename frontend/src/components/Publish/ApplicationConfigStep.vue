@@ -36,6 +36,7 @@
               <va-radio
                 v-model="modelValue.applicationType"
                 option="internal"
+                label=""
                 @update:model-value="updateData('applicationType', 'internal')"
               />
               <h4>Interna</h4>
@@ -69,6 +70,7 @@
               <va-radio
                 v-model="modelValue.applicationType"
                 option="external"
+                label=""
                 @update:model-value="updateData('applicationType', 'external')"
               />
               <h4>Externa</h4>
@@ -102,6 +104,7 @@
               <va-radio
                 v-model="modelValue.applicationType"
                 option="both"
+                label=""
                 @update:model-value="updateData('applicationType', 'both')"
               />
               <h4>Ambas</h4>
@@ -441,18 +444,6 @@ const validate = () => {
   margin: 0;
   font-size: 1.1rem;
   color: #1E293B;
-}
-
-.option-header :deep(.va-radio__option-label) {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border-width: 0 !important;
 }
 
 .option-description {
