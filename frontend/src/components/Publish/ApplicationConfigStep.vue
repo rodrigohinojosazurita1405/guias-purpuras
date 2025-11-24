@@ -196,10 +196,43 @@
                 <va-icon name="delete" size="small" />
               </button>
             </div>
-            <p class="question-text">{{ question.text }}</p>
-            <div class="question-meta">
-              <span class="meta-badge">{{ getQuestionTypeLabel(question.type) }}</span>
-              <span v-if="question.required" class="meta-badge required">Obligatoria</span>
+
+            <!-- Campos de edición de pregunta -->
+            <div class="question-form">
+              <div class="form-row">
+                <label>Texto de la pregunta *</label>
+                <input
+                  :value="question.text"
+                  type="text"
+                  placeholder="Ej: ¿Cuáles son tus idiomas?"
+                  class="form-input"
+                  @input="updateQuestion(index, 'text', $event.target.value)"
+                />
+              </div>
+
+              <div class="form-row">
+                <label>Tipo de pregunta *</label>
+                <select
+                  :value="question.type"
+                  class="form-input"
+                  @change="updateQuestion(index, 'type', $event.target.value)"
+                >
+                  <option value="text">Texto corto</option>
+                  <option value="yesno">Sí / No</option>
+                  <option value="multiple">Opción múltiple</option>
+                </select>
+              </div>
+
+              <div class="form-row checkbox">
+                <label>
+                  <input
+                    :checked="question.required"
+                    type="checkbox"
+                    @change="updateQuestion(index, 'required', $event.target.checked)"
+                  />
+                  <span>Hacer obligatoria</span>
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -284,6 +317,18 @@ const addQuestion = () => {
 const removeQuestion = (index) => {
   const questions = [...props.modelValue.screeningQuestions]
   questions.splice(index, 1)
+  emit('update:modelValue', {
+    ...props.modelValue,
+    screeningQuestions: questions
+  })
+}
+
+const updateQuestion = (index, field, value) => {
+  const questions = [...props.modelValue.screeningQuestions]
+  questions[index] = {
+    ...questions[index],
+    [field]: value
+  }
   emit('update:modelValue', {
     ...props.modelValue,
     screeningQuestions: questions
@@ -550,6 +595,63 @@ const validate = () => {
   border-radius: 12px;
   border: 1px solid #E2E8F0;
   transition: all 0.3s ease;
+}
+
+.question-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #E2E8F0;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-row label {
+  font-weight: 600;
+  color: #1E293B;
+  font-size: 0.95rem;
+}
+
+.form-input {
+  padding: 0.75rem 1rem;
+  border: 2px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.3s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.form-row.checkbox {
+  flex-direction: row;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.form-row.checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.form-row.checkbox input {
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
 }
 
 .screening-question:hover {
