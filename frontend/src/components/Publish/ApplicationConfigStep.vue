@@ -8,7 +8,7 @@
       <div class="header-content">
         <va-icon name="assignment" size="3rem" color="#7C3AED" />
         <div class="header-text">
-          <h2 class="step-title">Configuración de Aplicación</h2>
+          <h2 class="step-title">Configuración de Aplicación Laboral</h2>
           <p class="step-description">
             Elige cómo los candidatos aplicarán a esta oferta
           </p>
@@ -441,6 +441,11 @@ const validate = () => {
   margin: 0;
   font-size: 1.1rem;
   color: #1E293B;
+}
+
+.option-header :deep(.va-radio__option-label),
+.option-header :deep(.va-radio__label) {
+  display: none !important;
 }
 
 .option-description {
