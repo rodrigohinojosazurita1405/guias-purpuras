@@ -1,16 +1,17 @@
 <!-- frontend/src/components/Publish/PlanStep.vue -->
 <template>
   <div class="plan-step">
-    <h2 class="step-title">
-      <va-icon name="workspace_premium" color="purple" size="large" />
-      Elige tu Plan
-    </h2>
+    <div class="plan-container">
+      <h2 class="step-title">
+        <va-icon name="workspace_premium" color="purple" size="large" />
+        Elige tu Plan
+      </h2>
 
-    <p class="step-description">
-      Selecciona el plan que mejor se adapte a tus necesidades
-    </p>
+      <p class="step-description">
+        Selecciona el plan que mejor se adapte a tus necesidades
+      </p>
 
-    <!-- Grid de Planes -->
+      <!-- Grid de Planes -->
     <div class="plans-grid">
       <!-- Plan Escencial (35 Bs) -->
       <div
@@ -261,16 +262,17 @@
       <span>Selecciona un plan para continuar</span>
     </div>
 
-    <!-- Navigation Buttons -->
-    <div class="navigation-buttons">
-      <button class="btn btn-secondary" @click="$emit('back')">
-        <va-icon name="arrow_back" size="small" />
-        Atrás
-      </button>
-      <button class="btn btn-primary" @click="handleNext">
-        Siguiente
-        <va-icon name="arrow_forward" size="small" />
-      </button>
+      <!-- Navigation Buttons -->
+      <div class="navigation-buttons">
+        <button class="btn btn-secondary" @click="$emit('back')">
+          <va-icon name="arrow_back" size="small" />
+          Atrás
+        </button>
+        <button class="btn btn-primary" @click="handleNext">
+          Siguiente
+          <va-icon name="arrow_forward" size="small" />
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -318,7 +320,18 @@ defineExpose({
 
 <style scoped>
 .plan-step {
-  padding: 1rem 0;
+  padding: 2rem;
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  min-height: 100vh;
+}
+
+.plan-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .step-title {
