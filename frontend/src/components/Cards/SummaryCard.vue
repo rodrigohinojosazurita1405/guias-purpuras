@@ -937,6 +937,27 @@
                       <va-icon name="info" size="x-small" />
                       <span>Escanea el QR, realiza el pago y sube el comprobante</span>
                     </div>
+
+                    <!-- Información de Contacto para Ayuda -->
+                    <div class="payment-support-compact">
+                      <div class="support-icon">
+                        <va-icon name="help_outline" size="small" />
+                      </div>
+                      <div class="support-content">
+                        <p class="support-title">¿Tienes dificultad con el pago?</p>
+                        <p class="support-text">
+                          Contáctanos por
+                          <a href="https://wa.me/59165324767" target="_blank" class="support-link">
+                            WhatsApp: 6532-4767
+                          </a>
+                          o envía el comprobante a
+                          <a href="mailto:info@guiaspurpuras.com.bo" class="support-link">
+                            info@guiaspurpuras.com.bo
+                          </a>
+                          para su verificación.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </transition>
               </div>
@@ -2495,6 +2516,62 @@ watch(() => props.formData.coordinates, (newCoords) => {
   color: #7C3AED;
 }
 
+.payment-support-compact {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #F0F9FF;
+  border-radius: 8px;
+  border: 1px solid #BFE7FF;
+  margin-top: 1rem;
+}
+
+.support-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 0.15rem;
+}
+
+.support-icon :deep(.va-icon) {
+  color: #0369A1;
+  font-size: 1rem;
+}
+
+.support-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.support-title {
+  margin: 0;
+  font-weight: 700;
+  color: #0C4A6E;
+  font-size: 0.9rem;
+}
+
+.support-text {
+  margin: 0;
+  color: #164E63;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.support-link {
+  color: #0369A1;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.support-link:hover {
+  color: #0C4A6E;
+  text-decoration: underline;
+}
+
 /* ===== SECCIÓN INFORMACIÓN TÉCNICA ===== */
 .info-technical {
   background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
@@ -2747,6 +2824,15 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
   .qr-card {
     max-width: 100%;
+  }
+
+  .payment-support-compact {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .support-text {
+    font-size: 0.8rem;
   }
 
   .info-technical {
