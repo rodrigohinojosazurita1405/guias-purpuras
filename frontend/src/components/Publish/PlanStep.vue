@@ -12,22 +12,24 @@
       </p>
 
       <!-- Grid de Planes -->
-    <div class="plans-grid">
-      <!-- Plan Escencial (35 Bs) -->
-      <div
-        @click="selectPlan('escencial')"
-        class="plan-card"
-        :class="{ selected: selectedPlan === 'escencial' }"
-      >
-        <div class="plan-header">
-          <va-icon name="workspace_premium" size="2.5rem" color="success" />
-          <h3 class="plan-name">Escencial</h3>
-          <div class="plan-price">
-            <span class="currency">Bs.</span>
-            <span class="amount">35</span>
+      <div class="plans-grid">
+        <!-- Plan Escencial (35 Bs) -->
+        <div
+          @click="selectPlan('escencial')"
+          class="plan-card"
+          :class="{ selected: selectedPlan === 'escencial' }"
+        >
+          <div class="plan-header">
+            <div class="plan-icon-wrapper">
+              <va-icon name="workspace_premium" size="3rem" color="success" />
+            </div>
+            <h3 class="plan-name">Escencial</h3>
+            <div class="plan-price">
+              <span class="currency">Bs.</span>
+              <span class="amount">35</span>
+            </div>
+            <span class="plan-duration">15 días | 1 aviso</span>
           </div>
-          <span class="plan-duration">15 días (1 aviso)</span>
-        </div>
 
         <div class="plan-features">
           <div class="feature-item">
@@ -58,26 +60,28 @@
         </button>
       </div>
 
-      <!-- Plan Púrpura (79 Bs) -->
-      <div
-        @click="selectPlan('purpura')"
-        class="plan-card featured"
-        :class="{ selected: selectedPlan === 'purpura' }"
-      >
-        <div class="plan-badge">
-          <va-icon name="star" size="small" />
-          Recomendado
-        </div>
-
-        <div class="plan-header">
-          <va-icon name="star" size="2.5rem" color="warning" />
-          <h3 class="plan-name">Púrpura</h3>
-          <div class="plan-price">
-            <span class="currency">Bs.</span>
-            <span class="amount">79</span>
+        <!-- Plan Púrpura (79 Bs) -->
+        <div
+          @click="selectPlan('purpura')"
+          class="plan-card featured"
+          :class="{ selected: selectedPlan === 'purpura' }"
+        >
+          <div class="plan-badge featured-badge">
+            <va-icon name="star" size="small" />
+            Recomendado
           </div>
-          <span class="plan-duration">30 días (1 aviso)</span>
-        </div>
+
+          <div class="plan-header">
+            <div class="plan-icon-wrapper featured">
+              <va-icon name="star" size="3rem" color="warning" />
+            </div>
+            <h3 class="plan-name">Púrpura</h3>
+            <div class="plan-price">
+              <span class="currency">Bs.</span>
+              <span class="amount">79</span>
+            </div>
+            <span class="plan-duration">30 días | 1 aviso</span>
+          </div>
 
         <div class="plan-features">
           <div class="feature-item highlight">
@@ -108,26 +112,28 @@
         </button>
       </div>
 
-      <!-- Plan Impulso Pro (169 Bs) -->
-      <div
-        @click="selectPlan('impulso')"
-        class="plan-card premium"
-        :class="{ selected: selectedPlan === 'impulso' }"
-      >
-        <div class="plan-badge premium">
-          <va-icon name="trending_up" size="small" />
-          Premium
-        </div>
-
-        <div class="plan-header">
-          <va-icon name="bolt" size="2.5rem" color="yellow-primary" />
-          <h3 class="plan-name">Impulso Pro</h3>
-          <div class="plan-price">
-            <span class="currency">Bs.</span>
-            <span class="amount">169</span>
+        <!-- Plan Impulso Pro (169 Bs) -->
+        <div
+          @click="selectPlan('impulso')"
+          class="plan-card premium"
+          :class="{ selected: selectedPlan === 'impulso' }"
+        >
+          <div class="plan-badge premium-badge">
+            <va-icon name="bolt" size="small" />
+            Premium
           </div>
-          <span class="plan-duration">30 días (hasta 3 avisos)</span>
-        </div>
+
+          <div class="plan-header">
+            <div class="plan-icon-wrapper premium">
+              <va-icon name="bolt" size="3rem" color="yellow-primary" />
+            </div>
+            <h3 class="plan-name">Impulso Pro</h3>
+            <div class="plan-price">
+              <span class="currency">Bs.</span>
+              <span class="amount">169</span>
+            </div>
+            <span class="plan-duration">30 días | 3 avisos</span>
+          </div>
 
         <div class="plan-features">
           <div class="feature-item highlight premium">
@@ -155,11 +161,11 @@
         >
           <va-icon v-if="selectedPlan === 'impulso'" name="check_circle" />
           {{ selectedPlan === 'impulso' ? 'Seleccionado' : 'Seleccionar' }}
-        </button>
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- Comparación de Planes -->
+      <!-- Comparación de Planes -->
     <div class="comparison-section">
       <h3 class="comparison-title">
         <va-icon name="compare_arrows" />
@@ -354,39 +360,60 @@ defineExpose({
 .plans-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  gap: 2rem;
   margin-bottom: 3rem;
 }
 
 .plan-card {
   background: white;
-  border: 3px solid #E0E0E0;
-  border-radius: 16px;
-  padding: 2rem 1.5rem;
+  border: 2px solid #E5E7EB;
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.plan-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #E5E7EB, #E5E7EB);
+  transition: all 0.4s ease;
 }
 
 .plan-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-12px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  border-color: #D1D5DB;
 }
 
 .plan-card.selected {
   border-color: var(--color-purple);
-  box-shadow: 0 8px 24px rgba(92, 0, 153, 0.2);
+  box-shadow: 0 12px 32px rgba(124, 58, 237, 0.15);
 }
 
 .plan-card.featured {
-  border-color: #FFB300;
+  border-color: #FF8F00;
+}
+
+.plan-card.featured::before {
+  background: linear-gradient(90deg, #FF8F00, #FFB300);
+}
+
+.plan-card.featured:hover {
+  box-shadow: 0 20px 40px rgba(255, 143, 0, 0.15);
 }
 
 .plan-card.featured.selected {
   border-color: #FF8F00;
-  box-shadow: 0 8px 24px rgba(255, 143, 0, 0.3);
+  box-shadow: 0 12px 32px rgba(255, 143, 0, 0.2);
 }
 
 .plan-card.premium {
@@ -394,29 +421,67 @@ defineExpose({
   background: linear-gradient(135deg, #FFFEF7 0%, #FFF9E6 100%);
 }
 
+.plan-card.premium::before {
+  background: linear-gradient(90deg, var(--color-yellow-primary), #FFD700);
+}
+
+.plan-card.premium:hover {
+  box-shadow: 0 20px 40px rgba(253, 197, 0, 0.15);
+}
+
 .plan-card.premium.selected {
   border-color: var(--color-yellow-primary);
-  box-shadow: 0 12px 32px rgba(253, 197, 0, 0.4);
+  box-shadow: 0 12px 32px rgba(253, 197, 0, 0.2);
 }
 
 .plan-badge {
   position: absolute;
-  top: -12px;
+  top: -2px;
   left: 50%;
   transform: translateX(-50%);
-  background: #FF8F00;
-  color: white;
-  padding: 0.5rem 1.25rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  padding: 0.6rem 1.5rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
   font-weight: 700;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.plan-badge.premium {
-  background: var(--color-yellow-primary);
+.plan-badge.featured-badge {
+  background: linear-gradient(135deg, #FF8F00, #FFB300);
+  color: white;
+}
+
+.plan-badge.premium-badge {
+  background: linear-gradient(135deg, var(--color-yellow-primary), #FFD700);
   color: var(--color-purple-darkest);
+}
+
+.plan-icon-wrapper {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #F0F9FF, #E0F2FE);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.plan-icon-wrapper.featured {
+  background: linear-gradient(135deg, #FFF7E6, #FFE9CC);
+}
+
+.plan-icon-wrapper.premium {
+  background: linear-gradient(135deg, #FFFEF7, #FFF9E6);
+}
+
+.plan-card:hover .plan-icon-wrapper {
+  transform: scale(1.1);
 }
 
 .plan-header {
@@ -656,13 +721,8 @@ defineExpose({
 
 @media (max-width: 1024px) {
   .plans-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-
-  .plan-card {
-    max-width: 500px;
-    margin: 0 auto;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
   }
 
   .comparison-row {
