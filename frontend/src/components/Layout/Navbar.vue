@@ -28,6 +28,17 @@
 
       <!-- Actions -->
       <div class="nav-actions">
+        <!-- Publish Button - Visible for authenticated users OR click to redirect to login -->
+        <button
+          @click="handlePublishClick"
+          class="publish-btn desktop-only"
+          :title="authStore.isAuthenticated ? 'Publicar anuncio' : 'Inicia sesión para publicar'"
+        >
+          <va-icon name="add_circle_outline" size="small" />
+          <span class="btn-text">Publicar anuncio</span>
+          <span class="btn-text-short">Publicar</span>
+        </button>
+
         <!-- NOT Authenticated: Show Register & Login Buttons -->
         <router-link v-if="!authStore.isAuthenticated" to="/login" class="login-btn desktop-only">
           <span>Registrarse</span>
@@ -136,6 +147,12 @@
               </div>
             </div>
 
+            <!-- Publish Button for Mobile -->
+            <button @click="handlePublishClickMobile" class="mobile-publish-btn">
+              <va-icon name="add_circle_outline" />
+              <span>Publicar anuncio</span>
+            </button>
+
             <!-- User Menu Items for Mobile -->
             <router-link to="/dashboard" class="mobile-link" @click="closeMobileMenu">
               <va-icon name="dashboard" />
@@ -193,6 +210,27 @@ const closeDropdown = () => {
 const handleDropdownLogout = () => {
   closeDropdown()
   doLogout()
+}
+
+// Handle Publish Button Click
+const handlePublishClick = () => {
+  if (!authStore.isAuthenticated) {
+    notify({ message: 'Por favor, inicia sesión para publicar un anuncio', color: 'warning', duration: 2000 })
+    router.push('/login')
+  } else {
+    router.push('/publicar')
+  }
+}
+
+// Handle Publish Button Click (Mobile version with menu close)
+const handlePublishClickMobile = () => {
+  closeMobileMenu()
+  if (!authStore.isAuthenticated) {
+    notify({ message: 'Por favor, inicia sesión para publicar un anuncio', color: 'warning', duration: 2000 })
+    router.push('/login')
+  } else {
+    router.push('/publicar')
+  }
 }
 
 // LOGOUT - Simple and Direct
@@ -326,6 +364,33 @@ const closeMobileMenu = () => {
 
 .btn-text-short {
   display: none;
+}
+
+/* PUBLISH BUTTON */
+.publish-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.publish-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(253, 197, 0, 0.6), 0 4px 12px rgba(253, 197, 0, 0.3);
+}
+
+.publish-btn :deep(svg) {
+  color: var(--color-purple-darkest) !important;
 }
 
 /* LOGIN BUTTON - Registrarse */
@@ -701,6 +766,33 @@ const closeMobileMenu = () => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.mobile-publish-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem;
+  background: var(--color-yellow-primary);
+  color: var(--color-purple-darkest);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.mobile-publish-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(253, 197, 0, 0.3);
+}
+
+.mobile-publish-btn :deep(svg) {
+  color: var(--color-purple-darkest) !important;
 }
 
 .mobile-logout-btn {
