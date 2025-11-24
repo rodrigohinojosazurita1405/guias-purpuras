@@ -784,89 +784,6 @@
               </div>
             </section>
 
-            <!-- ===== SECCIÓN PAGO Y COMPROBANTE ===== -->
-            <section class="content-block payment-section">
-              <h2 class="block-title">
-                <va-icon name="payment" size="small" />
-                Información de Pago
-              </h2>
-
-              <div class="payment-container">
-                <!-- Columna 1: QR y Referencia -->
-                <div class="payment-qr-column">
-                  <div class="qr-card">
-                    <h3 class="qr-title">Escanea para Pagar</h3>
-                    <div class="qr-image-container">
-                      <img
-                        :src="getPaymentQRPath(jobData.selectedPlan)"
-                        :alt="`QR - ${getJobPlanName(jobData.selectedPlan)}`"
-                        class="qr-image"
-                      />
-                    </div>
-                    <p class="qr-plan">{{ getJobPlanName(jobData.selectedPlan) }}</p>
-                    <p class="qr-amount">{{ getPaymentAmount(jobData.selectedPlan) }}</p>
-                    <div class="reference-box">
-                      <small class="reference-label">Referencia de Pago:</small>
-                      <code class="reference-code">{{ paymentReference }}</code>
-                      <button @click="copyToClipboard(paymentReference)" class="copy-btn" title="Copiar referencia">
-                        <va-icon name="content_copy" size="small" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Columna 2: Comprobante de Pago -->
-                <div class="payment-proof-column">
-                  <div class="proof-card">
-                    <h3 class="proof-title">Comprobante de Pago</h3>
-
-                    <!-- Zona de carga de archivo -->
-                    <div class="proof-upload-zone">
-                      <input
-                        type="file"
-                        ref="proofFileInput"
-                        accept="image/*"
-                        @change="handleProofUpload"
-                        class="hidden-input"
-                      />
-                      <div @click="$refs.proofFileInput?.click()" class="upload-area">
-                        <va-icon name="cloud_upload" size="large" color="purple" />
-                        <p class="upload-text">Haz clic para seleccionar o arrastra aquí</p>
-                        <small class="upload-hint">PNG, JPG, JPEG - Máx 5MB</small>
-                      </div>
-                    </div>
-
-                    <!-- Preview de imagen subida -->
-                    <div v-if="proofOfPaymentPreview" class="proof-preview">
-                      <img :src="proofOfPaymentPreview" :alt="'Comprobante de pago'" class="preview-image" />
-                      <button @click="clearProofUpload" class="remove-btn">
-                        <va-icon name="close" size="small" />
-                      </button>
-                    </div>
-
-                    <!-- Estado de verificación -->
-                    <div v-if="proofOfPaymentPreview" class="proof-status">
-                      <va-icon name="check_circle" color="success" />
-                      <span>Comprobante cargado correctamente</span>
-                    </div>
-                    <div v-else class="proof-required">
-                      <va-icon name="info" color="warning" />
-                      <span>Carga obligatoria para publicar</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Aviso importante -->
-              <div class="payment-notice">
-                <va-icon name="info" size="small" color="info" />
-                <p>
-                  Por favor, escanea el código QR con tu aplicación móvil para realizar el pago.
-                  Luego, sube la captura de pantalla o foto del comprobante de transferencia.
-                </p>
-              </div>
-            </section>
-
             <!-- ===== INFORMACIÓN TÉCNICA (Fondo diferenciado) ===== -->
             <section class="content-block info-technical">
               <h2 class="block-title">
@@ -915,6 +832,112 @@
                   {{ jobData.externalApplicationUrl }}
                   <va-icon name="open_in_new" size="small" />
                 </a>
+              </div>
+            </section>
+
+            <!-- ===== SECCIÓN PAGO Y COMPROBANTE (ACORDEÓN) ===== -->
+            <section class="content-block payment-section">
+              <div class="payment-accordion">
+                <!-- Header del Acordeón -->
+                <div @click="togglePaymentAccordion" class="accordion-header">
+                  <div class="accordion-title">
+                    <va-icon name="payment" size="small" />
+                    <span>Información de Pago</span>
+                  </div>
+                  <va-icon
+                    :name="paymentAccordionOpen ? 'expand_less' : 'expand_more'"
+                    size="small"
+                    class="accordion-icon"
+                  />
+                </div>
+
+                <!-- Contenido del Acordeón -->
+                <transition name="slide-accordion">
+                  <div v-if="paymentAccordionOpen" class="accordion-content">
+                    <!-- Resumen compacto -->
+                    <div class="payment-summary">
+                      <div class="summary-item">
+                        <span class="summary-label">Plan:</span>
+                        <span class="summary-value">{{ getJobPlanName(jobData.selectedPlan) }}</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="summary-label">Monto:</span>
+                        <span class="summary-value bold">{{ getPaymentAmount(jobData.selectedPlan) }}</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="summary-label">Ref:</span>
+                        <code class="summary-ref">{{ paymentReference }}</code>
+                        <button @click="copyToClipboard(paymentReference)" class="copy-btn-small" title="Copiar">
+                          <va-icon name="content_copy" size="x-small" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Contenedor de dos columnas -->
+                    <div class="payment-container">
+                      <!-- Columna 1: QR -->
+                      <div class="payment-qr-column">
+                        <div class="qr-card-compact">
+                          <div class="qr-label">Escanea para pagar</div>
+                          <div class="qr-image-container">
+                            <img
+                              :src="getPaymentQRPath(jobData.selectedPlan)"
+                              :alt="`QR - ${getJobPlanName(jobData.selectedPlan)}`"
+                              class="qr-image"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Columna 2: Comprobante -->
+                      <div class="payment-proof-column">
+                        <div class="proof-card-compact">
+                          <div class="proof-label">Sube tu comprobante</div>
+
+                          <!-- Zona de carga -->
+                          <div v-if="!proofOfPaymentPreview" class="proof-upload-zone-compact">
+                            <input
+                              type="file"
+                              ref="proofFileInput"
+                              accept="image/*"
+                              @change="handleProofUpload"
+                              class="hidden-input"
+                            />
+                            <div @click="$refs.proofFileInput?.click()" class="upload-area-compact">
+                              <va-icon name="cloud_upload" size="small" color="purple" />
+                              <p class="upload-text-compact">Arrastra o haz clic</p>
+                              <small class="upload-hint-compact">PNG, JPG - Máx 5MB</small>
+                            </div>
+                          </div>
+
+                          <!-- Preview -->
+                          <div v-else class="proof-preview-compact">
+                            <img :src="proofOfPaymentPreview" :alt="'Comprobante'" class="preview-image-compact" />
+                            <button @click="clearProofUpload" class="remove-btn-compact">
+                              <va-icon name="close" size="x-small" />
+                            </button>
+                          </div>
+
+                          <!-- Estado -->
+                          <div v-if="proofOfPaymentPreview" class="proof-status-compact">
+                            <va-icon name="check_circle" color="success" size="small" />
+                            <span>Cargado</span>
+                          </div>
+                          <div v-else class="proof-required-compact">
+                            <va-icon name="info" color="warning" size="small" />
+                            <span>Requerido</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Aviso -->
+                    <div class="payment-notice-compact">
+                      <va-icon name="info" size="x-small" />
+                      <span>Escanea el QR, realiza el pago y sube el comprobante</span>
+                    </div>
+                  </div>
+                </transition>
               </div>
             </section>
           </div>
@@ -968,6 +991,7 @@ const emit = defineEmits(['edit-step', 'submit'])
 // ==========================================
 const proofFileInput = ref(null)
 const proofOfPaymentPreview = ref(null)
+const paymentAccordionOpen = ref(true) // Abierto por defecto
 const paymentReference = computed(() => {
   if (!props.jobData?.selectedPlan) return ''
   return PAYMENT_CONFIG.generatePaymentReference(props.jobData.selectedPlan)
@@ -1207,6 +1231,11 @@ const copyToClipboard = (text) => {
   }).catch(() => {
     alert('No se pudo copiar al portapapeles')
   })
+}
+
+// Toggle del acordeón de pagos
+const togglePaymentAccordion = () => {
+  paymentAccordionOpen.value = !paymentAccordionOpen.value
 }
 
 // ==========================================
@@ -2153,17 +2182,127 @@ watch(() => props.formData.coordinates, (newCoords) => {
   min-width: fit-content;
 }
 
-/* ===== SECCIÓN PAGO Y COMPROBANTE ===== */
+/* ===== SECCIÓN PAGO Y COMPROBANTE (ACORDEÓN) ===== */
 .payment-section {
-  background: linear-gradient(135deg, #F5F3FF 0%, #FAFBFF 100%);
-  border-top: 3px solid #7C3AED;
+  background: transparent;
+}
+
+.payment-accordion {
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.05);
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.accordion-header:hover {
+  background: #F9FAFB;
+}
+
+.accordion-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+  color: #1F2937;
+  font-size: 1rem;
+}
+
+.accordion-title :deep(.va-icon) {
+  color: #7C3AED;
+}
+
+.accordion-icon {
+  color: #9CA3AF;
+  transition: transform 0.3s ease;
+}
+
+.accordion-content {
+  padding: 1.5rem;
+}
+
+/* Resumen compacto */
+.payment-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.summary-label {
+  font-weight: 700;
+  color: #6B7280;
+  min-width: 50px;
+}
+
+.summary-value {
+  color: #1F2937;
+  font-weight: 600;
+}
+
+.summary-value.bold {
+  color: #7C3AED;
+  font-size: 1.1rem;
+}
+
+.summary-ref {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #7C3AED;
+  background: #F3F4F6;
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 700;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy-btn-small {
+  background: #7C3AED;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.35rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.copy-btn-small:hover {
+  background: #6D28D9;
+  transform: scale(1.05);
 }
 
 .payment-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin: 1.5rem 0;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .payment-qr-column {
@@ -2171,104 +2310,35 @@ watch(() => props.formData.coordinates, (newCoords) => {
   justify-content: center;
 }
 
-.qr-card {
-  background: white;
-  border: 2px solid #E2E8F0;
-  border-radius: 16px;
-  padding: 2rem;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
-  max-width: 280px;
+.qr-card-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.qr-title {
-  font-size: 1.1rem;
+.qr-label {
+  font-size: 0.85rem;
   font-weight: 700;
-  color: #1F2937;
-  margin: 0 0 1.5rem 0;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .qr-image-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
+  padding: 0.75rem;
   background: #F9FAFB;
-  border-radius: 12px;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
 }
 
 .qr-image {
-  width: 200px;
-  height: 200px;
+  width: 160px;
+  height: 160px;
   object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.qr-plan {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #7C3AED;
-  margin: 1rem 0 0.5rem 0;
-}
-
-.qr-amount {
-  font-size: 2rem;
-  font-weight: 900;
-  color: #1F2937;
-  margin: 0 0 1.5rem 0;
-}
-
-.reference-box {
-  background: #F3F4F6;
-  border: 1px solid #E5E7EB;
-  border-radius: 10px;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-}
-
-.reference-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #6B7280;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: block;
-  width: 100%;
-  margin-bottom: 0.5rem;
-}
-
-.reference-code {
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #7C3AED;
-  background: white;
-  padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  flex: 1;
-  word-break: break-all;
-}
-
-.copy-btn {
-  background: #7C3AED;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 0.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.copy-btn:hover {
-  background: #6D28D9;
-  transform: scale(1.1);
 }
 
 /* Proof of Payment Card */
@@ -2277,149 +2347,143 @@ watch(() => props.formData.coordinates, (newCoords) => {
   flex-direction: column;
 }
 
-.proof-card {
-  background: white;
-  border: 2px solid #E2E8F0;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+.proof-card-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.proof-title {
-  font-size: 1.1rem;
+.proof-label {
+  font-size: 0.85rem;
   font-weight: 700;
-  color: #1F2937;
-  margin: 0 0 1.5rem 0;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .hidden-input {
   display: none;
 }
 
-.proof-upload-zone {
-  margin-bottom: 1.5rem;
+.proof-upload-zone-compact {
+  margin: 0;
 }
 
-.upload-area {
-  border: 3px dashed #E5E7EB;
-  border-radius: 12px;
-  padding: 2rem;
+.upload-area-compact {
+  border: 2px dashed #E5E7EB;
+  border-radius: 8px;
+  padding: 1.25rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
   background: #F9FAFB;
 }
 
-.upload-area:hover {
+.upload-area-compact:hover {
   border-color: #7C3AED;
   background: #F5F3FF;
-  transform: translateY(-2px);
+  border-style: solid;
 }
 
-.upload-area :deep(.va-icon) {
+.upload-area-compact :deep(.va-icon) {
   color: #7C3AED;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
-.upload-text {
-  font-size: 0.95rem;
+.upload-text-compact {
+  font-size: 0.85rem;
   font-weight: 600;
   color: #1F2937;
-  margin: 0.75rem 0 0.5rem 0;
+  margin: 0.5rem 0 0.25rem 0;
 }
 
-.upload-hint {
-  font-size: 0.85rem;
+.upload-hint-compact {
+  font-size: 0.75rem;
   color: #9CA3AF;
   display: block;
 }
 
-.proof-preview {
+.proof-preview-compact {
   position: relative;
-  margin-bottom: 1.5rem;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 150px;
 }
 
-.preview-image {
+.preview-image-compact {
   width: 100%;
-  height: auto;
-  max-height: 300px;
-  object-fit: contain;
-  border-radius: 12px;
+  height: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
-.remove-btn {
+.remove-btn-compact {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 6px;
+  right: 6px;
   background: rgba(220, 38, 38, 0.9);
   color: white;
   border: none;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-.remove-btn:hover {
+.remove-btn-compact:hover {
   background: rgba(220, 38, 38, 1);
   transform: scale(1.1);
 }
 
-.proof-status {
+.proof-status-compact {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: 0.5rem;
+  padding: 0.75rem;
   background: #F0FDF4;
   border: 1px solid #86EFAC;
-  border-radius: 8px;
+  border-radius: 6px;
   color: #16A34A;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
-.proof-required {
+.proof-required-compact {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: 0.5rem;
+  padding: 0.75rem;
   background: #FEF3C7;
   border: 1px solid #FCD34D;
-  border-radius: 8px;
+  border-radius: 6px;
   color: #92400E;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
-.payment-notice {
+.payment-notice-compact {
   display: flex;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: #E0E7FF;
-  border-left: 4px solid #7C3AED;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #EEF2FF;
   border-radius: 8px;
-  margin-top: 1.5rem;
+  border-left: 3px solid #7C3AED;
+  color: #3730A3;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  align-items: flex-start;
 }
 
-.payment-notice p {
-  margin: 0;
-  color: #4C1D95;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.payment-notice :deep(.va-icon) {
-  color: #7C3AED;
+.payment-notice-compact :deep(.va-icon) {
   flex-shrink: 0;
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
+  color: #7C3AED;
 }
 
 /* ===== SECCIÓN INFORMACIÓN TÉCNICA ===== */
@@ -2500,6 +2564,31 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
 .external-link :deep(.va-icon) {
   font-size: 0.8rem;
+}
+
+/* ===== ACCORDION TRANSITION ANIMATION ===== */
+.slide-accordion-enter-active {
+  transition: all 0.3s ease;
+}
+
+.slide-accordion-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-accordion-enter-from {
+  max-height: 0;
+  opacity: 0;
+}
+
+.slide-accordion-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.slide-accordion-enter-to,
+.slide-accordion-leave-from {
+  max-height: 500px;
+  opacity: 1;
 }
 
 /* ==========================================
@@ -2619,6 +2708,19 @@ watch(() => props.formData.coordinates, (newCoords) => {
   .info-grid {
     grid-template-columns: 1fr;
     gap: 2rem;
+  }
+
+  .payment-summary {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .summary-item {
+    flex-wrap: wrap;
+  }
+
+  .summary-ref {
+    font-size: 0.7rem;
   }
 
   .payment-container {
