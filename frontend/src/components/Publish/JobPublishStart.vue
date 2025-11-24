@@ -220,7 +220,7 @@ const proceedToWizard = () => {
 <style scoped>
 /* ========== CONTENEDOR PRINCIPAL ========== */
 .job-publish-start {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 3rem 2rem;
 }
