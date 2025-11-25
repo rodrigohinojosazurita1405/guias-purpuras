@@ -65,9 +65,9 @@
             </template>
           </va-input>
           
-          <div class="input-hint success-hint">
-            <va-icon name="lightbulb" size="small" />
-            <span>💡 Títulos claros reciben 2x más postulaciones</span>
+          <div class="input-hint success-hint" style="margin-top: 0.75rem;">
+            <va-icon name="info" size="small" />
+            <span>Títulos claros reciben más postulaciones</span>
           </div>
         </div>
 
@@ -97,9 +97,9 @@
                 color="warning"
                 size="small"
               />
-              <div class="input-hint" style="margin-top: 0.5rem;">
+              <div class="input-hint" style="margin-top: 0.75rem;">
                 <va-icon name="privacy_tip" size="small" />
-                <span>Se mostrará como "Empresa Confidencial" sin logo ni nombre</span>
+                <span>Se mostrará como empresa confidencial sin logo ni nombre</span>
               </div>
             </div>
           </div>
@@ -128,7 +128,7 @@
           
           <div class="input-hint">
             <va-icon name="info" size="small" />
-            <span>💡 Descripciones detalladas atraen candidatos de mejor calidad</span>
+            <span>Descripciones detalladas atraen candidatos de mejor calidad</span>
           </div>
         </div>
 
@@ -199,7 +199,7 @@
           </va-date-input>
           
           <div class="input-hint">
-            <va-icon name="info" size="small" />
+            <va-icon name="calendar_today" size="small" />
             <span>Fecha límite para recibir postulaciones</span>
           </div>
         </div>
@@ -347,8 +347,7 @@
           <div class="salary-tip">
           <va-icon name="lightbulb" color="warning" />
           <div>
-            <strong>💡 Tip Pro:</strong> Publicaciones con salario visible reciben 
-            <strong>3x más postulaciones</strong> y candidatos de mejor calidad.
+            <strong>Consejo:</strong> Publicaciones con salario visible reciben más postulaciones y candidatos de mejor calidad
           </div>
         </div>
 
@@ -446,7 +445,7 @@
           
           <div class="input-hint success-hint">
             <va-icon name="trending_up" size="small" />
-            <span>💡 Incrementa el atractivo de tu oferta mencionando beneficios extra</span>
+            <span>Incrementa el atractivo de tu oferta mencionando beneficios extra</span>
           </div>
         </div>
         </div>
@@ -568,7 +567,7 @@
             </va-input>
             
             <div class="input-hint">
-              <va-icon name="info" size="small" />
+              <va-icon name="mail" size="small" />
               <span>Los postulantes enviarán sus CVs a este correo</span>
             </div>
           </div>
@@ -628,7 +627,7 @@
           </va-textarea>
           
           <div class="input-hint">
-            <va-icon name="info" size="small" />
+            <va-icon name="assignment" size="small" />
             <span>Agrega requisitos específicos para el proceso de aplicación</span>
           </div>
         </div>
@@ -935,6 +934,17 @@ defineExpose({
 </script>
 
 <style scoped>
+/* ========== GLOBAL VUESTIC LABEL STYLES ========== */
+:deep(.va-input__label),
+:deep(.va-textarea__label),
+:deep(.va-select__label),
+:deep(.va-date-input__label) {
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  color: #1E293B !important;
+  letter-spacing: 0.2px !important;
+}
+
 .information-step-job {
   width: 100%;
   max-width: 1440px;
@@ -1076,21 +1086,22 @@ defineExpose({
 
 .input-hint {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: #475569;
-  padding: 0.75rem 1rem;
-  background: #E0E7FF;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: #5B21B6;
+  padding: 0.875rem 1rem;
+  background: #F9F5FF;
   border-radius: 8px;
   border-left: 3px solid #7C3AED;
-  line-height: 1.4;
+  line-height: 1.5;
+  margin-top: 0.75rem;
 }
 
 .success-hint {
-  background: #ECFDF5;
-  color: #047857;
-  border-left-color: #10B981;
+  background: #F0FDF4;
+  color: #166534;
+  border-left-color: #16A34A;
 }
 
 .whatsapp-prefix {
@@ -1139,15 +1150,16 @@ defineExpose({
 /* ========== Salary Section ========== */
 .salary-tip {
   display: flex;
-  gap: 0.75rem;
-  padding: 1.25rem 1.5rem;
-  background: linear-gradient(135deg, #FEF3C7 0%, #FEE2B8 100%);
-  border-left: 4px solid #F59E0B;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
-  color: #78350F;
-  line-height: 1.6;
+  gap: 0.875rem;
+  padding: 1rem 1.25rem;
+  background: #FFFBEB;
+  border-left: 3px solid #FBBF24;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  color: #92400E;
+  line-height: 1.5;
+  align-items: flex-start;
 }
 
 .salary-options {
