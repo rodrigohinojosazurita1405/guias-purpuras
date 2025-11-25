@@ -51,7 +51,7 @@
           <div class="form-label">Título del Puesto *</div>
           <va-input
             v-model="localFormData.title"
-            placeholder="Ej: Técnico(a) Comercial Agrónomo(a)"
+            placeholder="Ingresa el título del puesto"
             counter
             maxlength="100"
             :rules="[
@@ -76,7 +76,7 @@
             <div class="form-label" :class="{ 'opacity-50': localFormData.companyAnonymous }">Nombre de la Empresa <span v-if="!localFormData.companyAnonymous">*</span></div>
             <va-input
               v-model="localFormData.companyName"
-              placeholder="Ej: Agropartners S.R.L."
+              placeholder="Ingresa el nombre de la empresa"
               :disabled="localFormData.companyAnonymous"
               :rules="[
                 (v) => localFormData.companyAnonymous || !!v || 'El nombre de la empresa es requerido'
@@ -107,7 +107,7 @@
           <div class="form-label">Descripción del Trabajo *</div>
           <va-textarea
             v-model="localFormData.description"
-            placeholder="Describe el puesto, responsabilidades, y qué hace especial trabajar en tu empresa..."
+            placeholder="Describe las funciones principales, responsabilidades y ambiente de trabajo"
             :min-rows="6"
             counter
             maxlength="1000"
@@ -225,7 +225,7 @@
           <div class="form-label">Requisitos del Puesto *</div>
           <va-textarea
             v-model="localFormData.requirements"
-            placeholder="Ej: - Título universitario en Agronomía&#10;- 2+ años de experiencia en ventas&#10;- Licencia de conducir&#10;- Disponibilidad para viajar"
+            placeholder="Lista los requisitos y habilidades necesarias para el puesto"
             :min-rows="6"
             counter
             maxlength="1000"
@@ -259,7 +259,7 @@
             <div class="form-label">Formación Requerida</div>
             <va-input
               v-model="localFormData.education"
-              placeholder="Ej: Título en Agronomía"
+              placeholder="Ej: Licenciatura en área relacionada"
             >
               <template #prepend>
                 <va-icon name="school" color="purple" />
@@ -272,7 +272,7 @@
             <div class="form-label">Experiencia Necesaria</div>
             <va-input
               v-model="localFormData.experience"
-              placeholder="Ej: 2-3 años en ventas"
+              placeholder="Ej: 2-3 años de experiencia comprobada"
             >
               <template #prepend>
                 <va-icon name="badge" color="purple" />
@@ -287,7 +287,7 @@
             <div class="form-label">Idiomas Requeridos</div>
             <va-input
               v-model="localFormData.languages"
-              placeholder="Ej: Español (nativo), Inglés (intermedio)"
+              placeholder="Ej: Español (nativo), Inglés (fluido)"
             >
               <template #prepend>
                 <va-icon name="language" color="purple" />
@@ -300,7 +300,7 @@
             <div class="form-label">Habilidades Técnicas</div>
             <va-input
               v-model="localFormData.technicalSkills"
-              placeholder="Ej: Excel avanzado, CRM"
+              placeholder="Ej: Dominio de software específico, programación"
             >
               <template #prepend>
                 <va-icon name="build" color="purple" />
@@ -384,7 +384,7 @@
               <va-input
                 v-model.number="localFormData.salaryMin"
                 type="number"
-                placeholder="Ej: 3000"
+                placeholder="Ingresa el salario mínimo"
                 :rules="[(v) => !!v || 'El salario mínimo es requerido']"
               >
                 <template #prepend>
@@ -398,7 +398,7 @@
               <va-input
                 v-model.number="localFormData.salaryMax"
                 type="number"
-                placeholder="Ej: 5000"
+                placeholder="Ingresa el salario máximo"
                 :rules="[
                   (v) => !!v || 'El salario máximo es requerido',
                   (v) => !localFormData.salaryMin || v > localFormData.salaryMin || 'El máximo debe ser mayor al mínimo'
@@ -418,7 +418,7 @@
           <va-input
             v-model.number="localFormData.salaryFixed"
             type="number"
-            placeholder="Ej: 4000"
+            placeholder="Ingresa el salario fijo"
             :rules="[(v) => !!v || 'El salario es requerido']"
           >
             <template #prepend>
@@ -1190,14 +1190,14 @@ defineExpose({
   flex-direction: column;
   gap: 0.5rem;
   padding: 1rem;
-  background: #FEF3C7;
+  background: #F5F3FF;
   border-radius: 8px;
-  border-left: 3px solid #F59E0B;
+  border-left: 3px solid #DDD6FE;
 }
 
 .anonymous-helper-text {
   font-size: 0.85rem;
-  color: #92400E;
+  color: #5B21B6;
   font-weight: 500;
 }
 
