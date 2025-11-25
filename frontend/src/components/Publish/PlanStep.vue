@@ -161,7 +161,7 @@
           </div>
 
           <div class="comparison-row">
-            <div class="feature-name">Visibilidad</div>
+            <div class="feature-name">Visibilidad en la Web (Anchado)</div>
             <div class="plan-col">Normal</div>
             <div class="plan-col featured-text">Destacado</div>
             <div class="plan-col">Patrocinado</div>

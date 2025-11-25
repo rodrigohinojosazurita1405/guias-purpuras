@@ -32,6 +32,7 @@ class Job(models.Model):
     # Categoría y ubicación
     jobCategory = models.CharField(max_length=100, verbose_name="Categoría")
     city = models.CharField(max_length=100, verbose_name="Ciudad")
+    municipality = models.CharField(max_length=100, blank=True, verbose_name="Provincia/Municipio")
     subcategory = models.CharField(max_length=100, blank=True, verbose_name="Subcategoría")
 
     # Tipo de contrato
@@ -55,6 +56,7 @@ class Job(models.Model):
     experience = models.CharField(max_length=200, blank=True, verbose_name="Experiencia necesaria")
     languages = models.CharField(max_length=200, blank=True, verbose_name="Idiomas requeridos")
     technicalSkills = models.CharField(max_length=500, blank=True, verbose_name="Habilidades técnicas")
+    softSkills = models.CharField(max_length=500, blank=True, verbose_name="Habilidades blandas")
 
     # Compensación
     salaryType = models.CharField(

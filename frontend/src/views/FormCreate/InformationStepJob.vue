@@ -157,6 +157,19 @@
               </template>
             </va-select>
           </div>
+
+          <!-- PROVINCIA / MUNICIPIO -->
+          <div class="form-row">
+            <div class="form-label">Provincia / Municipio</div>
+            <va-input
+              v-model="localFormData.municipality"
+              placeholder="Ingresa la provincia o municipio"
+            >
+              <template #prepend>
+                <va-icon name="place" color="purple" />
+              </template>
+            </va-input>
+          </div>
         </div>
 
         <div class="form-grid">
@@ -307,6 +320,19 @@
               </template>
             </va-input>
           </div>
+
+          <!-- HABILIDADES BLANDAS -->
+          <div class="form-row">
+            <div class="form-label">Habilidades Blandas</div>
+            <va-input
+              v-model="localFormData.softSkills"
+              placeholder="Ej: Liderazgo, comunicación, trabajo en equipo, resolución de problemas"
+            >
+              <template #prepend>
+                <va-icon name="people" color="purple" />
+              </template>
+            </va-input>
+          </div>
         </div>
         </div>
       </div>
@@ -450,6 +476,78 @@
         </div>
       </div>
 
+      <!-- ACORDEÓN 5: NÚMERO DE VACANTES -->
+      <div class="accordion-section" :class="{ 'expanded': expandedSections.vacancies }">
+        <div class="accordion-header" @click="toggleSection('vacancies')">
+          <div class="accordion-header-left">
+            <div class="accordion-icon">
+              <va-icon name="people" size="1.5rem" />
+            </div>
+            <div class="accordion-title-group">
+              <h3 class="accordion-title">Número de Vacantes</h3>
+              <p v-if="!expandedSections.vacancies" class="accordion-summary">
+                {{ getSummary('vacancies') }}
+              </p>
+            </div>
+          </div>
+          <va-icon
+            :name="expandedSections.vacancies ? 'expand_less' : 'expand_more'"
+            size="1.5rem"
+            class="accordion-chevron"
+          />
+        </div>
+
+        <div v-if="expandedSections.vacancies" class="accordion-content">
+
+          <div class="form-row">
+          <label class="form-label">¿Cuántos puestos disponibles? *</label>
+          <div class="vacancy-input-group">
+            <button
+              type="button"
+              class="vacancy-btn"
+              @click="decrementVacancies"
+              :disabled="localFormData.vacancies <= 1"
+            >
+              −
+            </button>
+            <input
+              v-model.number="localFormData.vacancies"
+              type="number"
+              min="1"
+              max="100"
+              class="vacancy-input"
+              @input="(e) => updateVacancies(parseInt(e.target.value) || 1)"
+            />
+            <button
+              type="button"
+              class="vacancy-btn"
+              @click="incrementVacancies"
+              :disabled="localFormData.vacancies >= 100"
+            >
+              +
+            </button>
+          </div>
+          <small class="form-hint">
+            Puedes publicar{{ localFormData.vacancies > 1 ? ` ${localFormData.vacancies} puestos iguales` : ' 1 puesto' }}
+          </small>
+        </div>
+
+        <!-- Visualización de vacantes -->
+        <div class="vacancy-tracker">
+          <div
+            v-for="n in Math.min(localFormData.vacancies, 10)"
+            :key="n"
+            class="vacancy-icon"
+            :title="`Vacante ${n}`"
+          >
+            <va-icon name="person" />
+          </div>
+          <div v-if="localFormData.vacancies > 10" class="vacancy-more">
+            +{{ localFormData.vacancies - 10 }} más
+          </div>
+        </div>
+        </div>
+      </div>
 
       <!-- BOTONES DE NAVEGACIÓN -->
       <div class="navigation-buttons">
@@ -484,7 +582,8 @@ const emit = defineEmits(['update:modelValue', 'next', 'back'])
 const expandedSections = ref({
   basicInfo: true,
   requisites: false,
-  salary: false
+  salary: false,
+  vacancies: false
 })
 
 // ========== DATA LOCAL (REF + WATCH) ==========
@@ -495,6 +594,7 @@ const localFormData = ref({
   description: props.modelValue.description || '',
   jobCategory: props.modelValue.jobCategory || '',
   city: props.modelValue.city || '',
+  municipality: props.modelValue.municipality || '',
   contractType: props.modelValue.contractType || '',
   expiryDate: props.modelValue.expiryDate || null,
   requirements: props.modelValue.requirements || '',
@@ -503,11 +603,13 @@ const localFormData = ref({
   experience: props.modelValue.experience || '',
   languages: props.modelValue.languages || '',
   technicalSkills: props.modelValue.technicalSkills || '',
+  softSkills: props.modelValue.softSkills || '',
   salaryType: props.modelValue.salaryType || 'range',
   salaryMin: props.modelValue.salaryMin || null,
   salaryMax: props.modelValue.salaryMax || null,
   salaryFixed: props.modelValue.salaryFixed || null,
-  benefits: props.modelValue.benefits || ''
+  benefits: props.modelValue.benefits || '',
+  vacancies: props.modelValue.vacancies || 1
 })
 
 // ========== OPCIONES DE FORMULARIO ==========
@@ -554,6 +656,25 @@ watch(localFormData, (newValue) => {
   emit('update:modelValue', cleanedValue)
 }, { deep: true })
 
+// ========== MÉTODOS DE VACANTES ==========
+const incrementVacancies = () => {
+  if (localFormData.value.vacancies < 100) {
+    localFormData.value.vacancies++
+  }
+}
+
+const decrementVacancies = () => {
+  if (localFormData.value.vacancies > 1) {
+    localFormData.value.vacancies--
+  }
+}
+
+const updateVacancies = (value) => {
+  if (value >= 1 && value <= 100) {
+    localFormData.value.vacancies = value
+  }
+}
+
 // ========== ACCORDION METHODS ==========
 const toggleSection = (sectionName) => {
   expandedSections.value[sectionName] = !expandedSections.value[sectionName]
@@ -584,6 +705,9 @@ const getSummary = (sectionName) => {
         return 'Salario no visible'
       }
       return 'Configura la compensación'
+
+    case 'vacancies':
+      return `${localFormData.value.vacancies || 1} ${localFormData.value.vacancies === 1 ? 'vacante' : 'vacantes'} disponible${localFormData.value.vacancies === 1 ? '' : 's'}`
 
     default:
       return ''
