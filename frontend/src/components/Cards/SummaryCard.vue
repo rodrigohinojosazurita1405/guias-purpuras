@@ -953,6 +953,71 @@
                 </transition>
               </div>
             </section>
+
+            <!-- ===== INFORMACIÓN DE FACTURACIÓN (ACORDEÓN) ===== -->
+            <section class="content-block billing-section">
+              <div class="billing-accordion">
+                <!-- Header del Acordeón -->
+                <div @click="toggleBillingAccordion" class="accordion-header">
+                  <div class="accordion-title">
+                    <va-icon name="receipt" size="small" />
+                    <span>Información de Facturación (Opcional)</span>
+                    <span class="accordion-hint">• Haz clic para desplegar</span>
+                  </div>
+                  <va-icon
+                    :name="billingAccordionOpen ? 'expand_less' : 'expand_more'"
+                    size="small"
+                    class="accordion-icon"
+                  />
+                </div>
+
+                <!-- Contenido del Acordeón -->
+                <transition name="slide-accordion">
+                  <div v-if="billingAccordionOpen" class="accordion-content">
+                    <div class="billing-form-group">
+                      <!-- Razón Social -->
+                      <div class="billing-field">
+                        <label class="billing-label">Razón Social</label>
+                        <input
+                          v-model="billingData.businessName"
+                          type="text"
+                          placeholder="Nombre de tu empresa"
+                          class="billing-input"
+                        />
+                      </div>
+
+                      <!-- NIT -->
+                      <div class="billing-field">
+                        <label class="billing-label">NIT</label>
+                        <input
+                          v-model="billingData.nit"
+                          type="text"
+                          placeholder="Tu número de NIT"
+                          class="billing-input"
+                        />
+                      </div>
+
+                      <!-- Email para Factura -->
+                      <div class="billing-field">
+                        <label class="billing-label">Email para Factura</label>
+                        <input
+                          v-model="billingData.invoiceEmail"
+                          type="email"
+                          placeholder="correo@empresa.com"
+                          class="billing-input"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Aviso de privacidad -->
+                    <div class="billing-disclaimer">
+                      <va-icon name="info" size="x-small" />
+                      <span>Esta información es opcional y se utilizará únicamente para emitir facturas</span>
+                    </div>
+                  </div>
+                </transition>
+              </div>
+            </section>
           </div>
         </div>
       </template>
@@ -1005,6 +1070,12 @@ const emit = defineEmits(['edit-step', 'submit'])
 const proofFileInput = ref(null)
 const proofOfPaymentPreview = ref(null)
 const paymentAccordionOpen = ref(true) // Abierto por defecto
+const billingAccordionOpen = ref(false) // Cerrado por defecto
+const billingData = ref({
+  businessName: '',
+  nit: '',
+  invoiceEmail: ''
+})
 const paymentReference = computed(() => {
   if (!props.jobData?.selectedPlan) return ''
   return PAYMENT_CONFIG.generatePaymentReference(props.jobData.selectedPlan)
@@ -1249,6 +1320,11 @@ const copyToClipboard = (text) => {
 // Toggle del acordeón de pagos
 const togglePaymentAccordion = () => {
   paymentAccordionOpen.value = !paymentAccordionOpen.value
+}
+
+// Toggle del acordeón de facturación
+const toggleBillingAccordion = () => {
+  billingAccordionOpen.value = !billingAccordionOpen.value
 }
 
 // ==========================================
@@ -3080,5 +3156,117 @@ watch(() => props.formData.coordinates, (newCoords) => {
     font-size: 0.85rem;
     word-break: break-word;
   }
+}
+
+/* ==========================================
+   SECCIÓN DE FACTURACIÓN
+   ========================================== */
+.billing-section {
+  margin-top: 2rem;
+}
+
+.billing-accordion {
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+}
+
+.billing-accordion .accordion-header {
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  border-bottom: 1px solid #E2E8F0;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.billing-accordion .accordion-header:hover {
+  background: linear-gradient(135deg, #F1F5F9 0%, #E8EEF5 100%);
+}
+
+.billing-accordion .accordion-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  color: var(--color-purple-dark);
+  margin: 0;
+}
+
+.billing-accordion .accordion-hint {
+  font-size: 0.85rem;
+  color: #999;
+  margin-left: auto;
+  margin-right: 0.5rem;
+}
+
+.billing-accordion .accordion-icon {
+  transition: transform 0.3s ease;
+}
+
+.billing-accordion .accordion-content {
+  padding: 1.5rem;
+  background: white;
+}
+
+.billing-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.billing-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.billing-label {
+  font-weight: 600;
+  color: var(--color-purple-dark);
+  font-size: 0.95rem;
+}
+
+.billing-input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  background: white;
+  color: #333;
+}
+
+.billing-input:focus {
+  outline: none;
+  border-color: var(--color-purple);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.billing-input::placeholder {
+  color: #999;
+}
+
+.billing-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #F0F4FF;
+  border-radius: 8px;
+  border-left: 3px solid var(--color-purple);
+  font-size: 0.9rem;
+  color: #333;
+  margin-top: 1rem;
+}
+
+.billing-disclaimer i {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--color-purple);
 }
 </style>

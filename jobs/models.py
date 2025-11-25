@@ -130,6 +130,11 @@ class Job(models.Model):
         verbose_name="Estado"
     )
 
+    # Información de Facturación (Opcional)
+    billingBusinessName = models.CharField(max_length=200, blank=True, null=True, verbose_name="Razón Social")
+    billingNIT = models.CharField(max_length=20, blank=True, null=True, verbose_name="NIT")
+    billingInvoiceEmail = models.EmailField(blank=True, null=True, verbose_name="Email para factura")
+
     class Meta:
         verbose_name = "Oferta de Trabajo"
         verbose_name_plural = "Ofertas de Trabajo"
