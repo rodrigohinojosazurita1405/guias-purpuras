@@ -32,17 +32,19 @@
     <!-- PASO 1: Plan de Pago -->
     <PlanStep
       v-if="publishStore.currentStep === 1"
+      ref="planStepRef"
       :model-value="publishStore.jobData.selectedPlan"
       @update:model-value="(plan) => publishStore.setJobData({ selectedPlan: plan })"
-      @next="nextStep"
+      @next="handlePlanStepNext"
       @back="previousStep"
     />
 
     <!-- PASO 2: Información del Trabajo -->
     <InformationStepJob
       v-if="publishStore.currentStep === 2"
+      ref="informationStepRef"
       v-model="publishStore.jobData"
-      @next="nextStep"
+      @next="handleInformationStepNext"
       @back="previousStep"
     />
 
@@ -88,6 +90,10 @@ const publishStore = usePublishStore()
 const companyStore = useCompanyStore()
 const isSubmitting = ref(false)
 
+// Refs para acceder a métodos validate() de los componentes
+const planStepRef = ref(null)
+const informationStepRef = ref(null)
+
 // ========== CARGAR BORRADOR Y OBTENER EMPRESA ==========
 onMounted(async () => {
   // Primero, cargar borrador guardado del almacenamiento
@@ -123,6 +129,28 @@ const wizardSteps = ref([
 // ========== MÉTODOS DE NAVEGACIÓN CON SCROLL ==========
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const handlePlanStepNext = () => {
+  // Validar que se ha seleccionado un plan
+  if (planStepRef.value && !planStepRef.value.validate()) {
+    notify({
+      message: 'Por favor, selecciona un plan de pago para continuar',
+      color: 'warning',
+      duration: 3000
+    })
+    return
+  }
+  nextStep()
+}
+
+const handleInformationStepNext = () => {
+  // Validar que se han completado los datos
+  if (informationStepRef.value && !informationStepRef.value.validate()) {
+    // El componente ya muestra un alert con los errores
+    return
+  }
+  nextStep()
 }
 
 const nextStep = () => {
