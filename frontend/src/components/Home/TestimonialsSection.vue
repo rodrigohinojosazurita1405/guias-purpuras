@@ -353,7 +353,7 @@ onUnmounted(() => {
 .section-badge {
   display: inline-block;
   padding: 0.5rem 1.25rem;
-  background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-purple-dark) 100%);
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: white;
   border-radius: 20px;
   font-size: 0.85rem;

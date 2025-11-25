@@ -7,6 +7,9 @@ urlpatterns = [
     # Publicar nuevo trabajo
     path('jobs/publish', views.publish_job, name='publish_job'),
 
+    # Job Categories Endpoint (DEBE estar antes del patrón genérico jobs/)
+    path('jobs/categories', views.get_job_categories, name='get_job_categories'),
+
     # Listar trabajos
     path('jobs/', views.list_jobs, name='list_jobs'),
 

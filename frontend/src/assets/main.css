@@ -11,3 +11,85 @@ body {
   margin: 0;
 }
 
+/* ========== GLOBAL VUESTIC LABEL STYLES ========== */
+/* Extremely aggressive targeting of Vuestic labels */
+
+/* Direct label elements - REMOVE UPPERCASE TRANSFORMATION */
+.va-input__label,
+.va-textarea__label,
+.va-select__label,
+.va-date-input__label,
+.va-input .va-label,
+.va-textarea .va-label,
+.va-select .va-label,
+.va-date-input .va-label {
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+  color: #0F172A !important;
+  letter-spacing: 0.5px !important;
+  display: block !important;
+  line-height: 1.4 !important;
+  text-transform: none !important;
+}
+
+/* All span/div elements that are labels inside Vuestic components */
+.va-input span[class*="label"],
+.va-textarea span[class*="label"],
+.va-select span[class*="label"],
+.va-date-input span[class*="label"] {
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+}
+
+/* ========== GLOBAL INPUT TEXT SIZE ========== */
+/* Input fields themselves */
+.va-input__field,
+.va-textarea__field,
+.va-select__field,
+.va-date-input__field {
+  font-size: 1.0rem !important;
+  line-height: 1.5 !important;
+}
+
+/* Native input/textarea/select elements inside Vuestic */
+.va-input input,
+.va-textarea textarea,
+.va-select select,
+.va-date-input input,
+input.va-input__field,
+textarea.va-textarea__field,
+select.va-select__field {
+  font-size: 1.0rem !important;
+  line-height: 1.5 !important;
+}
+
+/* Placeholder styling */
+.va-input__field::placeholder,
+.va-textarea__field::placeholder,
+input::placeholder,
+textarea::placeholder {
+  font-size: 1.0rem !important;
+  opacity: 0.7 !important;
+}
+
+/* Extra aggressive: target all text inside input containers */
+.va-input-container *,
+.va-textarea-container *,
+.va-select-container *,
+.va-date-input-container * {
+  font-size: inherit;
+}
+
+/* Override for input field content */
+.va-input input[type="text"],
+.va-input input[type="email"],
+.va-input input[type="password"],
+.va-input input[type="number"],
+input[type="text"]:not([class*="search"]),
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea {
+  font-size: 1.0rem !important;
+}
+

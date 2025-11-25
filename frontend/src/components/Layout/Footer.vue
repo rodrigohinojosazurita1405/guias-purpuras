@@ -139,21 +139,21 @@
           <h4>Categorías</h4>
           <ul class="footer-links">
             <li>
-              <router-link to="/guias/profesionales">
-                <va-icon name="work" size="small" />
-                Profesionales
+              <router-link to="/guias/trabajos">
+                <va-icon name="business_center" size="small" />
+                Trabajos
               </router-link>
             </li>
-            <li>
+               <li>
               <router-link to="/guias/gastronomia">
                 <va-icon name="restaurant" size="small" />
                 Gastronomía
               </router-link>
             </li>
             <li>
-              <router-link to="/guias/trabajos">
-                <va-icon name="business_center" size="small" />
-                Trabajos
+              <router-link to="/guias/profesionales">
+                <va-icon name="work" size="small" />
+                Profesionales
               </router-link>
             </li>
             <li>

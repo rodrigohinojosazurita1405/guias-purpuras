@@ -3,6 +3,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createVuestic } from 'vuestic-ui'
 import 'vuestic-ui/css'
+import './assets/main.css'
 
 import App from './App.vue'
 import router from './router'
@@ -19,11 +20,11 @@ const vuesticConfig = {
       'purple-darkest': '#3D0066',
       'purple-dark': '#510087',
       'purple': '#5C0099',
-      
+
       // Amarillos
       'yellow-primary': '#FDC500',
       'yellow-light': '#FFD500',
-      
+
       // Override de colores de Vuestic
       primary: '#5C0099',
       secondary: '#FDC500',
@@ -33,7 +34,7 @@ const vuesticConfig = {
       warning: '#ffc200',
     }
   },
-  
+
   // ✨ CONFIGURACIÓN DE TRADUCCIONES AL ESPAÑOL
   i18n: vuesticSpanishConfig
 }

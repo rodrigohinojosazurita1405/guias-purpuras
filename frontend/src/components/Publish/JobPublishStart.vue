@@ -51,7 +51,7 @@
     <div class="selection-step">
       <div class="step-indicator">
         <div class="step-badge">2</div>
-        <h2 class="step-name">¿Dónde será el empleo?</h2>
+        <h2 class="step-name">¿en que departamento será el empleo?</h2>
       </div>
 
       <!-- Selector de Ciudad -->

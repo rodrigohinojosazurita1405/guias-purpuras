@@ -48,11 +48,10 @@
 
           <!-- TÍTULO DEL PUESTO -->
         <div class="form-row">
+          <div class="form-label">Título del Puesto *</div>
           <va-input
             v-model="localFormData.title"
-            label="Título del Puesto"
             placeholder="Ej: Técnico(a) Comercial Agrónomo(a)"
-            required-mark
             counter
             maxlength="100"
             :rules="[
@@ -74,11 +73,10 @@
         <div class="form-grid">
           <!-- NOMBRE DE LA EMPRESA -->
           <div class="form-row">
+            <div class="form-label" :class="{ 'opacity-50': localFormData.companyAnonymous }">Nombre de la Empresa <span v-if="!localFormData.companyAnonymous">*</span></div>
             <va-input
               v-model="localFormData.companyName"
-              label="Nombre de la Empresa"
               placeholder="Ej: Agropartners S.R.L."
-              :required-mark="!localFormData.companyAnonymous"
               :disabled="localFormData.companyAnonymous"
               :rules="[
                 (v) => localFormData.companyAnonymous || !!v || 'El nombre de la empresa es requerido'
@@ -106,14 +104,13 @@
 
         <!-- DESCRIPCIÓN DEL TRABAJO -->
         <div class="form-row">
+          <div class="form-label">Descripción del Trabajo *</div>
           <va-textarea
             v-model="localFormData.description"
-            label="Descripción del Trabajo"
             placeholder="Describe el puesto, responsabilidades, y qué hace especial trabajar en tu empresa..."
             :min-rows="6"
             counter
             maxlength="1000"
-            required-mark
             :rules="[
               (v) => !!v || 'La descripción es requerida',
               (v) => (v && v.length >= 50) || 'Mínimo 50 caracteres para una buena descripción'
@@ -133,12 +130,11 @@
         <div class="form-grid">
           <!-- CATEGORÍA -->
           <div class="form-row">
+            <div class="form-label">Categoría/Área *</div>
             <va-select
               v-model="localFormData.jobCategory"
-              label="Categoría/Área"
               :options="categoryOptions"
               placeholder="Selecciona una categoría"
-              required-mark
               :rules="[(v) => !!v || 'La categoría es requerida']"
             >
               <template #prepend>
@@ -149,12 +145,11 @@
 
           <!-- CIUDAD -->
           <div class="form-row">
+            <div class="form-label">Ciudad *</div>
             <va-select
               v-model="localFormData.city"
-              label="Ciudad"
               :options="cityOptions"
               placeholder="Selecciona la ciudad"
-              required-mark
               :rules="[(v) => !!v || 'La ciudad es requerida']"
             >
               <template #prepend>
@@ -167,12 +162,11 @@
         <div class="form-grid">
           <!-- TIPO DE CONTRATO -->
           <div class="form-row">
+            <div class="form-label">Tipo de Contrato *</div>
             <va-select
               v-model="localFormData.contractType"
-              label="Tipo de Contrato"
               :options="contractTypeOptions"
               placeholder="Selecciona el tipo"
-              required-mark
               :rules="[(v) => !!v || 'El tipo de contrato es requerido']"
             >
               <template #prepend>
@@ -184,11 +178,10 @@
 
         <!-- FECHA DE VENCIMIENTO -->
         <div class="form-row">
+          <div class="form-label">Fecha de Vencimiento *</div>
           <va-date-input
             v-model="localFormData.expiryDate"
-            label="Fecha de Vencimiento"
             placeholder="Selecciona fecha"
-            required-mark
             :rules="[(v) => !!v || 'La fecha de vencimiento es requerida']"
           >
             <template #prepend>
@@ -229,14 +222,13 @@
 
           <!-- REQUISITOS DEL PUESTO -->
         <div class="form-row">
+          <div class="form-label">Requisitos del Puesto *</div>
           <va-textarea
             v-model="localFormData.requirements"
-            label="Requisitos del Puesto"
             placeholder="Ej: - Título universitario en Agronomía&#10;- 2+ años de experiencia en ventas&#10;- Licencia de conducir&#10;- Disponibilidad para viajar"
             :min-rows="6"
             counter
             maxlength="1000"
-            required-mark
             :rules="[(v) => !!v || 'Los requisitos son requeridos']"
           >
             <template #prepend>
@@ -247,9 +239,9 @@
 
         <!-- FUNCIONES PRINCIPALES -->
         <div class="form-row">
+          <div class="form-label">Funciones Principales (Opcional)</div>
           <va-textarea
             v-model="localFormData.responsibilities"
-            label="Funciones Principales (Opcional)"
             placeholder="Describe las responsabilidades diarias del puesto..."
             :min-rows="4"
             counter
@@ -264,9 +256,9 @@
         <div class="form-grid">
           <!-- FORMACIÓN REQUERIDA -->
           <div class="form-row">
+            <div class="form-label">Formación Requerida</div>
             <va-input
               v-model="localFormData.education"
-              label="Formación Requerida"
               placeholder="Ej: Título en Agronomía"
             >
               <template #prepend>
@@ -277,9 +269,9 @@
 
           <!-- EXPERIENCIA NECESARIA -->
           <div class="form-row">
+            <div class="form-label">Experiencia Necesaria</div>
             <va-input
               v-model="localFormData.experience"
-              label="Experiencia Necesaria"
               placeholder="Ej: 2-3 años en ventas"
             >
               <template #prepend>
@@ -292,9 +284,9 @@
         <div class="form-grid">
           <!-- IDIOMAS -->
           <div class="form-row">
+            <div class="form-label">Idiomas Requeridos</div>
             <va-input
               v-model="localFormData.languages"
-              label="Idiomas Requeridos"
               placeholder="Ej: Español (nativo), Inglés (intermedio)"
             >
               <template #prepend>
@@ -305,9 +297,9 @@
 
           <!-- HABILIDADES TÉCNICAS -->
           <div class="form-row">
+            <div class="form-label">Habilidades Técnicas</div>
             <va-input
               v-model="localFormData.technicalSkills"
-              label="Habilidades Técnicas"
               placeholder="Ej: Excel avanzado, CRM"
             >
               <template #prepend>
@@ -350,38 +342,49 @@
         </div>
 
         <div class="salary-options">
-          <va-radio
-            v-model="localFormData.salaryType"
-            option="range"
-            label="Rango salarial específico"
-          />
-          <va-radio
-            v-model="localFormData.salaryType"
-            option="fixed"
-            label="Salario fijo"
-          />
-          <va-radio
-            v-model="localFormData.salaryType"
-            option="negotiable"
-            label="A convenir"
-          />
-          <va-radio
-            v-model="localFormData.salaryType"
-            option="hidden"
-            label="No mostrar salario"
-          />
+          <label class="salary-radio">
+            <va-radio
+              v-model="localFormData.salaryType"
+              option="range"
+              label=""
+            />
+            <span>Rango salarial específico</span>
+          </label>
+          <label class="salary-radio">
+            <va-radio
+              v-model="localFormData.salaryType"
+              option="fixed"
+              label=""
+            />
+            <span>Salario fijo</span>
+          </label>
+          <label class="salary-radio">
+            <va-radio
+              v-model="localFormData.salaryType"
+              option="negotiable"
+              label=""
+            />
+            <span>A convenir</span>
+          </label>
+          <label class="salary-radio">
+            <va-radio
+              v-model="localFormData.salaryType"
+              option="hidden"
+              label=""
+            />
+            <span>No mostrar salario</span>
+          </label>
         </div>
 
         <!-- SALARIO - RANGO -->
         <div v-if="localFormData.salaryType === 'range'" class="form-row">
+          <div class="form-label">Salario Mínimo (Bs.) *</div>
           <div class="salary-inputs">
             <div class="form-field">
               <va-input
                 v-model.number="localFormData.salaryMin"
-                label="Salario Mínimo (Bs.)"
                 type="number"
                 placeholder="Ej: 3000"
-                required-mark
                 :rules="[(v) => !!v || 'El salario mínimo es requerido']"
               >
                 <template #prepend>
@@ -391,12 +394,11 @@
             </div>
             <span class="salary-separator">-</span>
             <div class="form-field">
+              <div class="form-label" style="font-size: 0.85rem;">Máximo *</div>
               <va-input
                 v-model.number="localFormData.salaryMax"
-                label="Salario Máximo (Bs.)"
                 type="number"
                 placeholder="Ej: 5000"
-                required-mark
                 :rules="[
                   (v) => !!v || 'El salario máximo es requerido',
                   (v) => !localFormData.salaryMin || v > localFormData.salaryMin || 'El máximo debe ser mayor al mínimo'
@@ -412,12 +414,11 @@
 
         <!-- SALARIO - FIJO -->
         <div v-if="localFormData.salaryType === 'fixed'" class="form-row">
+          <div class="form-label">Salario (Bs.) *</div>
           <va-input
             v-model.number="localFormData.salaryFixed"
-            label="Salario (Bs.)"
             type="number"
             placeholder="Ej: 4000"
-            required-mark
             :rules="[(v) => !!v || 'El salario es requerido']"
           >
             <template #prepend>
@@ -428,9 +429,9 @@
 
         <!-- BENEFICIOS ADICIONALES -->
         <div class="form-row">
+          <div class="form-label">Beneficios Adicionales (Opcional)</div>
           <va-textarea
             v-model="localFormData.benefits"
-            label="Beneficios Adicionales (Opcional)"
             placeholder="Ej: Seguro de salud, bonos trimestrales, capacitación pagada, descuentos en productos..."
             :min-rows="3"
             counter
@@ -548,12 +549,11 @@
           <div class="form-grid">
           <!-- EMAIL -->
           <div class="form-row">
+            <div class="form-label">Email de Contacto *</div>
             <va-input
               v-model="localFormData.email"
-              label="Email de Contacto"
               placeholder="rrhh@empresa.com"
               type="email"
-              required-mark
               :rules="[
                 (v) => !!v || 'El email es requerido',
                 (v) => /.+@.+\..+/.test(v) || 'El email no es válido'
@@ -572,11 +572,10 @@
 
           <!-- WHATSAPP -->
           <div class="form-row">
+            <div class="form-label">WhatsApp *</div>
             <va-input
               v-model="localFormData.whatsapp"
-              label="WhatsApp"
               placeholder="70123456"
-              required-mark
               :rules="[
                 (v) => !!v || 'WhatsApp es obligatorio',
                 (v) => /^[67]\d{7}$/.test(v) || 'Número inválido (debe empezar con 6 o 7 y tener 8 dígitos)'
@@ -593,9 +592,9 @@
 
           <!-- SITIO WEB -->
           <div class="form-row">
+            <div class="form-label">Sitio Web (Opcional)</div>
             <va-input
               v-model="localFormData.website"
-              label="Sitio Web (Opcional)"
               placeholder="https://www.empresa.com"
               type="url"
               :rules="[
@@ -611,9 +610,9 @@
 
         <!-- INSTRUCCIONES DE APLICACIÓN -->
         <div class="form-row">
+          <div class="form-label">Instrucciones Especiales para Postular (Opcional)</div>
           <va-textarea
             v-model="localFormData.applicationInstructions"
-            label="Instrucciones Especiales para Postular (Opcional)"
             placeholder="Ej: Enviar CV y carta de presentación. Incluir pretensión salarial. Indicar disponibilidad de inicio..."
             :min-rows="3"
             counter
@@ -634,29 +633,22 @@
 
       <!-- BOTONES DE NAVEGACIÓN -->
       <div class="navigation-buttons">
-        <va-button
-          preset="secondary"
-          icon="arrow_back"
-          @click="handleBack"
-        >
+        <button class="btn btn-secondary" @click="handleBack">
+          <va-icon name="arrow_back" size="small" />
           Atrás
-        </va-button>
+        </button>
 
-        <va-button
-          preset="primary"
-          icon="arrow_forward"
-          @click="handleNext"
-          class="next-button"
-        >
+        <button class="btn btn-primary" @click="handleNext">
           Siguiente
-        </va-button>
+          <va-icon name="arrow_forward" size="small" />
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 
 // ========== PROPS Y EMITS ==========
 const props = defineProps({
@@ -706,20 +698,8 @@ const localFormData = ref({
 })
 
 // ========== OPCIONES DE FORMULARIO ==========
-const categoryOptions = [
-  { text: 'Administración', value: 'Administración' },
-  { text: 'Agronomía y Veterinaria', value: 'Agronomía y Veterinaria' },
-  { text: 'Comercial y Ventas', value: 'Comercial y Ventas' },
-  { text: 'Construcción', value: 'Construcción' },
-  { text: 'Educación', value: 'Educación' },
-  { text: 'Ingeniería', value: 'Ingeniería' },
-  { text: 'Legal', value: 'Legal' },
-  { text: 'Marketing y Publicidad', value: 'Marketing y Publicidad' },
-  { text: 'Salud', value: 'Salud' },
-  { text: 'Tecnología e Informática', value: 'Tecnología e Informática' },
-  { text: 'Turismo y Hostelería', value: 'Turismo y Hostelería' },
-  { text: 'Otro', value: 'Otro' }
-]
+const categoryOptions = ref([])
+const loadingCategories = ref(true)
 
 const contractTypeOptions = [
   { text: 'Tiempo Completo', value: 'Tiempo Completo' },
@@ -824,6 +804,29 @@ const getSummary = (sectionName) => {
       return ''
   }
 }
+
+// ========== CARGAR CATEGORÍAS DEL API ==========
+const loadJobCategories = async () => {
+  try {
+    loadingCategories.value = true
+    const response = await fetch('http://localhost:8000/api/jobs/categories')
+    const data = await response.json()
+
+    if (data.success && data.categories) {
+      categoryOptions.value = data.categories
+    } else {
+      console.error('Error loading categories:', data.message)
+    }
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+  } finally {
+    loadingCategories.value = false
+  }
+}
+
+onMounted(() => {
+  loadJobCategories()
+})
 
 // ========== NAVEGACIÓN ==========
 const handleNext = () => {
@@ -937,12 +940,13 @@ defineExpose({
 :deep(.va-textarea__label),
 :deep(.va-select__label),
 :deep(.va-date-input__label) {
-  font-size: 1.25rem !important;
+  font-size: 1.35rem !important;
   font-weight: 800 !important;
   color: #0F172A !important;
   letter-spacing: 0.5px !important;
   text-transform: none !important;
-  line-height: 1.3 !important;
+  line-height: 1.4 !important;
+  display: block !important;
 }
 
 /* Input container spacing */
@@ -953,9 +957,31 @@ defineExpose({
   margin-bottom: 0.75rem !important;
 }
 
+/* Input field text size - aggressive overrides */
+:deep(.va-input__field::placeholder),
+:deep(.va-textarea__field::placeholder) {
+  font-size: 1.0rem !important;
+}
+
+:deep(input.va-input__field),
+:deep(textarea.va-textarea__field),
+:deep(select.va-select__field),
+:deep(input[type="text"]) {
+  font-size: 1.0rem !important;
+  line-height: 1.5 !important;
+}
+
+/* Direct targeting of input content */
+.information-step-job :deep(input),
+.information-step-job :deep(textarea),
+.information-step-job :deep(select) {
+  font-size: 1.0rem !important;
+  line-height: 1.5 !important;
+}
+
 .information-step-job {
   width: 100%;
-  max-width: 1440px;
+  max-width: 1200px;
   margin: 0 auto;
   background: linear-gradient(135deg, #F9F5FF 0%, #F3E8FF 100%);
   min-height: 100vh;
@@ -967,7 +993,7 @@ defineExpose({
   align-items: center;
   gap: 2rem;
   margin-bottom: 2.5rem;
-  max-width: 1000px;
+  max-width: 1160px;
   margin-left: auto;
   margin-right: auto;
   padding: 2.5rem;
@@ -1020,7 +1046,7 @@ defineExpose({
   background: white;
   padding: 2rem;
   border-radius: 16px;
-  max-width: 1000px;
+  max-width: 1160px;
   margin: 0 auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   width: 100%;
@@ -1213,6 +1239,21 @@ defineExpose({
   padding-bottom: 0.5rem;
 }
 
+.salary-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: #1E293B;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.salary-radio:hover {
+  background: #F1F5F9;
+}
 
 /* ========== Vacantes ========== */
 .vacancy-input-group {
@@ -1460,16 +1501,47 @@ defineExpose({
 /* ========== Botones de Navegación ========== */
 .navigation-buttons {
   display: flex;
-  gap: 1.5rem;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 2.5rem;
+  gap: 1rem;
+  justify-content: flex-end;
   padding-top: 2rem;
-  border-top: 2px solid #E2E8F0;
+  margin-top: 2rem;
+  border-top: 1px solid #E5E7EB;
 }
 
-.navigation-buttons .next-button {
-  margin-left: auto;
+.btn {
+  padding: 0.875rem 2rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
+}
+
+.btn-secondary {
+  background: #F3F4F6;
+  color: #1F2937;
+  border: 2px solid #E5E7EB;
+  font-weight: 600;
+}
+
+.btn-secondary:hover {
+  background: #E5E7EB;
+  border-color: #D1D5DB;
 }
 
 @media (max-width: 768px) {
@@ -1478,12 +1550,9 @@ defineExpose({
     gap: 1rem;
   }
 
-  .navigation-buttons button {
+  .btn {
     width: 100%;
-  }
-
-  .navigation-buttons .next-button {
-    margin-left: 0;
+    justify-content: center;
   }
 }
 

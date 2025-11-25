@@ -25,10 +25,6 @@
 
       <!-- Enlaces de contacto y ayuda -->
       <div class="top-right">
-        <a href="/" class="top-link top-link-home" title="Ir a inicio">
-          <va-icon name="home" size="small" />
-          <span class="link-text">Inicio</span>
-        </a>
         <a href="tel:+59165324767" class="top-link">
           <va-icon name="phone" size="small" />
           <span class="link-text">+591 65324767</span>
@@ -37,14 +33,6 @@
           <va-icon name="email" size="small" />
           <span class="link-text">info@guiaspurpuras.com.bo</span>
         </a>
-        <a href="#" class="top-link" @click.prevent="showHelp">
-          <va-icon name="help_outline" size="small" />
-          <span class="link-text">Ayuda</span>
-        </a>
-        <div class="language-selector">
-          <va-icon name="language" size="small" />
-          <span>ES</span>
-        </div>
       </div>
     </div>
 

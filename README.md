@@ -18,6 +18,7 @@ npm run dev
 
 - Púrpura Principal: `#5C0099`
 - Amarillo: `#FDC500`
+- btns:background: linear-gradient(135deg, #7c3aed, #6d28d9);
 
 ## 📋 Estado del Proyecto
 

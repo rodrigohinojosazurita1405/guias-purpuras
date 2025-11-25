@@ -22,10 +22,12 @@ export const useCompanyStore = defineStore('company', () => {
     error.value = null
 
     try {
+      const authStore = useAuthStore()
       const response = await fetch(`${API_BASE}/profiles/company/me/`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authStore.accessToken}`
         }
       })
 

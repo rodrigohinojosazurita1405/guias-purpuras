@@ -1,5 +1,19 @@
 <template>
   <MainLayout>
+    <!-- BOTÓN LIMPIAR BORRADOR (flotante en la esquina) -->
+    <div v-if="publishStore.currentStep > 0" class="clear-draft-btn">
+      <va-button
+        preset="plain"
+        size="small"
+        icon="refresh"
+        color="warning"
+        @click="clearDraft"
+        title="Limpiar borrador y empezar de nuevo"
+      >
+        Limpiar
+      </va-button>
+    </div>
+
     <!-- INDICADOR VISUAL DE PASOS -->
     <PublishStepsIndicator
       :current-step="publishStore.currentStep"
@@ -15,19 +29,19 @@
       @cancel="goHome"
     />
 
-    <!-- PASO 1: Información del Trabajo -->
-    <InformationStepJob
+    <!-- PASO 1: Plan de Pago -->
+    <PlanStep
       v-if="publishStore.currentStep === 1"
-      v-model="publishStore.jobData"
+      :model-value="publishStore.jobData.selectedPlan"
+      @update:model-value="(plan) => publishStore.setJobData({ selectedPlan: plan })"
       @next="nextStep"
       @back="previousStep"
     />
 
-    <!-- PASO 2: Plan de Pago -->
-    <PlanStep
+    <!-- PASO 2: Información del Trabajo -->
+    <InformationStepJob
       v-if="publishStore.currentStep === 2"
-      :model-value="publishStore.jobData.selectedPlan"
-      @update:model-value="(plan) => publishStore.setJobData({ selectedPlan: plan })"
+      v-model="publishStore.jobData"
       @next="nextStep"
       @back="previousStep"
     />
@@ -53,11 +67,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { usePublishStore } from '@/stores/usePublishStore'
+import { useCompanyStore } from '@/stores/useCompanyStore'
 import MainLayout from '@/components/Layout/MainLayout.vue'
 import PublishStepsIndicator from '@/components/Publish/PublishStepsIndicator.vue'
 import JobPublishStart from '@/components/Publish/JobPublishStart.vue'
@@ -70,13 +85,37 @@ const router = useRouter()
 const { init: notify } = useToast()
 const authStore = useAuthStore()
 const publishStore = usePublishStore()
+const companyStore = useCompanyStore()
 const isSubmitting = ref(false)
+
+// ========== CARGAR BORRADOR Y OBTENER EMPRESA ==========
+onMounted(async () => {
+  // Primero, cargar borrador guardado del almacenamiento
+  publishStore.loadDraftFromStorage()
+
+  try {
+    // Obtener la empresa del usuario autenticado
+    const result = await companyStore.getMyCompany()
+
+    if (result.success && result.company) {
+      // Asignar datos de empresa al jobData (solo si no vienen del borrador)
+      publishStore.setJobData({
+        companyName: result.company.companyName,
+        companyId: result.company.id,
+        logo: result.company.logo || null, // URL completa desde el backend
+        city: publishStore.jobData.city || result.company.city // Prioriza lo guardado
+      })
+    }
+  } catch (error) {
+    console.error('Error al obtener empresa:', error)
+  }
+})
 
 // Definición de pasos del wizard (5 pasos simplificado)
 const wizardSteps = ref([
   { name: 'Selección', description: 'Tipo de trabajo y ciudad' },
-  { name: 'Información', description: 'Detalles del empleo' },
   { name: 'Plan de Pago', description: 'Elegir plan y precio' },
+  { name: 'Información', description: 'Detalles del empleo' },
   { name: 'Aplicación', description: 'Configurar postulaciones' },
   { name: 'Resumen', description: 'Confirmación final' }
 ])
@@ -88,6 +127,14 @@ const scrollToTop = () => {
 
 const nextStep = () => {
   publishStore.nextStep()
+
+  // Cuando se llega al paso 4 (resumen), setear la fecha de publicación si no existe
+  if (publishStore.currentStep === 4 && !publishStore.jobData.publishedDate) {
+    publishStore.setJobData({
+      publishedDate: new Date().toISOString()
+    })
+  }
+
   scrollToTop()
 }
 
@@ -158,10 +205,11 @@ const handleSubmit = async () => {
       plan: publishStore.jobData.selectedPlan
     })
 
-    // Preparar datos - asegurarse que email esté incluido
+    // Preparar datos - asegurarse que email y fecha de publicación estén incluidos
     const jobData = {
       ...publishStore.jobData,
-      email: authStore.user?.email || publishStore.jobData.email
+      email: authStore.user?.email || publishStore.jobData.email,
+      publishedDate: new Date().toISOString() // Agregar fecha de publicación actual
     }
 
     console.log('📤 Enviando a http://localhost:8000/api/jobs/publish...')
@@ -323,8 +371,46 @@ const goHome = () => {
   publishStore.resetForm()
   router.push('/')
 }
+
+// Limpiar borrador manualmente
+const clearDraft = () => {
+  if (confirm('¿Estás seguro de que deseas limpiar el borrador? Los cambios no guardados se perderán.')) {
+    publishStore.resetForm()
+    notify({
+      message: 'Borrador limpiado. Iniciando de nuevo.',
+      color: 'info',
+      duration: 2000
+    })
+  }
+}
 </script>
 
 <style scoped>
-/* No se necesitan estilos adicionales, cada paso tiene los suyos */
+/* BOTÓN LIMPIAR BORRADOR */
+.clear-draft-btn {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 100;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.clear-draft-btn :deep(.va-button) {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+@media (max-width: 768px) {
+  .clear-draft-btn {
+    top: 70px;
+    right: 10px;
+    padding: 0.35rem;
+  }
+}
 </style>

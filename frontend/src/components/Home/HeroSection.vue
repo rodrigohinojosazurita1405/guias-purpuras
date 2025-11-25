@@ -225,7 +225,7 @@ onMounted(async () => {
 }
 
 .hero-title {
-  font-size: 3.8rem;
+  font-size: 3.9rem;
   font-weight: 800;
   color: white;
   text-align: center;
@@ -462,8 +462,8 @@ onMounted(async () => {
 }
 
 .stat-label {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
+    color: #ffffff !important;
+    opacity: 1 !important; /* Asegura que no tenga transparencia */
 }
 
 /* ==========================================

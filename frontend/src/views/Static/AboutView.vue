@@ -220,7 +220,7 @@
             <p class="team-role">CEO & Fundador</p>
             <p class="team-bio">Nacido en la bella Ciudad de Cochabamba, titulado de la carrera
               de Sistemas Informáticos, Mercadotecnia y Abogado de profesión: Experiencia en Desarrollo
-              Frontend y Backend, experto en Marketing Digital y registro de Marcas. 
+              Frontend y Backend, experto en Marketing Digital y Registro de Marcas, Derecho Civil y Corporativo. 
             </p>
           </div>
 

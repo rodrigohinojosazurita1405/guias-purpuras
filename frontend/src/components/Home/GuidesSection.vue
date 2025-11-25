@@ -451,7 +451,7 @@ onMounted(async () => {
   align-items: center;
   gap: 0.5rem;
   padding: 1rem 2.5rem;
-  background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-purple-dark) 100%);
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: white;
   border: none;
   border-radius: 12px;

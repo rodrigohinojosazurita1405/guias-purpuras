@@ -106,4 +106,102 @@ body {
 .fade-leave-to {
   opacity: 0;
 }
+
+/* ==========================================
+   VUESTIC UI LABEL COLOR OVERRIDE - FORCE
+   ========================================== */
+/* Usar !important para forzar override de estilos Vuestic */
+:root {
+  --va-text-element-color: #2D3748 !important;
+}
+
+/* Override directo para todos los labels de Vuestic */
+.va-input__label {
+  color: #2D3748 !important;
+}
+
+.va-select__label {
+  color: #2D3748 !important;
+}
+
+.va-textarea__label {
+  color: #2D3748 !important;
+}
+
+.va-date-input__label {
+  color: #2D3748 !important;
+}
+
+.va-radio__label {
+  color: #2D3748 !important;
+}
+
+.va-switch__label {
+  color: #2D3748 !important;
+}
+
+.va-checkbox__label {
+  color: #2D3748 !important;
+}
+
+/* Required marks */
+.va-input__required-mark,
+.va-select__required-mark,
+.va-textarea__required-mark,
+.va-date-input__required-mark {
+  color: #EF4444 !important;
+}
+
+/* Label genérico */
+label {
+  color: #2D3748 !important;
+}
+
+/* Selector por atributo como último recurso */
+[class*="label"] {
+  color: #2D3748 !important;
+}
+
+/* ========== VUESTIC UI SPACING OPTIMIZATION ========== */
+/* Forzar display flex y gap para espacios visibles */
+.va-input,
+.va-select,
+.va-textarea,
+.va-date-input,
+.va-radio,
+.va-switch,
+.va-checkbox {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.6rem !important;
+  margin-bottom: 0 !important;
+}
+
+/* Labels de Vuestic */
+.va-input__label,
+.va-select__label,
+.va-textarea__label,
+.va-date-input__label,
+.va-radio__label,
+.va-switch__label,
+.va-checkbox__label {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.1 !important;
+  font-weight: 500 !important;
+  display: block !important;
+}
+
+/* Contenedores internos */
+.va-input__container,
+.va-select__container,
+.va-textarea__container,
+.va-date-input__container,
+.va-radio__container,
+.va-switch__container,
+.va-checkbox__container {
+  gap: 0.6rem !important;
+  margin: 0 !important;
+}
 </style>

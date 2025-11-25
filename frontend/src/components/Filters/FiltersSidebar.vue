@@ -45,7 +45,7 @@
     </div>
 
     <!-- Botón Aplicar - ✅ COLOR CORREGIDO -->
-    <VaButton block color="primary" @click="applyFilters">
+    <VaButton block color="background: linear-gradient(135deg, #7c3aed, #6d28d9);" @click="applyFilters">
       Aplicar Filtros
     </VaButton>
   </aside>

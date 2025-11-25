@@ -57,7 +57,15 @@
       "Bash(__NEW_LINE__ TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYzNzU4ODQyLCJpYXQiOjE3NjM3NTUyNDIsImp0aSI6IjY0MWNkM2M1NGUzOTRlMWU5NDEzY2UwZWU3YjhhNTZkIiwidXNlcl9pZCI6IjgifQ.-W3e-qekdgyfoKeO1YBEV0qYwaHzE1kARma61sb89CI\")",
       "Bash(__NEW_LINE__ echo \"TEST 3: Verificar que se guardó\")",
       "Bash(__NEW_LINE__ echo \"=== TEST: GET /api/profiles/company/me/ ===\")",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(git checkout:*)",
+      "Bash(cmd /c \"rmdir /s /q node_modules\\.vite dist .cache 2>nul; echo Directorios de cache eliminados\")",
+      "Bash(tasklist:*)",
+      "Bash(npm run lint:frontend:*)",
+      "Bash(npm run build:frontend:*)",
+      "Bash(cd:*)",
+      "Bash(npm run:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

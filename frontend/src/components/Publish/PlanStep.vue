@@ -2,14 +2,12 @@
 <template>
   <div class="plan-step">
     <div class="plan-container">
-      <h2 class="step-title">
-        <va-icon name="workspace_premium" color="purple" size="large" />
-        Elige tu Plan
-      </h2>
-
-      <p class="step-description">
-        Selecciona el plan que mejor se adapte a tus necesidades
-      </p>
+      <div class="header-section">
+        <h2 class="step-title">Elige tu Plan</h2>
+        <p class="step-description">
+          Selecciona el plan que mejor se adapte a tus necesidades de publicación
+        </p>
+      </div>
 
       <!-- Grid de Planes -->
       <div class="plans-grid">
@@ -19,264 +17,186 @@
           class="plan-card"
           :class="{ selected: selectedPlan === 'escencial' }"
         >
-          <div class="plan-header">
-            <div class="plan-icon-wrapper">
-              <va-icon name="workspace_premium" size="3rem" color="success" />
-            </div>
-            <h3 class="plan-name">Escencial</h3>
-            <div class="plan-price">
-              <span class="currency">Bs.</span>
-              <span class="amount">35</span>
-            </div>
-            <span class="plan-duration">15 días | 1 aviso</span>
+          <div class="plan-tier">Plan</div>
+          <h3 class="plan-name">Escencial</h3>
+          <div class="plan-price-block">
+            <span class="plan-price">35</span>
+            <span class="plan-currency">Bs.</span>
+          </div>
+          <p class="plan-period">15 días</p>
+
+          <div class="plan-divider"></div>
+
+          <!-- Badges de características -->
+          <div class="plan-badges">
+            <span class="badge badge-basic">Básico</span>
           </div>
 
-        <div class="plan-features">
-          <div class="feature-item">
-            <va-icon name="check" size="small" color="success" />
-            <span>Visibilidad Normal</span>
-          </div>
-          <div class="feature-item">
-            <va-icon name="check" size="small" color="success" />
-            <span>1 post en Facebook/Instagram</span>
-          </div>
-          <div class="feature-item">
-            <va-icon name="remove" size="small" />
-            <span>Etiqueta Urgente no incluida</span>
-          </div>
-          <div class="feature-item">
-            <va-icon name="remove" size="small" />
-            <span>Sin sustitución de aviso</span>
-          </div>
+          <ul class="plan-features">
+            <li>Visibilidad Normal</li>
+            <li>1 Aviso de Trabajo</li>
+            <li>1 Post en Redes</li>
+          </ul>
+
+          <button
+            @click.stop="selectPlan('escencial')"
+            class="plan-select-btn"
+            :class="{ active: selectedPlan === 'escencial' }"
+          >
+            {{ selectedPlan === 'escencial' ? 'Seleccionado' : 'Seleccionar' }}
+          </button>
         </div>
 
-        <button
-          @click.stop="selectPlan('escencial')"
-          class="plan-button"
-          :class="{ active: selectedPlan === 'escencial' }"
-        >
-          <va-icon v-if="selectedPlan === 'escencial'" name="check_circle" />
-          {{ selectedPlan === 'escencial' ? 'Seleccionado' : 'Seleccionar' }}
-        </button>
-      </div>
-
-        <!-- Plan Púrpura (79 Bs) -->
+        <!-- Plan Púrpura (79 Bs) - DESTACADO -->
         <div
           @click="selectPlan('purpura')"
           class="plan-card featured"
           :class="{ selected: selectedPlan === 'purpura' }"
         >
-          <div class="plan-badge featured-badge">
-            <va-icon name="star" size="small" />
-            Recomendado
+          <div class="plan-badge">Recomendado</div>
+          <div class="plan-tier">Plan</div>
+          <h3 class="plan-name">Púrpura</h3>
+          <div class="plan-price-block">
+            <span class="plan-price">79</span>
+            <span class="plan-currency">Bs.</span>
+          </div>
+          <p class="plan-period">30 días</p>
+
+          <div class="plan-divider"></div>
+
+          <!-- Badges de características -->
+          <div class="plan-badges">
+            <span class="badge badge-featured">Destacado</span>
+            <span class="badge badge-urgent">Urgente</span>
           </div>
 
-          <div class="plan-header">
-            <div class="plan-icon-wrapper featured">
-              <va-icon name="star" size="3rem" color="warning" />
-            </div>
-            <h3 class="plan-name">Púrpura</h3>
-            <div class="plan-price">
-              <span class="currency">Bs.</span>
-              <span class="amount">79</span>
-            </div>
-            <span class="plan-duration">30 días | 1 aviso</span>
-          </div>
+          <ul class="plan-features">
+            <li>Destacado (10 días)</li>
+            <li>1 Aviso de Trabajo</li>
+            <li>4 Posts en Redes</li>
+            <li>Etiqueta Urgente</li>
+            <li>1 Cambio Incluido</li>
+          </ul>
 
-        <div class="plan-features">
-          <div class="feature-item highlight">
-            <va-icon name="check" size="small" color="warning" />
-            <span>Destacado (10 días)</span>
-          </div>
-          <div class="feature-item highlight">
-            <va-icon name="check" size="small" color="warning" />
-            <span>1 FB/IG + 1 LinkedIn + 1 TikTok</span>
-          </div>
-          <div class="feature-item highlight">
-            <va-icon name="check" size="small" color="warning" />
-            <span>Etiqueta "Urgente"</span>
-          </div>
-          <div class="feature-item highlight">
-            <va-icon name="check" size="small" color="warning" />
-            <span>1 cambio permitido</span>
-          </div>
+          <button
+            @click.stop="selectPlan('purpura')"
+            class="plan-select-btn"
+            :class="{ active: selectedPlan === 'purpura' }"
+          >
+            {{ selectedPlan === 'purpura' ? 'Seleccionado' : 'Seleccionar' }}
+          </button>
         </div>
-
-        <button
-          @click.stop="selectPlan('purpura')"
-          class="plan-button featured"
-          :class="{ active: selectedPlan === 'purpura' }"
-        >
-          <va-icon v-if="selectedPlan === 'purpura'" name="check_circle" />
-          {{ selectedPlan === 'purpura' ? 'Seleccionado' : 'Seleccionar' }}
-        </button>
-      </div>
 
         <!-- Plan Impulso Pro (169 Bs) -->
         <div
           @click="selectPlan('impulso')"
-          class="plan-card premium"
+          class="plan-card"
           :class="{ selected: selectedPlan === 'impulso' }"
         >
-          <div class="plan-badge premium-badge">
-            <va-icon name="bolt" size="small" />
-            Premium
+          <div class="plan-tier">Plan</div>
+          <h3 class="plan-name">Impulso Pro</h3>
+          <div class="plan-price-block">
+            <span class="plan-price">169</span>
+            <span class="plan-currency">Bs.</span>
+          </div>
+          <p class="plan-period">30 días</p>
+
+          <div class="plan-divider"></div>
+
+          <!-- Badges de características -->
+          <div class="plan-badges">
+            <span class="badge badge-sponsored">Patrocinado</span>
+            <span class="badge badge-urgent">Urgente</span>
           </div>
 
-          <div class="plan-header">
-            <div class="plan-icon-wrapper premium">
-              <va-icon name="bolt" size="3rem" color="yellow-primary" />
-            </div>
-            <h3 class="plan-name">Impulso Pro</h3>
-            <div class="plan-price">
-              <span class="currency">Bs.</span>
-              <span class="amount">169</span>
-            </div>
-            <span class="plan-duration">30 días | 3 avisos</span>
-          </div>
+          <ul class="plan-features">
+            <li>Patrocinado (10 días)</li>
+            <li>Hasta 3 Avisos</li>
+            <li>6 Posts en Redes</li>
+            <li>Etiqueta Urgente</li>
+            <li>1 Cambio por Aviso</li>
+          </ul>
 
-        <div class="plan-features">
-          <div class="feature-item highlight premium">
-            <va-icon name="check" size="small" color="yellow-primary" />
-            <span>Patrocinado (10 días)</span>
-          </div>
-          <div class="feature-item highlight premium">
-            <va-icon name="check" size="small" color="yellow-primary" />
-            <span>3 FB/IG + 2 LinkedIn + 1 TikTok</span>
-          </div>
-          <div class="feature-item highlight premium">
-            <va-icon name="check" size="small" color="yellow-primary" />
-            <span>Etiqueta "Urgente"</span>
-          </div>
-          <div class="feature-item highlight premium">
-            <va-icon name="check" size="small" color="yellow-primary" />
-            <span>1 cambio por aviso</span>
-          </div>
-        </div>
-
-        <button
-          @click.stop="selectPlan('impulso')"
-          class="plan-button premium"
-          :class="{ active: selectedPlan === 'impulso' }"
-        >
-          <va-icon v-if="selectedPlan === 'impulso'" name="check_circle" />
-          {{ selectedPlan === 'impulso' ? 'Seleccionado' : 'Seleccionar' }}
+          <button
+            @click.stop="selectPlan('impulso')"
+            class="plan-select-btn"
+            :class="{ active: selectedPlan === 'impulso' }"
+          >
+            {{ selectedPlan === 'impulso' ? 'Seleccionado' : 'Seleccionar' }}
           </button>
         </div>
       </div>
 
-      <!-- Comparación de Planes -->
-    <div class="comparison-section">
-      <h3 class="comparison-title">
-        <va-icon name="compare_arrows" />
-        Comparación de Planes
-      </h3>
+      <!-- Comparison Table -->
+      <div class="comparison-section">
+        <h3 class="comparison-title">Comparación de Planes</h3>
 
-      <div class="comparison-table">
-        <div class="comparison-row header">
-          <div class="feature-name">Característica</div>
-          <div class="plan-col">Escencial</div>
-          <div class="plan-col">Púrpura</div>
-          <div class="plan-col">Impulso Pro</div>
-        </div>
-
-        <div class="comparison-row">
-          <div class="feature-name">Precio (Bs.)</div>
-          <div class="plan-col">35</div>
-          <div class="plan-col">79</div>
-          <div class="plan-col premium-text">169</div>
-        </div>
-
-        <div class="comparison-row">
-          <div class="feature-name">Duración</div>
-          <div class="plan-col">15 días</div>
-          <div class="plan-col">30 días</div>
-          <div class="plan-col premium-text">30 días</div>
-        </div>
-
-        <div class="comparison-row">
-          <div class="feature-name">Cantidad de Avisos</div>
-          <div class="plan-col">1</div>
-          <div class="plan-col">1</div>
-          <div class="plan-col premium-text">Hasta 3</div>
-        </div>
-
-        <div class="comparison-row">
-          <div class="feature-name">Visibilidad Web</div>
-          <div class="plan-col">Normal</div>
-          <div class="plan-col">Destacado (10d)</div>
-          <div class="plan-col premium-text">Patrocinado (10d)</div>
-        </div>
-
-        <div class="comparison-row">
-          <div class="feature-name">Redes Sociales</div>
-          <div class="plan-col">1 post</div>
-          <div class="plan-col">4 posts</div>
-          <div class="plan-col premium-text">6 posts</div>
-        </div>
-
-        <div class="comparison-row">
-          <div class="feature-name">Etiqueta Urgente</div>
-          <div class="plan-col">
-            <va-icon name="close" size="small" color="danger" />
+        <div class="comparison-table">
+          <div class="comparison-row header">
+            <div class="feature-name">Característica</div>
+            <div class="plan-col">Escencial</div>
+            <div class="plan-col">Púrpura</div>
+            <div class="plan-col">Impulso Pro</div>
           </div>
-          <div class="plan-col">
-            <va-icon name="check" size="small" color="success" />
-          </div>
-          <div class="plan-col premium-text">
-            <va-icon name="check" size="small" color="success" />
-          </div>
-        </div>
 
-        <div class="comparison-row">
-          <div class="feature-name">Sustitución de Aviso</div>
-          <div class="plan-col">No</div>
-          <div class="plan-col">1 cambio</div>
-          <div class="plan-col premium-text">1 por aviso</div>
-        </div>
-      </div>
-    </div>
+          <div class="comparison-row">
+            <div class="feature-name">Precio</div>
+            <div class="plan-col">35 Bs.</div>
+            <div class="plan-col featured-text">79 Bs.</div>
+            <div class="plan-col">169 Bs.</div>
+          </div>
 
-    <!-- Información de Pago -->
-    <div v-if="selectedPlan !== 'free'" class="payment-info">
-      <va-icon name="info" color="info" size="large" />
-      <div class="payment-info-content">
-        <h4 class="payment-info-title">Métodos de pago disponibles</h4>
-        <p class="payment-info-text">
-          Después de confirmar, serás redirigido a nuestra pasarela de pago segura donde podrás pagar con:
-        </p>
-        <div class="payment-methods">
-          <div class="payment-method">
-            <va-icon name="qr_code_2" />
-            <span>QR Simple</span>
+          <div class="comparison-row">
+            <div class="feature-name">Duración</div>
+            <div class="plan-col">15 días</div>
+            <div class="plan-col featured-text">30 días</div>
+            <div class="plan-col">30 días</div>
           </div>
-          <div class="payment-method">
-            <va-icon name="credit_card" />
-            <span>Tarjetas</span>
+
+          <div class="comparison-row">
+            <div class="feature-name">Avisos</div>
+            <div class="plan-col">1</div>
+            <div class="plan-col featured-text">1</div>
+            <div class="plan-col">Hasta 3</div>
           </div>
-          <div class="payment-method">
-            <va-icon name="account_balance" />
-            <span>Tigo Money</span>
+
+          <div class="comparison-row">
+            <div class="feature-name">Visibilidad</div>
+            <div class="plan-col">Normal</div>
+            <div class="plan-col featured-text">Destacado</div>
+            <div class="plan-col">Patrocinado</div>
+          </div>
+
+          <div class="comparison-row">
+            <div class="feature-name">Posts Redes</div>
+            <div class="plan-col">1</div>
+            <div class="plan-col featured-text">4</div>
+            <div class="plan-col">6</div>
+          </div>
+
+          <div class="comparison-row">
+            <div class="feature-name">Etiqueta Urgente</div>
+            <div class="plan-col">No</div>
+            <div class="plan-col featured-text">Sí</div>
+            <div class="plan-col">Sí</div>
+          </div>
+
+          <div class="comparison-row">
+            <div class="feature-name">Cambios</div>
+            <div class="plan-col">No</div>
+            <div class="plan-col featured-text">1 cambio</div>
+            <div class="plan-col">1 por aviso</div>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Mensaje de advertencia -->
-    <div v-if="!selectedPlan" class="warning-message">
-      <va-icon name="info" color="warning" />
-      <span>Selecciona un plan para continuar</span>
-    </div>
 
       <!-- Navigation Buttons -->
       <div class="navigation-buttons">
         <button class="btn btn-secondary" @click="$emit('back')">
-          <va-icon name="arrow_back" size="small" />
           Atrás
         </button>
         <button class="btn btn-primary" @click="handleNext">
           Siguiente
-          <va-icon name="arrow_forward" size="small" />
         </button>
       </div>
     </div>
@@ -289,7 +209,7 @@ import { ref, watch } from 'vue'
 const props = defineProps({
   modelValue: {
     type: String,
-    default: 'free'
+    default: 'escencial'
   }
 })
 
@@ -303,10 +223,7 @@ const selectPlan = (plan) => {
 }
 
 const validate = () => {
-  if (!selectedPlan.value) {
-    return false
-  }
-  return true
+  return !!selectedPlan.value
 }
 
 const handleNext = () => {
@@ -336,33 +253,38 @@ defineExpose({
   width: 100%;
   margin: 0 auto;
   background: white;
-  padding: 2.5rem;
-  border-radius: 16px;
+  padding: 3rem;
+  border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
+.header-section {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
 .step-title {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-purple-darkest);
-  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1F2937;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.5px;
 }
 
 .step-description {
-  color: #666;
+  color: #6B7280;
   font-size: 1rem;
-  margin-bottom: 2rem;
-  line-height: 1.5;
+  margin: 0;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 .plans-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+  gap: 2.5rem;
   margin-bottom: 3rem;
+  padding: 0 0.5rem;
 }
 
 .plan-card {
@@ -376,360 +298,311 @@ defineExpose({
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
-
-.plan-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #E5E7EB, #E5E7EB);
-  transition: all 0.4s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .plan-card:hover {
   transform: translateY(-12px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15);
   border-color: #D1D5DB;
 }
 
 .plan-card.selected {
   border-color: var(--color-purple);
-  box-shadow: 0 12px 32px rgba(124, 58, 237, 0.15);
+  box-shadow: 0 16px 40px rgba(124, 58, 237, 0.2);
+  background: linear-gradient(135deg, #FAFBFF 0%, #F5F3FF 100%);
 }
 
 .plan-card.featured {
-  border-color: #FF8F00;
-}
-
-.plan-card.featured::before {
-  background: linear-gradient(90deg, #FF8F00, #FFB300);
+  border: 2px solid var(--color-purple);
+  background: linear-gradient(135deg, #FAFBFF 0%, #F5F3FF 100%);
+  transform: scale(1.04);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.12);
 }
 
 .plan-card.featured:hover {
-  box-shadow: 0 20px 40px rgba(255, 143, 0, 0.15);
+  transform: scale(1.04) translateY(-12px);
+  box-shadow: 0 32px 64px rgba(124, 58, 237, 0.2);
+  border-color: var(--color-purple);
 }
 
 .plan-card.featured.selected {
-  border-color: #FF8F00;
-  box-shadow: 0 12px 32px rgba(255, 143, 0, 0.2);
-}
-
-.plan-card.premium {
-  border-color: var(--color-yellow-primary);
-  background: linear-gradient(135deg, #FFFEF7 0%, #FFF9E6 100%);
-}
-
-.plan-card.premium::before {
-  background: linear-gradient(90deg, var(--color-yellow-primary), #FFD700);
-}
-
-.plan-card.premium:hover {
-  box-shadow: 0 20px 40px rgba(253, 197, 0, 0.15);
-}
-
-.plan-card.premium.selected {
-  border-color: var(--color-yellow-primary);
-  box-shadow: 0 12px 32px rgba(253, 197, 0, 0.2);
+  border-color: var(--color-purple);
+  box-shadow: 0 24px 48px rgba(124, 58, 237, 0.25);
 }
 
 .plan-badge {
   position: absolute;
-  top: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0.6rem 1.5rem;
+  top: 20px;
+  right: 20px;
+  padding: 0.6rem 1.25rem;
   border-radius: 50px;
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 900;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.plan-badge.featured-badge {
-  background: linear-gradient(135deg, #FF8F00, #FFB300);
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
   color: white;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+  animation: float-badge 3s ease-in-out infinite;
 }
 
-.plan-badge.premium-badge {
-  background: linear-gradient(135deg, var(--color-yellow-primary), #FFD700);
-  color: var(--color-purple-darkest);
+@keyframes float-badge {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
-.plan-icon-wrapper {
-  width: 70px;
-  height: 70px;
-  background: linear-gradient(135deg, #F0F9FF, #E0F2FE);
-  border-radius: 16px;
+/* BADGES DE CARACTERÍSTICAS */
+.plan-badges {
   display: flex;
-  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
   justify-content: center;
-  margin: 0 auto 1.5rem;
-  transition: all 0.3s ease;
 }
 
-.plan-icon-wrapper.featured {
-  background: linear-gradient(135deg, #FFF7E6, #FFE9CC);
-}
-
-.plan-icon-wrapper.premium {
-  background: linear-gradient(135deg, #FFFEF7, #FFF9E6);
-}
-
-.plan-card:hover .plan-icon-wrapper {
-  transform: scale(1.1);
-}
-
-.plan-header {
-  display: flex;
-  flex-direction: column;
+.badge {
+  display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid #E0E0E0;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.badge-basic {
+  background: #F0F4F8;
+  color: #475569;
+  border: 1px solid #CBD5E1;
+}
+
+.badge-featured {
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  color: white;
+  border: 1px solid rgba(124, 58, 237, 0.5);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+.badge-sponsored {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.badge-urgent {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  color: white;
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.plan-tier {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
 }
 
 .plan-name {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 800;
-  color: var(--color-purple-darkest);
-  margin: 0;
+  color: #1F2937;
+  margin: 0 0 1rem 0;
+  letter-spacing: -0.3px;
+}
+
+.plan-price-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 1rem 0 0.75rem 0;
+  padding: 1.5rem 0;
+  background: linear-gradient(135deg, #F5F3FF 0%, #FAFBFF 100%);
+  border-radius: 12px;
+  justify-content: center;
 }
 
 .plan-price {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.25rem;
-}
-
-.currency {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-purple);
-  margin-top: 0.5rem;
-}
-
-.amount {
-  font-size: 3rem;
-  font-weight: 800;
+  font-size: 3.5rem;
+  font-weight: 900;
   color: var(--color-purple);
   line-height: 1;
+  letter-spacing: -1px;
 }
 
-.plan-duration {
-  font-size: 0.9rem;
-  color: #666;
+.plan-currency {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-purple);
+  margin-top: 0.75rem;
+  opacity: 0.8;
+}
+
+.plan-period {
+  font-size: 0.85rem;
+  color: #9CA3AF;
+  margin: 0 0 1.5rem 0;
   font-weight: 500;
 }
 
+.plan-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #E5E7EB, transparent);
+  margin: 1.5rem 0;
+}
+
+/* Glow effect for featured card */
+.plan-card.featured::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), transparent);
+  border-radius: 20px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
 .plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  flex: 1;
 }
 
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: #666;
-  font-size: 0.95rem;
+.plan-features li {
+  font-size: 0.9rem;
+  color: #4B5563;
+  font-weight: 500;
+  line-height: 1.6;
+  padding-left: 1.5rem;
+  position: relative;
 }
 
-.feature-item.highlight {
-  color: var(--color-purple-darkest);
-  font-weight: 600;
+.plan-features li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--color-purple);
+  font-weight: 700;
+  font-size: 1.1rem;
 }
 
-.feature-item.highlight.premium {
-  color: var(--color-purple-dark);
-}
-
-.plan-button {
+.plan-select-btn {
   width: 100%;
-  padding: 1rem;
-  border: 2px solid var(--color-purple);
+  padding: 1rem 1.5rem;
   background: white;
+  border: 2px solid var(--color-purple);
   color: var(--color-purple);
   border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.plan-button:hover {
+.plan-select-btn:hover {
   background: var(--color-purple);
   color: white;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
+  transform: translateY(-2px);
 }
 
-.plan-button.active {
-  background: var(--color-purple);
+.plan-select-btn.active {
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
   color: white;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
+  border-color: transparent;
 }
 
-.plan-button.featured {
-  border-color: #FF8F00;
-  color: #FF8F00;
-}
-
-.plan-button.featured:hover,
-.plan-button.featured.active {
-  background: #FF8F00;
-  color: white;
-}
-
-.plan-button.premium {
-  border-color: var(--color-yellow-primary);
-  color: var(--color-purple-darkest);
-}
-
-.plan-button.premium:hover,
-.plan-button.premium.active {
-  background: var(--color-yellow-primary);
-  color: var(--color-purple-darkest);
-}
-
+/* Comparison Section */
 .comparison-section {
-  background: #F8F9FA;
-  border-radius: 12px;
-  padding: 2rem;
+  background: #F9FAFB;
+  border-radius: 16px;
+  padding: 2.5rem;
   margin-bottom: 2rem;
+  border: 1px solid #E5E7EB;
 }
 
 .comparison-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--color-purple-darkest);
-  margin-bottom: 1.5rem;
+  color: #1F2937;
+  margin: 0 0 2rem 0;
+  text-align: center;
 }
 
 .comparison-table {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0;
 }
 
 .comparison-row {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 1rem;
-  padding: 1rem;
+  padding: 1.25rem 1rem;
   background: white;
-  border-radius: 8px;
+  border-bottom: 1px solid #E5E7EB;
   align-items: center;
+}
+
+.comparison-row:last-child {
+  border-bottom: none;
 }
 
 .comparison-row.header {
   background: var(--color-purple);
   color: white;
   font-weight: 700;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
 }
 
 .feature-name {
   font-weight: 600;
-  color: var(--color-purple-darkest);
+  color: #374151;
 }
 
 .comparison-row.header .feature-name {
   color: white;
+  font-weight: 700;
 }
 
 .plan-col {
   text-align: center;
-  color: #666;
+  color: #6B7280;
+  font-weight: 500;
 }
 
 .comparison-row.header .plan-col {
   color: white;
+  font-weight: 700;
 }
 
-.premium-text {
+.plan-col.featured-text {
   color: var(--color-purple);
   font-weight: 700;
-}
-
-.payment-info {
-  display: flex;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: #E3F2FD;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-}
-
-.payment-info-content {
-  flex: 1;
-}
-
-.payment-info-title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1565C0;
-  margin: 0 0 0.5rem 0;
-}
-
-.payment-info-text {
-  color: #1976D2;
-  margin: 0 0 1rem 0;
-  line-height: 1.5;
-}
-
-.payment-methods {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.payment-method {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: white;
-  border-radius: 8px;
-  color: #1565C0;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.warning-message {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: #FFF9E6;
-  border: 1px solid #FFD54F;
-  border-radius: 8px;
-  color: #F57C00;
-  font-weight: 600;
-}
-
-@media (max-width: 1024px) {
-  .plans-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-  }
-
-  .comparison-row {
-    grid-template-columns: 1.5fr repeat(3, 1fr);
-    font-size: 0.9rem;
-  }
 }
 
 /* Navigation Buttons */
@@ -739,44 +612,95 @@ defineExpose({
   justify-content: flex-end;
   padding-top: 2rem;
   margin-top: 2rem;
-  border-top: 2px solid #E0E0E0;
+  border-top: 1px solid #E5E7EB;
 }
 
 .btn {
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 2rem;
   border: none;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: 10px;
+  font-weight: 700;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
 }
 
 .btn-primary {
   background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
 }
 
 .btn-secondary {
   background: #F3F4F6;
   color: #1F2937;
   border: 2px solid #E5E7EB;
+  font-weight: 600;
 }
 
 .btn-secondary:hover {
   background: #E5E7EB;
+  border-color: #D1D5DB;
+}
+
+@media (max-width: 1024px) {
+  .plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .plan-card.featured {
+    transform: scale(1);
+  }
 }
 
 @media (max-width: 768px) {
+  .plan-container {
+    padding: 2rem 1.5rem;
+  }
+
+  .header-section {
+    margin-bottom: 2rem;
+  }
+
   .step-title {
     font-size: 1.5rem;
+  }
+
+  .step-description {
+    font-size: 0.9rem;
+  }
+
+  .plans-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .plan-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .plan-name {
+    font-size: 1.5rem;
+  }
+
+  .plan-price {
+    font-size: 2.25rem;
+  }
+
+  .plan-features {
+    margin-bottom: 1.5rem;
+    gap: 0.6rem;
+  }
+
+  .plan-features li {
+    font-size: 0.85rem;
   }
 
   .comparison-section {
@@ -784,24 +708,24 @@ defineExpose({
   }
 
   .comparison-row {
-    grid-template-columns: 1fr;
-    text-align: left;
-    gap: 0.5rem;
+    grid-template-columns: 1.5fr repeat(3, 1fr);
+    padding: 0.875rem 0.75rem;
+    font-size: 0.85rem;
   }
 
-  .plan-col {
-    text-align: left;
-  }
-
-  .comparison-row.header {
-    display: none;
+  .comparison-title {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
   }
 
   .navigation-buttons {
     flex-direction: column;
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
   }
 
   .btn {
+    width: 100%;
     justify-content: center;
   }
 }

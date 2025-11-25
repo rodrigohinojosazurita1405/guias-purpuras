@@ -884,3 +884,43 @@ def get_user_activities(request):
             'success': False,
             'message': f'Error: {str(e)}'
         }, status=500)
+
+
+@require_http_methods(["GET"])
+@csrf_exempt
+def get_job_categories(request):
+    """
+    Endpoint para obtener la lista de categorías de trabajo disponibles
+    GET /api/jobs/categories
+
+    Returns:
+    {
+        'success': bool,
+        'categories': [
+            { 'text': 'Administración y Gestión', 'value': 'Administración y Gestión' },
+            ...
+        ],
+        'count': int
+    }
+    """
+    try:
+        from .constants import JOB_CATEGORIES
+
+        # Convertir a formato de opciones
+        categories = [
+            {'text': category, 'value': category}
+            for category in JOB_CATEGORIES
+        ]
+
+        return JsonResponse({
+            'success': True,
+            'categories': categories,
+            'count': len(categories)
+        }, status=200)
+
+    except Exception as e:
+        print(f'Error al obtener categorías: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)

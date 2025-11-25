@@ -214,6 +214,13 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.removeItem(key)
       console.log(`  → Removido: ${key}`)
     })
+
+    // PASO 2a: Limpiar borrador de publicación de trabajo
+    console.log('🔄 Paso 2a: Limpiando borrador de publicación...')
+    localStorage.removeItem('publish_job_draft')
+    localStorage.removeItem('publish_current_step')
+    console.log('✅ Borrador de publicación limpiado')
+
     console.log('✅ localStorage limpiado completamente')
 
     // IMPORTANTE: Limpiar las claves de Vue DevTools también

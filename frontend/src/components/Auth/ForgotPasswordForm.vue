@@ -5,9 +5,48 @@
     <div class="gradient-blob blob-1"></div>
     <div class="gradient-blob blob-2"></div>
 
+    <!-- Partículas flotantes -->
+    <div class="particles-container">
+      <div class="particle particle-1"></div>
+      <div class="particle particle-2"></div>
+      <div class="particle particle-3"></div>
+      <div class="particle particle-4"></div>
+      <div class="particle particle-5"></div>
+      <div class="particle particle-6"></div>
+      <div class="particle particle-7"></div>
+      <div class="particle particle-8"></div>
+      <div class="particle particle-9"></div>
+      <div class="particle particle-10"></div>
+      <div class="particle particle-11"></div>
+      <div class="particle particle-12"></div>
+    </div>
+
+    <!-- Esferas rebotando -->
+    <div class="bounce-spheres-container">
+      <div class="bounce-sphere bounce-sphere-1"></div>
+      <div class="bounce-sphere bounce-sphere-2"></div>
+      <div class="bounce-sphere bounce-sphere-3"></div>
+      <div class="bounce-sphere bounce-sphere-4"></div>
+    </div>
+
+    <!-- Estrellas fugaces -->
+    <div class="meteors-container">
+      <div class="meteor meteor-1"></div>
+      <div class="meteor meteor-2"></div>
+      <div class="meteor meteor-3"></div>
+      <div class="meteor meteor-4"></div>
+    </div>
+
     <div class="forgot-password-content">
       <!-- Card principal -->
       <div class="forgot-password-card">
+        <!-- Back Button -->
+        <button @click="goHome" class="btn-back" type="button" title="Volver al inicio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+        </button>
+
         <!-- Header -->
         <div class="card-header">
           <div class="logo-circle">
@@ -103,7 +142,7 @@
 
       <!-- Footer -->
       <div class="auth-footer">
-        <p>2024 © Guías Púrpuras. Todos los derechos reservados.</p>
+        <p>{{ currentYear }} © Guías Púrpuras. Todos los derechos reservados.</p>
       </div>
     </div>
   </div>
@@ -179,6 +218,12 @@ const handleForgotPassword = async () => {
     isLoading.value = false
   }
 }
+
+const goHome = () => {
+  router.push('/')
+}
+
+const currentYear = new Date().getFullYear()
 </script>
 
 <style scoped>
@@ -307,6 +352,392 @@ const handleForgotPassword = async () => {
   }
 }
 
+/* Partículas flotantes - Destellos fluidos */
+.particles-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(124, 58, 237, 0.5));
+  box-shadow: 0 0 30px rgba(124, 58, 237, 0.8), 0 0 60px rgba(167, 139, 250, 0.4);
+  filter: blur(0.5px);
+}
+
+.particle-1 {
+  width: 12px;
+  height: 12px;
+  top: 15%;
+  left: 10%;
+  animation: floatParticle 20s ease-in-out infinite;
+}
+
+.particle-2 {
+  width: 16px;
+  height: 16px;
+  top: 25%;
+  left: 85%;
+  animation: floatParticle 25s ease-in-out infinite reverse;
+  animation-delay: 2s;
+}
+
+.particle-3 {
+  width: 10px;
+  height: 10px;
+  top: 45%;
+  left: 20%;
+  animation: floatParticle 22s ease-in-out infinite;
+  animation-delay: 4s;
+}
+
+.particle-4 {
+  width: 14px;
+  height: 14px;
+  top: 60%;
+  left: 90%;
+  animation: floatParticle 28s ease-in-out infinite reverse;
+  animation-delay: 1s;
+}
+
+.particle-5 {
+  width: 12px;
+  height: 12px;
+  top: 75%;
+  left: 15%;
+  animation: floatParticle 24s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+.particle-6 {
+  width: 16px;
+  height: 16px;
+  top: 35%;
+  left: 75%;
+  animation: floatParticle 26s ease-in-out infinite reverse;
+  animation-delay: 5s;
+}
+
+.particle-7 {
+  width: 10px;
+  height: 10px;
+  top: 55%;
+  left: 25%;
+  animation: floatParticle 21s ease-in-out infinite;
+  animation-delay: 2.5s;
+}
+
+.particle-8 {
+  width: 14px;
+  height: 14px;
+  top: 20%;
+  left: 70%;
+  animation: floatParticle 27s ease-in-out infinite reverse;
+  animation-delay: 4.5s;
+}
+
+.particle-9 {
+  width: 12px;
+  height: 12px;
+  top: 70%;
+  left: 50%;
+  animation: floatParticle 23s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+.particle-10 {
+  width: 14px;
+  height: 14px;
+  top: 40%;
+  left: 40%;
+  animation: floatParticle 29s ease-in-out infinite reverse;
+  animation-delay: 3.5s;
+}
+
+.particle-11 {
+  width: 10px;
+  height: 10px;
+  top: 80%;
+  left: 80%;
+  animation: floatParticle 25s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.particle-12 {
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 5%;
+  animation: floatParticle 26s ease-in-out infinite reverse;
+  animation-delay: 2s;
+}
+
+@keyframes floatParticle {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(100px, -150px) scale(1.5);
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(50px, -300px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* Esferas rebotando */
+.bounce-spheres-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1.5;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bounce-sphere {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(167, 139, 250, 0.6), rgba(124, 58, 237, 0.2));
+  box-shadow:
+    0 0 40px rgba(167, 139, 250, 0.5),
+    inset -2px -2px 5px rgba(0, 0, 0, 0.2),
+    inset 2px 2px 5px rgba(255, 255, 255, 0.1);
+  filter: blur(0.3px);
+  border: 1px solid rgba(167, 139, 250, 0.3);
+}
+
+.bounce-sphere-1 {
+  width: 40px;
+  height: 40px;
+  bottom: -50px;
+  left: 15%;
+  animation: bounce1 4s ease-in-out infinite;
+}
+
+.bounce-sphere-2 {
+  width: 50px;
+  height: 50px;
+  bottom: -60px;
+  right: 20%;
+  animation: bounce2 5s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+.bounce-sphere-3 {
+  width: 35px;
+  height: 35px;
+  bottom: -40px;
+  left: 50%;
+  animation: bounce3 4.5s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.bounce-sphere-4 {
+  width: 45px;
+  height: 45px;
+  bottom: -55px;
+  left: 75%;
+  animation: bounce1 5.5s ease-in-out infinite;
+  animation-delay: 0.3s;
+}
+
+@keyframes bounce1 {
+  0% {
+    transform: translateY(0) scaleY(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  25% {
+    transform: translateY(-300px) scaleY(1);
+  }
+  50% {
+    transform: translateY(-80px) scaleY(0.8);
+  }
+  75% {
+    transform: translateY(-200px) scaleY(1);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scaleY(1);
+    opacity: 0;
+  }
+}
+
+@keyframes bounce2 {
+  0% {
+    transform: translateY(0) scaleY(1);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  20% {
+    transform: translateY(-350px) scaleY(1);
+  }
+  45% {
+    transform: translateY(-100px) scaleY(0.75);
+  }
+  70% {
+    transform: translateY(-220px) scaleY(1);
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scaleY(1);
+    opacity: 0;
+  }
+}
+
+@keyframes bounce3 {
+  0% {
+    transform: translateY(0) scaleY(1);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  28% {
+    transform: translateY(-320px) scaleY(1);
+  }
+  52% {
+    transform: translateY(-90px) scaleY(0.8);
+  }
+  78% {
+    transform: translateY(-210px) scaleY(1);
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scaleY(1);
+    opacity: 0;
+  }
+}
+
+/* Estrellas fugaces (Shooting Stars) */
+.meteors-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.meteor {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 20% 20%, rgba(255, 255, 255, 0.9), rgba(167, 139, 250, 0.6), transparent);
+  box-shadow:
+    0 0 30px rgba(167, 139, 250, 0.6),
+    0 0 60px rgba(124, 58, 237, 0.3),
+    inset 0 0 15px rgba(255, 255, 255, 0.4);
+  filter: blur(0.5px);
+}
+
+.meteor::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.4), transparent 70%);
+  border-radius: 50%;
+  animation: shootingGlow 2s ease-out infinite;
+}
+
+.meteor-1 {
+  width: 8px;
+  height: 8px;
+  top: 15%;
+  left: 15%;
+  animation: shootingStar 4s ease-in infinite;
+  animation-delay: 0s;
+}
+
+.meteor-2 {
+  width: 6px;
+  height: 6px;
+  top: 30%;
+  left: 85%;
+  animation: shootingStar 4.5s ease-in infinite;
+  animation-delay: 1.2s;
+}
+
+.meteor-3 {
+  width: 7px;
+  height: 7px;
+  top: 55%;
+  left: 10%;
+  animation: shootingStar 4.2s ease-in infinite;
+  animation-delay: 2.4s;
+}
+
+.meteor-4 {
+  width: 6px;
+  height: 6px;
+  top: 70%;
+  left: 80%;
+  animation: shootingStar 4.8s ease-in infinite;
+  animation-delay: 0.6s;
+}
+
+@keyframes shootingStar {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  5% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  85% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(150px, -200px) scale(0.2);
+  }
+}
+
+@keyframes shootingGlow {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2);
+  }
+}
+
 /* Contenido principal */
 .forgot-password-content {
   position: relative;
@@ -332,7 +763,7 @@ const handleForgotPassword = async () => {
   border: 1.5px solid rgba(124, 58, 237, 0.2);
   animation: slideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .forgot-password-card::before {
@@ -342,13 +773,7 @@ const handleForgotPassword = async () => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  animation: shimmer 3s infinite;
+  background: transparent;
   z-index: -1;
 }
 
@@ -370,6 +795,40 @@ const handleForgotPassword = async () => {
   100% {
     left: 100%;
   }
+}
+
+/* Back Button */
+.btn-back {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  padding: 0;
+  z-index: 10;
+}
+
+.btn-back:hover {
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.btn-back:active {
+  transform: scale(0.95);
+}
+
+.btn-back svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* Header */
