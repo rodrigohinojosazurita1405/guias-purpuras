@@ -937,10 +937,20 @@ defineExpose({
 :deep(.va-textarea__label),
 :deep(.va-select__label),
 :deep(.va-date-input__label) {
-  font-size: 1rem !important;
-  font-weight: 700 !important;
-  color: #1E293B !important;
-  letter-spacing: 0.3px !important;
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+  color: #0F172A !important;
+  letter-spacing: 0.5px !important;
+  text-transform: none !important;
+  line-height: 1.3 !important;
+}
+
+/* Input container spacing */
+:deep(.va-input),
+:deep(.va-textarea),
+:deep(.va-select),
+:deep(.va-date-input) {
+  margin-bottom: 0.75rem !important;
 }
 
 .information-step-job {
@@ -955,12 +965,12 @@ defineExpose({
 .step-header {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
   max-width: 1000px;
   margin-left: auto;
   margin-right: auto;
-  padding: 2rem;
+  padding: 2.5rem;
   background: white;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(124, 58, 237, 0.15);
@@ -987,12 +997,12 @@ defineExpose({
 }
 
 .step-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1E293B;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0F172A;
   margin: 0;
-  letter-spacing: -0.3px;
-  line-height: 1.3;
+  letter-spacing: -0.4px;
+  line-height: 1.2;
 }
 
 .step-subtitle {
@@ -1006,7 +1016,7 @@ defineExpose({
 .form-content {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
   background: white;
   padding: 2rem;
   border-radius: 16px;
@@ -1059,6 +1069,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-grid {
@@ -1594,9 +1605,12 @@ defineExpose({
 }
 
 .accordion-content {
-  padding: 1.25rem;
+  padding: 2rem;
   background: white;
   animation: accordionSlideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 @keyframes accordionSlideDown {
