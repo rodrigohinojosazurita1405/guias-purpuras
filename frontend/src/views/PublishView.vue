@@ -201,7 +201,8 @@ const handleSubmit = async () => {
   }
 
   // ========== VALIDAR DATOS MÍNIMOS ==========
-  const { title, description, email, city, contractType, expiryDate, requirements } = publishStore.jobData
+  const { title, description, city, contractType, expiryDate, requirements } = publishStore.jobData
+  const email = authStore.user?.email // Email del usuario autenticado
   const fieldErrors = {}
 
   if (!title?.trim()) fieldErrors.title = 'Título es requerido'
