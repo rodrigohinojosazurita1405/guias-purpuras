@@ -450,186 +450,6 @@
         </div>
       </div>
 
-      <!-- ACORDEÓN 4: NÚMERO DE VACANTES -->
-      <div class="accordion-section" :class="{ 'expanded': expandedSections.vacancies }">
-        <div class="accordion-header" @click="toggleSection('vacancies')">
-          <div class="accordion-header-left">
-            <div class="accordion-icon">
-              <va-icon name="people" size="1.5rem" />
-            </div>
-            <div class="accordion-title-group">
-              <h3 class="accordion-title">Número de Vacantes</h3>
-              <p v-if="!expandedSections.vacancies" class="accordion-summary">
-                {{ getSummary('vacancies') }}
-              </p>
-            </div>
-          </div>
-          <va-icon
-            :name="expandedSections.vacancies ? 'expand_less' : 'expand_more'"
-            size="1.5rem"
-            class="accordion-chevron"
-          />
-        </div>
-
-        <div v-if="expandedSections.vacancies" class="accordion-content">
-
-          <div class="form-row">
-          <label class="form-label">¿Cuántos puestos disponibles? *</label>
-          <div class="vacancy-input-group">
-            <button
-              type="button"
-              class="vacancy-btn"
-              @click="decrementVacancies"
-              :disabled="localFormData.vacancies <= 1"
-            >
-              −
-            </button>
-            <input
-              v-model.number="localFormData.vacancies"
-              type="number"
-              min="1"
-              max="100"
-              class="vacancy-input"
-              @input="(e) => updateVacancies(parseInt(e.target.value) || 1)"
-            />
-            <button
-              type="button"
-              class="vacancy-btn"
-              @click="incrementVacancies"
-              :disabled="localFormData.vacancies >= 100"
-            >
-              +
-            </button>
-          </div>
-          <small class="form-hint">
-            Puedes publicar{{ localFormData.vacancies > 1 ? ` ${localFormData.vacancies} puestos iguales` : ' 1 puesto' }}
-          </small>
-        </div>
-
-        <!-- Visualización de vacantes -->
-        <div class="vacancy-tracker">
-          <div
-            v-for="n in Math.min(localFormData.vacancies, 10)"
-            :key="n"
-            class="vacancy-icon"
-            :title="`Vacante ${n}`"
-          >
-            <va-icon name="person" />
-          </div>
-          <div v-if="localFormData.vacancies > 10" class="vacancy-more">
-            +{{ localFormData.vacancies - 10 }} más
-          </div>
-        </div>
-        </div>
-      </div>
-
-      <!-- ACORDEÓN 5: INFORMACIÓN DE CONTACTO -->
-      <div class="accordion-section" :class="{ 'expanded': expandedSections.contact }">
-        <div class="accordion-header" @click="toggleSection('contact')">
-          <div class="accordion-header-left">
-            <div class="accordion-icon">
-              <va-icon name="contact_phone" size="1.5rem" />
-            </div>
-            <div class="accordion-title-group">
-              <h3 class="accordion-title">Información de Contacto</h3>
-              <p v-if="!expandedSections.contact" class="accordion-summary">
-                {{ getSummary('contact') }}
-              </p>
-            </div>
-          </div>
-          <va-icon
-            :name="expandedSections.contact ? 'expand_less' : 'expand_more'"
-            size="1.5rem"
-            class="accordion-chevron"
-          />
-        </div>
-
-        <div v-if="expandedSections.contact" class="accordion-content">
-
-          <div class="form-grid">
-          <!-- EMAIL -->
-          <div class="form-row">
-            <div class="form-label">Email de Contacto *</div>
-            <va-input
-              v-model="localFormData.email"
-              placeholder="rrhh@empresa.com"
-              type="email"
-              :rules="[
-                (v) => !!v || 'El email es requerido',
-                (v) => /.+@.+\..+/.test(v) || 'El email no es válido'
-              ]"
-            >
-              <template #prepend>
-                <va-icon name="email" color="purple" />
-              </template>
-            </va-input>
-            
-            <div class="input-hint">
-              <va-icon name="mail" size="small" />
-              <span>Los postulantes enviarán sus CVs a este correo</span>
-            </div>
-          </div>
-
-          <!-- WHATSAPP -->
-          <div class="form-row">
-            <div class="form-label">WhatsApp *</div>
-            <va-input
-              v-model="localFormData.whatsapp"
-              placeholder="70123456"
-              :rules="[
-                (v) => !!v || 'WhatsApp es obligatorio',
-                (v) => /^[67]\d{7}$/.test(v) || 'Número inválido (debe empezar con 6 o 7 y tener 8 dígitos)'
-              ]"
-            >
-              <template #prepend>
-                <span class="whatsapp-prefix">+591</span>
-              </template>
-              <template #append>
-                <va-icon name="whatsapp" color="success" />
-              </template>
-            </va-input>
-          </div>
-
-          <!-- SITIO WEB -->
-          <div class="form-row">
-            <div class="form-label">Sitio Web (Opcional)</div>
-            <va-input
-              v-model="localFormData.website"
-              placeholder="https://www.empresa.com"
-              type="url"
-              :rules="[
-                (v) => !v || v.startsWith('http://') || v.startsWith('https://') || 'Debe empezar con http:// o https://'
-              ]"
-            >
-              <template #prepend>
-                <va-icon name="language" color="purple" />
-              </template>
-            </va-input>
-          </div>
-        </div>
-
-        <!-- INSTRUCCIONES DE APLICACIÓN -->
-        <div class="form-row">
-          <div class="form-label">Instrucciones Especiales para Postular (Opcional)</div>
-          <va-textarea
-            v-model="localFormData.applicationInstructions"
-            placeholder="Ej: Enviar CV y carta de presentación. Incluir pretensión salarial. Indicar disponibilidad de inicio..."
-            :min-rows="3"
-            counter
-            maxlength="300"
-          >
-            <template #prepend>
-              <va-icon name="description" color="purple" />
-            </template>
-          </va-textarea>
-          
-          <div class="input-hint">
-            <va-icon name="assignment" size="small" />
-            <span>Agrega requisitos específicos para el proceso de aplicación</span>
-          </div>
-        </div>
-        </div>
-      </div>
 
       <!-- BOTONES DE NAVEGACIÓN -->
       <div class="navigation-buttons">
@@ -664,9 +484,7 @@ const emit = defineEmits(['update:modelValue', 'next', 'back'])
 const expandedSections = ref({
   basicInfo: true,
   requisites: false,
-  salary: false,
-  vacancies: false,
-  contact: false
+  salary: false
 })
 
 // ========== DATA LOCAL (REF + WATCH) ==========
@@ -689,12 +507,7 @@ const localFormData = ref({
   salaryMin: props.modelValue.salaryMin || null,
   salaryMax: props.modelValue.salaryMax || null,
   salaryFixed: props.modelValue.salaryFixed || null,
-  benefits: props.modelValue.benefits || '',
-  vacancies: props.modelValue.vacancies || 1,
-  email: props.modelValue.email || '',
-  whatsapp: props.modelValue.whatsapp || '',
-  website: props.modelValue.website || '',
-  applicationInstructions: props.modelValue.applicationInstructions || ''
+  benefits: props.modelValue.benefits || ''
 })
 
 // ========== OPCIONES DE FORMULARIO ==========
@@ -741,25 +554,6 @@ watch(localFormData, (newValue) => {
   emit('update:modelValue', cleanedValue)
 }, { deep: true })
 
-// ========== MÉTODOS DE VACANTES ==========
-const incrementVacancies = () => {
-  if (localFormData.value.vacancies < 100) {
-    localFormData.value.vacancies++
-  }
-}
-
-const decrementVacancies = () => {
-  if (localFormData.value.vacancies > 1) {
-    localFormData.value.vacancies--
-  }
-}
-
-const updateVacancies = (value) => {
-  if (value >= 1 && value <= 100) {
-    localFormData.value.vacancies = value
-  }
-}
-
 // ========== ACCORDION METHODS ==========
 const toggleSection = (sectionName) => {
   expandedSections.value[sectionName] = !expandedSections.value[sectionName]
@@ -790,15 +584,6 @@ const getSummary = (sectionName) => {
         return 'Salario no visible'
       }
       return 'Configura la compensación'
-
-    case 'vacancies':
-      return `${localFormData.value.vacancies || 1} ${localFormData.value.vacancies === 1 ? 'vacante' : 'vacantes'} disponible${localFormData.value.vacancies === 1 ? '' : 's'}`
-
-    case 'contact':
-      if (localFormData.value.email && localFormData.value.whatsapp) {
-        return `${localFormData.value.email} - +591 ${localFormData.value.whatsapp}`
-      }
-      return 'Agrega información de contacto'
 
     default:
       return ''
@@ -893,26 +678,7 @@ const validate = () => {
   if (localFormData.value.salaryType === 'fixed' && !localFormData.value.salaryFixed) {
     errors.push('El salario es requerido')
   }
-  
-  if (!localFormData.value.email) {
-    errors.push('El email de contacto es requerido')
-  } else if (!/.+@.+\..+/.test(localFormData.value.email)) {
-    errors.push('El email no es válido')
-  }
-  
-  if (!localFormData.value.whatsapp) {
-    errors.push('El WhatsApp es requerido')
-  } else if (!/^[67]\d{7}$/.test(localFormData.value.whatsapp)) {
-    errors.push('El número de WhatsApp debe ser válido (8 dígitos, empezar con 6 o 7)')
-  }
-  
-  // Validación de website (opcional pero si lo llena debe ser válido)
-  if (localFormData.value.website && 
-      !localFormData.value.website.startsWith('http://') && 
-      !localFormData.value.website.startsWith('https://')) {
-    errors.push('La URL del sitio web debe empezar con http:// o https://')
-  }
-  
+
   if (errors.length > 0) {
     console.error('❌ ERRORES DE VALIDACIÓN:', errors)
     console.log('📋 Datos actuales:', localFormData.value)
