@@ -65,7 +65,8 @@
       "Bash(npm run build:frontend:*)",
       "Bash(cd:*)",
       "Bash(npm run:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(node /tmp/test_categories_advanced.js:*)"
     ],
     "deny": [],
     "ask": []

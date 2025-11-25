@@ -207,7 +207,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--color-purple-dark);
+  background: linear-gradient(135deg, rgba(92, 0, 153, 0.7) 0%, rgba(92, 0, 153, 0.8) 100%), url('@/assets/hero/herosection.png') center/cover no-repeat;
   z-index: 1;
   margin: 0;
 }
