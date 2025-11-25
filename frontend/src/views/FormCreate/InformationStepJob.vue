@@ -88,22 +88,20 @@
                 <va-icon name="business" color="purple" />
               </template>
             </va-input>
-            
-            <!-- CHECKBOX ANÓNIMO -->
-            <div class="anonymous-checkbox">
+          </div>
+
+          <!-- CHECKBOX ANÓNIMO - INLINE -->
+          <div class="form-row">
+            <div class="anonymous-switch-container">
               <va-switch
                 v-model="localFormData.companyAnonymous"
                 label="Publicar de forma anónima"
                 color="warning"
                 size="small"
               />
-              <div class="input-hint" style="margin-top: 0.75rem;">
-                <va-icon name="privacy_tip" size="small" />
-                <span>Se mostrará como empresa confidencial sin logo ni nombre</span>
-              </div>
+              <span class="anonymous-helper-text">Sin logo ni nombre visible</span>
             </div>
           </div>
-
         </div>
 
         <!-- DESCRIPCIÓN DEL TRABAJO -->
@@ -939,10 +937,10 @@ defineExpose({
 :deep(.va-textarea__label),
 :deep(.va-select__label),
 :deep(.va-date-input__label) {
-  font-size: 0.95rem !important;
-  font-weight: 600 !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
   color: #1E293B !important;
-  letter-spacing: 0.2px !important;
+  letter-spacing: 0.3px !important;
 }
 
 .information-step-job {
@@ -1008,7 +1006,7 @@ defineExpose({
 .form-content {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
   background: white;
   padding: 2rem;
   border-radius: 16px;
@@ -1060,13 +1058,13 @@ defineExpose({
 .form-row {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .form-field {
@@ -1092,12 +1090,12 @@ defineExpose({
   gap: 0.75rem;
   font-size: 0.9rem;
   color: #5B21B6;
-  padding: 0.875rem 1rem;
+  padding: 0.75rem 1rem;
   background: #F9F5FF;
   border-radius: 8px;
   border-left: 3px solid #7C3AED;
   line-height: 1.5;
-  margin-top: 0.75rem;
+  margin-top: 0.4rem;
 }
 
 .success-hint {
@@ -1149,15 +1147,32 @@ defineExpose({
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
 }
 
+/* ========== Anonymous Section ========== */
+.anonymous-switch-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #FEF3C7;
+  border-radius: 8px;
+  border-left: 3px solid #F59E0B;
+}
+
+.anonymous-helper-text {
+  font-size: 0.85rem;
+  color: #92400E;
+  font-weight: 500;
+}
+
 /* ========== Salary Section ========== */
 .salary-tip {
   display: flex;
-  gap: 0.875rem;
-  padding: 1rem 1.25rem;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
   background: #FFFBEB;
   border-left: 3px solid #FBBF24;
   border-radius: 8px;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   font-size: 0.9rem;
   color: #92400E;
   line-height: 1.5;
@@ -1431,16 +1446,6 @@ defineExpose({
   }
 }
 
-/* ========== Checkbox Anónimo ========== */
-.anonymous-checkbox {
-  margin-top: 1rem;
-  padding: 1.25rem 1.5rem;
-  background: linear-gradient(135deg, #FEF3C7 0%, #FEE2B8 100%);
-  border-left: 4px solid #F59E0B;
-  border-radius: 12px;
-}
-
-
 /* ========== Botones de Navegación ========== */
 .navigation-buttons {
   display: flex;
@@ -1589,7 +1594,7 @@ defineExpose({
 }
 
 .accordion-content {
-  padding: 1.5rem;
+  padding: 1.25rem;
   background: white;
   animation: accordionSlideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
