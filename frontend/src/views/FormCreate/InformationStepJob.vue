@@ -1069,7 +1069,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 2rem;
 }
 
 .form-grid {
