@@ -126,7 +126,7 @@
             </template>
           </va-textarea>
           
-          <div class="input-hint">
+          <div class="input-hint" style="margin-top: 0.75rem;">
             <va-icon name="info" size="small" />
             <span>Descripciones detalladas atraen candidatos de mejor calidad</span>
           </div>
@@ -475,7 +475,7 @@
         <div v-if="expandedSections.vacancies" class="accordion-content">
 
           <div class="form-row">
-          <label>¿Cuántos puestos disponibles? *</label>
+          <label class="form-label">¿Cuántos puestos disponibles? *</label>
           <div class="vacancy-input-group">
             <button
               type="button"
@@ -1075,13 +1075,15 @@ defineExpose({
   gap: 0.75rem;
 }
 
-.field-label {
+.field-label,
+.form-label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
   color: #1E293B;
   font-size: 0.95rem;
+  margin-bottom: 0.5rem;
 }
 
 .input-hint {
