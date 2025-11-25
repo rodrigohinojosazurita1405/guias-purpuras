@@ -10,7 +10,7 @@
       </div>
       <h1 class="start-title">Publica tu Oferta de Trabajo</h1>
       <p class="start-subtitle">
-        En solo 2 pasos rápidos, llegará a miles de candidatos en Bolivia
+        En solo 5 pasos rápidos, llegará a miles de candidatos en Bolivia
       </p>
     </div>
 
@@ -150,6 +150,12 @@ const jobTypes = [
     name: 'Tiempo Completo',
     icon: 'work_history',
     description: 'Posición laboral de jornada completa'
+  },
+  {
+    id: 'Medio Tiempo',
+    name: 'Medio Tiempo',
+    icon: 'schedule',
+    description: 'Jornada de media tiempo flexible'
   },
   {
     id: 'Remoto',
@@ -298,14 +304,14 @@ const proceedToWizard = () => {
 /* ========== JOB TYPES GRID ========== */
 .job-types-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.2rem;
   margin-bottom: 1.5rem;
 }
 
 .job-type-card {
   position: relative;
-  padding: 2rem;
+  padding: 1.5rem 1rem;
   border: 2px solid #E5E7EB;
   border-radius: 16px;
   background: white;
@@ -345,24 +351,25 @@ const proceedToWizard = () => {
 }
 
 .type-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
   display: flex;
   justify-content: center;
   color: #9333EA;
 }
 
 .type-title {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #1F2937;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
+  line-height: 1.3;
 }
 
 .type-description {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #6B7280;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .check-mark {
@@ -600,7 +607,25 @@ const proceedToWizard = () => {
   }
 
   .job-types-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .job-type-card {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .type-icon {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .type-title {
+    font-size: 0.9rem;
+  }
+
+  .type-description {
+    font-size: 0.75rem;
   }
 
   .action-buttons {
