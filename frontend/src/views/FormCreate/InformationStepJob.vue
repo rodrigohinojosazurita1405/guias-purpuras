@@ -635,256 +635,6 @@
         </div>
       </div>
 
-      <!-- ACORDEÓN 6: PREGUNTAS DE FILTRADO -->
-      <div class="accordion-section" :class="{ 'expanded': expandedSections.screening }">
-        <div class="accordion-header" @click="toggleSection('screening')">
-          <div class="accordion-header-left">
-            <div class="accordion-icon">
-              <va-icon name="quiz" size="1.5rem" />
-            </div>
-            <div class="accordion-title-group">
-              <h3 class="accordion-title">Preguntas de Filtrado (Opcional)</h3>
-              <p v-if="!expandedSections.screening" class="accordion-summary">
-                {{ getSummary('screening') }}
-              </p>
-            </div>
-          </div>
-          <div class="accordion-header-right">
-            <va-badge
-              :text="`${localFormData.screeningQuestions?.length || 0}/5`"
-              color="primary"
-              size="large"
-            />
-            <va-icon
-              :name="expandedSections.screening ? 'expand_less' : 'expand_more'"
-              size="1.5rem"
-              class="accordion-chevron"
-            />
-          </div>
-        </div>
-
-        <div v-if="expandedSections.screening" class="accordion-content">
-
-          <!-- TIP BOX -->
-        <div class="screening-tip-box">
-          <va-icon name="lightbulb" color="#FFC107" size="1.5rem" />
-          <div class="tip-content">
-            <strong>💡 Tip Pro:</strong>
-            <p>Las preguntas de filtrado te ayudan a recibir solo candidatos calificados y ahorran tiempo en el proceso de selección.</p>
-          </div>
-        </div>
-
-        <!-- LISTA DE PREGUNTAS -->
-        <div v-if="localFormData.screeningQuestions && localFormData.screeningQuestions.length > 0" class="questions-list">
-          <div 
-            v-for="(question, index) in localFormData.screeningQuestions" 
-            :key="index" 
-            class="screening-question"
-          >
-            <div class="question-header">
-              <div class="question-number-badge">
-                <va-icon name="help_outline" size="small" />
-                Pregunta {{ index + 1 }}
-              </div>
-              <va-button
-                preset="plain"
-                icon="delete"
-                color="danger"
-                size="small"
-                @click="removeScreeningQuestion(index)"
-              >
-                Eliminar
-              </va-button>
-            </div>
-
-            <!-- TEXTO DE LA PREGUNTA -->
-            <div class="question-field">
-              <va-input
-                v-model="question.text"
-                label="Texto de la pregunta"
-                placeholder="Ej: ¿Tienes licencia de conducir vigente?"
-                required-mark
-              >
-                <template #prepend>
-                  <va-icon name="text_fields" color="purple" />
-                </template>
-              </va-input>
-            </div>
-
-            <!-- TIPO Y OBLIGATORIEDAD -->
-            <div class="question-settings">
-              <va-select
-                v-model="question.type"
-                label="Tipo de respuesta"
-                :options="questionTypeOptions"
-                text-by="text"
-                value-by="value"
-                class="question-type-select"
-                @update:model-value="(newType) => handleTypeChange(index, newType)"
-              >
-                <template #prepend>
-                  <va-icon name="format_list_bulleted" color="purple" />
-                </template>
-              </va-select>
-
-              <div class="required-switch">
-                <va-switch
-                  v-model="question.required"
-                  label="Pregunta obligatoria"
-                  color="success"
-                />
-              </div>
-            </div>
-
-            <!-- OPCIONES MÚLTIPLES (si el tipo es 'multiple') -->
-            <div v-if="question.type === 'multiple'" class="multiple-options-section">
-              <label class="options-label">
-                <va-icon name="list" size="small" />
-                Opciones de respuesta
-              </label>
-
-              <div class="options-manager">
-                <!-- Lista de opciones -->
-                <div v-if="question.optionsList && question.optionsList.length > 0" class="options-list">
-                  <div 
-                    v-for="(option, optIndex) in question.optionsList" 
-                    :key="optIndex"
-                    class="option-item"
-                  >
-                    <va-icon name="radio_button_unchecked" size="small" color="#999" />
-                    <span class="option-text">{{ option }}</span>
-                    <va-button
-                      preset="plain"
-                      icon="close"
-                      size="small"
-                      @click="removeOption(index, optIndex)"
-                    />
-                  </div>
-                </div>
-
-                <!-- Input para agregar nueva opción -->
-                <div class="add-option-input">
-                  <va-input
-                    v-model="newOptions[index]"
-                    placeholder="Escribe una opción y presiona Enter"
-                    @keypress.enter="addOption(index)"
-                  >
-                    <template #prepend>
-                      <va-icon name="add_circle_outline" color="purple" />
-                    </template>
-                    <template #append>
-                      <va-button
-                        preset="plain"
-                        icon="add"
-                        size="small"
-                        @click="addOption(index)"
-                        :disabled="!newOptions[index] || !newOptions[index].trim()"
-                      >
-                        Agregar
-                      </va-button>
-                    </template>
-                  </va-input>
-                </div>
-
-                <div v-if="!question.optionsList || question.optionsList.length === 0" class="no-options-hint">
-                  <va-icon name="info" size="small" />
-                  <span>Agrega al menos 2 opciones para esta pregunta</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- BOTÓN AGREGAR PREGUNTA -->
-        <va-button
-          v-if="!localFormData.screeningQuestions || localFormData.screeningQuestions.length < 5"
-          @click="addScreeningQuestion"
-          color="primary"
-          icon="add_circle"
-          class="add-question-btn"
-        >
-          Agregar Pregunta de Filtrado ({{ localFormData.screeningQuestions?.length || 0 }}/5)
-        </va-button>
-
-        <!-- MENSAJE MÁXIMO ALCANZADO -->
-        <div v-else class="max-questions-message">
-          <va-icon name="info" color="warning" />
-          <span>Has alcanzado el máximo de 5 preguntas de filtrado</span>
-        </div>
-
-        <!-- VISTA PREVIA DE PREGUNTAS -->
-        <div v-if="localFormData.screeningQuestions && localFormData.screeningQuestions.length > 0" class="screening-preview">
-          <div class="preview-header">
-            <va-icon name="visibility" size="1.5rem" color="success" />
-            <div>
-              <h4 class="preview-title">Vista previa para candidatos</h4>
-              <p class="preview-description">Así verán los candidatos las preguntas de filtrado:</p>
-            </div>
-          </div>
-          
-          <div class="preview-questions">
-            <div 
-              v-for="(q, i) in localFormData.screeningQuestions" 
-              :key="i"
-              class="preview-question"
-            >
-              <label class="preview-label">
-                {{ i + 1 }}. {{ q.text || 'Sin texto aún...' }}
-                <span v-if="q.required" class="required-mark">*</span>
-              </label>
-              
-              <!-- Tipo: Texto -->
-              <div v-if="q.type === 'text'" class="preview-input">
-                <input type="text" placeholder="El candidato escribirá su respuesta aquí..." disabled />
-              </div>
-              
-              <!-- Tipo: Sí/No -->
-              <div v-else-if="q.type === 'yesno'" class="preview-radio">
-                <label class="radio-option">
-                  <div class="custom-radio">
-                    <div class="radio-circle"></div>
-                  </div>
-                  <span>Sí</span>
-                </label>
-                <label class="radio-option">
-                  <div class="custom-radio">
-                    <div class="radio-circle"></div>
-                  </div>
-                  <span>No</span>
-                </label>
-              </div>
-              
-              <!-- Tipo: Opción Múltiple -->
-              <div v-else-if="q.type === 'multiple'" class="preview-select">
-                <select disabled>
-                  <option value="">Seleccionar una opción...</option>
-                  <template v-if="q.optionsList && q.optionsList.length > 0">
-                    <option v-for="(opt, j) in q.optionsList" :key="j">
-                      {{ opt }}
-                    </option>
-                  </template>
-                  <template v-else>
-                    <option disabled>(Agrega opciones arriba)</option>
-                  </template>
-                </select>
-                
-                <div v-if="!q.optionsList || q.optionsList.length === 0" class="preview-hint">
-                  <va-icon name="arrow_upward" size="small" color="warning" />
-                  <span>Agrega al menos 2 opciones de respuesta en la sección de arriba</span>
-                </div>
-              </div>
-
-              <!-- Fallback: tipo desconocido o no definido -->
-              <div v-else class="preview-warning">
-                <va-icon name="error" size="small" color="warning" />
-                <span>Por favor selecciona un tipo de pregunta válido (Texto corto, Sí / No, o Opción múltiple).</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        </div>
-      </div>
-
       <!-- BOTONES DE NAVEGACIÓN -->
       <div class="navigation-buttons">
         <va-button
@@ -927,8 +677,7 @@ const expandedSections = ref({
   requisites: false,
   salary: false,
   vacancies: false,
-  contact: false,
-  screening: false
+  contact: false
 })
 
 // ========== DATA LOCAL (REF + WATCH) ==========
@@ -956,8 +705,7 @@ const localFormData = ref({
   email: props.modelValue.email || '',
   whatsapp: props.modelValue.whatsapp || '',
   website: props.modelValue.website || '',
-  applicationInstructions: props.modelValue.applicationInstructions || '',
-  screeningQuestions: props.modelValue.screeningQuestions || []
+  applicationInstructions: props.modelValue.applicationInstructions || ''
 })
 
 // ========== OPCIONES DE FORMULARIO ==========
@@ -1005,78 +753,16 @@ const cityOptions = [
 
 // ========== WATCH PARA SINCRONIZACIÓN ==========
 watch(localFormData, (newValue) => {
-  emit('update:modelValue', { ...props.modelValue, ...newValue })
+  // Extraer solo los valores de los selects (en caso de que sean objetos)
+  const cleanedValue = {
+    ...props.modelValue,
+    ...newValue,
+    jobCategory: typeof newValue.jobCategory === 'object' ? newValue.jobCategory?.value : newValue.jobCategory,
+    city: typeof newValue.city === 'object' ? newValue.city?.value : newValue.city,
+    contractType: typeof newValue.contractType === 'object' ? newValue.contractType?.value : newValue.contractType
+  }
+  emit('update:modelValue', cleanedValue)
 }, { deep: true })
-
-
-// ========== REF PARA NUEVAS OPCIONES (TEMP) ==========
-const newOptions = ref({})
-
-// ========== MÉTODOS DE SCREENING QUESTIONS ==========
-const addScreeningQuestion = () => {
-  if (!localFormData.value.screeningQuestions) {
-    localFormData.value.screeningQuestions = []
-  }
-  if (localFormData.value.screeningQuestions.length < 5) {
-    localFormData.value.screeningQuestions.push({
-      text: '',
-      type: 'text',
-      optionsList: [], // Array de opciones
-      required: true
-    })
-  }
-}
-
-const removeScreeningQuestion = (index) => {
-  localFormData.value.screeningQuestions.splice(index, 1)
-  // Limpiar el input temporal de esa pregunta
-  delete newOptions.value[index]
-}
-
-// Agregar opción a pregunta de tipo múltiple
-const addOption = (questionIndex) => {
-  const optionText = newOptions.value[questionIndex]
-  
-  if (!optionText || !optionText.trim()) {
-    return
-  }
-  
-  const question = localFormData.value.screeningQuestions[questionIndex]
-  
-  if (!question.optionsList) {
-    question.optionsList = []
-  }
-  
-  // Agregar opción si no está vacía y no está duplicada
-  const trimmedOption = optionText.trim()
-  if (!question.optionsList.includes(trimmedOption)) {
-    question.optionsList.push(trimmedOption)
-  }
-  
-  // Limpiar input
-  newOptions.value[questionIndex] = ''
-}
-
-// Eliminar opción de pregunta de tipo múltiple
-const removeOption = (questionIndex, optionIndex) => {
-  const question = localFormData.value.screeningQuestions[questionIndex]
-  if (question.optionsList) {
-    question.optionsList.splice(optionIndex, 1)
-  }
-}
-// Manejar cambio de tipo de pregunta
-
-const handleTypeChange = (questionIndex, newType) => {
-  const question = localFormData.value.screeningQuestions[questionIndex]
-  question.type = newType
-  
-  // Inicializar optionsList si cambia a multiple
-  if (newType === "multiple" && !question.optionsList) {
-    question.optionsList = []
-  }
-  
-  console.log(`Pregunta ${questionIndex} cambió a tipo: ${newType}`, question)
-}
 
 // ========== MÉTODOS DE VACANTES ==========
 const incrementVacancies = () => {
@@ -1136,10 +822,6 @@ const getSummary = (sectionName) => {
         return `${localFormData.value.email} - +591 ${localFormData.value.whatsapp}`
       }
       return 'Agrega información de contacto'
-
-    case 'screening':
-      const count = localFormData.value.screeningQuestions?.length || 0
-      return count > 0 ? `${count} pregunta${count !== 1 ? 's' : ''} de filtrado` : 'Sin preguntas de filtrado'
 
     default:
       return ''
@@ -1255,24 +937,31 @@ defineExpose({
 <style scoped>
 .information-step-job {
   width: 100%;
-  background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  max-width: 1440px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #F9F5FF 0%, #F3E8FF 100%);
   min-height: 100vh;
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
 .step-header {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  margin-bottom: 2.5rem;
-  max-width: 1100px;
+  margin-bottom: 1.5rem;
+  max-width: 1000px;
   margin-left: auto;
   margin-right: auto;
-  padding: 2.5rem;
+  padding: 2rem;
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border-top: 3px solid #7C3AED;
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.15);
+  border-top: 4px solid transparent;
+  background-image:
+    linear-gradient(white, white),
+    linear-gradient(90deg, #7C3AED, #A855F7);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
   width: 100%;
 }
 
@@ -1290,28 +979,30 @@ defineExpose({
 }
 
 .step-title {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #0F172A;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1E293B;
   margin: 0;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
+  line-height: 1.3;
 }
 
 .step-subtitle {
-  font-size: 0.95rem;
-  color: #64748B;
-  margin: 0.5rem 0 0 0;
-  line-height: 1.5;
+  font-size: 1rem;
+  color: #475569;
+  margin: 0.75rem 0 0 0;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 .form-content {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
   background: white;
-  padding: 2.5rem;
+  padding: 2rem;
   border-radius: 16px;
-  max-width: 1100px;
+  max-width: 1000px;
   margin: 0 auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   width: 100%;
@@ -1359,13 +1050,13 @@ defineExpose({
 .form-row {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
 }
 
 .form-field {
@@ -1482,209 +1173,6 @@ defineExpose({
   padding-bottom: 0.5rem;
 }
 
-/* ========== Screening Questions ========== */
-.screening-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  gap: 1rem;
-}
-
-.screening-tip-box {
-  display: flex;
-  gap: 1.25rem;
-  padding: 1.75rem;
-  background: linear-gradient(135deg, #FEF3C7 0%, #FEE2B8 100%);
-  border-left: 4px solid #F59E0B;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  line-height: 1.6;
-}
-
-.tip-content {
-  flex: 1;
-}
-
-.tip-content strong {
-  display: block;
-  color: #B45309;
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
-}
-
-.tip-content p {
-  margin: 0;
-  color: #78350F;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.questions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.screening-question {
-  padding: 2rem;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  transition: all 0.3s ease;
-}
-
-.screening-question:hover {
-  border-color: #7C3AED;
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.12);
-  transform: translateY(-2px);
-}
-
-.question-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  gap: 1rem;
-}
-
-.question-number-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
-  color: white;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.question-field {
-  margin-bottom: 1.5rem;
-}
-
-.question-settings {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1.5rem;
-  align-items: flex-end;
-  margin-bottom: 1.5rem;
-  padding: 1.5rem;
-  background: #F8FAFC;
-  border-radius: 8px;
-  border: 1px solid #E2E8F0;
-}
-
-.question-type-select {
-  min-width: auto;
-}
-
-.required-switch {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-/* Opciones Múltiples */
-.multiple-options-section {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 12px;
-  border: 2px dashed #CBD5E1;
-  transition: all 0.3s ease;
-}
-
-.multiple-options-section:hover {
-  border-color: #7C3AED;
-  background: #F9F5FF;
-}
-
-.options-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 700;
-  color: #1E293B;
-  margin-bottom: 1.25rem;
-  font-size: 1rem;
-}
-
-.options-manager {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.options-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.option-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: white;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.option-item:hover {
-  border-color: #7C3AED;
-  background: #F9F5FF;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
-}
-
-.option-text {
-  flex: 1;
-  color: #1E293B;
-  font-size: 0.95rem;
-  word-break: break-word;
-}
-
-.add-option-input {
-  margin-top: 0.5rem;
-}
-
-.no-options-hint {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: #FFF3E0;
-  border-radius: 8px;
-  color: #F57C00;
-  font-size: 0.9rem;
-}
-
-.add-question-btn {
-  width: 100%;
-  margin-top: 1.5rem;
-  font-weight: 600;
-}
-
-.max-questions-message {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 1.25rem;
-  background: #FFF3E0;
-  border-radius: 12px;
-  border: 2px solid #FFB74D;
-  color: #F57C00;
-  font-weight: 600;
-  margin-top: 1.5rem;
-}
 
 /* ========== Vacantes ========== */
 .vacancy-input-group {
@@ -1797,20 +1285,20 @@ defineExpose({
 
 @media (max-width: 768px) {
   .information-step-job {
-    max-width: 100%;
     padding: 1rem;
   }
 
   .step-header {
     flex-direction: column;
     text-align: center;
-    gap: 1rem;
+    gap: 0.75rem;
     padding: 1.5rem;
+    margin-bottom: 1rem;
   }
 
   .header-icon {
-    width: 64px;
-    height: 64px;
+    width: 56px;
+    height: 56px;
   }
 
   .step-title {
@@ -1819,15 +1307,17 @@ defineExpose({
 
   .step-subtitle {
     font-size: 0.95rem;
+    margin: 0.5rem 0 0 0;
   }
 
   .form-content {
-    padding: 1.25rem;
-    gap: 1.5rem;
+    padding: 1.5rem;
+    gap: 1.25rem;
   }
 
   .form-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .form-section {
@@ -1839,31 +1329,50 @@ defineExpose({
   }
 
   .salary-inputs {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 
   .salary-separator {
-    display: none;
+    display: none !important;
   }
 
-  .question-settings {
-    grid-template-columns: 1fr;
+  .accordion-header {
+    padding: 1.25rem 1.5rem;
+    gap: 1rem;
+  }
+
+  .accordion-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .accordion-title {
+    font-size: 1.1rem;
+  }
+
+  .accordion-summary {
+    font-size: 0.85rem;
+  }
+
+  .accordion-content {
+    padding: 1.25rem;
   }
 }
 
 @media (max-width: 480px) {
   .information-step-job {
-    padding: 0.5rem;
+    padding: 0.75rem;
   }
 
   .step-header {
     padding: 1rem;
+    gap: 0.5rem;
   }
 
   .header-icon {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
   }
 
   .step-title {
@@ -1872,6 +1381,7 @@ defineExpose({
 
   .step-subtitle {
     font-size: 0.9rem;
+    margin: 0.25rem 0 0 0;
   }
 
   .form-content {
@@ -1879,17 +1389,31 @@ defineExpose({
     gap: 1rem;
   }
 
-  .form-section {
-    padding: 0.75rem;
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 
-  .section-title {
+  .accordion-header {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .accordion-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .accordion-title {
     font-size: 1rem;
   }
 
-  .form-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .accordion-summary {
+    font-size: 0.8rem;
+  }
+
+  .accordion-content {
+    padding: 1rem;
   }
 }
 
@@ -1902,179 +1426,6 @@ defineExpose({
   border-radius: 12px;
 }
 
-/* ========== Vista Previa de Screening Questions ========== */
-.screening-preview {
-  margin-top: 2.5rem;
-  padding: 2rem;
-  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
-  border-radius: 16px;
-  border: 2px solid #0EA5E9;
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
-}
-
-.preview-header {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.preview-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #0EA5E9;
-  margin: 0 0 0.25rem 0;
-}
-
-.preview-description {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0;
-}
-
-.preview-questions {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.preview-question {
-  padding: 1.75rem;
-  background: white;
-  border-radius: 12px;
-  border: 2px solid #E0E0E0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.preview-label {
-  display: block;
-  font-weight: 600;
-  font-size: 1rem;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.required-mark {
-  color: #EF4444;
-  margin-left: 0.25rem;
-  font-weight: 700;
-}
-
-.preview-input input {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 2px solid #E0E0E0;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  background: #F9FAFB;
-  color: #999;
-  transition: border-color 0.2s ease;
-}
-
-.preview-input input:focus {
-  outline: none;
-  border-color: #5C0099;
-}
-
-.preview-radio {
-  display: flex;
-  gap: 2rem;
-}
-
-.radio-option {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0.75rem 1.25rem;
-  border: 2px solid #E0E0E0;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  background: white;
-}
-
-.radio-option:hover {
-  border-color: #5C0099;
-  background: #F8F4FF;
-}
-
-/* Radio button personalizado */
-.custom-radio {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #9E9E9E;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  background: white;
-}
-
-.radio-option:hover .custom-radio {
-  border-color: #5C0099;
-}
-
-.radio-circle {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #9E9E9E;
-  opacity: 0.3;
-}
-
-.radio-option:hover .radio-circle {
-  background: #5C0099;
-  opacity: 1;
-}
-
-.radio-option span {
-  color: #555;
-  font-size: 1rem;
-}
-
-.preview-select select {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 2px solid #E0E0E0;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  background: #F9FAFB;
-  color: #555;
-  cursor: not-allowed;
-  transition: border-color 0.2s ease;
-}
-
-.preview-select select:focus {
-  outline: none;
-  border-color: #5C0099;
-}
-
-.preview-warning {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: #FFF3E0;
-  border-radius: 8px;
-  color: #F57C00;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.preview-hint {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  margin-top: 0.75rem;
-  background: #FFF9E6;
-  border-radius: 8px;
-  border: 2px dashed #FFC107;
-  color: #F57C00;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
 
 /* ========== Botones de Navegación ========== */
 .navigation-buttons {
@@ -2112,18 +1463,18 @@ defineExpose({
   border-radius: 16px;
   border: 2px solid #E2E8F0;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-bottom: 1.5rem;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  margin-bottom: 0;
 }
 
 .accordion-section:hover {
-  border-color: #CBD5E1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-color: #DDD6FE;
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.1);
 }
 
 .accordion-section.expanded {
   border-color: #7C3AED;
-  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.12);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.15);
 }
 
 .accordion-header {
@@ -2166,20 +1517,20 @@ defineExpose({
   width: 56px;
   height: 56px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #E0E7FF 0%, #DDD6FE 100%);
+  background: linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #7C3AED;
+  color: #6D28D9;
   flex-shrink: 0;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .accordion-section.expanded .accordion-icon {
   background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
   color: white;
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  transform: scale(1.12) translateY(-2px);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
 }
 
 .accordion-title-group {
@@ -2188,10 +1539,11 @@ defineExpose({
 }
 
 .accordion-title {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: 600;
   color: #1E293B;
   margin: 0;
+  line-height: 1.4;
   transition: color 0.3s ease;
 }
 
@@ -2200,9 +1552,11 @@ defineExpose({
 }
 
 .accordion-summary {
-  font-size: 0.9rem;
-  color: #64748B;
+  font-size: 0.95rem;
+  color: #7C3AED;
+  font-weight: 500;
   margin: 0.25rem 0 0 0;
+  max-width: 400px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2211,19 +1565,19 @@ defineExpose({
 
 .accordion-chevron {
   color: #94A3B8;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   flex-shrink: 0;
 }
 
 .accordion-section.expanded .accordion-chevron {
   color: #7C3AED;
-  transform: rotate(180deg);
+  transform: rotate(180deg) scale(1.1);
 }
 
 .accordion-content {
-  padding: 2rem;
+  padding: 1.5rem;
   background: white;
-  animation: accordionSlideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: accordionSlideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes accordionSlideDown {
