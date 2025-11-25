@@ -937,7 +937,7 @@ defineExpose({
 :deep(.va-textarea__label),
 :deep(.va-select__label),
 :deep(.va-date-input__label) {
-  font-size: 1.1rem !important;
+  font-size: 1.25rem !important;
   font-weight: 800 !important;
   color: #0F172A !important;
   letter-spacing: 0.5px !important;
@@ -1069,7 +1069,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-grid {
