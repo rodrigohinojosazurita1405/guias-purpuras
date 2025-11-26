@@ -103,11 +103,11 @@ class JobAdmin(admin.ModelAdmin):
     company_display.short_description = 'Empresa'
 
     def status_badge(self, obj):
-        """Badge de estado con colores"""
+        """Badge de estado con colores sobrios"""
         status_colors = {
-            'active': '#10B981',     # Verde
-            'closed': '#EF4444',     # Rojo
-            'draft': '#9CA3AF'       # Gris
+            'active': '#059669',     # Verde sobrio
+            'closed': '#DC2626',     # Rojo sobrio
+            'draft': '#6B7280'       # Gris sobrio
         }
         status_labels = {
             'active': 'ACTIVA',
@@ -118,7 +118,7 @@ class JobAdmin(admin.ModelAdmin):
         label = status_labels.get(obj.status, obj.status.upper())
 
         return format_html(
-            '<span style="background-color: {}; color: white; padding: 5px 12px; '
+            '<span style="background-color: {}; color: white; padding: 6px 14px; '
             'border-radius: 20px; font-weight: bold; font-size: 12px; '
             'display: inline-block;">{}</span>',
             color, label
@@ -371,7 +371,15 @@ class ApplicationAdmin(admin.ModelAdmin):
     candidate_email.short_description = 'Email'
 
     def status_badge(self, obj):
-        """Badge con estado de la aplicación"""
+        """Badge con estado de la aplicación con colores sobrios"""
+        status_colors = {
+            'received': '#3B82F6',        # Azul
+            'reviewing': '#F59E0B',       # Naranja
+            'shortlisted': '#10B981',     # Verde
+            'rejected': '#DC2626',        # Rojo
+            'accepted': '#059669',        # Verde oscuro
+            'withdrawn': '#6B7280'        # Gris
+        }
         labels = {
             'received': 'RECIBIDA',
             'reviewing': 'EN REVISIÓN',
@@ -380,7 +388,15 @@ class ApplicationAdmin(admin.ModelAdmin):
             'accepted': 'ACEPTADA',
             'withdrawn': 'RETIRADA'
         }
-        return labels.get(obj.status, obj.status.upper())
+        color = status_colors.get(obj.status, '#6B7280')
+        label = labels.get(obj.status, obj.status.upper())
+
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 6px 14px; '
+            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            'display: inline-block;">{}</span>',
+            color, label
+        )
     status_badge.short_description = 'Estado'
 
     def application_date(self, obj):
@@ -418,13 +434,41 @@ class ApplicationAdmin(admin.ModelAdmin):
     screening_answers_display.short_description = 'Respuestas de Screening'
 
     def candidate_contact_display(self, obj):
-        """Muestra información de contacto del candidato"""
-        contact = f'Email: {obj.applicantEmail}'
+        """Muestra información de contacto del candidato con estilos"""
+        html_content = (
+            '<div style="background-color: #F3F4F6; padding: 12px; border-radius: 8px; '
+            'font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto; font-size: 13px;">'
+        )
+
+        # Email
+        if obj.applicantEmail:
+            html_content += (
+                '<p style="margin: 0 0 8px 0; display: flex; align-items: center;">'
+                '<span style="color: #1F2937; font-weight: 600; margin-right: 8px;">✉️</span>'
+                f'<span style="color: #374151;">{obj.applicantEmail}</span>'
+                '</p>'
+            )
+
+        # Teléfono
         if obj.applicantPhone:
-            contact += f', Teléfono: {obj.applicantPhone}'
+            html_content += (
+                '<p style="margin: 0 0 8px 0; display: flex; align-items: center;">'
+                '<span style="color: #1F2937; font-weight: 600; margin-right: 8px;">☎️</span>'
+                f'<span style="color: #374151;">{obj.applicantPhone}</span>'
+                '</p>'
+            )
+
+        # WhatsApp
         if obj.applicantWhatsapp:
-            contact += f', WhatsApp: {obj.applicantWhatsapp}'
-        return contact
+            html_content += (
+                '<p style="margin: 0; display: flex; align-items: center;">'
+                '<span style="color: #1F2937; font-weight: 600; margin-right: 8px;">💬</span>'
+                f'<span style="color: #374151;">{obj.applicantWhatsapp}</span>'
+                '</p>'
+            )
+
+        html_content += '</div>'
+        return format_html(html_content)
     candidate_contact_display.short_description = 'Información de Contacto'
 
     # ========== ACCIONES PERSONALIZADAS ==========
