@@ -104,7 +104,7 @@
         :disabled="!isFormValid"
         @click="proceedToWizard"
       >
-        Continuar al Formulario
+        Siguiente
         <va-icon name="arrow_forward" size="small" />
       </button>
     </div>

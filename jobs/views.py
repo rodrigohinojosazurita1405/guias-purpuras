@@ -31,6 +31,7 @@ def publish_job(request):
     - companyName (str, default: 'Empresa Confidencial')
     - companyAnonymous (bool, default: False)
     - jobCategory (str)
+    - municipality (str)
     - subcategory (str)
     - modality (str: 'presencial'|'remoto'|'hibrido', default: 'presencial')
     - responsibilities (str)
@@ -38,6 +39,7 @@ def publish_job(request):
     - experience (str)
     - languages (str)
     - technicalSkills (str)
+    - softSkills (str)
     - salaryType (str: 'range'|'fixed'|'negotiable'|'hidden', default: 'range')
     - salaryMin (float)
     - salaryMax (float)
@@ -176,6 +178,7 @@ def publish_job(request):
                 description=description,
                 jobCategory=(data.get('jobCategory') or '').strip(),
                 city=city,
+                municipality=(data.get('municipality') or '').strip(),
                 subcategory=(data.get('subcategory') or '').strip(),
                 contractType=contract_type,
                 modality=modality,
@@ -186,6 +189,7 @@ def publish_job(request):
                 experience=(data.get('experience') or '').strip(),
                 languages=(data.get('languages') or '').strip(),
                 technicalSkills=(data.get('technicalSkills') or '').strip(),
+                softSkills=(data.get('softSkills') or '').strip(),
                 salaryType=salary_type,
                 salaryMin=float(data.get('salaryMin')) if data.get('salaryMin') else None,
                 salaryMax=float(data.get('salaryMax')) if data.get('salaryMax') else None,
@@ -272,6 +276,7 @@ def get_job(request, job_id):
                 # Clasificación
                 'jobCategory': job.jobCategory,
                 'city': job.city,
+                'municipality': job.municipality,
                 'subcategory': job.subcategory,
                 'contractType': job.contractType,
                 'modality': job.modality.capitalize() if hasattr(job, 'modality') else 'Presencial',
@@ -284,6 +289,7 @@ def get_job(request, job_id):
                 'experience': job.experience,
                 'languages': job.languages,
                 'technicalSkills': job.technicalSkills,
+                'softSkills': job.softSkills,
 
                 # Compensación
                 'salaryType': job.salaryType,

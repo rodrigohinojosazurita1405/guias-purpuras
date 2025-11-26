@@ -148,7 +148,7 @@
             @input="updateData('externalApplicationUrl', $event.target.value)"
           />
           <small class="form-hint">
-            Ej: LinkedIn, tu sitio web, formulario Google, etc.
+            Ej: LinkedIn, tu sitio web, Email, Whatsapp, formulario Google, etc.
           </small>
         </div>
       </div>
@@ -250,6 +250,30 @@
         <div v-else class="max-questions-message">
           <va-icon name="info" color="warning" />
           <span>Has alcanzado el máximo de 5 preguntas</span>
+        </div>
+      </div>
+
+      <!-- Instrucciones de Aplicación -->
+      <div v-if="['internal', 'both'].includes(modelValue.applicationType)" class="form-section">
+        <h3 class="section-title">
+          <va-icon name="description" size="1.25rem" />
+          Instrucciones de Aplicación (Opcional)
+        </h3>
+
+        <div class="form-row">
+          <label for="application-instructions">Instrucciones especiales para candidatos</label>
+          <textarea
+            id="application-instructions"
+            :value="modelValue.applicationInstructions || ''"
+            placeholder="Ej: Por favor envía tu CV en formato PDF, incluye referencias, carta de presentación..."
+            class="form-textarea"
+            rows="4"
+            maxlength="500"
+            @input="updateData('applicationInstructions', $event.target.value)"
+          />
+          <small class="form-hint">
+            Máximo 500 caracteres. Información adicional que debe conocer el candidato al aplicar.
+          </small>
         </div>
       </div>
 
@@ -356,6 +380,7 @@ const validate = () => {
     return false
   }
 
+  // Validar URL externa si es necesario
   if (['external', 'both'].includes(props.modelValue.applicationType)) {
     if (!props.modelValue.externalApplicationUrl) {
       alert('Por favor ingresa la URL de aplicación externa')
@@ -429,9 +454,9 @@ const validate = () => {
 .form-section {
   margin-bottom: 2.5rem;
   padding: 2rem;
-  background: #F8FAFC;
+  background: linear-gradient(135deg, #F8FAFC 0%, #FFFBFE 100%);
   border-radius: 12px;
-  border: 1px solid #E2E8F0;
+  border: 2px solid #E9D5FF;
 }
 
 .section-title {
@@ -440,7 +465,7 @@ const validate = () => {
   gap: 0.75rem;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #1E293B;
+  color: #7C3AED;
   margin: 0 0 1rem 0;
 }
 
@@ -544,6 +569,24 @@ const validate = () => {
   font-size: 0.85rem;
   color: #64748B;
   margin-top: 0.5rem;
+}
+
+/* Textarea */
+.form-textarea {
+  padding: 0.75rem 1rem;
+  border: 2px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.3s;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
 }
 
 /* Preguntas de Filtrado */

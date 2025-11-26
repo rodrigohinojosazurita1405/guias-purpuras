@@ -23,7 +23,7 @@
     <!-- FORMULARIO CON ACORDEONES -->
     <div class="form-content">
 
-      <!-- ACORDEÓN 1: INFORMACIÓN BÁSICA -->
+      <!-- ACORDEÓN 1: INFORMACIÓN ESENCIAL -->
       <div class="accordion-section" :class="{ 'expanded': expandedSections.basicInfo }">
         <div class="accordion-header" @click="toggleSection('basicInfo')">
           <div class="accordion-header-left">
@@ -31,7 +31,7 @@
               <va-icon name="info" size="1.5rem" />
             </div>
             <div class="accordion-title-group">
-              <h3 class="accordion-title">Información Básica del Puesto</h3>
+              <h3 class="accordion-title">Información Esencial</h3>
               <p v-if="!expandedSections.basicInfo" class="accordion-summary">
                 {{ getSummary('basicInfo') }}
               </p>
@@ -47,88 +47,247 @@
         <div v-if="expandedSections.basicInfo" class="accordion-content">
 
           <!-- TÍTULO DEL PUESTO -->
-        <div class="form-row">
-          <div class="form-label">Título del Puesto *</div>
-          <va-input
-            v-model="localFormData.title"
-            placeholder="Ingresa el título del puesto"
-            counter
-            maxlength="100"
-            :rules="[
-              (v) => !!v || 'El título es requerido',
-              (v) => (v && v.length >= 5) || 'Mínimo 5 caracteres'
-            ]"
-          >
-            <template #prepend>
-              <va-icon name="title" color="purple" />
-            </template>
-          </va-input>
-          
-          <div class="input-hint success-hint" style="margin-top: 0.75rem;">
-            <va-icon name="info" size="small" />
-            <span>Títulos claros reciben más postulaciones</span>
-          </div>
-        </div>
-
-        <div class="form-grid">
-          <!-- NOMBRE DE LA EMPRESA -->
           <div class="form-row">
-            <div class="form-label" :class="{ 'opacity-50': localFormData.companyAnonymous }">Nombre de la Empresa <span v-if="!localFormData.companyAnonymous">*</span></div>
+            <div class="form-label">Título del Puesto *</div>
             <va-input
-              v-model="localFormData.companyName"
-              placeholder="Ingresa el nombre de la empresa"
-              :disabled="localFormData.companyAnonymous"
+              v-model="localFormData.title"
+              placeholder="Ej: Desarrollador Senior, Diseñador UX, Community Manager"
+              counter
+              maxlength="100"
               :rules="[
-                (v) => localFormData.companyAnonymous || !!v || 'El nombre de la empresa es requerido'
+                (v) => !!v || 'El título es requerido',
+                (v) => (v && v.length >= 5) || 'Mínimo 5 caracteres'
               ]"
             >
               <template #prepend>
-                <va-icon name="business" color="purple" />
+                <va-icon name="title" color="purple" />
+              </template>
+            </va-input>
+
+            <div class="input-hint success-hint" style="margin-top: 0.75rem;">
+              <va-icon name="info" size="small" />
+              <span>Títulos claros reciben más postulaciones</span>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <!-- NOMBRE DE LA EMPRESA -->
+            <div class="form-row">
+              <div class="form-label" :class="{ 'opacity-50': localFormData.companyAnonymous }">Nombre de la Empresa <span v-if="!localFormData.companyAnonymous">*</span></div>
+              <va-input
+                v-model="localFormData.companyName"
+                placeholder="Ej: TechCorp Bolivia, Startups Innovadoras, Consultora ABC"
+                :disabled="localFormData.companyAnonymous"
+                :rules="[
+                  (v) => localFormData.companyAnonymous || !!v || 'El nombre de la empresa es requerido'
+                ]"
+              >
+                <template #prepend>
+                  <va-icon name="business" color="purple" />
+                </template>
+              </va-input>
+            </div>
+
+            <!-- CHECKBOX ANÓNIMO - INLINE -->
+            <div class="form-row">
+              <div class="anonymous-switch-container">
+                <va-switch
+                  v-model="localFormData.companyAnonymous"
+                  label="Publicar de forma anónima"
+                  color="warning"
+                  size="small"
+                />
+                <span class="anonymous-helper-text">Sin logo ni nombre visible</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- DESCRIPCIÓN DEL TRABAJO -->
+          <div class="form-row">
+            <div class="form-label">Descripción del Trabajo *</div>
+            <va-textarea
+              v-model="localFormData.description"
+              placeholder="Describe el puesto, funciones principales y qué esperas del candidato"
+              :min-rows="6"
+              counter
+              maxlength="1000"
+              :rules="[
+                (v) => !!v || 'La descripción es requerida',
+                (v) => (v && v.length >= 50) || 'Mínimo 50 caracteres para una buena descripción'
+              ]"
+            >
+              <template #prepend>
+                <va-icon name="description" color="purple" />
+              </template>
+            </va-textarea>
+
+            <div class="input-hint" style="margin-top: 0.75rem;">
+              <va-icon name="info" size="small" />
+              <span>Descripciones detalladas atraen candidatos de mejor calidad</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ACORDEÓN 2: REQUISITOS Y RESPONSABILIDADES -->
+      <div class="accordion-section" :class="{ 'expanded': expandedSections.requirements }">
+        <div class="accordion-header" @click="toggleSection('requirements')">
+          <div class="accordion-header-left">
+            <div class="accordion-icon">
+              <va-icon name="assignment_ind" size="1.5rem" />
+            </div>
+            <div class="accordion-title-group">
+              <h3 class="accordion-title">Requisitos y Competencias</h3>
+              <p v-if="!expandedSections.requirements" class="accordion-summary">
+                {{ getSummary('requirements') }}
+              </p>
+            </div>
+          </div>
+          <va-icon
+            :name="expandedSections.requirements ? 'expand_less' : 'expand_more'"
+            size="1.5rem"
+            class="accordion-chevron"
+          />
+        </div>
+
+        <div v-if="expandedSections.requirements" class="accordion-content">
+
+          <!-- REQUISITOS -->
+          <div class="form-row">
+            <div class="form-label">Requisitos *</div>
+            <va-textarea
+              v-model="localFormData.requirements"
+              placeholder="Ej: Experiencia previa, conocimientos específicos, disponibilidad de tiempo..."
+              :min-rows="3"
+              counter
+              maxlength="500"
+              :rules="[
+                (v) => !!v || 'Los requisitos son requeridos'
+              ]"
+            >
+              <template #prepend>
+                <va-icon name="assignment" color="purple" />
+              </template>
+            </va-textarea>
+          </div>
+
+          <!-- RESPONSABILIDADES -->
+          <div class="form-row">
+            <div class="form-label">Responsabilidades (Opcional)</div>
+            <va-textarea
+              v-model="localFormData.responsibilities"
+              placeholder="Ej: Funciones principales, tareas diarias, colaborar en equipo..."
+              :min-rows="3"
+              counter
+              maxlength="500"
+            >
+              <template #prepend>
+                <va-icon name="task_alt" color="purple" />
+              </template>
+            </va-textarea>
+          </div>
+
+          <!-- FORMACIÓN -->
+          <div class="form-row">
+            <div class="form-label">Formación (Opcional)</div>
+            <va-input
+              v-model="localFormData.education"
+              placeholder="Ej: Licenciatura en Informática, certificación profesional, diploma técnico"
+            >
+              <template #prepend>
+                <va-icon name="school" color="purple" />
               </template>
             </va-input>
           </div>
 
-          <!-- CHECKBOX ANÓNIMO - INLINE -->
+          <!-- EXPERIENCIA -->
           <div class="form-row">
-            <div class="anonymous-switch-container">
-              <va-switch
-                v-model="localFormData.companyAnonymous"
-                label="Publicar de forma anónima"
-                color="warning"
-                size="small"
-              />
-              <span class="anonymous-helper-text">Sin logo ni nombre visible</span>
+            <div class="form-label">Experiencia (Opcional)</div>
+            <va-select
+              v-model="localFormData.experience"
+              :options="experienceOptions"
+              placeholder="Selecciona el nivel de experiencia"
+              clearable
+            >
+              <template #prepend>
+                <va-icon name="history" color="purple" />
+              </template>
+            </va-select>
+          </div>
+
+          <!-- IDIOMAS -->
+          <div class="form-row">
+            <div class="form-label">Idiomas (Opcional)</div>
+            <va-input
+              v-model="localFormData.languages"
+              placeholder="Ej: Español nativo, inglés avanzado, otro idioma"
+            >
+              <template #prepend>
+                <va-icon name="language" color="purple" />
+              </template>
+            </va-input>
+          </div>
+
+          <!-- HABILIDADES TÉCNICAS -->
+          <div class="form-row">
+            <div class="form-label">Habilidades Técnicas (Opcional)</div>
+            <va-textarea
+              v-model="localFormData.technicalSkills"
+              placeholder="Ej: Herramientas especializadas, software específico, conocimientos técnicos requeridos"
+              :min-rows="3"
+              counter
+              maxlength="500"
+            >
+              <template #prepend>
+                <va-icon name="code" color="purple" />
+              </template>
+            </va-textarea>
+          </div>
+
+          <!-- HABILIDADES BLANDAS -->
+          <div class="form-row">
+            <div class="form-label">Habilidades Blandas (Opcional)</div>
+            <va-textarea
+              v-model="localFormData.softSkills"
+              placeholder="Ej: Comunicación, trabajo en equipo, liderazgo, creatividad, adaptabilidad"
+              :min-rows="3"
+              counter
+              maxlength="500"
+            >
+              <template #prepend>
+                <va-icon name="people" color="purple" />
+              </template>
+            </va-textarea>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ACORDEÓN 3: UBICACIÓN -->
+      <div class="accordion-section" :class="{ 'expanded': expandedSections.location }">
+        <div class="accordion-header" @click="toggleSection('location')">
+          <div class="accordion-header-left">
+            <div class="accordion-icon">
+              <va-icon name="location_on" size="1.5rem" />
+            </div>
+            <div class="accordion-title-group">
+              <h3 class="accordion-title">Ubicación</h3>
+              <p v-if="!expandedSections.location" class="accordion-summary">
+                {{ getSummary('location') }}
+              </p>
             </div>
           </div>
+          <va-icon
+            :name="expandedSections.location ? 'expand_less' : 'expand_more'"
+            size="1.5rem"
+            class="accordion-chevron"
+          />
         </div>
 
-        <!-- DESCRIPCIÓN DEL TRABAJO -->
-        <div class="form-row">
-          <div class="form-label">Descripción del Trabajo *</div>
-          <va-textarea
-            v-model="localFormData.description"
-            placeholder="Describe las funciones principales, responsabilidades y ambiente de trabajo"
-            :min-rows="6"
-            counter
-            maxlength="1000"
-            :rules="[
-              (v) => !!v || 'La descripción es requerida',
-              (v) => (v && v.length >= 50) || 'Mínimo 50 caracteres para una buena descripción'
-            ]"
-          >
-            <template #prepend>
-              <va-icon name="description" color="purple" />
-            </template>
-          </va-textarea>
-          
-          <div class="input-hint" style="margin-top: 0.75rem;">
-            <va-icon name="info" size="small" />
-            <span>Descripciones detalladas atraen candidatos de mejor calidad</span>
-          </div>
-        </div>
+        <div v-if="expandedSections.location" class="accordion-content">
 
-        <div class="form-grid">
-          <!-- CATEGORÍA -->
+          <!-- CATEGORÍA (Full width) -->
           <div class="form-row">
             <div class="form-label">Categoría/Área *</div>
             <va-select
@@ -143,222 +302,89 @@
             </va-select>
           </div>
 
-          <!-- CIUDAD -->
-          <div class="form-row">
-            <div class="form-label">Ciudad *</div>
-            <va-select
-              v-model="localFormData.city"
-              :options="cityOptions"
-              placeholder="Selecciona la ciudad"
-              :rules="[(v) => !!v || 'La ciudad es requerida']"
-            >
-              <template #prepend>
-                <va-icon name="location_city" color="purple" />
-              </template>
-            </va-select>
+          <!-- CIUDAD Y MUNICIPIO (Grid 2 columnas) -->
+          <div class="form-grid">
+            <div class="form-row">
+              <div class="form-label">Ciudad *</div>
+              <va-select
+                v-model="localFormData.city"
+                :options="cityOptions"
+                placeholder="Selecciona la ciudad"
+                :rules="[(v) => !!v || 'La ciudad es requerida']"
+              >
+                <template #prepend>
+                  <va-icon name="location_city" color="purple" />
+                </template>
+              </va-select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-label">Provincia / Municipio</div>
+              <va-input
+                v-model="localFormData.municipality"
+                placeholder="Ingresa la provincia o municipio"
+              >
+                <template #prepend>
+                  <va-icon name="place" color="purple" />
+                </template>
+              </va-input>
+            </div>
           </div>
 
-          <!-- PROVINCIA / MUNICIPIO -->
-          <div class="form-row">
-            <div class="form-label">Provincia / Municipio</div>
-            <va-input
-              v-model="localFormData.municipality"
-              placeholder="Ingresa la provincia o municipio"
-            >
-              <template #prepend>
-                <va-icon name="place" color="purple" />
-              </template>
-            </va-input>
-          </div>
-        </div>
+          <!-- TIPO DE CONTRATO Y FECHA DE VENCIMIENTO (Grid 2 columnas) -->
+          <div class="form-grid">
+            <div class="form-row">
+              <div class="form-label">Tipo de Contrato *</div>
+              <va-select
+                v-model="localFormData.contractType"
+                :options="contractTypeOptions"
+                placeholder="Selecciona el tipo"
+                :rules="[(v) => !!v || 'El tipo de contrato es requerido']"
+              >
+                <template #prepend>
+                  <va-icon name="schedule" color="purple" />
+                </template>
+              </va-select>
+            </div>
 
-        <div class="form-grid">
-          <!-- TIPO DE CONTRATO -->
-          <div class="form-row">
-            <div class="form-label">Tipo de Contrato *</div>
-            <va-select
-              v-model="localFormData.contractType"
-              :options="contractTypeOptions"
-              placeholder="Selecciona el tipo"
-              :rules="[(v) => !!v || 'El tipo de contrato es requerido']"
-            >
-              <template #prepend>
-                <va-icon name="schedule" color="purple" />
-              </template>
-            </va-select>
+            <div class="form-row">
+              <div class="form-label">Fecha de Vencimiento *</div>
+              <va-date-input
+                v-model="localFormData.expiryDate"
+                placeholder="Selecciona fecha"
+                :rules="[(v) => !!v || 'La fecha de vencimiento es requerida']"
+              >
+                <template #prepend>
+                  <va-icon name="event" color="purple" />
+                </template>
+              </va-date-input>
+            </div>
           </div>
-        </div>
-
-        <!-- FECHA DE VENCIMIENTO -->
-        <div class="form-row">
-          <div class="form-label">Fecha de Vencimiento *</div>
-          <va-date-input
-            v-model="localFormData.expiryDate"
-            placeholder="Selecciona fecha"
-            :rules="[(v) => !!v || 'La fecha de vencimiento es requerida']"
-          >
-            <template #prepend>
-              <va-icon name="event" color="purple" />
-            </template>
-          </va-date-input>
-          
-          <div class="input-hint">
-            <va-icon name="calendar_today" size="small" />
-            <span>Fecha límite para recibir postulaciones</span>
-          </div>
-        </div>
         </div>
       </div>
 
-      <!-- ACORDEÓN 2: REQUISITOS Y RESPONSABILIDADES -->
-      <div class="accordion-section" :class="{ 'expanded': expandedSections.requisites }">
-        <div class="accordion-header" @click="toggleSection('requisites')">
-          <div class="accordion-header-left">
-            <div class="accordion-icon">
-              <va-icon name="assignment" size="1.5rem" />
-            </div>
-            <div class="accordion-title-group">
-              <h3 class="accordion-title">Requisitos y Responsabilidades</h3>
-              <p v-if="!expandedSections.requisites" class="accordion-summary">
-                {{ getSummary('requisites') }}
-              </p>
-            </div>
-          </div>
-          <va-icon
-            :name="expandedSections.requisites ? 'expand_less' : 'expand_more'"
-            size="1.5rem"
-            class="accordion-chevron"
-          />
-        </div>
-
-        <div v-if="expandedSections.requisites" class="accordion-content">
-
-          <!-- REQUISITOS DEL PUESTO -->
-        <div class="form-row">
-          <div class="form-label">Requisitos del Puesto *</div>
-          <va-textarea
-            v-model="localFormData.requirements"
-            placeholder="Lista los requisitos y habilidades necesarias para el puesto"
-            :min-rows="6"
-            counter
-            maxlength="1000"
-            :rules="[(v) => !!v || 'Los requisitos son requeridos']"
-          >
-            <template #prepend>
-              <va-icon name="checklist" color="purple" />
-            </template>
-          </va-textarea>
-        </div>
-
-        <!-- FUNCIONES PRINCIPALES -->
-        <div class="form-row">
-          <div class="form-label">Funciones Principales (Opcional)</div>
-          <va-textarea
-            v-model="localFormData.responsibilities"
-            placeholder="Describe las responsabilidades diarias del puesto..."
-            :min-rows="4"
-            counter
-            maxlength="800"
-          >
-            <template #prepend>
-              <va-icon name="work_outline" color="purple" />
-            </template>
-          </va-textarea>
-        </div>
-
-        <div class="form-grid">
-          <!-- FORMACIÓN REQUERIDA -->
-          <div class="form-row">
-            <div class="form-label">Formación Requerida</div>
-            <va-input
-              v-model="localFormData.education"
-              placeholder="Ej: Licenciatura en área relacionada"
-            >
-              <template #prepend>
-                <va-icon name="school" color="purple" />
-              </template>
-            </va-input>
-          </div>
-
-          <!-- EXPERIENCIA NECESARIA -->
-          <div class="form-row">
-            <div class="form-label">Experiencia Necesaria</div>
-            <va-input
-              v-model="localFormData.experience"
-              placeholder="Ej: 2-3 años de experiencia comprobada"
-            >
-              <template #prepend>
-                <va-icon name="badge" color="purple" />
-              </template>
-            </va-input>
-          </div>
-        </div>
-
-        <div class="form-grid">
-          <!-- IDIOMAS -->
-          <div class="form-row">
-            <div class="form-label">Idiomas Requeridos</div>
-            <va-input
-              v-model="localFormData.languages"
-              placeholder="Ej: Español (nativo), Inglés (fluido)"
-            >
-              <template #prepend>
-                <va-icon name="language" color="purple" />
-              </template>
-            </va-input>
-          </div>
-
-          <!-- HABILIDADES TÉCNICAS -->
-          <div class="form-row">
-            <div class="form-label">Habilidades Técnicas</div>
-            <va-input
-              v-model="localFormData.technicalSkills"
-              placeholder="Ej: Dominio de software específico, programación"
-            >
-              <template #prepend>
-                <va-icon name="build" color="purple" />
-              </template>
-            </va-input>
-          </div>
-
-          <!-- HABILIDADES BLANDAS -->
-          <div class="form-row">
-            <div class="form-label">Habilidades Blandas</div>
-            <va-input
-              v-model="localFormData.softSkills"
-              placeholder="Ej: Liderazgo, comunicación, trabajo en equipo, resolución de problemas"
-            >
-              <template #prepend>
-                <va-icon name="people" color="purple" />
-              </template>
-            </va-input>
-          </div>
-        </div>
-        </div>
-      </div>
-
-      <!-- ACORDEÓN 3: INFORMACIÓN SALARIAL -->
-      <div class="accordion-section" :class="{ 'expanded': expandedSections.salary }">
-        <div class="accordion-header" @click="toggleSection('salary')">
+      <!-- ACORDEÓN 4: COMPENSACIÓN Y VACANTES -->
+      <div class="accordion-section" :class="{ 'expanded': expandedSections.compensation }">
+        <div class="accordion-header" @click="toggleSection('compensation')">
           <div class="accordion-header-left">
             <div class="accordion-icon">
               <va-icon name="attach_money" size="1.5rem" />
             </div>
             <div class="accordion-title-group">
-              <h3 class="accordion-title">Compensación y Beneficios</h3>
-              <p v-if="!expandedSections.salary" class="accordion-summary">
-                {{ getSummary('salary') }}
+              <h3 class="accordion-title">Compensación y Vacantes</h3>
+              <p v-if="!expandedSections.compensation" class="accordion-summary">
+                {{ getSummary('compensation') }}
               </p>
             </div>
           </div>
           <va-icon
-            :name="expandedSections.salary ? 'expand_less' : 'expand_more'"
+            :name="expandedSections.compensation ? 'expand_less' : 'expand_more'"
             size="1.5rem"
             class="accordion-chevron"
           />
         </div>
 
-        <div v-if="expandedSections.salary" class="accordion-content">
+        <div v-if="expandedSections.compensation" class="accordion-content">
 
           <div class="salary-tip">
           <va-icon name="lightbulb" color="warning" />
@@ -473,33 +499,9 @@
             <span>Incrementa el atractivo de tu oferta mencionando beneficios extra</span>
           </div>
         </div>
-        </div>
-      </div>
 
-      <!-- ACORDEÓN 5: NÚMERO DE VACANTES -->
-      <div class="accordion-section" :class="{ 'expanded': expandedSections.vacancies }">
-        <div class="accordion-header" @click="toggleSection('vacancies')">
-          <div class="accordion-header-left">
-            <div class="accordion-icon">
-              <va-icon name="people" size="1.5rem" />
-            </div>
-            <div class="accordion-title-group">
-              <h3 class="accordion-title">Número de Vacantes</h3>
-              <p v-if="!expandedSections.vacancies" class="accordion-summary">
-                {{ getSummary('vacancies') }}
-              </p>
-            </div>
-          </div>
-          <va-icon
-            :name="expandedSections.vacancies ? 'expand_less' : 'expand_more'"
-            size="1.5rem"
-            class="accordion-chevron"
-          />
-        </div>
-
-        <div v-if="expandedSections.vacancies" class="accordion-content">
-
-          <div class="form-row">
+        <!-- NÚMERO DE VACANTES -->
+        <div class="form-row">
           <label class="form-label">¿Cuántos puestos disponibles? *</label>
           <div class="vacancy-input-group">
             <button
@@ -549,6 +551,7 @@
         </div>
       </div>
 
+
       <!-- BOTONES DE NAVEGACIÓN -->
       <div class="navigation-buttons">
         <button class="btn btn-secondary" @click="handleBack">
@@ -581,9 +584,9 @@ const emit = defineEmits(['update:modelValue', 'next', 'back'])
 // ========== ACCORDION STATE ==========
 const expandedSections = ref({
   basicInfo: true,
-  requisites: false,
-  salary: false,
-  vacancies: false
+  requirements: false,
+  location: false,
+  compensation: false
 })
 
 // ========== DATA LOCAL (REF + WATCH) ==========
@@ -625,6 +628,16 @@ const contractTypeOptions = [
   { text: 'Freelance', value: 'Freelance' }
 ]
 
+const experienceOptions = [
+  { text: 'Sin experiencia', value: 'Sin experiencia' },
+  { text: 'Menos de 1 año', value: 'Menos de 1 año' },
+  { text: '1-2 años', value: '1-2 años' },
+  { text: '2-3 años', value: '2-3 años' },
+  { text: '3-5 años', value: '3-5 años' },
+  { text: '5-10 años', value: '5-10 años' },
+  { text: 'Más de 10 años', value: 'Más de 10 años' }
+]
+
 const questionTypeOptions = [
   { text: 'Texto corto', value: 'text' },
   { text: 'Sí / No', value: 'yesno' },
@@ -651,7 +664,8 @@ watch(localFormData, (newValue) => {
     ...newValue,
     jobCategory: typeof newValue.jobCategory === 'object' ? newValue.jobCategory?.value : newValue.jobCategory,
     city: typeof newValue.city === 'object' ? newValue.city?.value : newValue.city,
-    contractType: typeof newValue.contractType === 'object' ? newValue.contractType?.value : newValue.contractType
+    contractType: typeof newValue.contractType === 'object' ? newValue.contractType?.value : newValue.contractType,
+    experience: typeof newValue.experience === 'object' ? newValue.experience?.value : newValue.experience
   }
   emit('update:modelValue', cleanedValue)
 }, { deep: true })
@@ -683,31 +697,38 @@ const toggleSection = (sectionName) => {
 const getSummary = (sectionName) => {
   switch (sectionName) {
     case 'basicInfo':
-      if (localFormData.value.title && localFormData.value.city) {
-        return `${localFormData.value.title} - ${localFormData.value.city}`
+      if (localFormData.value.title) {
+        return localFormData.value.title
       }
       return 'Completa los datos básicos del puesto'
 
-    case 'requisites':
+    case 'requirements':
       if (localFormData.value.requirements) {
-        return 'Requisitos definidos'
+        return 'Requisitos y competencias definidos'
       }
-      return 'Define los requisitos y responsabilidades'
+      return 'Define requisitos y responsabilidades'
 
-    case 'salary':
+    case 'location':
+      if (localFormData.value.city && localFormData.value.contractType) {
+        return `${localFormData.value.city} - ${localFormData.value.contractType}`
+      }
+      return 'Define ubicación y tipo de contrato'
+
+    case 'compensation':
+      let summary = ''
       if (localFormData.value.salaryType === 'range' && localFormData.value.salaryMin) {
-        return `Bs. ${localFormData.value.salaryMin} - ${localFormData.value.salaryMax || '...'}`
+        summary = `Bs. ${localFormData.value.salaryMin} - ${localFormData.value.salaryMax || '...'}`
       } else if (localFormData.value.salaryType === 'fixed' && localFormData.value.salaryFixed) {
-        return `Bs. ${localFormData.value.salaryFixed}`
+        summary = `Bs. ${localFormData.value.salaryFixed}`
       } else if (localFormData.value.salaryType === 'negotiable') {
-        return 'Salario a convenir'
+        summary = 'A convenir'
       } else if (localFormData.value.salaryType === 'hidden') {
-        return 'Salario no visible'
+        summary = 'No visible'
       }
-      return 'Configura la compensación'
-
-    case 'vacancies':
-      return `${localFormData.value.vacancies || 1} ${localFormData.value.vacancies === 1 ? 'vacante' : 'vacantes'} disponible${localFormData.value.vacancies === 1 ? '' : 's'}`
+      if (localFormData.value.vacancies) {
+        summary += (summary ? ' • ' : '') + `${localFormData.value.vacancies} ${localFormData.value.vacancies === 1 ? 'vacante' : 'vacantes'}`
+      }
+      return summary || 'Configura compensación y vacantes'
 
     default:
       return ''
@@ -985,13 +1006,13 @@ defineExpose({
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .form-field {
@@ -1089,6 +1110,31 @@ defineExpose({
   font-size: 0.85rem;
   color: #5B21B6;
   font-weight: 500;
+}
+
+/* ========== Accordion Subsection ========== */
+.accordion-subsection {
+  padding: 1.5rem;
+  background: #F8FAFC;
+  border-left: 4px solid #7C3AED;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+}
+
+.subsection-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1E293B;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #E9D5FF;
+}
+
+.subsection-title va-icon {
+  color: #7C3AED;
 }
 
 /* ========== Salary Section ========== */

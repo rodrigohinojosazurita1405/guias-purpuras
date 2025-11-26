@@ -454,12 +454,12 @@
         </div>
       </div>
 
-      <!-- INFORMACIÓN DEL TRABAJO (JOBS ONLY) -->
+      <!-- INFORMACIÓN ESENCIAL (ACORDEÓN 1) -->
       <div v-if="type === 'job' && jobData" class="summary-section">
         <div class="section-header">
           <h3 class="section-title">
             <va-icon name="work" size="1.25rem" />
-            Información del Trabajo
+            Información Esencial
           </h3>
         </div>
 
@@ -472,18 +472,6 @@
             <span class="label">Empresa:</span>
             <span class="value">{{ jobData.companyAnonymous ? 'Empresa Confidencial' : jobData.companyName }}</span>
           </div>
-          <div class="info-row">
-            <span class="label">Categoría:</span>
-            <span class="value">{{ jobData.jobCategory }}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Tipo de Contrato:</span>
-            <span class="value">{{ jobData.contractType }}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Ciudad:</span>
-            <span class="value">{{ jobData.city }}</span>
-          </div>
           <div class="info-row full-width">
             <span class="label">Descripción:</span>
             <p class="value description">{{ jobData.description }}</p>
@@ -491,12 +479,12 @@
         </div>
       </div>
 
-      <!-- REQUISITOS (JOBS ONLY) -->
+      <!-- REQUISITOS Y COMPETENCIAS (ACORDEÓN 2) -->
       <div v-if="type === 'job' && jobData" class="summary-section">
         <div class="section-header">
           <h3 class="section-title">
-            <va-icon name="assignment" size="1.25rem" />
-            Requisitos
+            <va-icon name="assignment_ind" size="1.25rem" />
+            Requisitos y Competencias
           </h3>
         </div>
 
@@ -504,6 +492,10 @@
           <div class="info-row full-width">
             <span class="label">Requisitos:</span>
             <p class="value description">{{ jobData.requirements }}</p>
+          </div>
+          <div v-if="jobData.responsibilities" class="info-row full-width">
+            <span class="label">Responsabilidades:</span>
+            <p class="value description">{{ jobData.responsibilities }}</p>
           </div>
           <div v-if="jobData.education" class="info-row">
             <span class="label">Formación:</span>
@@ -517,19 +509,56 @@
             <span class="label">Idiomas:</span>
             <span class="value">{{ jobData.languages }}</span>
           </div>
-          <div v-if="jobData.technicalSkills" class="info-row">
+          <div v-if="jobData.technicalSkills" class="info-row full-width">
             <span class="label">Habilidades Técnicas:</span>
-            <span class="value">{{ jobData.technicalSkills }}</span>
+            <p class="value description">{{ jobData.technicalSkills }}</p>
+          </div>
+          <div v-if="jobData.softSkills" class="info-row full-width">
+            <span class="label">Habilidades Blandas:</span>
+            <p class="value description">{{ jobData.softSkills }}</p>
           </div>
         </div>
       </div>
 
-      <!-- COMPENSACIÓN (JOBS ONLY) -->
+      <!-- UBICACIÓN (ACORDEÓN 3) -->
+      <div v-if="type === 'job' && jobData" class="summary-section">
+        <div class="section-header">
+          <h3 class="section-title">
+            <va-icon name="location_on" size="1.25rem" />
+            Ubicación
+          </h3>
+        </div>
+
+        <div class="section-content">
+          <div class="info-row">
+            <span class="label">Categoría:</span>
+            <span class="value">{{ jobData.jobCategory }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Ciudad:</span>
+            <span class="value">{{ jobData.city }}</span>
+          </div>
+          <div v-if="jobData.municipality" class="info-row">
+            <span class="label">Provincia/Municipio:</span>
+            <span class="value">{{ jobData.municipality }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Tipo de Contrato:</span>
+            <span class="value">{{ jobData.contractType }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Fecha de Vencimiento:</span>
+            <span class="value">{{ jobData.expiryDate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPENSACIÓN Y VACANTES (ACORDEÓN 4) -->
       <div v-if="type === 'job' && jobData" class="summary-section">
         <div class="section-header">
           <h3 class="section-title">
             <va-icon name="attach_money" size="1.25rem" />
-            Compensación
+            Compensación y Vacantes
           </h3>
         </div>
 
@@ -554,6 +583,10 @@
           <div v-if="jobData.benefits" class="info-row full-width">
             <span class="label">Beneficios:</span>
             <p class="value description">{{ jobData.benefits }}</p>
+          </div>
+          <div v-if="jobData.vacancies" class="info-row">
+            <span class="label">Número de Vacantes:</span>
+            <span class="value bold">{{ jobData.vacancies }} {{ jobData.vacancies === 1 ? 'vacante' : 'vacantes' }}</span>
           </div>
         </div>
       </div>
@@ -632,65 +665,110 @@
       LAYOUT PRINCIPAL PARA JOBS (Estilo Trabajito)
       ========================================== -->
       <template v-if="type === 'job'">
-        <div class="job-listing-card">
-          <!-- ========== HEADER: ESTRUCTURA TRABAJITO (Logo + Empresa ARRIBA, Título ABAJO) ========== -->
-          <div class="job-header">
-            <!-- SECCIÓN 1: Logo + Nombre de Empresa (en línea) -->
-            <div class="company-section">
-              <!-- Logo de Empresa -->
-              <div class="company-logo-container">
-                <div v-if="jobData.logo" class="company-logo">
-                  <img :src="jobData.logo" :alt="jobData.companyName" class="logo-image" />
-                </div>
-                <div v-else class="company-logo-placeholder">
-                  <va-icon name="business" size="large" />
-                </div>
-              </div>
+        <!-- TÍTULO GENERAL -->
+        <div class="job-summary-header">
+          <h2 class="job-summary-title">Resumen y Configuración de Pago de tu Anuncio</h2>
+          <p class="job-summary-subtitle">Revisa los detalles de tu publicación antes de completar el pago por favor</p>
+        </div>
 
-              <!-- Nombre Empresa (al lado del logo) -->
-              <div class="company-info">
-                <p class="company-name">
-                  {{ jobData.companyAnonymous ? 'Empresa Confidencial' : jobData.companyName }}
-                </p>
-              </div>
+        <div class="job-listing-card">
+          <!-- ========== HEADER PROFESIONAL: BADGES ARRIBA + INFORMACIÓN EN GRID ========== -->
+          <div class="job-header">
+            <!-- TOP: BADGES EN LÍNEA HORIZONTAL -->
+            <div class="badges-top-row">
+              <span class="badge badge-plan" :class="`plan-${jobData.selectedPlan}`">
+                {{ getJobPlanName(jobData.selectedPlan).replace('Plan ', '') }}
+              </span>
+              <span v-for="planBadge in planBadges" :key="planBadge" class="badge" :class="`badge-${getBadgeClass(planBadge)}`">
+                <va-icon v-if="getBadgeIcon(planBadge)" :name="getBadgeIcon(planBadge)" size="small" class="badge-icon" />
+                {{ planBadge }}
+              </span>
             </div>
 
-            <!-- SECCIÓN 2: Título Grande (debajo) -->
-            <h1 class="job-title">{{ jobData.title }}</h1>
-
-            <!-- SECCIÓN 3: Badges + Meta información -->
-            <div class="header-bottom">
-              <!-- Badges en línea -->
-              <div class="header-badges">
-                <span class="badge badge-plan" :class="`plan-${jobData.selectedPlan}`">
-                  {{ getJobPlanName(jobData.selectedPlan).replace('Plan ', '') }}
-                </span>
-                <!-- Plan feature badges -->
-                <span v-for="planBadge in planBadges" :key="planBadge" class="badge" :class="`badge-${getBadgeClass(planBadge)}`">
-                  <va-icon v-if="getBadgeIcon(planBadge)" :name="getBadgeIcon(planBadge)" size="small" class="badge-icon" />
-                  {{ planBadge }}
-                </span>
-                <span class="badge badge-type">{{ jobData.contractType }}</span>
-                <span class="badge badge-location">
-                  <va-icon name="location_on" size="x-small" />
-                  {{ jobData.city }}
-                </span>
+            <!-- MIDDLE: GRID DE 3 COLUMNAS (LOGO + INFO + METADATA) -->
+            <div class="header-grid">
+              <!-- COLUMNA 1: LOGO GRANDE -->
+              <div class="logo-column">
+                <div class="company-logo-container">
+                  <div v-if="jobData.logo && !jobData.companyAnonymous" class="company-logo">
+                    <img :src="jobData.logo" :alt="jobData.companyName" class="logo-image" />
+                  </div>
+                  <div v-else class="company-logo-placeholder">
+                    <va-icon name="business" size="4rem" />
+                  </div>
+                </div>
               </div>
 
-              <!-- Información secundaria: vacantes, fecha y estado -->
-              <div class="header-meta">
-                <span class="meta-item" v-if="jobData.vacancies">
-                  <va-icon name="person" size="small" />
-                  {{ jobData.vacancies }} {{ jobData.vacancies === 1 ? 'vacante' : 'vacantes' }}
-                </span>
-                <span v-if="jobData.expiryDate" class="meta-item" :class="{ 'expired': isExpired }">
-                  <va-icon :name="isExpired ? 'close_circle' : 'calendar_today'" size="small" />
-                  {{ isExpired ? 'CONVOCATORIA CERRADA' : `Vence el ${formatDate(jobData.expiryDate)}` }}
-                </span>
-                <span v-if="jobData.publishedDate" class="meta-item">
-                  <va-icon name="schedule" size="small" />
-                  Publicado {{ formatPublishedDate(jobData.publishedDate) }}
-                </span>
+              <!-- COLUMNA 2: INFORMACIÓN PRINCIPAL -->
+              <div class="info-column">
+                <!-- Título del Puesto (Grande) -->
+                <div class="job-title-wrapper">
+                  <span class="job-title-label">Oferta laboral:</span>
+                  <h1 class="job-title">{{ jobData.title }}</h1>
+                </div>
+
+                <!-- Grid de Información: 2x2 -->
+                <div class="info-grid">
+                  <div class="info-item">
+                    <div class="info-content">
+                      <span class="info-label">
+                        <va-icon name="business" size="small" />
+                        Empresa:
+                      </span>
+                      <span class="info-value">
+                        {{ jobData.companyAnonymous ? 'Empresa Confidencial' : jobData.companyName }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="info-item">
+                    <div class="info-content">
+                      <span class="info-label">
+                        <va-icon name="work_history" size="small" />
+                        Contrato:
+                      </span>
+                      <span class="info-value">{{ jobData.contractType }}</span>
+                    </div>
+                  </div>
+
+                  <div class="info-item">
+                    <div class="info-content">
+                      <span class="info-label">
+                        <va-icon name="location_on" size="small" />
+                        Ubicación:
+                      </span>
+                      <span class="info-value">
+                        {{ jobData.municipality ? `${jobData.city} - ${jobData.municipality}` : jobData.city }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="info-item">
+                    <div class="info-content">
+                      <span class="info-label">
+                        <va-icon name="calendar_today" size="small" />
+                        Vencimiento:
+                      </span>
+                      <span class="info-value" :class="{ 'expired-text': isExpired }">
+                        {{ isExpired ? 'CONVOCATORIA CERRADA' : formatDate(jobData.expiryDate) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- COLUMNA 3: METADATA -->
+              <div class="metadata-column">
+                <div class="metadata-container">
+                  <div v-if="jobData.vacancies" class="meta-item">
+                    <va-icon name="person" size="small" />
+                    <span>{{ jobData.vacancies }} {{ jobData.vacancies === 1 ? 'vacante' : 'vacantes' }}</span>
+                  </div>
+                  <div v-if="jobData.publishedDate" class="meta-item">
+                    <va-icon name="schedule" size="small" />
+                    <span>Publicado {{ formatPublishedDate(jobData.publishedDate) }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -792,10 +870,6 @@
                     <span class="additional-value">{{ jobData.jobCategory }}</span>
                   </div>
                   <div class="additional-item">
-                    <span class="additional-label">Subcategoría:</span>
-                    <span class="additional-value">{{ jobData.subcategory }}</span>
-                  </div>
-                  <div class="additional-item">
                     <span class="additional-label">Tipo de Aplicación:</span>
                     <span class="additional-value">
                       <template v-if="jobData.applicationType === 'internal'">
@@ -809,7 +883,11 @@
                       </template>
                     </span>
                   </div>
-                  <div class="additional-item" v-if="jobData.email">
+                  <div v-if="jobData.vacancies" class="additional-item">
+                    <span class="additional-label">Vacantes:</span>
+                    <span class="additional-value">{{ jobData.vacancies }}</span>
+                  </div>
+                  <div v-if="jobData.email" class="additional-item">
                     <span class="additional-label">Email de Contacto:</span>
                     <a :href="`mailto:${jobData.email}`" class="additional-link">{{ jobData.email }}</a>
                   </div>
@@ -1902,44 +1980,77 @@ watch(() => props.formData.coordinates, (newCoords) => {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
-/* ========== HEADER - LOGO, TÍTULO, EMPRESA ========== */
-/* ==========================================
-   HEADER PRINCIPAL (ESTILO TRABAJITO)
-   ========================================== */
+/* ========== TÍTULO GENERAL ========== */
+.job-summary-header {
+  margin-bottom: 2rem;
+  padding: 0;
+}
+
+.job-summary-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.3px;
+}
+
+.job-summary-subtitle {
+  font-size: 1rem;
+  color: #64748B;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ========== HEADER - LAYOUT PROFESIONAL ========== */
 .job-header {
-  padding: 2.5rem;
+  padding: 2rem 3rem 3rem 3rem;
   border-bottom: 2px solid #F0F3FF;
-  background: linear-gradient(135deg, #FAFBFF 0%, #F5F3FF 100%);
+  background: white;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
-/* SECCIÓN 1: LOGO + NOMBRE DE EMPRESA (En línea) */
-.company-section {
+/* BADGES TOP ROW */
+.badges-top-row {
   display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1.2rem;
 }
 
-/* LOGO DE EMPRESA */
+.header-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  gap: 2rem 2.5rem;
+  align-items: flex-start;
+}
+
+/* COLUMNA 1: LOGO GRANDE */
+.logo-column {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 3.2rem;
+}
+
 .company-logo-container {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .company-logo {
-  width: 100px;
-  height: 100px;
-  border-radius: 12px;
+  width: 160px;
+  height: 160px;
+  border-radius: 10px;
   background: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
-  border: 2px solid #E2E8F0;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #E5E7EB;
   overflow: hidden;
 }
 
@@ -1947,137 +2058,221 @@ watch(() => props.formData.coordinates, (newCoords) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 11px;
 }
 
 .company-logo-placeholder {
-  width: 100px;
-  height: 100px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #E0E7FF 0%, #F0EBFF 100%);
+  width: 160px;
+  height: 160px;
+  border-radius: 10px;
+  background: #F9FAFB;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #7C3AED;
-  font-size: 2.4rem;
-  border: 2px solid #E2E8F0;
+  color: #D1D5DB;
+  border: 1px solid #E5E7EB;
 }
 
-/* NOMBRE EMPRESA */
-.company-info {
+/* COLUMNA 2: INFORMACIÓN */
+.info-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* TÍTULO DEL PUESTO */
+.job-title-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.job-title-label {
+  font: 2.2rem;
+  font-weight: 700;
+  color: #7C3AED;
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.job-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+}
+
+/* GRID DE INFORMACIÓN 2x2 */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem 2rem;
+  margin-top: 1rem;
+}
+
+.info-item {
+  display: flex;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  transition: none;
+  box-shadow: none;
+}
+
+.info-item:hover {
+  border-color: transparent;
+  box-shadow: none;
+  background: transparent;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
   flex: 1;
 }
 
-.company-name {
-  font-size: 1.5rem;
+.info-label {
+  font-size: 0.7rem;
   font-weight: 700;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-label :deep(.va-icon) {
   color: #7C3AED;
-  margin: 0;
-  letter-spacing: -0.2px;
+  opacity: 1;
+  font-size: 0.85rem;
 }
 
-/* SECCIÓN 2: TÍTULO GRANDE */
-.job-title {
-  font-size: 2rem;
-  font-weight: 900;
-  color: #0F172A;
-  margin: 0;
-  line-height: 1.25;
-  letter-spacing: -0.5px;
+.info-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1E293B;
+  line-height: 1.4;
 }
 
-/* SECCIÓN 3: BADGES + META */
-.header-bottom {
+.info-value.expired-text {
+  color: #DC2626;
+  font-weight: 800;
+}
+
+/* COLUMNA 3: METADATA */
+.metadata-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.metadata-container {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  align-items: flex-end;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
 }
 
-.header-badges {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
 
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: 8px;
-  font-size: 0.75rem;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border: none;
   transition: all 0.2s ease;
+  min-width: 140px;
+  text-align: center;
 }
 
 .badge-plan {
-  background: #F5F0FF;
+  background: linear-gradient(135deg, #F5F0FF 0%, #EDE9FE 100%);
   color: #7C3AED;
-  border: 1px solid rgba(124, 58, 237, 0.2);
+  border: 2px solid rgba(124, 58, 237, 0.3);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
 }
 
 .badge-plan.plan-escencial {
-  background: #F0FDF4;
+  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
   color: #16A34A;
-  border: 1px solid rgba(22, 163, 74, 0.2);
+  border: 2px solid rgba(22, 163, 74, 0.3);
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.15);
 }
 
 .badge-plan.plan-purpura {
-  background: #F5F0FF;
+  background: linear-gradient(135deg, #F5F0FF 0%, #EDE9FE 100%);
   color: #7C3AED;
-  border: 1px solid rgba(124, 58, 237, 0.2);
+  border: 2px solid rgba(124, 58, 237, 0.3);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
 }
 
 .badge-plan.plan-impulso {
-  background: #FEF3C7;
+  background: linear-gradient(135deg, #FEF3C7 0%, #FEE08F 100%);
   color: #D97706;
-  border: 1px solid rgba(217, 119, 6, 0.2);
+  border: 2px solid rgba(217, 119, 6, 0.3);
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.15);
 }
 
 .badge-type {
-  background: #F3F4F6;
-  color: #6B7280;
-  border: 1px solid #E5E7EB;
+  background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+  color: #475569;
+  border: 2px solid #D1D5DB;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .badge-location {
-  background: #E0F2FE;
+  background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%);
   color: #0369A1;
-  border: 1px solid rgba(3, 105, 161, 0.2);
+  border: 2px solid rgba(3, 105, 161, 0.3);
+  box-shadow: 0 2px 8px rgba(3, 105, 161, 0.15);
 }
 
 .badge-basic {
-  background: #F0F4F8;
+  background: linear-gradient(135deg, #F0F4F8 0%, #E2E8F0 100%);
   color: #475569;
-  border: 1px solid #CBD5E1;
+  border: 2px solid #CBD5E1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .badge-featured {
   background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
   color: white;
-  border: 1px solid rgba(124, 58, 237, 0.5);
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+  border: 2px solid rgba(124, 58, 237, 0.7);
+  font-weight: 800;
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
 }
 
 .badge-sponsored {
   background: linear-gradient(135deg, #10B981 0%, #059669 100%);
   color: white;
-  border: 1px solid rgba(16, 185, 129, 0.5);
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  border: 2px solid rgba(16, 185, 129, 0.7);
+  font-weight: 800;
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
 }
 
 .badge-urgent {
   background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
   color: white;
-  border: 1px solid rgba(220, 38, 38, 0.5);
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  border: 2px solid rgba(220, 38, 38, 0.7);
+  font-weight: 800;
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
 }
 
 .badge-icon {
@@ -2086,37 +2281,18 @@ watch(() => props.formData.coordinates, (newCoords) => {
   font-weight: 700;
 }
 
-/* METADATOS DEL HEADER */
-.header-meta {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(124, 58, 237, 0.1);
-}
-
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: #64748B;
-  font-weight: 500;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  color: #475569;
+  font-weight: 600;
 }
 
 .meta-item :deep(.va-icon) {
   color: #7C3AED;
-  opacity: 0.7;
-}
-
-.meta-item.expired {
-  color: #DC2626;
-  font-weight: 600;
-}
-
-.meta-item.expired :deep(.va-icon) {
-  color: #DC2626;
-  opacity: 1;
+  font-size: 1.1rem;
 }
 
 /* ========== CONTENIDO PRINCIPAL ========== */
@@ -2246,28 +2422,36 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
 .salary-container {
   margin-top: 1.25rem;
-}
-
-.salary-label {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #64748B;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0 0 0.5rem 0;
-}
-
-.salary-amount {
-  font-size: 2rem;
-  font-weight: 900;
-  color: #7C3AED;
-  margin: 0;
-  letter-spacing: -0.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   padding: 1.5rem;
   background: linear-gradient(135deg, #F5F0FF 0%, #FAF5FF 100%);
   border-radius: 12px;
-  border: 2px solid rgba(124, 58, 237, 0.1);
-  display: inline-block;
+  border: 2px solid rgba(124, 58, 237, 0.15);
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.08);
+}
+
+.salary-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #7C3AED;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 0;
+}
+
+.salary-amount {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #7C3AED;
+  margin: 0;
+  letter-spacing: -0.3px;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  display: inline;
   min-width: fit-content;
 }
 
@@ -2641,48 +2825,72 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
 /* ===== INFORMACIÓN ADICIONAL (Sin divisiones) ===== */
 .info-additional {
-  margin-top: 1.5rem;
+  margin-top: 2rem;
+  padding: 1.75rem;
+  background: linear-gradient(135deg, #F8FAFC 0%, #FFFBFE 100%);
+  border: 2px solid rgba(124, 58, 237, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.05);
 }
 
 .additional-title {
-  margin: 0 0 1rem 0;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #1F2937;
+  margin: 0 0 1.25rem 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #7C3AED;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .additional-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: 1.75rem;
   margin-bottom: 1rem;
 }
 
 .additional-item {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  transition: all 0.2s ease;
+}
+
+.additional-item:hover {
+  border-color: #7C3AED;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
 }
 
 .additional-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #6B7280;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #7C3AED;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .additional-value {
-  font-size: 0.95rem;
-  color: #334155;
-  font-weight: 600;
+  font-size: 1rem;
+  color: #1E293B;
+  font-weight: 700;
 }
 
 .additional-external {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  margin-top: 1rem;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
 }
 
 .additional-link {
