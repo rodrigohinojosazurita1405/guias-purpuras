@@ -3249,7 +3249,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
   .header-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
     align-items: flex-start;
   }
 
@@ -3264,19 +3264,19 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .company-logo {
-    width: 120px;
-    height: 120px;
-    border-radius: 14px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border: 2px solid #E5E7EB;
     flex-shrink: 0;
   }
 
   .company-logo-placeholder {
-    width: 120px;
-    height: 120px;
-    font-size: 2.4rem;
-    border-radius: 14px;
+    width: 90px;
+    height: 90px;
+    font-size: 2rem;
+    border-radius: 12px;
     border: 2px solid #E5E7EB;
   }
 
@@ -3308,7 +3308,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .info-grid {
-    gap: 0.75rem 0;
+    gap: 0.5rem 0;
     margin-top: 0;
   }
 
@@ -3326,7 +3326,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .metadata-column {
-    gap: 0.75rem;
+    gap: 0.5rem;
     align-items: flex-start;
   }
 
@@ -3348,6 +3348,8 @@ watch(() => props.formData.coordinates, (newCoords) => {
     border-radius: 3px;
     line-height: 1;
     white-space: nowrap;
+    min-width: auto;
+    flex: 0 1 auto;
   }
 
   .meta-item {
