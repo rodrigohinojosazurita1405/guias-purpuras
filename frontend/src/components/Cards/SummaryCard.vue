@@ -793,7 +793,7 @@
               <p v-if="jobData.requirements" class="block-text">{{ jobData.requirements }}</p>
 
               <!-- Detalles de Requisitos como viñetas -->
-              <ul v-if="jobData.education || jobData.experience || jobData.languages || jobData.technicalSkills" class="requirements-list">
+              <ul v-if="jobData.education || jobData.experience || jobData.languages || jobData.technicalSkills || jobData.softSkills" class="requirements-list">
                 <li v-if="jobData.education" class="requirement-item">
                   <va-icon name="school" class="requirement-icon" />
                   <div>
@@ -815,7 +815,13 @@
                 <li v-if="jobData.technicalSkills" class="requirement-item">
                   <va-icon name="build" class="requirement-icon" />
                   <div>
-                    <strong>Habilidades:</strong> {{ jobData.technicalSkills }}
+                    <strong>Habilidades Técnicas:</strong> {{ jobData.technicalSkills }}
+                  </div>
+                </li>
+                <li v-if="jobData.softSkills" class="requirement-item">
+                  <va-icon name="people" class="requirement-icon" />
+                  <div>
+                    <strong>Habilidades Blandas:</strong> {{ jobData.softSkills }}
                   </div>
                 </li>
               </ul>
@@ -1594,6 +1600,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
 .info-row.full-width {
   flex-direction: column;
   gap: 0.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .info-row .label {
