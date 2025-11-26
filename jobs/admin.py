@@ -92,82 +92,51 @@ class JobAdmin(admin.ModelAdmin):
     # ========== MÉTODOS DE DISPLAY PARA LA LISTA ==========
 
     def job_title_display(self, obj):
-        """Muestra el título del trabajo con línea activa/inactiva"""
+        """Muestra el título del trabajo"""
         if obj.status == 'active':
-            color = '#10B981'  # Verde
             icon = '🔵'
         elif obj.status == 'closed':
-            color = '#EF4444'  # Rojo
             icon = '⚫'
         else:
-            color = '#F59E0B'  # Naranja
             icon = '🟡'
-        return format_html(
-            '<span style="color: {}; font-weight: bold;">{} {}</span>',
-            color,
-            icon,
-            obj.title[:50]
-        )
+        return f'{icon} {obj.title[:50]}'
     job_title_display.short_description = 'Título'
 
     def company_display(self, obj):
         """Muestra el nombre de la empresa"""
         if obj.companyAnonymous:
-            return format_html(
-                '<span style="color: #999; font-style: italic;">Anónimo</span>'
-            )
+            return 'Anónimo'
         return obj.companyName
     company_display.short_description = 'Empresa'
 
     def status_badge(self, obj):
         """Badge de estado"""
-        colors = {
-            'active': '#10B981',
-            'closed': '#EF4444',
-            'draft': '#F59E0B'
-        }
         labels = {
             'active': 'ACTIVA',
             'closed': 'CERRADA',
             'draft': 'BORRADOR'
         }
-        return format_html(
-            '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">{}</span>',
-            colors.get(obj.status, '#999'),
-            labels.get(obj.status, obj.status.upper())
-        )
+        return labels.get(obj.status, obj.status.upper())
     status_badge.short_description = 'Estado'
 
     def payment_badge(self, obj):
         """Badge de estado de pago"""
         if obj.paymentVerified:
-            return format_html(
-                '<span style="background-color: #10B981; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">VERIFICADO</span>'
-            )
+            return 'VERIFICADO'
         elif obj.proofOfPayment:
-            return format_html(
-                '<span style="background-color: #F59E0B; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">PENDIENTE</span>'
-            )
+            return 'PENDIENTE'
         else:
-            return format_html(
-                '<span style="background-color: #EF4444; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">SIN PAGO</span>'
-            )
+            return 'SIN PAGO'
     payment_badge.short_description = 'Pago'
 
     def applications_count(self, obj):
         """Muestra el contador de aplicaciones"""
-        return format_html(
-            '<strong style="color: #7C3AED;">{}</strong> aplicaciones',
-            obj.applications
-        )
+        return f'{obj.applications} aplicaciones'
     applications_count.short_description = 'Aplicaciones'
 
     def views_count(self, obj):
         """Muestra el contador de vistas"""
-        return format_html(
-            '<span style="color: #666;">{} vistas</span>',
-            obj.views
-        )
+        return f'{obj.views} vistas'
     views_count.short_description = 'Vistas'
 
     def created_date_display(self, obj):
@@ -177,38 +146,23 @@ class JobAdmin(admin.ModelAdmin):
 
     def job_analytics_display(self, obj):
         """Muestra analíticas del trabajo"""
-        html = f'<div style="background-color: #f5f5f5; padding: 15px; border-radius: 8px;">'
-        html += f'<h3 style="margin-top: 0; color: #7C3AED;">Analíticas</h3>'
-        html += f'<p><strong>Vistas:</strong> {obj.views}</p>'
-        html += f'<p><strong>Aplicaciones:</strong> {obj.applications}</p>'
-        html += f'<p><strong>Publicado:</strong> {obj.createdAt.strftime("%d de %B de %Y")}</p>'
-        html += f'<p><strong>Actualizado:</strong> {obj.updatedAt.strftime("%d de %B de %Y")}</p>'
-        html += f'</div>'
-        return mark_safe(html)
+        return (
+            f'Vistas: {obj.views}, Aplicaciones: {obj.applications}, '
+            f'Publicado: {obj.createdAt.strftime("%d/%m/%Y")}'
+        )
     job_analytics_display.short_description = 'Analíticas'
 
     def payment_verification_summary(self, obj):
         """Resumen de la verificación de pago"""
         if not obj.proofOfPayment:
-            return format_html(
-                '<div style="background-color: #FEE2E2; padding: 15px; border-radius: 8px; color: #991B1B;"><strong>Sin comprobante de pago</strong></div>'
-            )
+            return 'Sin comprobante de pago'
 
-        html = f'<div style="background-color: #f5f5f5; padding: 15px; border-radius: 8px;">'
-        html += f'<p><strong>Comprobante:</strong> <a href="{obj.proofOfPayment.url}" target="_blank" style="color: #7C3AED;">Ver imagen</a></p>'
+        status = 'VERIFICADO' if obj.paymentVerified else 'PENDIENTE'
+        verified_by = obj.paymentVerifiedBy.username if obj.paymentVerifiedBy else 'N/A'
+        date_str = obj.paymentVerificationDate.strftime("%d/%m/%Y %H:%M") if obj.paymentVerificationDate else 'N/A'
+        notes = obj.paymentVerificationNotes or ''
 
-        if obj.paymentVerified:
-            html += f'<p><strong>Estado:</strong> <span style="color: #10B981; font-weight: bold;">VERIFICADO</span></p>'
-            html += f'<p><strong>Verificado por:</strong> {obj.paymentVerifiedBy.username if obj.paymentVerifiedBy else "N/A"}</p>'
-            html += f'<p><strong>Fecha:</strong> {obj.paymentVerificationDate.strftime("%d/%m/%Y %H:%M") if obj.paymentVerificationDate else "N/A"}</p>'
-        else:
-            html += f'<p><strong>Estado:</strong> <span style="color: #F59E0B; font-weight: bold;">PENDIENTE</span></p>'
-
-        if obj.paymentVerificationNotes:
-            html += f'<p><strong>Notas:</strong> {obj.paymentVerificationNotes}</p>'
-
-        html += '</div>'
-        return mark_safe(html)
+        return f'Estado: {status}, Verificado por: {verified_by}, Fecha: {date_str}'
     payment_verification_summary.short_description = 'Resumen de Verificación'
 
     # ========== ACCIONES PERSONALIZADAS ==========
@@ -312,10 +266,7 @@ class ApplicationAdmin(admin.ModelAdmin):
 
     def candidate_name_display(self, obj):
         """Muestra el nombre del candidato"""
-        return format_html(
-            '<strong style="color: #7C3AED;">{}</strong>',
-            obj.applicantName
-        )
+        return obj.applicantName
     candidate_name_display.short_description = 'Candidato'
 
     def job_title_link(self, obj):
@@ -330,23 +281,11 @@ class ApplicationAdmin(admin.ModelAdmin):
 
     def candidate_email(self, obj):
         """Email del candidato"""
-        return format_html(
-            '<a href="mailto:{}">{}</a>',
-            obj.applicantEmail,
-            obj.applicantEmail
-        )
+        return obj.applicantEmail
     candidate_email.short_description = 'Email'
 
     def status_badge(self, obj):
         """Badge con estado de la aplicación"""
-        colors = {
-            'received': '#3B82F6',
-            'reviewing': '#F59E0B',
-            'shortlisted': '#8B5CF6',
-            'rejected': '#EF4444',
-            'accepted': '#10B981',
-            'withdrawn': '#6B7280'
-        }
         labels = {
             'received': 'RECIBIDA',
             'reviewing': 'EN REVISIÓN',
@@ -355,11 +294,7 @@ class ApplicationAdmin(admin.ModelAdmin):
             'accepted': 'ACEPTADA',
             'withdrawn': 'RETIRADA'
         }
-        return format_html(
-            '<span style="background-color: {}; color: white; padding: 5px 12px; border-radius: 12px; font-size: 11px; font-weight: bold;">{}</span>',
-            colors.get(obj.status, '#999'),
-            labels.get(obj.status, obj.status.upper())
-        )
+        return labels.get(obj.status, obj.status.upper())
     status_badge.short_description = 'Estado'
 
     def application_date(self, obj):
@@ -370,52 +305,40 @@ class ApplicationAdmin(admin.ModelAdmin):
     def screening_answers_preview(self, obj):
         """Preview de respuestas de screening"""
         if not obj.screeningAnswers:
-            return format_html('<span style="color: #999;">Sin respuestas</span>')
+            return 'Sin respuestas'
 
         count = len(obj.screeningAnswers)
-        return format_html(
-            '<span style="color: #7C3AED; font-weight: bold;">{}</span> respuestas',
-            count
-        )
+        return f'{count} respuestas'
     screening_answers_preview.short_description = 'Respuestas'
 
     def screening_answers_display(self, obj):
         """Muestra todas las respuestas de screening de forma legible"""
         if not obj.screeningAnswers:
-            return format_html(
-                '<div style="color: #999; font-style: italic;">Sin respuestas de screening</div>'
-            )
+            return 'Sin respuestas de screening'
 
-        html = '<div style="background-color: #f5f5f5; padding: 15px; border-radius: 8px;">'
-        html += '<h3 style="margin-top: 0; color: #7C3AED;">Respuestas de Screening</h3>'
-
+        result = 'Respuestas de Screening:\n'
         for idx, (key, answer) in enumerate(obj.screeningAnswers.items()):
-            html += f'<div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">'
-            html += f'<strong style="color: #333;">Pregunta {int(key) + 1}:</strong><br>'
+            result += f'\nPregunta {int(key) + 1}:\n'
 
             # Obtener la pregunta original del job
             job = obj.job
             if job.screeningQuestions and int(key) < len(job.screeningQuestions):
                 question = job.screeningQuestions[int(key)]
-                html += f'<em style="color: #666;">{question.get("text", "Pregunta no disponible")}</em><br>'
+                result += f'{question.get("text", "Pregunta no disponible")}\n'
 
-            html += f'<strong style="color: #7C3AED;">Respuesta:</strong> {answer}<br>'
-            html += '</div>'
+            result += f'Respuesta: {answer}\n'
 
-        html += '</div>'
-        return mark_safe(html)
+        return result
     screening_answers_display.short_description = 'Respuestas de Screening'
 
     def candidate_contact_display(self, obj):
         """Muestra información de contacto del candidato"""
-        html = '<div style="background-color: #f0f9ff; padding: 12px; border-radius: 8px; border-left: 4px solid #7C3AED;">'
-        html += f'<p><strong>Email:</strong> <a href="mailto:{obj.applicantEmail}">{obj.applicantEmail}</a></p>'
+        contact = f'Email: {obj.applicantEmail}'
         if obj.applicantPhone:
-            html += f'<p><strong>Teléfono:</strong> {obj.applicantPhone}</p>'
+            contact += f', Teléfono: {obj.applicantPhone}'
         if obj.applicantWhatsapp:
-            html += f'<p><strong>WhatsApp:</strong> <a href="https://wa.me/{obj.applicantWhatsapp.replace(" ", "").replace("+", "")}" target="_blank">{obj.applicantWhatsapp}</a></p>'
-        html += '</div>'
-        return mark_safe(html)
+            contact += f', WhatsApp: {obj.applicantWhatsapp}'
+        return contact
     candidate_contact_display.short_description = 'Información de Contacto'
 
     # ========== ACCIONES PERSONALIZADAS ==========
