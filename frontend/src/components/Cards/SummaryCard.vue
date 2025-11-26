@@ -2114,7 +2114,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
 /* GRID DE INFORMACIÓN - Layout optimizado */
 .info-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem 1.5rem;
   margin-top: 0.5rem;
 }
@@ -3070,43 +3070,58 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .job-header {
-    padding: 2rem;
-    background: linear-gradient(135deg, #FAFBFF 0%, #F5F3FF 100%);
-  }
-
-  .company-section {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    padding: 1.5rem;
+    background: white;
     gap: 1rem;
   }
 
+  .header-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem 0;
+  }
+
+  .logo-column {
+    padding-top: 0;
+    justify-content: flex-start;
+  }
+
   .company-logo {
-    width: 85px;
-    height: 85px;
+    width: 80px;
+    height: 80px;
   }
 
   .company-logo-placeholder {
-    width: 85px;
-    height: 85px;
-    font-size: 2.1rem;
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
   }
 
   .company-name {
-    font-size: 1.35rem;
+    font-size: 1.2rem;
   }
 
   .job-title {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     line-height: 1.3;
+    margin-top: 0.5rem;
   }
 
-  .header-badges {
-    justify-content: center;
+  .job-title-label {
+    font-size: 0.75rem;
+    font-weight: 600;
   }
 
-  .header-meta {
-    justify-content: center;
+  .info-column {
+    gap: 0.5rem;
+  }
+
+  .metadata-column {
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .badges-top-row {
+    gap: 0.5rem;
   }
 
   .job-content {
@@ -3141,8 +3156,8 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .info-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
   }
 
   .payment-summary {
@@ -3164,7 +3179,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
   .payment-container {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
   }
 
   .payment-qr-column {
@@ -3177,23 +3192,23 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
   .payment-support-compact {
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
 
   .support-text {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 
   .additional-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   .info-technical {
-    margin-left: -2rem;
-    margin-right: -2rem;
-    margin-bottom: -2rem;
-    padding: 1.75rem 2rem;
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    margin-bottom: -1.25rem;
+    padding: 1.25rem;
   }
 
   .block-title {
@@ -3210,93 +3225,148 @@ watch(() => props.formData.coordinates, (newCoords) => {
 @media (max-width: 480px) {
   /* JOB LISTING MOBILE */
   .job-listing-card {
-    border-radius: 8px;
-    margin-top: 1rem;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    margin-top: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    padding: 0;
   }
 
   .job-header {
-    padding: 1.5rem;
-    gap: 1.25rem;
+    padding: 1.25rem;
+    gap: 0.75rem;
+    border-radius: 6px;
+    border-bottom: 1px solid #E5E7EB;
   }
 
-  .company-section {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.8rem;
+  .header-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .logo-column {
+    padding-top: 0;
+    margin-bottom: 0;
+  }
+
+  .company-logo-container {
+    width: 100%;
   }
 
   .company-logo {
-    width: 75px;
-    height: 75px;
+    width: 65px;
+    height: 65px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
 
   .company-logo-placeholder {
-    width: 75px;
-    height: 75px;
-    font-size: 1.9rem;
+    width: 65px;
+    height: 65px;
+    font-size: 1.7rem;
+    border-radius: 8px;
   }
 
   .company-name {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
+  }
+
+  .job-title-label {
+    font-size: 0.65rem;
+    font-weight: 600;
   }
 
   .job-title {
-    font-size: 1.25rem;
-    font-weight: 800;
+    font-size: 1.2rem;
+    font-weight: 700;
     line-height: 1.25;
+    margin: 0.25rem 0;
   }
 
-  .header-meta {
+  .info-column {
+    gap: 0.4rem;
+  }
+
+  .info-grid {
+    gap: 0.75rem 0;
+    margin-top: 0;
+  }
+
+  .info-item {
+    padding: 0;
+    background: transparent;
+  }
+
+  .info-label {
+    font-size: 0.6rem;
+  }
+
+  .info-value {
+    font-size: 0.85rem;
+  }
+
+  .metadata-column {
     gap: 0.75rem;
-    padding-top: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .badges-top-row {
+    gap: 0.3rem;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .header-badges {
+    gap: 0.3rem;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 4px;
+    line-height: 1;
   }
 
   .meta-item {
     font-size: 0.8rem;
-  }
-
-  .header-badges {
-    gap: 0.5rem;
-  }
-
-  .badge {
-    padding: 0.35rem 0.7rem;
-    font-size: 0.7rem;
+    padding: 0;
+    background: transparent;
   }
 
   .job-content {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
 
   .content-block {
-    padding-bottom: 1.5rem;
+    padding-bottom: 1rem;
   }
 
   .content-block:not(:last-child) {
     border-bottom: 1px solid #E2E8F0;
+    padding-bottom: 1rem;
   }
 
   .block-title {
-    font-size: 1rem;
-    margin: 0 0 1rem 0;
+    font-size: 0.95rem;
+    margin: 0 0 0.75rem 0;
+    font-weight: 700;
   }
 
   .block-text {
-    font-size: 0.9rem;
-    line-height: 1.7;
+    font-size: 0.85rem;
+    line-height: 1.6;
   }
 
   .requirements-list {
-    margin: 1rem 0 0 0;
-    gap: 0.75rem;
+    margin: 0.75rem 0 0 0;
+    gap: 0.5rem;
   }
 
   .requirement-item {
-    padding: 1rem;
-    gap: 0.75rem;
-    font-size: 0.9rem;
+    padding: 0.75rem;
+    gap: 0.5rem;
+    font-size: 0.85rem;
   }
 
   .requirement-icon {
@@ -3316,30 +3386,30 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .benefit-icon {
-    font-size: 1rem;
+    font-size: 0.95rem;
     margin-right: 0.3rem;
   }
 
   .salary-label {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 
   .salary-amount {
-    font-size: 1.4rem;
-    padding: 1rem;
+    font-size: 1.25rem;
+    padding: 0.85rem;
   }
 
   .info-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 0.75rem;
   }
 
   .info-group {
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   .info-item {
-    gap: 0.3rem;
+    gap: 0.2rem;
   }
 
   .info-label {
