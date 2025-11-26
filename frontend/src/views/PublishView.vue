@@ -65,6 +65,16 @@
       @submit="handleSubmit"
       @back="previousStep"
     />
+
+    <!-- MODAL DE ÉXITO DESPUÉS DE PUBLICACIÓN -->
+    <PublishSuccessModal
+      v-model="showSuccessModal"
+      :job-data="publishedJob"
+      @publish-another="() => {
+        publishStore.setCurrentStep(0)
+        showSuccessModal = false
+      }"
+    />
   </MainLayout>
 </template>
 
@@ -82,6 +92,7 @@ import InformationStepJob from '@/views/FormCreate/InformationStepJob.vue'
 import ApplicationConfigStep from '@/components/Publish/ApplicationConfigStep.vue'
 import PlanStep from '@/components/Publish/PlanStep.vue'
 import SummaryCard from '@/components/Cards/SummaryCard.vue'
+import PublishSuccessModal from '@/components/Modals/PublishSuccessModal.vue'
 
 const router = useRouter()
 const { init: notify } = useToast()
@@ -93,6 +104,10 @@ const isSubmitting = ref(false)
 // Refs para acceder a métodos validate() de los componentes
 const planStepRef = ref(null)
 const informationStepRef = ref(null)
+
+// Estado del modal de éxito
+const showSuccessModal = ref(false)
+const publishedJob = ref(null)
 
 // ========== CARGAR BORRADOR Y OBTENER EMPRESA ==========
 onMounted(async () => {
@@ -381,21 +396,18 @@ const handleSubmit = async () => {
     console.log('   Creado en:', result.createdAt)
     console.log('   Mensaje:', result.message)
 
-    // Mostrar éxito
-    notify({
-      message: '¡Oferta publicada exitosamente! 🎉',
-      color: 'success',
-      duration: 3000
-    })
+    // Guardar datos del job publicado para mostrar en el modal
+    publishedJob.value = {
+      id: result.id,
+      title: publishStore.jobData.title,
+      createdAt: result.createdAt
+    }
+
+    // Mostrar modal de éxito
+    showSuccessModal.value = true
 
     // Limpiar form
     publishStore.resetForm()
-
-    // Redirigir a detalle del trabajo
-    console.log(`🔗 Redirigiendo a /guias/trabajos/${result.id}...`)
-    setTimeout(() => {
-      router.push(`/guias/trabajos/${result.id}`)
-    }, 500)
 
   } catch (error) {
     console.error('❌ Error de conexión:', error)
