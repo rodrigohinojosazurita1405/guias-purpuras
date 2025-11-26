@@ -2132,7 +2132,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
   letter-spacing: -0.3px;
 }
 
-/* GRID DE INFORMACIÓN - Layout optimizado */
+/* GRID DE INFORMACIÓN - Layout optimizado con cajas visuales */
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2145,6 +2145,10 @@ watch(() => props.formData.coordinates, (newCoords) => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  padding: 1.5rem;
+  border: 2px solid #E9D5FF;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #FAFBFC 0%, #F8F6FB 100%);
 }
 
 .info-item {
