@@ -225,7 +225,7 @@ const loadPlans = async () => {
   try {
     isLoading.value = true
     error.value = null
-    const response = await fetch('http://localhost:8000/api/plans/', {
+    const response = await fetch('/api/plans/', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
