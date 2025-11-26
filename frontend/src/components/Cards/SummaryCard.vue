@@ -2024,8 +2024,8 @@ watch(() => props.formData.coordinates, (newCoords) => {
 /* ========== HEADER - LAYOUT PROFESIONAL ========== */
 .job-header {
   padding: 1.5rem 2.5rem 2.25rem 2.5rem;
-  border-bottom: 2px solid #F0F3FF;
-  background: white;
+  border-bottom: 2px solid #E9D5FF;
+  background: linear-gradient(135deg, #FAFBFC 0%, #F8F6FB 100%);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
