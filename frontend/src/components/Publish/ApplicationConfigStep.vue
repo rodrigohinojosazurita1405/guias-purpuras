@@ -286,7 +286,7 @@
         <p class="section-description">
           Proporciona los medios de contacto por los cuales los candidatos pueden enviarte su CV directamente <br>
         </p>
-
+<br>
         <!-- Email de Contacto -->
         <div class="form-row">
           <label for="contact-email">Email de Contacto (Opcional)</label>
@@ -329,20 +329,19 @@
           <small class="form-hint">Enlace a tu sitio web o portafolio</small>
         </div>
 
-        <div class="contact-info-box">
-          <va-icon name="lightbulb" color="#7C3AED" size="1.5rem" />
+        <div class="info-box">
+          <va-icon name="info" color="#7C3AED" size="1.5rem" />
           <div class="info-content">
-            <strong>Consejo:</strong> Proporciona al menos un método de contacto (Email o WhatsApp) para recibir aplicaciones internas exitosamente.
+            <p><strong>Proporciona al menos un método de contacto</strong> (Email o WhatsApp) para recibir aplicaciones exitosamente.</p>
           </div>
         </div>
       </div>
 
-      <!-- Info Box -->
+      <!-- Info Box - Nota General -->
       <div class="info-box">
         <va-icon name="info" color="#7C3AED" size="1.5rem" />
         <div class="info-content">
-          <strong>Nota Importante:</strong>
-          <p>Los candidatos que apliquen internamente recibirán un email de confirmación automático.</p>
+          <p><strong>Nota Importante:</strong> Los candidatos que apliquen internamente recibirán un email de confirmación automático.</p>
         </div>
       </div>
     </div>
@@ -872,38 +871,15 @@ const validate = () => {
   margin-top: 1rem;
 }
 
-/* Sección de Contacto */
-.contact-info-box {
-  display: flex;
-  gap: 1.25rem;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #FEF3C7 0%, #FEF9E7 100%);
-  border-left: 4px solid #EAB308;
-  border-radius: 12px;
-  margin-top: 1.5rem;
-}
-
-.contact-info-box strong {
-  display: block;
-  color: #92400E;
-  margin-bottom: 0.5rem;
-}
-
-.contact-info-box .info-content {
-  color: #78350F;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
 /* Info Box */
 .info-box {
   display: flex;
   gap: 1.25rem;
-  padding: 1.75rem;
-  background: linear-gradient(135deg, #F3E8FF 0%, #FAF5FF 100%);
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #F3E8FF 0%, #FFFBFE 100%);
   border-left: 4px solid #7C3AED;
   border-radius: 12px;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
 }
 
 .info-content {
@@ -911,14 +887,13 @@ const validate = () => {
 }
 
 .info-content strong {
-  display: block;
   color: #6D28D9;
-  margin-bottom: 0.5rem;
+  font-weight: 600;
 }
 
 .info-content p {
   margin: 0;
-  color: #5B21B6;
+  color: #6D28D9;
   font-size: 0.95rem;
   line-height: 1.5;
 }
