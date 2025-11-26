@@ -3116,8 +3116,9 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .metadata-column {
-    gap: 1rem;
-    align-items: flex-start;
+    gap: 0.75rem;
+    align-items: flex-end;
+    justify-content: flex-end;
   }
 
   .badges-top-row {
@@ -3330,8 +3331,18 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
   .meta-item {
     font-size: 0.8rem;
-    padding: 0;
-    background: transparent;
+    padding: 0.4rem 0.8rem;
+    background: #F5F3FF;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+  }
+
+  .meta-item span {
+    font-weight: 600;
+    color: #2E1065;
   }
 
   .job-content {
