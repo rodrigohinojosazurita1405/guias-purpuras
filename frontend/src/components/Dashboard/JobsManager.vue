@@ -181,8 +181,8 @@ const loadJobs = async () => {
   try {
     loading.value = true
 
-    const storedUser = localStorage.getItem('authUser')
-    const storedToken = localStorage.getItem('accessToken')
+    const storedUser = localStorage.getItem('auth_user')
+    const storedToken = localStorage.getItem('access_token')
 
     if (!storedUser) {
       console.warn('No hay usuario autenticado')
@@ -199,6 +199,9 @@ const loadJobs = async () => {
     const user = JSON.parse(storedUser)
     const email = user.email || ''
 
+    console.log('JobsManager - Email buscando:', email)
+    console.log('JobsManager - Token:', storedToken ? 'Presente' : 'No presente')
+
     const response = await fetch(
       `/api/user/published?email=${encodeURIComponent(email)}`,
       {
@@ -210,11 +213,16 @@ const loadJobs = async () => {
       }
     )
 
+    console.log('JobsManager - Response status:', response.status)
+
     if (!response.ok) {
+      const errorData = await response.json()
+      console.log('JobsManager - Error response:', errorData)
       throw new Error('Error cargando trabajos publicados')
     }
 
     const data = await response.json()
+    console.log('JobsManager - Data recibida:', data)
     if (data.success && data.jobs) {
       // Mapear datos de la API al formato esperado
       jobs.value = data.jobs.map(job => ({

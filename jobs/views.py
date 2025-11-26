@@ -809,20 +809,25 @@ def get_user_published_jobs(request):
     """
     try:
         email = request.GET.get('email', '')
+        print(f'DEBUG: get_user_published_jobs - Email buscando: {email}')
+
         if not email:
             return JsonResponse({
                 'success': False,
                 'message': 'Email requerido'
             }, status=400)
 
-        jobs = Job.objects.filter(email=email).values(
+        jobs_list = list(Job.objects.filter(email=email).values(
             'id', 'title', 'companyName', 'status', 'views',
             'applications', 'createdAt', 'city', 'modality'
-        ).order_by('-createdAt')
+        ).order_by('-createdAt'))
+
+        print(f'DEBUG: get_user_published_jobs - Total de trabajos encontrados: {len(jobs_list)}')
+        print(f'DEBUG: get_user_published_jobs - Trabajos: {jobs_list}')
 
         return JsonResponse({
             'success': True,
-            'jobs': list(jobs)
+            'jobs': jobs_list
         }, status=200)
 
     except Exception as e:
