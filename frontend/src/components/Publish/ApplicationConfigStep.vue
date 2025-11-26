@@ -284,7 +284,7 @@
           Información de Contacto Directo
         </h3>
         <p class="section-description">
-          Proporciona los medios de contacto por los cuales los candidatos pueden enviarte su CV directamente
+          Proporciona los medios de contacto por los cuales los candidatos pueden enviarte su CV directamente <br>
         </p>
 
         <!-- Email de Contacto -->
@@ -602,20 +602,25 @@ const validate = () => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  margin-bottom: 1.75rem;
 }
 
 .form-row label {
   font-weight: 600;
   color: #1E293B;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
 }
 
 .form-input {
-  padding: 0.75rem 1rem;
+  padding: 0.9rem 1.1rem;
   border: 2px solid #E2E8F0;
   border-radius: 8px;
   font-size: 0.95rem;
   font-family: inherit;
   transition: all 0.3s;
+  line-height: 1.6;
+  letter-spacing: 0.2px;
 }
 
 .form-input:focus {
@@ -633,7 +638,7 @@ const validate = () => {
 
 /* Textarea */
 .form-textarea {
-  padding: 0.75rem 1rem;
+  padding: 0.9rem 1.1rem;
   border: 2px solid #E2E8F0;
   border-radius: 8px;
   font-size: 0.95rem;
@@ -641,6 +646,8 @@ const validate = () => {
   transition: all 0.3s;
   resize: vertical;
   min-height: 100px;
+  line-height: 1.6;
+  letter-spacing: 0.2px;
 }
 
 .form-textarea:focus {
@@ -722,12 +729,14 @@ const validate = () => {
 }
 
 .form-input {
-  padding: 0.75rem 1rem;
+  padding: 0.9rem 1.1rem;
   border: 2px solid #E2E8F0;
   border-radius: 8px;
   font-size: 0.95rem;
   font-family: inherit;
   transition: all 0.3s;
+  line-height: 1.6;
+  letter-spacing: 0.2px;
 }
 
 .form-input:focus {
@@ -861,6 +870,29 @@ const validate = () => {
   color: #F57C00;
   font-weight: 600;
   margin-top: 1rem;
+}
+
+/* Sección de Contacto */
+.contact-info-box {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #FEF3C7 0%, #FEF9E7 100%);
+  border-left: 4px solid #EAB308;
+  border-radius: 12px;
+  margin-top: 1.5rem;
+}
+
+.contact-info-box strong {
+  display: block;
+  color: #92400E;
+  margin-bottom: 0.5rem;
+}
+
+.contact-info-box .info-content {
+  color: #78350F;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 /* Info Box */
