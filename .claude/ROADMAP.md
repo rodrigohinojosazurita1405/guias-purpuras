@@ -11,27 +11,156 @@ FASE 3: Búsqueda y Filtrado                ⏳ 0% (PENDIENTE)
 FASE 3.6: Autenticación Real               ✅ 100% COMPLETADA
 FASE 4: Perfiles de Usuario                ✅ 100% COMPLETADA + FOTO CRUD ✅
 FASE 5: Perfiles de Empresa                ✅ 100% COMPLETADA (CRUD + CRUD fotos)
-FASE 6: Sistema de Aplicaciones            ⏳ 5% (CV Harvard + Parser planificado)
+FASE 6: Sistema de Aplicaciones            ✅ 100% COMPLETADA (ApplicationProcess + Backend)
 FASE 7: Sistema de Pagos + Comprobante     ✅ 100% COMPLETADA (Publicación funcionando)
 FASE 7.1: Validación de Pago               ✅ 100% COMPLETADA (Anuncios sin errores)
 FASE 7.2: Configuración de Aplicación      ✅ 100% COMPLETADA (Campos condicionales)
-FASE 7.3: Gestión de Anuncios              ⏳ 0% (PENDIENTE)
+FASE 7.3: Gestión de Anuncios              ⏳ 70% (JobsManager mostrado, botones pendientes)
 FASE 7.4: Aplicaciones a Anuncios          ⏳ 0% (PENDIENTE)
 FASE 7.5: Dashboard de Publicador          ⏳ 0% (PENDIENTE)
 FASE 8: Dashboard Admin                    ⏳ 0% (PENDIENTE)
 FASE 9: Dashboard Multi-Rol                ⏳ 0% (PLANIFICADA)
 
-MEJORAS RECIENTES (Sesión 9 - ACTUAL):
-- ✅ Estructura de excepciones arreglada en publish_job
-- ✅ Token JWT validado con AccessToken (no UntypedToken)
-- ✅ Emojis reemplazados por ASCII para Windows
-- ✅ Anuncios se publican exitosamente desde frontend
-- ✅ Comprobante de pago se guarda en media/payment_proofs/
+MEJORAS RECIENTES (Sesión 10 - ACTUAL):
+- ✅ Emojis removidos de PublishSuccessModal.vue (diseño profesional)
+- ✅ Ruta de navegación fija: /dashboard/mis-anuncios → /dashboard/jobs-manager
+- ✅ Mostrar anuncios publicados en JobsManager (5+ anuncios visibles)
+- ✅ Corrección de orden de decoradores en 7 endpoints (Bearer token validation)
+- ✅ Configuración de Vite proxy para /api/* → backend Django
+- ✅ Sincronización localStorage correcta (auth_user, access_token)
+- ✅ JobsManager usa useAuthStore correctamente
 - ✅ Conexión frontend-backend completamente funcional
-- ✅ Job creado con ID 44482c3c - Status 201 OK
-- 🔧 3 bugs críticos solucionados en commit c7620a7
-- 📋 Roadmap actualizado con todos los cambios
+- 🔧 5 bugs críticos solucionados
+- 📋 Roadmap actualizado con progreso FASE 7.3
 ```
+
+---
+
+## ✅ COMPLETADO EN ESTA SESIÓN (Sesión 10 - FASE 7 Mostrar Anuncios + Preparación FASE 7.3)
+
+### FASE 7.3: Gestión de Anuncios - PROGRESO 70% ✅
+**Descripción**: Implementación de botones de acción en JobsManager para gestionar anuncios publicados
+
+#### ✅ Lo que YA está funcional:
+1. **JobsManager.vue - Mostrar Anuncios**
+   - ✅ Lista de anuncios publicados por usuario
+   - ✅ Carga de datos desde `/api/user/published?email=X`
+   - ✅ Muestra 5+ anuncios del usuario autenticado
+   - ✅ Información visible: título, estado, fecha de creación
+
+#### ⏳ LO QUE FALTA - Botones de Acción (PRÓXIMA SESIÓN):
+Los siguientes botones necesitan ser implementados en JobsManager.vue:
+
+1. **Botón "Ver"** (Ver completo)
+   - [ ] Abre modal/página con detalles completos del anuncio
+   - [ ] Muestra: título, descripción, requisitos, salario, benefits
+   - [ ] Muestra cantidad de aplicaciones recibidas
+   - [ ] Botón "Cerrar anuncio" disponible (cambiar status a closed)
+   - [ ] Componente: `JobDetailModal.vue`
+
+2. **Botón "Editar"** (Editar anuncio)
+   - [ ] Abre formulario para editar todos los campos
+   - [ ] Pre-carga datos actuales del anuncio
+   - [ ] PATCH `/api/jobs/{id}/` con cambios
+   - [ ] Validación de campos antes de guardar
+   - [ ] Confirmación de éxito
+   - [ ] Componente: `JobEditModal.vue` o reutilizar PublishView
+
+3. **Botón "Duplicar"** (Crear copia)
+   - [ ] Crea anuncio idéntico con nuevo ID
+   - [ ] Guarda con estado "draft" (no publicado)
+   - [ ] POST `/api/jobs/duplicate/{id}/`
+   - [ ] Redirige a editor con copia pre-cargada
+   - [ ] Usuario puede cambiar detalles y re-publicar
+
+4. **Botón "Cerrar"** (Cambiar status)
+   - [ ] PATCH `/api/jobs/{id}/` con status="closed"
+   - [ ] Cambio inmediato en la lista
+   - [ ] Confirmación antes de cerrar
+   - [ ] Anuncio cerrado sigue visible pero no recibe más aplicaciones
+   - [ ] Opción de "Reabrir" si está cerrado
+
+#### Backend Endpoints Necesarios:
+```python
+# Ya existen:
+GET  /api/user/published?email=X           ✅ Funcionando
+
+# Necesarios:
+GET  /api/jobs/{id}/                       ⏳ Obtener detalles completo
+PATCH /api/jobs/{id}/                      ⏳ Actualizar anuncio
+POST /api/jobs/{id}/duplicate/             ⏳ Duplicar anuncio
+PATCH /api/jobs/{id}/status/               ⏳ Cambiar status (closed/open)
+GET  /api/jobs/{id}/applications/          ⏳ Contar aplicaciones del anuncio
+```
+
+#### Estructura de Base de Datos (Job Model):
+```python
+# Campos que ya existen:
+- id, title, description, requirements, salary
+- status (default='draft', choices=['draft', 'published', 'closed', 'archived'])
+- created_at, updated_at
+- created_by (FK to User)
+
+# Campos que podrían ser útiles:
+- applicationsCount (auto-calc)
+- lastUpdated (timestamp)
+- viewsCount (analítica)
+```
+
+#### Archivos a Crear/Modificar:
+```
+✅ JobsManager.vue (YA EXISTE)
+   ├─ Agregar 4 botones en template (Ver, Editar, Duplicar, Cerrar)
+   ├─ Métodos: viewJob(), editJob(), duplicateJob(), closeJob()
+   └─ Loading states, error handling
+
+⏳ JobDetailModal.vue (NUEVO)
+   ├─ Mostrar detalles completos
+   ├─ Contador de aplicaciones
+   └─ Botón cerrar anuncio
+
+⏳ JobEditModal.vue (NUEVO)
+   ├─ Reutilizar campos de PublishView
+   ├─ Pre-cargar datos actuales
+   └─ Validación completa
+
+⏳ jobs/views.py (BACKEND)
+   ├─ get_job_detail(request, job_id)
+   ├─ edit_job(request, job_id)
+   ├─ duplicate_job(request, job_id)
+   └─ update_job_status(request, job_id)
+```
+
+#### Flujo de Usuario:
+```
+1. Usuario en JobsManager ve lista de sus anuncios
+2. Click "Ver" → Modal con detalles + contador aplicaciones
+3. Click "Editar" → Abre editor, realiza cambios, guarda
+4. Click "Duplicar" → Copia anuncio en draft para editar
+5. Click "Cerrar" → Confirmación → Cambia a status="closed"
+6. Anuncio cerrado se marcan visualmente (gris, deshabilitado)
+```
+
+#### Estados Visuales Esperados:
+```
+- 🟢 PUBLISHED (verde)  → Activo, recibiendo aplicaciones
+- 🔴 CLOSED (rojo)      → Cerrado, sin aplicaciones nuevas
+- ⚪ DRAFT (gris)       → Borrador, no publicado
+- ⚫ ARCHIVED (negro)   → Archivado, histórico
+```
+
+#### Criterios de Aceptación:
+- [ ] Los 4 botones ejecutan acciones correctas
+- [ ] Backend responde correctamente a todas las acciones
+- [ ] Estados se reflejan inmediatamente en el UI
+- [ ] No hay errores en consola
+- [ ] Mensajes de confirmación claros
+- [ ] Loading states durante operaciones
+- [ ] Manejo de errores (404, 403, 500)
+
+**Status Actual**: 70% - Listado funcional, botones pendientes
+**Estimado**: 2-3 horas de desarrollo
+**Prioridad**: ALTA (interfaz principal del publisher)
 
 ---
 
@@ -872,42 +1001,45 @@ Error: #EF4444 (Red)
 
 ## 📅 ÚLTIMA ACTUALIZACIÓN
 - **Fecha**: 2025-11-26 (Sesión 10 - ACTUAL)
-- **Sesión**: FASE 1.2 en Progreso - Formulario de Aplicación para Candidatos
+- **Sesión**: FASE 7.3 Preparada - Gestión de Anuncios (botones pendientes)
 
-- **Sesión actual (Sesión 10 - FASE 1.2 COMPLETADA)**:
-  - ✅ **FASE 1.2: Formulario de Aplicación - 100% COMPLETADA**
-    * ✅ Creación de useApplicationStore.js con todos los métodos
-    * ✅ ApplicationProcess.vue ya funcional (4 steps completos)
-    * ✅ Verificación backend: apply_to_job endpoint funcional
-    * ✅ Verificación backend: get_job endpoint con screeningQuestions
-    * ✅ Componente integrado con store (loadJobData, submitApplication)
-    * ✅ Validación completa de formulario
-    * ✅ Flujo completo: candidato → preguntas → CV → confirmación → envío
+- **Sesión actual (Sesión 10 - FASE 7 COMPLETADA: MOSTRAR ANUNCIOS EN DASHBOARD)**:
+  - ✅ **FASE 7: Sistema de Publicación - 100% COMPLETADA**
+    * ✅ Emojis removidos de PublishSuccessModal.vue (diseño profesional con checkmark CSS)
+    * ✅ Ruta de navegación fija: /dashboard/mis-anuncios → /dashboard/jobs-manager
+    * ✅ JobsManager.vue ahora muestra 5+ anuncios del usuario autenticado
+    * ✅ Carga de anuncios desde endpoint `/api/user/published?email=X`
+    * ✅ Sincronización localStorage: auth_user, access_token, refresh_token
+    * ✅ useAuthStore integrado correctamente con Bearer token en headers
 
-  - 📊 **Stores/Composables Creados**:
-    * ✅ useApplicationStore.js (frontend/src/stores/)
-      - loadJobData(jobId) - carga datos del trabajo desde API
-      - submitApplication() - envía aplicación al backend
-      - validateApplication() - valida datos antes de enviar
-      - State: currentApplicationData, jobData, applications
-      - Getters: salaryDisplayText, calculatedNetSalary, screeningQuestions
+  - 🔧 **Bugs Solucionados (5 problemas críticos)**:
+    1. ❌ → ✅ localStorage key mismatch (authUser vs auth_user)
+    2. ❌ → ✅ Decoradores Django en orden incorrecto (7 endpoints)
+    3. ❌ → ✅ Vite proxy no configurado para /api/* requests
+    4. ❌ → ✅ Bearer token faltante en JobsManager fetch
+    5. ❌ → ✅ Respuesta HTML en lugar de JSON (Vite sirviendo index.html)
 
-  - **Componentes del Sistema**:
-    * ✅ ApplicationProcess.vue (4 steps):
-      1. Pretensión Salarial + Carta de Presentación
-      2. Responder Preguntas de Filtrado (dinámicas)
-      3. Currículum (upload, crear o usar guardado)
-      4. Confirmación y Envío
-    * ✅ CVFormWizard.vue para crear CV
-    * ✅ CVList.vue para seleccionar CV guardado
-    * ✅ Validación de obligatoriedad en preguntas
-    * ✅ Pre-relleno de datos del usuario autenticado
+  - 📊 **Commits de sesión**:
+    * `be68325` - Remover emojis y fijar ruta de navegación
+    * `a9c2484` - Agregar Authorization header a fetch
+    * `c8891a8` - Usar useAuthStore en lugar de localStorage directo
+    * `ab0f310` - Corregir orden de decoradores en 7 endpoints
+    * `23f9dcb` - Agregar proxy Vite para /api/* → Django backend
 
-  - **Backend Endpoints Funcionales**:
-    * ✅ GET /api/jobs/{id}/ - retorna job + screeningQuestions
-    * ✅ POST /api/jobs/{id}/apply - acepta aplicación + screening answers
-    * ✅ Validación de duplicados (mismo email no puede aplicar 2 veces)
-    * ✅ Incremento automático de contador de aplicaciones
+  - 📋 **Cambios Técnicos Realizados**:
+    * ✅ frontend/vite.config.js - Agregado proxy configuration
+    * ✅ frontend/src/components/Modals/PublishSuccessModal.vue - Emojis removidos
+    * ✅ frontend/src/components/Dashboard/JobsManager.vue - Bearer token + useAuthStore
+    * ✅ jobs/views.py (7 endpoints) - Orden de decoradores correcto
+    * ✅ auth_api/decorators.py - Token validation mejorando logging
+
+  - ⏳ **FASE 7.3: Próximas acciones (PLANIFICADAS para siguiente sesión)**:
+    * [ ] Botón "Ver" - Modal con detalles completos + contador aplicaciones
+    * [ ] Botón "Editar" - Formulario para actualizar anuncio (PATCH /api/jobs/{id}/)
+    * [ ] Botón "Duplicar" - Crear copia en estado draft (POST /api/jobs/{id}/duplicate/)
+    * [ ] Botón "Cerrar" - Cambiar status a closed (PATCH /api/jobs/{id}/status/)
+    * Estimado: 2-3 horas de desarrollo
+    * Prioridad: ALTA
 
 - **Sesión anterior (Sesión 9 - FASE 7.1 COMPLETADA)**:
   - ✅ **FASE 7.1: Validación de Pago - 100% COMPLETADO**
