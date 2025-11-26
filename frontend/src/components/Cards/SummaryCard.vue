@@ -2481,10 +2481,10 @@ watch(() => props.formData.coordinates, (newCoords) => {
 }
 
 .payment-accordion {
-  border: 1px solid #E2E8F0;
+  border: 1px solid #E9D5FF;
   border-radius: 12px;
   overflow: hidden;
-  background: white;
+  background: linear-gradient(135deg, #FAFBFC 0%, #F8F6FB 100%);
   box-shadow: 0 2px 8px rgba(124, 58, 237, 0.05);
 }
 
