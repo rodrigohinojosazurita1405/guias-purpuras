@@ -3264,19 +3264,19 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .company-logo {
-    width: 100px;
-    height: 100px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    width: 120px;
+    height: 120px;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     border: 2px solid #E5E7EB;
     flex-shrink: 0;
   }
 
   .company-logo-placeholder {
-    width: 100px;
-    height: 100px;
-    font-size: 2.2rem;
-    border-radius: 12px;
+    width: 120px;
+    height: 120px;
+    font-size: 2.4rem;
+    border-radius: 14px;
     border: 2px solid #E5E7EB;
   }
 
@@ -3342,10 +3342,10 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .badge {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.6rem;
     font-weight: 600;
-    border-radius: 4px;
+    border-radius: 3px;
     line-height: 1;
     white-space: nowrap;
   }
