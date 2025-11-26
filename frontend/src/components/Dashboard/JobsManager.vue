@@ -213,17 +213,18 @@ const loadJobs = async () => {
       }
     )
 
+    const data = await response.json()
     console.log('JobsManager - Response status:', response.status)
+    console.log('JobsManager - Data recibida:', data)
 
     if (!response.ok) {
-      const errorData = await response.json()
-      console.log('JobsManager - Error response:', errorData)
-      throw new Error('Error cargando trabajos publicados')
+      console.error('JobsManager - Error response:', data)
+      const errorMsg = data.message || 'Error al cargar trabajos publicados'
+      throw new Error(errorMsg)
     }
 
-    const data = await response.json()
-    console.log('JobsManager - Data recibida:', data)
     if (data.success && data.jobs) {
+      console.log(`JobsManager - ${data.jobs.length} trabajos encontrados`)
       // Mapear datos de la API al formato esperado
       jobs.value = data.jobs.map(job => ({
         id: job.id,
@@ -234,6 +235,9 @@ const loadJobs = async () => {
         applications: job.applications || 0,
         createdAt: new Date(job.createdAt).toISOString()
       }))
+    } else {
+      console.warn('JobsManager - Respuesta sin éxito:', data)
+      throw new Error(data.message || 'Respuesta del servidor inválida')
     }
   } catch (err) {
     console.error('Error en loadJobs:', err)
