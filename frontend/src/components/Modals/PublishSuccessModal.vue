@@ -9,12 +9,12 @@
   >
     <template #header>
       <div class="modal-header">
-        <h2>¡Anuncio Publicado! 🎉</h2>
+        <h2>Anuncio Publicado Exitosamente</h2>
       </div>
     </template>
 
     <div class="modal-content">
-      <div class="success-icon">✓</div>
+      <div class="success-icon"></div>
 
       <div class="success-message">
         <h3>Tu oferta de trabajo ha sido publicada exitosamente</h3>
@@ -45,7 +45,7 @@
           @click="goToDashboard"
           size="large"
         >
-          📊 Ir a Mis Anuncios
+          Ir a Mis Anuncios
         </va-button>
         <va-button
           preset="plain"
@@ -53,17 +53,17 @@
           @click="publishAnother"
           size="large"
         >
-          ➕ Publicar Otro Anuncio
+          Publicar Otro Anuncio
         </va-button>
       </div>
 
       <div class="tips-container">
         <div class="tip">
-          <span class="tip-icon">💡</span>
+          <span class="tip-icon">ℹ</span>
           <span>Puedes ver el estado de tu anuncio en la sección "Mis Anuncios" del panel de control</span>
         </div>
         <div class="tip">
-          <span class="tip-icon">📧</span>
+          <span class="tip-icon">✉</span>
           <span>Recibirás una notificación por email cuando tu anuncio sea aprobado</span>
         </div>
       </div>
@@ -117,7 +117,7 @@ const goToDashboard = async () => {
   isOpen.value = false
   // Esperar a que se cierre el modal
   await new Promise(resolve => setTimeout(resolve, 300))
-  router.push('/dashboard/mis-anuncios')
+  router.push('/dashboard/jobs-manager')
 }
 
 const publishAnother = async () => {
@@ -153,10 +153,26 @@ const publishAnother = async () => {
 }
 
 .success-icon {
-  font-size: 80px;
-  color: #10b981;
-  margin-bottom: 20px;
+  width: 100px;
+  height: 100px;
+  background-color: #10b981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
   animation: scaleIn 0.6s ease-out;
+  position: relative;
+}
+
+.success-icon::after {
+  content: '';
+  width: 35px;
+  height: 18px;
+  border: 3px solid white;
+  border-top: none;
+  border-right: none;
+  transform: rotate(-45deg);
 }
 
 @keyframes scaleIn {
@@ -292,7 +308,14 @@ const publishAnother = async () => {
   }
 
   .success-icon {
-    font-size: 60px;
+    width: 70px;
+    height: 70px;
+  }
+
+  .success-icon::after {
+    width: 25px;
+    height: 13px;
+    border-width: 2px;
   }
 }
 </style>
