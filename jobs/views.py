@@ -126,11 +126,35 @@ def publish_job(request):
         if not expiry_date:
             errors['expiryDate'] = 'La fecha de vencimiento es requerida (formato: YYYY-MM-DD)'
         else:
-            # Convertir fecha ISO 8601 (2025-12-05T04:00:00.000Z) a YYYY-MM-DD
+            # Convertir diferentes formatos de fecha a YYYY-MM-DD
             try:
                 from datetime import datetime
-                if 'T' in str(expiry_date):  # Es formato ISO
-                    expiry_date = datetime.fromisoformat(expiry_date.replace('Z', '+00:00')).strftime('%Y-%m-%d')
+                expiry_str = str(expiry_date).strip()
+
+                # Intentar diferentes formatos
+                if 'T' in expiry_str:  # ISO 8601 (2025-12-05T04:00:00.000Z)
+                    expiry_date = datetime.fromisoformat(expiry_str.replace('Z', '+00:00')).strftime('%Y-%m-%d')
+                elif '-' in expiry_str and expiry_str.count('-') == 2:  # YYYY-MM-DD
+                    parts = expiry_str.split('-')
+                    if len(parts[0]) == 4:  # Year first
+                        expiry_date = expiry_str  # Ya está en formato correcto
+                    else:
+                        raise ValueError(f'Formato no reconocido: {expiry_str}')
+                else:
+                    # Intenta parsear como JavaScript Date toString()
+                    # Ejemplo: 'Sun Nov 30 2025 00:00:00 GMT-0400 (hora de Bolivia)'
+                    try:
+                        import re
+                        # Extraer la fecha usando regex
+                        match = re.search(r'(\d{4})\s+(\d{1,2}):(\d{2})', expiry_str)
+                        if match:
+                            # Intenta con el patrón: "Sun Nov 30 2025 00:00:00"
+                            date_part = ' '.join(expiry_str.split()[:4])  # "Sun Nov 30 2025"
+                            expiry_date = datetime.strptime(date_part, '%a %b %d %Y').strftime('%Y-%m-%d')
+                        else:
+                            raise ValueError(f'No se pudo parsear: {expiry_str}')
+                    except ValueError:
+                        raise ValueError(f'Formato de fecha no soportado: {expiry_str}')
             except Exception as e:
                 errors['expiryDate'] = f'Formato de fecha inválido: {str(e)}'
 
