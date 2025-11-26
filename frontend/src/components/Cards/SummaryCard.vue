@@ -1314,9 +1314,10 @@ const getJobPlanDescription = (plan) => {
 }
 
 // Obtener badges del plan seleccionado
+// Solo mostrar features adicionales, no el plan base
 const getPlanBadges = (plan) => {
   const badges = {
-    escencial: ['Básico'],
+    escencial: [],
     purpura: ['Destacado', 'Urgente'],
     impulso: ['Patrocinado', 'Urgente']
   }
