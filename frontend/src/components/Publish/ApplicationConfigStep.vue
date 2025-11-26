@@ -332,16 +332,8 @@
         <div class="info-box">
           <va-icon name="info" color="#7C3AED" size="1.5rem" />
           <div class="info-content">
-            <p><strong>Proporciona al menos un método de contacto</strong> (Email o WhatsApp) para recibir aplicaciones exitosamente.</p>
+            <p><strong>Proporciona al menos un método de contacto</strong> (Email o WhatsApp) para recibir aplicaciones exitosamente. Los candidatos que apliquen internamente recibirán un email de confirmación automático.</p>
           </div>
-        </div>
-      </div>
-
-      <!-- Info Box - Nota General -->
-      <div class="info-box">
-        <va-icon name="info" color="#7C3AED" size="1.5rem" />
-        <div class="info-content">
-          <p><strong>Nota Importante:</strong> Los candidatos que apliquen internamente recibirán un email de confirmación automático.</p>
         </div>
       </div>
     </div>
