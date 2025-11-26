@@ -3591,28 +3591,28 @@ watch(() => props.formData.coordinates, (newCoords) => {
   align-items: flex-start;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  background: linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%);
   border-radius: 8px;
-  border-left: 4px solid #FBBF24;
-  border: 2px solid #FCD34D;
+  border: 2px solid #E9D5FF;
+  border-left: 4px solid #7C3AED;
   margin-top: 1.25rem;
 }
 
 .billing-alert :deep(.va-icon) {
   font-size: 1.25rem;
   flex-shrink: 0;
-  color: #D97706;
+  color: #7C3AED;
 }
 
 .alert-content {
   flex: 1;
   font-size: 0.9rem;
-  color: #78350F;
+  color: #5B21B6;
   line-height: 1.6;
 }
 
 .alert-content strong {
-  color: #D97706;
+  color: #7C3AED;
   font-weight: 700;
 }
 </style>
