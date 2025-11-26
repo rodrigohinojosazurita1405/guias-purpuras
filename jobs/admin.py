@@ -154,7 +154,7 @@ class JobAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: #EDE9FE; color: #6D28D9; padding: 6px 12px; '
             'border-radius: 20px; font-weight: bold; font-size: 13px; '
-            'display: inline-block; border-left: 4px solid #7C3AED;">👥 {}</span>',
+            'display: inline-block;">👥 {}</span>',
             f'{count} aplicación{"es" if count != 1 else ""}'
         )
     applications_count.short_description = 'Aplicaciones'
@@ -165,7 +165,7 @@ class JobAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: #DBEAFE; color: #1E40AF; padding: 6px 12px; '
             'border-radius: 20px; font-weight: bold; font-size: 13px; '
-            'display: inline-block; border-left: 4px solid #3B82F6;">👁️ {}</span>',
+            'display: inline-block;">👁️ {}</span>',
             f'{count} vista{"s" if count != 1 else ""}'
         )
     views_count.short_description = 'Vistas'
@@ -175,7 +175,7 @@ class JobAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: #ECFDF5; color: #065F46; padding: 6px 12px; '
             'border-radius: 20px; font-weight: bold; font-size: 13px; '
-            'display: inline-block; border-left: 4px solid #10B981;">📅 {}</span>',
+            'display: inline-block;">📅 {}</span>',
             obj.createdAt.strftime('%d/%m/%Y')
         )
     created_date_display.short_description = 'Publicado'
