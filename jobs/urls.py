@@ -4,10 +4,16 @@ from . import views
 app_name = 'jobs'
 
 urlpatterns = [
+    # Dashboard Statistics Endpoints (prioritarios)
+    path('user/stats', views.get_user_statistics, name='get_user_statistics'),
+    path('user/published', views.get_user_published_jobs, name='get_user_published_jobs'),
+    path('user/applied', views.get_user_applied_jobs, name='get_user_applied_jobs'),
+    path('user/activities', views.get_user_activities, name='get_user_activities'),
+
     # Publicar nuevo trabajo
     path('jobs/publish', views.publish_job, name='publish_job'),
 
-    # Job Categories Endpoint (DEBE estar antes del patrón genérico jobs/)
+    # Job Categories Endpoint (DEBE estar antes del patrón genérico)
     path('jobs/categories', views.get_job_categories, name='get_job_categories'),
 
     # Listar trabajos
@@ -27,10 +33,4 @@ urlpatterns = [
 
     # Actualizar estado de una aplicación
     path('jobs/<str:job_id>/applications/<str:application_id>', views.update_application_status, name='update_application_status'),
-
-    # Dashboard Statistics Endpoints
-    path('user/stats', views.get_user_statistics, name='get_user_statistics'),
-    path('user/published', views.get_user_published_jobs, name='get_user_published_jobs'),
-    path('user/applied', views.get_user_applied_jobs, name='get_user_applied_jobs'),
-    path('user/activities', views.get_user_activities, name='get_user_activities'),
 ]
