@@ -3249,7 +3249,8 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
   .header-grid {
     grid-template-columns: 1fr;
-    gap: 0.75rem;
+    gap: 1rem;
+    align-items: flex-start;
   }
 
   .logo-column {
@@ -3263,19 +3264,20 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .company-logo {
-    width: 80px;
-    height: 80px;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #E5E7EB;
+    width: 100px;
+    height: 100px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    border: 2px solid #E5E7EB;
+    flex-shrink: 0;
   }
 
   .company-logo-placeholder {
-    width: 80px;
-    height: 80px;
-    font-size: 1.9rem;
-    border-radius: 10px;
-    border: 1px solid #E5E7EB;
+    width: 100px;
+    height: 100px;
+    font-size: 2.2rem;
+    border-radius: 12px;
+    border: 2px solid #E5E7EB;
   }
 
   .company-name {
