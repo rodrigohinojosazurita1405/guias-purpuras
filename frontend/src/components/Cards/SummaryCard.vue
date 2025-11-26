@@ -691,7 +691,7 @@
                     <img :src="jobData.logo" :alt="jobData.companyName" class="logo-image" />
                   </div>
                   <div v-else class="company-logo-placeholder">
-                    <va-icon name="business" size="4rem" />
+                    <va-icon name="business" :size="isMobile ? '3.5rem' : '4rem'" />
                   </div>
                 </div>
               </div>
@@ -1148,6 +1148,7 @@ const emit = defineEmits(['edit-step', 'submit'])
 // ==========================================
 // REFERENCIAS Y STATE
 // ==========================================
+const isMobile = ref(window.innerWidth <= 480)
 const proofFileInput = ref(null)
 const proofOfPaymentPreview = ref(null)
 const paymentAccordionOpen = ref(true) // Abierto por defecto
@@ -1479,6 +1480,17 @@ const createMap = () => {
 onMounted(() => {
   if (props.formData.coordinates) {
     initMap()
+  }
+
+  // Detectar cambios de tamaño de pantalla
+  const handleResize = () => {
+    isMobile.value = window.innerWidth <= 480
+  }
+  window.addEventListener('resize', handleResize)
+
+  // Cleanup
+  return () => {
+    window.removeEventListener('resize', handleResize)
   }
 })
 
@@ -3279,12 +3291,6 @@ watch(() => props.formData.coordinates, (newCoords) => {
     align-items: center;
     justify-content: center;
     background: #F9FAFB;
-  }
-
-  .company-logo-placeholder :deep(.va-icon) {
-    font-size: 3.5rem !important;
-    width: auto !important;
-    height: auto !important;
   }
 
   .company-name {
