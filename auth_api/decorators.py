@@ -23,6 +23,7 @@ def token_required(view_func):
         auth_header = request.META.get('HTTP_AUTHORIZATION', '').split()
 
         if len(auth_header) != 2 or auth_header[0].lower() != 'bearer':
+            print(f'[AUTH] No Bearer token found in Authorization header')
             return JsonResponse({
                 'success': False,
                 'message': 'Token de autenticación requerido'
@@ -54,6 +55,7 @@ def token_required(view_func):
             return view_func(request, *args, **kwargs)
 
         except (InvalidToken, TokenError, AuthenticationFailed) as te:
+            print(f'[AUTH] Token error: {str(te)}')
             return JsonResponse({
                 'success': False,
                 'message': 'Token inválido o expirado'

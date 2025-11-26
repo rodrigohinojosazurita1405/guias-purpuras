@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Limpiando sesión</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        h1 { color: #333; margin-top: 0; }
+        p { color: #666; }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Limpiando sesión...</h1>
+        <div class="spinner"></div>
+        <p>Por favor espera, estamos preparándote para iniciar sesión nuevamente.</p>
+    </div>
+    
+    <script>
+        // Limpiar TODOS los datos de autenticación
+        const keysToRemove = [
+            'access_token',
+            'refresh_token',
+            'auth_user',
+            'authUser',
+            'user',
+            'token',
+            'jwt_token',
+            'user_data',
+            'publish_job_draft',
+            'publish_current_step'
+        ];
+        
+        // Local Storage
+        keysToRemove.forEach(key => {
+            localStorage.removeItem(key);
+        });
+        
+        // Session Storage
+        sessionStorage.clear();
+        
+        console.log('✅ Sesión limpiada. Redirigiendo a login...');
+        
+        // Esperar un poco y luego redirigir
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 1500);
+    </script>
+</body>
+</html>
