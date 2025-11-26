@@ -1090,10 +1090,12 @@
                       </div>
                     </div>
 
-                    <!-- Aviso de privacidad -->
-                    <div class="billing-disclaimer">
-                      <va-icon name="info" size="x-small" />
-                      <span>Esta información es opcional y se utilizará únicamente para emitir facturas</span>
+                    <!-- Aviso de responsabilidad -->
+                    <div class="billing-alert">
+                      <va-icon name="warning" size="small" color="warning" />
+                      <div class="alert-content">
+                        <strong>Importante:</strong> Guías Púrpuras no se hará responsable por errores en los datos de facturación ingresados por el usuario (Razón Social, NIT, Email). Verifica que todos los datos sean correctos antes de publicar, ya que estos se utilizarán para la emisión de facturas. Los errores en estos campos son responsabilidad del usuario.
+                      </div>
                     </div>
                   </div>
                 </transition>
@@ -3584,22 +3586,33 @@ watch(() => props.formData.coordinates, (newCoords) => {
   color: #999;
 }
 
-.billing-disclaimer {
+.billing-alert {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: #F0F4FF;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
   border-radius: 8px;
-  border-left: 3px solid var(--color-purple);
-  font-size: 0.9rem;
-  color: #333;
-  margin-top: 1rem;
+  border-left: 4px solid #FBBF24;
+  border: 2px solid #FCD34D;
+  margin-top: 1.25rem;
 }
 
-.billing-disclaimer i {
+.billing-alert :deep(.va-icon) {
+  font-size: 1.25rem;
   flex-shrink: 0;
-  margin-top: 0.1rem;
-  color: var(--color-purple);
+  color: #D97706;
+}
+
+.alert-content {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #78350F;
+  line-height: 1.6;
+}
+
+.alert-content strong {
+  color: #D97706;
+  font-weight: 700;
 }
 </style>
