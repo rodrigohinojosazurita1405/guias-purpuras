@@ -3,32 +3,39 @@
 ## 📊 ESTADO ACTUAL - PROGRESO GENERAL
 
 ```
-FASE 1: Wizard de Publicación              ✅ 95% COMPLETADA (paso 3 funcional)
+FASE 1: Wizard de Publicación              ✅ 100% COMPLETADA (5 pasos funcionales)
 FASE 1.1: Preguntas de Filtrado            ✅ 100% COMPLETADA (Edición + CRUD)
 FASE 1.2: Formulario Aplicación Candidato  ⏳ 0% (PRÓXIMA - Mostrar preguntas)
-FASE 2: Flujo de Publicación Completo      ⏳ 10% (EN PROGRESS - Backend pendiente)
+FASE 2: Flujo de Publicación Completo      ✅ 100% COMPLETADA (Backend integrado)
 FASE 3: Búsqueda y Filtrado                ⏳ 0% (PENDIENTE)
 FASE 3.6: Autenticación Real               ✅ 100% COMPLETADA
 FASE 4: Perfiles de Usuario                ✅ 100% COMPLETADA + FOTO CRUD ✅
 FASE 5: Perfiles de Empresa                ✅ 100% COMPLETADA (CRUD + CRUD fotos)
 FASE 6: Sistema de Aplicaciones            ⏳ 5% (CV Harvard + Parser planificado)
-FASE 7: Sistema de Pagos + Comprobante     ✅ 80% COMPLETADA (QR + Upload funcional)
+FASE 7: Sistema de Pagos + Comprobante     ✅ 100% COMPLETADA (Publicación funcionando)
+FASE 7.1: Validación de Pago               ✅ 100% COMPLETADA (Anuncios sin errores)
+FASE 7.2: Configuración de Aplicación      ✅ 100% COMPLETADA (Campos condicionales)
+FASE 7.3: Gestión de Anuncios              ⏳ 0% (PENDIENTE)
+FASE 7.4: Aplicaciones a Anuncios          ⏳ 0% (PENDIENTE)
+FASE 7.5: Dashboard de Publicador          ⏳ 0% (PENDIENTE)
 FASE 8: Dashboard Admin                    ⏳ 0% (PENDIENTE)
 FASE 9: Dashboard Multi-Rol                ⏳ 0% (PLANIFICADA)
 
-MEJORAS RECIENTES (Sesión 8 - Actual):
-- ✅ Paso 3: Radio buttons sin duplicación de etiquetas
-- ✅ Preguntas de Filtrado: Campos completamente editables
-- ✅ Input de texto, Select de tipo, Checkbox de obligatoriedad
-- ✅ Función updateQuestion() implementada
-- ✅ Sincronización en tiempo real con store
-- 🆕 Documentación: Flujo candidato y dónde ve preguntas
-- 🆕 FASE 1.2: Próxima - Componente formulario aplicación
+MEJORAS RECIENTES (Sesión 9 - ACTUAL):
+- ✅ Estructura de excepciones arreglada en publish_job
+- ✅ Token JWT validado con AccessToken (no UntypedToken)
+- ✅ Emojis reemplazados por ASCII para Windows
+- ✅ Anuncios se publican exitosamente desde frontend
+- ✅ Comprobante de pago se guarda en media/payment_proofs/
+- ✅ Conexión frontend-backend completamente funcional
+- ✅ Job creado con ID 44482c3c - Status 201 OK
+- 🔧 3 bugs críticos solucionados en commit c7620a7
+- 📋 Roadmap actualizado con todos los cambios
 ```
 
 ---
 
-## ✅ COMPLETADO EN ESTA SESIÓN (Sesión 8 - Paso 3 Funcional + Preguntas Filtrado)
+## ✅ COMPLETADO EN ESTA SESIÓN (Sesión 9 - FASE 7.1 Completada: Anuncios Funcionando)
 
 ### Radio Buttons Sin Duplicación ✅
 **Problema**: Los va-radio mostraban tanto el valor de la opción ("internal", "external", "both") como el título personalizado ("Interna", "Externa", "Ambas")
@@ -864,21 +871,55 @@ Error: #EF4444 (Red)
 ---
 
 ## 📅 ÚLTIMA ACTUALIZACIÓN
-- **Fecha**: 2025-11-24 (Sesión 8)
-- **Sesión**: Paso 3 Funcional + Preguntas de Filtrado Completamente Editable
+- **Fecha**: 2025-11-26 (Sesión 9 - ACTUAL)
+- **Sesión**: FASE 7.1 Completada - Publicación de Anuncios Funcionando
 
-- **Sesión actual (Sesión 8)**:
+- **Sesión actual (Sesión 9 - FASE 7.1 COMPLETADA)**:
+  - ✅ **FASE 7.1: Validación de Pago - 100% COMPLETADO**
+    * ✅ Arreglo estructura excepciones en publish_job (respuesta éxito aún dentro except)
+    * ✅ Cambio UntypedToken → AccessToken en decorador JWT
+    * ✅ Eliminación de emojis para compatibilidad Windows (cp1252)
+    * ✅ Anuncios se publican exitosamente desde frontend
+    * ✅ Comprobante de pago se guarda en media/payment_proofs/
+    * ✅ Token JWT validado correctamente (AccessToken)
+    * ✅ Conexión frontend-backend establecida
+
+  - 🔧 **Bugs Solucionados (commit c7620a7)**:
+    * ❌ ANTES: Respuesta éxito inalcanzable dentro del bloque except
+    * ✅ DESPUÉS: Éxito retorna 201 con datos del job creado
+    * ❌ ANTES: Token validation fallaba silenciosamente
+    * ✅ DESPUÉS: AccessToken valida correctamente JWT
+    * ❌ ANTES: Emojis causaban UnicodeEncodeError en Windows
+    * ✅ DESPUÉS: Logs legibles en cualquier consola
+
+  - 📊 **Tests Realizados**:
+    * ✅ POST /api/jobs/publish con datos completos
+    * ✅ Archivo proofOfPayment subido y almacenado
+    * ✅ Job creado con ID 44482c3c
+    * ✅ Response 201: "¡Oferta publicada exitosamente!"
+    * ✅ Comprobante visible en admin
+
+  - 📋 **Status FASE 7.1**:
+    ```
+    ✅ Modelo Job.proofOfPayment         - OK
+    ✅ Modelo Job.paymentVerified        - OK
+    ✅ Validación de archivo             - OK
+    ✅ Almacenamiento media/payment_proofs/ - OK
+    ✅ Endpoint publish_job completo     - OK
+    ✅ Token JWT con AccessToken         - OK
+    ✅ Frontend PublishForm 5 pasos      - OK
+    ✅ Conexión API frontend-backend     - OK
+    ✅ Error handling y validación       - OK
+    ```
+
+- **Commits de sesión 9**:
+  - `c7620a7` - Arreglar publicación de anuncios y validación de tokens JWT
+
+- **Sesión anterior (Sesión 8)**:
   - ✅ Fix: Radio buttons sin duplicación de etiquetas (label="")
   - ✅ Implementación: Preguntas de Filtrado totalmente editable
-  - ✅ Input de texto para enunciado de pregunta
-  - ✅ Select para elegir tipo (Texto corto, Sí/No, Opción múltiple)
-  - ✅ Checkbox para marcar como obligatoria
   - ✅ Función updateQuestion() implementada
-  - ✅ Sincronización en tiempo real con usePublishStore
   - ✅ CRUD completo: Create, Read, Update, Delete
-  - ✅ Documentación: Flujo del candidato y dónde ve preguntas
-  - 🆕 FASE 1.2 planificada: Formulario de Aplicación para candidatos
-  - 🆕 Roadmap actualizado con estado actual
 
 - **Commits de sesión 8**:
   - `d5b0a2e` - Agregar atributo label vacío a va-radio
