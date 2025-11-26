@@ -2088,7 +2088,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
 }
 
 .job-title-label {
-  font: 2.2rem;
+  font-size: 2.2rem;
   font-weight: 700;
   color: #7C3AED;
   letter-spacing: -0.3px;
@@ -2098,7 +2098,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
 .job-title {
   font-size: 2.2rem;
   font-weight: 700;
-  color: #0F172A;
+  color: #7C3AED;
   margin: 0;
   line-height: 1.2;
   letter-spacing: -0.3px;
