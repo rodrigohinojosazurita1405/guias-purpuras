@@ -1513,7 +1513,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  background: linear-gradient(135deg, #FAFBFC 0%, #F8FAFC 100%);
+  background: linear-gradient(135deg, #FBFAFF 0%, #f8f6fb 100%);
   min-height: 100vh;
 }
 
@@ -1720,7 +1720,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
   position: relative;
   width: 100%;
   height: 160px;
-  background: #F3F4F6;
+  background: #F5F3F8;
 }
 
 .menu-item-image img {
@@ -1735,7 +1735,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #F3F4F6 0%, #EDEEF2 100%);
+  background: linear-gradient(135deg, #F5F3F8 0%, #F1ECFF 100%);
 }
 
 .featured-star {
