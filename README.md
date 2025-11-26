@@ -18,83 +18,12 @@ npm run dev
 
 - Púrpura Principal: `#5C0099`
 - Amarillo: `#FDC500`
-- btns:background: linear-gradient(135deg, #7c3aed, #6d28d9);
 
 ## 📋 Estado del Proyecto
 
-### FASE 7: Sistema de Publicación de Anuncios de Trabajo
-
-#### FASE 7.1: Validación de Pago - ✅ COMPLETADO
-- ✅ Modelo Job con campo proofOfPayment (ImageField)
-- ✅ Campo paymentVerified en Job model
-- ✅ Validación de imagen (PNG, JPG, GIF, max 5MB)
-- ✅ Almacenamiento en media/payment_proofs/
-- ✅ Vista publish_job con validación de pago obligatorio
-- ✅ Decorador token_required con validación JWT (AccessToken)
-- ✅ Componente Vue PublishForm con 5 pasos
-- ✅ Comprobante de pago como paso final obligatorio
-- ✅ Conexión frontend-backend funcionando correctamente
-- ✅ Anuncios se crean y guardan exitosamente
-- ✅ Modal de éxito después de publicar (PublishSuccessModal)
-- ✅ Navegación correcta a JobsManager después de publicar
-- ✅ Diseño profesional sin emojis
-- ✅ Icono de checkmark personalizado con CSS
-- ✅ Validación de fechas en formato ISO 8601
-
-#### FASE 7.2: Configuración de Aplicación - ✅ COMPLETADO
-- ✅ Campo applicationType (internal, external, both)
-- ✅ Componente ApplicationConfigStep con renderizado condicional
-- ✅ Campo externalApplicationUrl para aplicaciones externas
-- ✅ Campo applicationInstructions (mostrado solo en externas)
-- ✅ Campos de contacto directo: email, whatsapp, website
-- ✅ Campos de contact visible solo para external/both
-- ✅ Preguntas de filtrado (screeningQuestions) solo para internal/both
-- ✅ Validación de al menos un método de contacto
-
-#### FASE 7.3: Gestión de Anuncios - ⏳ PENDIENTE
-- ⏳ Edición de anuncios publicados
-- ⏳ Eliminación de anuncios
-- ⏳ Renovación de anuncios
-- ⏳ Cambio de estado (activo/pausado/archivado)
-
-#### FASE 7.4: Aplicaciones a Anuncios - ⏳ PENDIENTE
-- ⏳ Sistema de aplicaciones (interno)
-- ⏳ Filtrado por preguntas screening
-- ⏳ Vista de aplicaciones para publicador
-- ⏳ Cambio de estado de aplicaciones
-- ⏳ Notificaciones a candidatos
-
-#### FASE 7.5: Dashboard de Publicador - ⏳ PENDIENTE
-- ⏳ Estadísticas de anuncios
-- ⏳ Anuncios publicados activos
-- ⏳ Anuncios con aplicaciones
-- ⏳ Historial de actividad
-
-### Otros Módulos
-
-#### Autenticación y Usuarios
-- ✅ Sistema JWT con rest_framework_simplejwt
-- ✅ Decorador token_required con validación AccessToken
-- ✅ Login/Register endpoints
-- ✅ Validación de tokens expirados
-
-#### Frontend
-- ✅ Paleta de colores púrpura
-- ✅ Componentes Vuestic UI
-- ✅ Navegación entre pasos
-- ✅ Validación de formularios
-- ✅ Integración con API
-
-## 🔄 Bugs Solucionados Recientemente
-
-### FASE 7.1 - Mejoras a Modal de Éxito (Sesión Actual)
-1. **Formato de fecha incorrecto** - Conversión a ISO 8601 (YYYY-MM-DD) en PublishView.vue
-2. **Emojis en modal** - Reemplazo de emojis por símbolos profesionales (ℹ, ✉)
-3. **Navegación incorrecta** - Corrección de ruta `/dashboard/mis-anuncios` a `/dashboard/jobs-manager`
-4. **Icono de checkmark** - Implementación con CSS en lugar de emoji
-
-### Commits Anteriores
-- **c7620a7**: Estructura de excepciones rotas, Validación JWT, Problemas Unicode
+✅ Frontend básico
+🔄 Sistema de rutas
+⏳ Backend en desarrollo
 
 ## 👨‍💻 Autor
 
