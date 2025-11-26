@@ -204,7 +204,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -216,10 +216,73 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'next', 'back'])
 
 const selectedPlan = ref(props.modelValue)
+const plans = ref([])
+const isLoading = ref(true)
+const error = ref(null)
 
-const selectPlan = (plan) => {
-  selectedPlan.value = plan
-  emit('update:modelValue', plan)
+// Cargar planes desde API
+const loadPlans = async () => {
+  try {
+    isLoading.value = true
+    error.value = null
+    const response = await fetch('http://localhost:8000/api/plans/', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error('No se pudieron cargar los planes')
+    }
+
+    const data = await response.json()
+    if (data.success && data.data) {
+      plans.value = data.data
+    } else {
+      throw new Error('Formato de respuesta inválido')
+    }
+  } catch (err) {
+    console.error('Error cargando planes:', err)
+    error.value = err.message
+    // Fallback a planes hardcodeados
+    plans.value = [
+      {
+        id: 1,
+        name: 'escencial',
+        label: 'Escencial (35 Bs)',
+        price: 35,
+        currency: 'Bs',
+        durationDays: 15,
+        features: { maxAnnouncements: 1 }
+      },
+      {
+        id: 2,
+        name: 'purpura',
+        label: 'Púrpura (79 Bs)',
+        price: 79,
+        currency: 'Bs',
+        durationDays: 30,
+        features: { maxAnnouncements: 1 }
+      },
+      {
+        id: 3,
+        name: 'impulso',
+        label: 'Impulso Pro (169 Bs)',
+        price: 169,
+        currency: 'Bs',
+        durationDays: 30,
+        features: { maxAnnouncements: 3 }
+      }
+    ]
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const selectPlan = (planName) => {
+  selectedPlan.value = planName
+  emit('update:modelValue', planName)
 }
 
 const validate = () => {
@@ -234,6 +297,10 @@ const handleNext = () => {
 
 watch(() => props.modelValue, (newValue) => {
   selectedPlan.value = newValue
+})
+
+onMounted(() => {
+  loadPlans()
 })
 
 defineExpose({
