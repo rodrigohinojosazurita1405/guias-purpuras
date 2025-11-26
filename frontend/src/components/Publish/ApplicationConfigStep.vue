@@ -151,6 +151,23 @@
             Ej: LinkedIn, tu sitio web, Email, Whatsapp, formulario Google, etc.
           </small>
         </div>
+
+        <!-- Instrucciones de Aplicación -->
+        <div class="form-row">
+          <label for="application-instructions">Instrucciones de Aplicación (Opcional)</label>
+          <textarea
+            id="application-instructions"
+            :value="modelValue.applicationInstructions || ''"
+            placeholder="Ej: Por favor envía tu CV en formato PDF, incluye referencias, carta de presentación..."
+            class="form-textarea"
+            rows="4"
+            maxlength="500"
+            @input="updateData('applicationInstructions', $event.target.value)"
+          />
+          <small class="form-hint">
+            Máximo 500 caracteres. Instrucciones especiales que deben conocer los candidatos al aplicar.
+          </small>
+        </div>
       </div>
 
       <!-- Preguntas de Filtrado (solo para aplicación interna) -->
@@ -250,30 +267,6 @@
         <div v-else class="max-questions-message">
           <va-icon name="info" color="warning" />
           <span>Has alcanzado el máximo de 5 preguntas</span>
-        </div>
-      </div>
-
-      <!-- Instrucciones de Aplicación -->
-      <div v-if="['internal', 'both'].includes(modelValue.applicationType)" class="form-section">
-        <h3 class="section-title">
-          <va-icon name="description" size="1.25rem" />
-          Instrucciones de Aplicación (Opcional)
-        </h3>
-
-        <div class="form-row">
-          <label for="application-instructions">Instrucciones especiales para candidatos</label>
-          <textarea
-            id="application-instructions"
-            :value="modelValue.applicationInstructions || ''"
-            placeholder="Ej: Por favor envía tu CV en formato PDF, incluye referencias, carta de presentación..."
-            class="form-textarea"
-            rows="4"
-            maxlength="500"
-            @input="updateData('applicationInstructions', $event.target.value)"
-          />
-          <small class="form-hint">
-            Máximo 500 caracteres. Información adicional que debe conocer el candidato al aplicar.
-          </small>
         </div>
       </div>
 
