@@ -184,34 +184,32 @@ class JobAdmin(admin.ModelAdmin):
 
     def plan_display(self, obj):
         """Muestra el plan seleccionado con colores temáticos y duración"""
+        from plans.models import Plan
+
+        # Colores para cada plan
         plan_colors = {
-            'escencial': {
-                'color': '#3B82F6',      # Azul
-                'bg': '#DBEAFE',         # Azul claro
-                'label': 'Escencial (35 Bs)',
-                'duration': '15 días'
-            },
-            'purpura': {
-                'color': '#8B5CF6',      # Púrpura
-                'bg': '#EDE9FE',         # Púrpura claro
-                'label': 'Púrpura (79 Bs)',
-                'duration': '30 días'
-            },
-            'impulso': {
-                'color': '#EC4899',      # Rosa/Impulso
-                'bg': '#FCE7F3',         # Rosa claro
-                'label': 'Impulso Pro (169 Bs)',
-                'duration': '30 días'
-            }
+            'escencial': {'color': '#3B82F6', 'bg': '#DBEAFE'},  # Azul
+            'purpura': {'color': '#8B5CF6', 'bg': '#EDE9FE'},     # Púrpura
+            'impulso': {'color': '#EC4899', 'bg': '#FCE7F3'}      # Rosa
         }
 
-        plan_info = plan_colors.get(obj.selectedPlan, plan_colors['escencial'])
+        # Obtener datos del plan desde BD
+        try:
+            plan_obj = Plan.objects.get(name=obj.selectedPlan)
+            label = plan_obj.label
+            duration = f"{plan_obj.duration_days} días"
+            colors = plan_colors.get(obj.selectedPlan, plan_colors['escencial'])
+        except Plan.DoesNotExist:
+            # Fallback si el plan no existe en BD
+            label = obj.selectedPlan.upper()
+            duration = "N/A"
+            colors = plan_colors.get(obj.selectedPlan, plan_colors['escencial'])
 
         return format_html(
             '<span style="background-color: {}; color: {}; padding: 6px 14px; '
             'border-radius: 20px; font-weight: bold; font-size: 12px; '
             'display: inline-block;">💰 {} ({} vigencia)</span>',
-            plan_info['bg'], plan_info['color'], plan_info['label'], plan_info['duration']
+            colors['bg'], colors['color'], label, duration
         )
     plan_display.short_description = 'Plan'
 

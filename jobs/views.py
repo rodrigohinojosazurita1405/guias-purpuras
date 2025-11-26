@@ -121,21 +121,22 @@ def publish_job(request):
             errors['contractType'] = 'El tipo de contrato es requerido'
 
         # 6. Plan Selection (para calcular automáticamente la fecha de expiración)
+        from plans.models import Plan
+        from datetime import datetime, timedelta
+
         plan = (data.get('selectedPlan') or 'escencial').lower()
-        if plan not in ['escencial', 'purpura', 'impulso']:
-            errors['selectedPlan'] = "Plan no válido. Debe ser 'escencial', 'purpura' o 'impulso'"
+
+        # Obtener el plan desde la BD
+        try:
+            plan_obj = Plan.objects.get(name=plan, is_active=True)
+            duration_days = plan_obj.duration_days
+        except Plan.DoesNotExist:
+            errors['selectedPlan'] = "Plan no válido o inactivo. Debe ser 'escencial', 'purpura' o 'impulso'"
+            duration_days = 15  # Default fallback
 
         # Calcular expiryDate automáticamente basándose en el plan
-        # Escencial: 15 días, Púrpura: 30 días, Impulso: 30 días
-        from datetime import datetime, timedelta
         try:
             today = datetime.now().date()
-            plan_durations = {
-                'escencial': 15,
-                'purpura': 30,
-                'impulso': 30
-            }
-            duration_days = plan_durations.get(plan, 15)
             expiry_date = today + timedelta(days=duration_days)
             expiry_date = expiry_date.strftime('%Y-%m-%d')
         except Exception as e:
