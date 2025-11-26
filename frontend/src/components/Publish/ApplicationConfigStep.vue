@@ -277,14 +277,14 @@
         </div>
       </div>
 
-      <!-- INFORMACIÓN DE CONTACTO (si es interna o ambas) -->
-      <div v-if="['internal', 'both'].includes(modelValue.applicationType)" class="form-section">
+      <!-- INFORMACIÓN DE CONTACTO (si es externa o ambas) -->
+      <div v-if="['external', 'both'].includes(modelValue.applicationType)" class="form-section">
         <h3 class="section-title">
           <va-icon name="phone" size="1.25rem" />
           Información de Contacto Directo
         </h3>
         <p class="section-description">
-          Proporciona los medios por los cuales los candidatos pueden enviarte su CV
+          Proporciona los medios de contacto por los cuales los candidatos pueden enviarte su CV directamente
         </p>
 
         <!-- Email de Contacto -->
