@@ -707,7 +707,7 @@
                   <h1 class="job-title">{{ jobData.title }}</h1>
                 </div>
 
-                <!-- Grid de Información: 2x2 -->
+                <!-- Grid de Información: 3x2 -->
                 <div class="info-grid">
                   <div class="info-item">
                     <div class="info-content">
@@ -751,6 +751,48 @@
                       </span>
                       <span class="info-value" :class="{ 'expired-text': isExpired }">
                         {{ isExpired ? 'CONVOCATORIA CERRADA' : formatDate(jobData.expiryDate) }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="info-item">
+                    <div class="info-content">
+                      <span class="info-label">
+                        <va-icon name="category" size="small" />
+                        Categoría:
+                      </span>
+                      <span class="info-value">{{ jobData.jobCategory }}</span>
+                    </div>
+                  </div>
+
+                  <div class="info-item">
+                    <div class="info-content">
+                      <span class="info-label">
+                        <va-icon name="how_to_reg" size="small" />
+                        Tipo de Aplicación:
+                      </span>
+                      <span class="info-value">
+                        <template v-if="jobData.applicationType === 'internal'">
+                          Interna
+                        </template>
+                        <template v-else-if="jobData.applicationType === 'external'">
+                          Externa
+                        </template>
+                        <template v-else>
+                          Ambas
+                        </template>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div v-if="jobData.email" class="info-item">
+                    <div class="info-content">
+                      <span class="info-label">
+                        <va-icon name="email" size="small" />
+                        Email:
+                      </span>
+                      <span class="info-value">
+                        <a :href="`mailto:${jobData.email}`" style="color: inherit; text-decoration: none;">{{ jobData.email }}</a>
                       </span>
                     </div>
                   </div>
@@ -865,48 +907,6 @@
                     No especificado
                   </template>
                 </p>
-              </div>
-              <!-- ===== INFORMACIÓN ADICIONAL (Sin fondo diferenciado) ===== -->
-              <div class="info-additional">
-                <h3 class="additional-title">Más Información</h3>
-
-                <div class="additional-grid">
-                  <div class="additional-item">
-                    <span class="additional-label">Categoría:</span>
-                    <span class="additional-value">{{ jobData.jobCategory }}</span>
-                  </div>
-                  <div class="additional-item">
-                    <span class="additional-label">Tipo de Aplicación:</span>
-                    <span class="additional-value">
-                      <template v-if="jobData.applicationType === 'internal'">
-                        Interna
-                      </template>
-                      <template v-else-if="jobData.applicationType === 'external'">
-                        Externa
-                      </template>
-                      <template v-else>
-                        Ambas
-                      </template>
-                    </span>
-                  </div>
-                  <div v-if="jobData.vacancies" class="additional-item">
-                    <span class="additional-label">Vacantes:</span>
-                    <span class="additional-value">{{ jobData.vacancies }}</span>
-                  </div>
-                  <div v-if="jobData.email" class="additional-item">
-                    <span class="additional-label">Email de Contacto:</span>
-                    <a :href="`mailto:${jobData.email}`" class="additional-link">{{ jobData.email }}</a>
-                  </div>
-                </div>
-
-                <!-- URL de Aplicación Externa (si aplica) -->
-                <div v-if="['external', 'both'].includes(jobData.applicationType)" class="additional-external">
-                  <span class="additional-label">URL de Aplicación:</span>
-                  <a :href="jobData.externalApplicationUrl" target="_blank" class="additional-link">
-                    {{ jobData.externalApplicationUrl }}
-                    <va-icon name="open_in_new" size="small" />
-                  </a>
-                </div>
               </div>
             </section>
 
@@ -2114,7 +2114,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
 /* GRID DE INFORMACIÓN 2x2 */
 .info-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 2.5rem 2rem;
   margin-top: 1rem;
 }
