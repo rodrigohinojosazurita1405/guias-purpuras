@@ -82,7 +82,9 @@
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0MTcwMDY0LCJpYXQiOjE3NjQxNjY0NjQsImp0aSI6IjZiODk4MjdhODZmMDQ3OGJiZGVmYjI0YzkyNDE5MTYwIiwidXNlcl9pZCI6IjIifQ.-4ejpBrRF1EWaNpORGkcpn7M4pXa6FgHrPWIN5DPXIQ\")",
       "Bash(__NEW_LINE__ TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0MTcwMDY0LCJpYXQiOjE3NjQxNjY0NjQsImp0aSI6IjZiODk4MjdhODZmMDQ3OGJiZGVmYjI0YzkyNDE5MTYwIiwidXNlcl9pZCI6IjIifQ.-4ejpBrRF1EWaNpORGkcpn7M4pXa6FgHrPWIN5DPXIQ\")",
       "Bash(__NEW_LINE__ curl -s -X POST http://localhost:8000/api/jobs/publish )",
-      "Bash(node create_job_frontend.js:*)"
+      "Bash(node create_job_frontend.js:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0MTkwNjU4LCJpYXQiOjE3NjQxODcwNTgsImp0aSI6IjI1MDk2YzUwNGYxZDQ0YmQ5NjBlNDhiOWViY2U4NzJmIiwidXNlcl9pZCI6IjUifQ.iKWhjstRy6dGbxHq4XH3o1hEhzBIqVfLwT3vU_Cp0yE\")",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY0MTkzNzk3LCJpYXQiOjE3NjQxOTAxOTcsImp0aSI6ImNiMjI2NWExODk4NzQ4OGNiYjhkYWUzYzU1MWZhNzk4IiwidXNlcl9pZCI6IjUifQ.5GzvNP9T4Vb25fEQVoiJKRSIieyU89ATuW9jc5sdFck\")"
     ],
     "deny": [],
     "ask": []

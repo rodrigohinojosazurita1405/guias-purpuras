@@ -808,7 +808,9 @@ def get_user_published_jobs(request):
     - Lista de trabajos publicados con información resumida
     """
     email = request.GET.get('email', '')
-    print(f'DEBUG: get_user_published_jobs - Email buscando: {email}')
+    print(f'[ENDPOINT] get_user_published_jobs called')
+    print(f'[ENDPOINT] Request user: {request.user}')
+    print(f'[ENDPOINT] Email buscando: {email}')
 
     if not email:
         return JsonResponse({

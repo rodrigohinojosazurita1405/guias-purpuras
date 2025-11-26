@@ -202,19 +202,22 @@ const loadJobs = async () => {
     console.log('JobsManager - Token presente:', !!authStore.accessToken)
     console.log('JobsManager - isAuthenticated:', authStore.isAuthenticated)
 
-    const response = await fetch(
-      `/api/user/published?email=${encodeURIComponent(email)}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${authStore.accessToken}`,
-          'Content-Type': 'application/json'
-        }
+    const url = `/api/user/published?email=${encodeURIComponent(email)}`
+    console.log('JobsManager - URL construida:', url)
+    console.log('JobsManager - Authorization header:', `Bearer ${authStore.accessToken?.substring(0, 30)}...`)
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
       }
-    )
+    })
+
+    console.log('JobsManager - Response received, status:', response.status)
+    console.log('JobsManager - Response content-type:', response.headers.get('content-type'))
 
     const data = await response.json()
-    console.log('JobsManager - Response status:', response.status)
     console.log('JobsManager - Data recibida:', data)
 
     if (!response.ok) {
