@@ -51,7 +51,7 @@
             <div class="form-label">Título del Puesto *</div>
             <va-input
               v-model="localFormData.title"
-              placeholder="Ej: Desarrollador Senior, Diseñador UX, Community Manager"
+              placeholder="Ej: Administrador de empresas, Contador, Diseñador Gráfico, , Community Manager"
               counter
               maxlength="100"
               :rules="[
@@ -272,7 +272,7 @@
               <va-icon name="location_on" size="1.5rem" />
             </div>
             <div class="accordion-title-group">
-              <h3 class="accordion-title">Ubicación</h3>
+              <h3 class="accordion-title">Ubicación y Fecha Límite</h3>
               <p v-if="!expandedSections.location" class="accordion-summary">
                 {{ getSummary('location') }}
               </p>

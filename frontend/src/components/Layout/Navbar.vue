@@ -72,7 +72,7 @@
               <!-- Menu Items -->
               <router-link to="/dashboard" class="dropdown-item" @click="closeDropdown">
                 <va-icon name="dashboard" size="small" />
-                <span>Mi Dashboard</span>
+                <span>Panel de Control</span>
               </router-link>
 
               <router-link to="/dashboard/jobs-manager" class="dropdown-item" @click="closeDropdown">

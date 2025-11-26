@@ -4,7 +4,7 @@
     <!-- Sidebar Navigation -->
     <div class="dashboard-sidebar">
       <div class="sidebar-header">
-        <h2>Mi Cuenta</h2>
+        <h2>Panel de Control</h2>
       </div>
 
       <nav class="sidebar-menu">

@@ -1058,7 +1058,7 @@
                     <div class="billing-form-group">
                       <!-- Razón Social -->
                       <div class="billing-field">
-                        <label class="billing-label">Razón Social</label>
+                        <label class="billing-label">Razón Social de su Empresa</label>
                         <input
                           v-model="billingData.businessName"
                           type="text"
@@ -1080,7 +1080,7 @@
 
                       <!-- Email para Factura -->
                       <div class="billing-field">
-                        <label class="billing-label">Email para Factura</label>
+                        <label class="billing-label">Email para Factura Digital</label>
                         <input
                           v-model="billingData.invoiceEmail"
                           type="email"
@@ -1094,7 +1094,9 @@
                     <div class="billing-alert">
                       <va-icon name="warning" size="small" color="warning" />
                       <div class="alert-content">
-                        <strong>Importante:</strong> Guías Púrpuras no se hará responsable por errores en los datos de facturación ingresados por el usuario (Razón Social, NIT, Email). Verifica que todos los datos sean correctos antes de publicar, ya que estos se utilizarán para la emisión de facturas. Los errores en estos campos son responsabilidad del usuario.
+                        <strong>Importante:</strong> Guías Púrpuras Bolivia no se hará responsable por errores en los datos de facturación ingresados por el usuario (Razón Social, NIT, Email).
+                        Verifica que todos los datos sean correctos antes de publicar, ya que estos se utilizarán para la emisión de facturas, usted tiene un plazo de 24 horas para enviar esos datos.
+                        Los errores en estos campos son responsabilidad del usuario.
                       </div>
                     </div>
                   </div>
@@ -1945,7 +1947,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-purple-dark) 100%);
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
   color: white;
   font-size: 1rem;
 }
