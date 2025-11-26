@@ -251,8 +251,12 @@ const handleSubmit = async () => {
       // Saltar proofOfPaymentPreview (es solo para preview, no enviar al backend)
       if (key === 'proofOfPaymentPreview') return
 
+      // Para expiryDate (Date object), convertir a ISO 8601 format (YYYY-MM-DD)
+      if (key === 'expiryDate' && value instanceof Date) {
+        formData.append(key, value.toISOString().split('T')[0])
+      }
       // Para screeningQuestions (es array), convertir a JSON
-      if (key === 'screeningQuestions' && Array.isArray(value)) {
+      else if (key === 'screeningQuestions' && Array.isArray(value)) {
         formData.append(key, JSON.stringify(value))
       } else if (value != null && value !== '') {
         formData.append(key, value)
