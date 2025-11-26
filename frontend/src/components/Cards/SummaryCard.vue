@@ -1131,6 +1131,7 @@
 <script setup>
 import { onMounted, watch, nextTick, computed, ref } from 'vue'
 import { PAYMENT_CONFIG } from '@/config/paymentConfig'
+import { usePublishStore } from '@/stores/usePublishStore'
 
 // ==========================================
 // PROPS & EMITS
@@ -1155,6 +1156,11 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['edit-step', 'submit'])
+
+// ==========================================
+// STORES
+// ==========================================
+const publishStore = usePublishStore()
 
 // ==========================================
 // REFERENCIAS Y STATE

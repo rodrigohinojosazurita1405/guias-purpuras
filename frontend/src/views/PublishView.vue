@@ -201,7 +201,7 @@ const handleSubmit = async () => {
   }
 
   // ========== VALIDAR DATOS MÍNIMOS ==========
-  const { title, description, city, contractType, expiryDate, requirements, proofOfPaymentPreview } = publishStore.jobData
+  const { title, description, city, contractType, expiryDate, requirements } = publishStore.jobData
   const email = authStore.user?.email // Email del usuario autenticado
   const fieldErrors = {}
 
@@ -213,8 +213,8 @@ const handleSubmit = async () => {
   if (!expiryDate) fieldErrors.expiryDate = 'Fecha de vencimiento es requerida'
   if (!requirements?.trim()) fieldErrors.requirements = 'Requisitos son requeridos'
 
-  // FASE 7.1: Validación de comprobante de pago obligatorio
-  if (!proofOfPaymentPreview) fieldErrors.proofOfPayment = 'El comprobante de pago es requerido'
+  // FASE 7.1: Validación de comprobante de pago obligatorio (verificar el archivo real en la store)
+  if (!publishStore.proofOfPaymentFile) fieldErrors.proofOfPayment = 'El comprobante de pago es requerido'
 
   if (Object.keys(fieldErrors).length > 0) {
     console.error('❌ Errores de validación frontend:', fieldErrors)
@@ -235,6 +235,10 @@ const handleSubmit = async () => {
       city,
       company: publishStore.jobData.companyName,
       plan: publishStore.jobData.selectedPlan
+    })
+    console.log('🔍 Verificación de archivo:', {
+      proofOfPaymentFile: publishStore.proofOfPaymentFile?.name || 'NO DEFINIDO',
+      fileExists: !!publishStore.proofOfPaymentFile
     })
 
     // Preparar datos como FormData para permitir envío de archivo (FASE 7.1)
