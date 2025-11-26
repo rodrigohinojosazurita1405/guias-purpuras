@@ -4,8 +4,8 @@ Decoradores para proteger endpoints con autenticación JWT
 from functools import wraps
 from django.http import JsonResponse
 from django.contrib.auth.models import User
-from rest_framework_simplejwt.tokens import UntypedToken
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError, AuthenticationFailed
 
 
 def token_required(view_func):
@@ -31,9 +31,9 @@ def token_required(view_func):
         token_str = auth_header[1]
 
         try:
-            # Decodificar token para obtener el user_id
-            untyped_token = UntypedToken(token_str)
-            user_id = untyped_token.get('user_id')
+            # Validar y decodificar AccessToken para obtener el user_id
+            access_token = AccessToken(token_str)
+            user_id = access_token.get('user_id')
 
             if not user_id:
                 return JsonResponse({
@@ -53,16 +53,21 @@ def token_required(view_func):
 
             return view_func(request, *args, **kwargs)
 
-        except (InvalidToken, TokenError):
+        except (InvalidToken, TokenError, AuthenticationFailed) as te:
             return JsonResponse({
                 'success': False,
                 'message': 'Token inválido o expirado'
             }, status=401)
         except Exception as e:
-            print(f'Error en token_required: {str(e)}')
+            import traceback
+            # Log to file for debugging
+            with open('debug_auth.txt', 'a', encoding='utf-8') as f:
+                f.write(f'Exception: {str(e)}\n')
+                f.write(traceback.format_exc())
+                f.write('\n---\n')
             return JsonResponse({
                 'success': False,
-                'message': f'Error de autenticación: {str(e)}'
+                'message': 'Error de autenticacion'
             }, status=500)
 
     return wrapper

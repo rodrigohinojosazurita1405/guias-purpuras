@@ -82,7 +82,7 @@ def publish_job(request):
         data.update(request.POST.dict())
         files = request.FILES.dict()
 
-        print(f'📝 [PUBLISH_JOB] Usuario: {request.user.email}, Campos recibidos: {list(data.keys())}, Archivos: {list(files.keys())}')
+        print(f'[PUBLISH] [PUBLISH_JOB] Usuario: {request.user.email}, Campos recibidos: {list(data.keys())}, Archivos: {list(files.keys())}')
 
         # ========== VALIDACIONES DE CAMPOS REQUERIDOS ==========
         errors = {}
@@ -155,7 +155,7 @@ def publish_job(request):
 
         # Retornar errores si existen
         if errors:
-            print(f'❌ [PUBLISH_JOB] Errores de validación: {errors}')
+            print(f'[ERROR] [PUBLISH_JOB] Errores de validación: {errors}')
             return JsonResponse({
                 'success': False,
                 'message': 'Errores de validación',
@@ -181,8 +181,19 @@ def publish_job(request):
 
         # Selected Plan
         plan = (data.get('selectedPlan') or 'escencial').lower()
-        if plan not in ['escencial', 'purpura', 'impulso']:
-            errors['selectedPlan'] = "Debe ser 'escencial', 'purpura' o 'impulso'"
+        # Mapear nombres del frontend al backend
+        plan_mapping = {
+            'basico': 'escencial',
+            'escencial': 'escencial',
+            'professional': 'purpura',
+            'purpura': 'purpura',
+            'premium': 'impulso',
+            'impulso': 'impulso'
+        }
+        if plan not in plan_mapping:
+            errors['selectedPlan'] = "Plan no válido"
+        else:
+            plan = plan_mapping[plan]
 
         # Salary validation (si es tipo range)
         if salary_type == 'range':
@@ -195,7 +206,7 @@ def publish_job(request):
                 errors['salaryRange'] = 'Valores de salario inválidos (deben ser números)'
 
         if errors:
-            print(f'❌ [PUBLISH_JOB] Errores de validación opcional: {errors}')
+            print(f'[ERROR] [PUBLISH_JOB] Errores de validación opcional: {errors}')
             return JsonResponse({
                 'success': False,
                 'message': 'Errores de validación',
@@ -240,40 +251,31 @@ def publish_job(request):
                 proofOfPayment=proof_of_payment,  # FASE 7.1: Comprobante de pago obligatorio
             )
 
-            print(f'✅ [PUBLISH_JOB] Éxito: ID={job.id}, Título="{job.title}", Plan={plan}')
-
+            print(f'[OK] [PUBLISH_JOB] Éxito: ID={job.id}, Título="{job.title}", Plan={plan}')
             return JsonResponse({
                 'success': True,
                 'message': '¡Oferta publicada exitosamente!',
                 'id': job.id,
                 'createdAt': job.createdAt.isoformat()
             }, status=201)
-
-        except ValueError as ve:
-            print(f'❌ [PUBLISH_JOB] Error de conversión: {str(ve)}')
-            return JsonResponse({
-                'success': False,
-                'message': f'Error: Tipo de dato inválido - {str(ve)}'
-            }, status=400)
-
-        except Exception as db_error:
-            print(f'❌ [PUBLISH_JOB] Error BD: {str(db_error)}')
+        except Exception as create_error:
             import traceback
+            print(f'[ERROR] [PUBLISH_JOB] Error al crear Job: {str(create_error)}')
             traceback.print_exc()
             return JsonResponse({
                 'success': False,
-                'message': f'Error al guardar en BD: {str(db_error)}'
+                'message': f'Error al crear anuncio: {str(create_error)}'
             }, status=500)
 
     except json.JSONDecodeError as je:
-        print(f'❌ [PUBLISH_JOB] JSON inválido: {str(je)}')
+        print(f'[ERROR] [PUBLISH_JOB] JSON inválido: {str(je)}')
         return JsonResponse({
             'success': False,
             'message': 'Error: JSON inválido o vacío'
         }, status=400)
 
     except Exception as e:
-        print(f'❌ [PUBLISH_JOB] Error inesperado: {str(e)}')
+        print(f'[ERROR] [PUBLISH_JOB] Error inesperado: {str(e)}')
         import traceback
         traceback.print_exc()
         return JsonResponse({
@@ -959,7 +961,7 @@ def verify_payment(request, job_id):
     try:
         # Verificar que el usuario es superadmin
         if not request.user.is_superuser:
-            print(f'❌ [VERIFY_PAYMENT] Acceso denegado: {request.user.email} no es superadmin')
+            print(f'[ERROR] [VERIFY_PAYMENT] Acceso denegado: {request.user.email} no es superadmin')
             return JsonResponse({
                 'success': False,
                 'message': 'Solo superadmin puede verificar pagos'
@@ -969,7 +971,7 @@ def verify_payment(request, job_id):
         try:
             job = Job.objects.get(id=job_id)
         except Job.DoesNotExist:
-            print(f'❌ [VERIFY_PAYMENT] Oferta no encontrada: {job_id}')
+            print(f'[ERROR] [VERIFY_PAYMENT] Oferta no encontrada: {job_id}')
             return JsonResponse({
                 'success': False,
                 'message': 'Oferta de trabajo no encontrada'
@@ -1013,7 +1015,7 @@ def verify_payment(request, job_id):
         job.save()
 
         status_text = "Aprobado" if approved else "Rechazado"
-        print(f'✅ [VERIFY_PAYMENT] ID={job_id}, Título="{job.title}", Estado={status_text}, Verificador={request.user.email}')
+        print(f'[OK] [VERIFY_PAYMENT] ID={job_id}, Título="{job.title}", Estado={status_text}, Verificador={request.user.email}')
 
         return JsonResponse({
             'success': True,
@@ -1028,7 +1030,7 @@ def verify_payment(request, job_id):
         }, status=200)
 
     except Exception as e:
-        print(f'❌ [VERIFY_PAYMENT] Error inesperado: {str(e)}')
+        print(f'[ERROR] [VERIFY_PAYMENT] Error inesperado: {str(e)}')
         import traceback
         traceback.print_exc()
         return JsonResponse({
