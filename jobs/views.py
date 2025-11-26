@@ -26,6 +26,7 @@ def publish_job(request):
     - contractType (str): Tipo de contrato
     - expiryDate (str ISO): Fecha de vencimiento (YYYY-MM-DD)
     - requirements (str): Requisitos
+    - proofOfPayment (file): Comprobante de pago (imagen, max 5MB)
 
     CAMPOS OPCIONALES:
     - companyName (str, default: 'Empresa Confidencial')
@@ -70,9 +71,18 @@ def publish_job(request):
     }
     """
     try:
-        # Parsear JSON
-        data = json.loads(request.body)
-        print(f'📝 [PUBLISH_JOB] Usuario: {request.user.email}, Campos recibidos: {list(data.keys())}')
+        # Parsear datos de POST multipart/form-data
+        # Intentar primero JSON, si falla usar POST data
+        try:
+            data = json.loads(request.body) if request.body and 'application/json' in request.META.get('CONTENT_TYPE', '') else {}
+        except (json.JSONDecodeError, AttributeError):
+            data = {}
+
+        # Combinar datos JSON con POST data y FILES
+        data.update(request.POST.dict())
+        files = request.FILES.dict()
+
+        print(f'📝 [PUBLISH_JOB] Usuario: {request.user.email}, Campos recibidos: {list(data.keys())}, Archivos: {list(files.keys())}')
 
         # ========== VALIDACIONES DE CAMPOS REQUERIDOS ==========
         errors = {}
@@ -114,11 +124,33 @@ def publish_job(request):
         expiry_date = data.get('expiryDate')
         if not expiry_date:
             errors['expiryDate'] = 'La fecha de vencimiento es requerida (formato: YYYY-MM-DD)'
+        else:
+            # Convertir fecha ISO 8601 (2025-12-05T04:00:00.000Z) a YYYY-MM-DD
+            try:
+                from datetime import datetime
+                if 'T' in str(expiry_date):  # Es formato ISO
+                    expiry_date = datetime.fromisoformat(expiry_date.replace('Z', '+00:00')).strftime('%Y-%m-%d')
+            except Exception as e:
+                errors['expiryDate'] = f'Formato de fecha inválido: {str(e)}'
 
         # 7. Requirements
         requirements = (data.get('requirements') or '').strip()
         if not requirements:
             errors['requirements'] = 'Los requisitos son requeridos'
+
+        # 8. Proof of Payment (FASE 7.1)
+        proof_of_payment = files.get('proofOfPayment')
+        if not proof_of_payment:
+            errors['proofOfPayment'] = 'El comprobante de pago es requerido (imagen JPEG, PNG o GIF)'
+        else:
+            # Validar tipo de archivo
+            allowed_extensions = ['jpg', 'jpeg', 'png', 'gif']
+            file_ext = proof_of_payment.name.split('.')[-1].lower()
+            if file_ext not in allowed_extensions:
+                errors['proofOfPayment'] = f'Tipo de archivo no permitido. Use: {", ".join(allowed_extensions).upper()}'
+            # Validar tamaño (max 5MB)
+            elif proof_of_payment.size > 5 * 1024 * 1024:
+                errors['proofOfPayment'] = 'El archivo es demasiado grande. Máximo 5 MB'
 
         # Retornar errores si existen
         if errors:
@@ -204,6 +236,7 @@ def publish_job(request):
                 externalApplicationUrl=(data.get('externalApplicationUrl') or '').strip(),
                 selectedPlan=plan,
                 screeningQuestions=data.get('screeningQuestions', []),
+                proofOfPayment=proof_of_payment,  # FASE 7.1: Comprobante de pago obligatorio
             )
 
             print(f'✅ [PUBLISH_JOB] Éxito: ID={job.id}, Título="{job.title}", Plan={plan}')
@@ -886,6 +919,117 @@ def get_user_activities(request):
 
     except Exception as e:
         print(f'Error al obtener actividades: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+@require_http_methods(["PATCH"])
+@csrf_exempt
+@token_required
+def verify_payment(request, job_id):
+    """
+    Endpoint para verificar el pago de una oferta de trabajo (SOLO SUPERADMIN)
+    PATCH /api/jobs/<job_id>/verify-payment
+
+    CAMPOS REQUERIDOS:
+    - approved (bool): Verdadero si el pago fue aprobado, falso si fue rechazado
+    - notes (str): Notas de la verificación (razón de aprobación/rechazo)
+
+    RESPUESTA EXITOSA (200):
+    {
+        'success': True,
+        'message': 'string',
+        'job': {
+            'id': 'job_id',
+            'paymentVerified': bool,
+            'paymentVerificationDate': 'ISO timestamp',
+            'status': 'active' o 'draft'
+        }
+    }
+
+    RESPUESTA ERROR (400, 401, 403, 404, 500):
+    {
+        'success': False,
+        'message': 'string'
+    }
+    """
+    try:
+        # Verificar que el usuario es superadmin
+        if not request.user.is_superuser:
+            print(f'❌ [VERIFY_PAYMENT] Acceso denegado: {request.user.email} no es superadmin')
+            return JsonResponse({
+                'success': False,
+                'message': 'Solo superadmin puede verificar pagos'
+            }, status=403)
+
+        # Obtener la oferta de trabajo
+        try:
+            job = Job.objects.get(id=job_id)
+        except Job.DoesNotExist:
+            print(f'❌ [VERIFY_PAYMENT] Oferta no encontrada: {job_id}')
+            return JsonResponse({
+                'success': False,
+                'message': 'Oferta de trabajo no encontrada'
+            }, status=404)
+
+        # Parsear datos del request
+        try:
+            data = json.loads(request.body) if request.body else {}
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Error: JSON inválido'
+            }, status=400)
+
+        # Validar campos requeridos
+        approved = data.get('approved')
+        notes = (data.get('notes') or '').strip()
+
+        if approved is None:
+            return JsonResponse({
+                'success': False,
+                'message': 'Campo "approved" requerido (true/false)'
+            }, status=400)
+
+        if not notes:
+            return JsonResponse({
+                'success': False,
+                'message': 'Notas de verificación requeridas'
+            }, status=400)
+
+        # Actualizar estado de verificación
+        from django.utils import timezone
+        job.paymentVerified = approved
+        job.paymentVerifiedBy = request.user
+        job.paymentVerificationDate = timezone.now()
+        job.paymentVerificationNotes = notes
+
+        # Si el pago fue aprobado, cambiar estado a 'active', si no a 'draft'
+        job.status = 'active' if approved else 'draft'
+
+        job.save()
+
+        status_text = "Aprobado" if approved else "Rechazado"
+        print(f'✅ [VERIFY_PAYMENT] ID={job_id}, Título="{job.title}", Estado={status_text}, Verificador={request.user.email}')
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Pago {status_text.lower()} exitosamente',
+            'job': {
+                'id': job.id,
+                'title': job.title,
+                'paymentVerified': job.paymentVerified,
+                'paymentVerificationDate': job.paymentVerificationDate.isoformat(),
+                'status': job.status
+            }
+        }, status=200)
+
+    except Exception as e:
+        print(f'❌ [VERIFY_PAYMENT] Error inesperado: {str(e)}')
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'message': f'Error: {str(e)}'

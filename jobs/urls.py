@@ -13,6 +13,9 @@ urlpatterns = [
     # Listar trabajos
     path('jobs/', views.list_jobs, name='list_jobs'),
 
+    # Verificar pago de un trabajo (FASE 7.1 - Solo Superadmin)
+    path('jobs/<str:job_id>/verify-payment', views.verify_payment, name='verify_payment'),
+
     # Obtener detalle de un trabajo (DEBE estar después de /publish para evitar conflictos)
     path('jobs/<str:job_id>/', views.get_job, name='get_job'),
 

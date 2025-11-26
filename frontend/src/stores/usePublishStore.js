@@ -60,6 +60,7 @@ export const usePublishStore = defineStore('publish', () => {
   // ========== STATE ==========
   const currentStep = ref(0)
   const jobData = ref({ ...DEFAULT_JOB_DATA })
+  const proofOfPaymentFile = ref(null) // FASE 7.1: Almacenar el objeto File del comprobante de pago
 
   // ========== CARGAR DATOS GUARDADOS ==========
   const loadDraftFromStorage = () => {
@@ -138,10 +139,16 @@ export const usePublishStore = defineStore('publish', () => {
     localStorage.removeItem(STORAGE_STEP_KEY)
   }
 
+  // FASE 7.1: Establecer el archivo de comprobante de pago
+  const setProofOfPaymentFile = (file) => {
+    proofOfPaymentFile.value = file
+  }
+
   return {
     // State
     currentStep,
     jobData,
+    proofOfPaymentFile,
 
     // Actions
     setJobData,
@@ -150,6 +157,7 @@ export const usePublishStore = defineStore('publish', () => {
     previousStep,
     resetForm,
     clearDraft,
-    loadDraftFromStorage
+    loadDraftFromStorage,
+    setProofOfPaymentFile
   }
 })

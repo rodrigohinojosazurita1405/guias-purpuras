@@ -1391,6 +1391,10 @@ const handleProofUpload = (event) => {
     proofOfPaymentPreview.value = e.target?.result
   }
   reader.readAsDataURL(file)
+
+  // FASE 7.1: Almacenar el archivo en la store para envío al backend
+  publishStore.setProofOfPaymentFile(file)
+  console.log('📎 Archivo de comprobante almacenado:', file.name)
 }
 
 // Limpiar carga de comprobante
@@ -1399,6 +1403,9 @@ const clearProofUpload = () => {
   if (proofFileInput.value) {
     proofFileInput.value.value = ''
   }
+  // FASE 7.1: Limpiar el archivo de la store
+  publishStore.setProofOfPaymentFile(null)
+  console.log('🗑️ Archivo de comprobante eliminado')
 }
 
 // Copiar referencia de pago al portapapeles
@@ -2050,8 +2057,8 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
 .header-grid {
   display: grid;
-  grid-template-columns: 160px 1.2fr 1fr;
-  gap: 2rem;
+  grid-template-columns: 160px 1fr auto;
+  gap: 1.5rem 2rem;
   align-items: flex-start;
 }
 
@@ -2132,7 +2139,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
   letter-spacing: -0.3px;
 }
 
-/* GRID DE INFORMACIÓN - Layout optimizado con cajas visuales */
+/* GRID DE INFORMACIÓN - Layout optimizado */
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2145,10 +2152,6 @@ watch(() => props.formData.coordinates, (newCoords) => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1.5rem;
-  border: 2px solid #E9D5FF;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #FAFBFC 0%, #F8F6FB 100%);
 }
 
 .info-item {

@@ -137,6 +137,35 @@ class Job(models.Model):
     billingNIT = models.CharField(max_length=20, blank=True, null=True, verbose_name="NIT")
     billingInvoiceEmail = models.EmailField(blank=True, null=True, verbose_name="Email para factura")
 
+    # Información de Verificación de Pago (FASE 7.1)
+    proofOfPayment = models.ImageField(
+        upload_to='payment_proofs/',
+        null=True,
+        blank=False,
+        verbose_name="Comprobante de pago"
+    )
+    paymentVerified = models.BooleanField(
+        default=False,
+        verbose_name="Pago verificado"
+    )
+    paymentVerifiedBy = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='verified_jobs',
+        verbose_name="Verificado por"
+    )
+    paymentVerificationDate = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de verificación"
+    )
+    paymentVerificationNotes = models.TextField(
+        blank=True,
+        verbose_name="Notas de verificación"
+    )
+
     class Meta:
         verbose_name = "Oferta de Trabajo"
         verbose_name_plural = "Ofertas de Trabajo"

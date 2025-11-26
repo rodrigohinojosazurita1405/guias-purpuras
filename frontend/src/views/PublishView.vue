@@ -201,7 +201,7 @@ const handleSubmit = async () => {
   }
 
   // ========== VALIDAR DATOS MÍNIMOS ==========
-  const { title, description, city, contractType, expiryDate, requirements } = publishStore.jobData
+  const { title, description, city, contractType, expiryDate, requirements, proofOfPaymentPreview } = publishStore.jobData
   const email = authStore.user?.email // Email del usuario autenticado
   const fieldErrors = {}
 
@@ -213,10 +213,13 @@ const handleSubmit = async () => {
   if (!expiryDate) fieldErrors.expiryDate = 'Fecha de vencimiento es requerida'
   if (!requirements?.trim()) fieldErrors.requirements = 'Requisitos son requeridos'
 
+  // FASE 7.1: Validación de comprobante de pago obligatorio
+  if (!proofOfPaymentPreview) fieldErrors.proofOfPayment = 'El comprobante de pago es requerido'
+
   if (Object.keys(fieldErrors).length > 0) {
     console.error('❌ Errores de validación frontend:', fieldErrors)
     notify({
-      message: 'Por favor, completa todos los campos requeridos',
+      message: 'Por favor, completa todos los campos requeridos incluido el comprobante de pago',
       color: 'warning',
       duration: 4000
     })
@@ -234,11 +237,31 @@ const handleSubmit = async () => {
       plan: publishStore.jobData.selectedPlan
     })
 
-    // Preparar datos - asegurarse que email y fecha de publicación estén incluidos
-    const jobData = {
-      ...publishStore.jobData,
-      email: authStore.user?.email || publishStore.jobData.email,
-      publishedDate: new Date().toISOString() // Agregar fecha de publicación actual
+    // Preparar datos como FormData para permitir envío de archivo (FASE 7.1)
+    const formData = new FormData()
+
+    // Agregar todos los campos del jobData
+    Object.keys(publishStore.jobData).forEach(key => {
+      const value = publishStore.jobData[key]
+
+      // Saltar proofOfPaymentPreview (es solo para preview, no enviar al backend)
+      if (key === 'proofOfPaymentPreview') return
+
+      // Para screeningQuestions (es array), convertir a JSON
+      if (key === 'screeningQuestions' && Array.isArray(value)) {
+        formData.append(key, JSON.stringify(value))
+      } else if (value != null && value !== '') {
+        formData.append(key, value)
+      }
+    })
+
+    // Agregar email del usuario autenticado
+    formData.append('email', authStore.user?.email || publishStore.jobData.email)
+
+    // FASE 7.1: Agregar archivo de comprobante de pago si existe
+    if (publishStore.proofOfPaymentFile) {
+      formData.append('proofOfPayment', publishStore.proofOfPaymentFile)
+      console.log('📎 Archivo de pago adjunto:', publishStore.proofOfPaymentFile.name)
     }
 
     console.log('📤 Enviando a http://localhost:8000/api/jobs/publish...')
@@ -250,10 +273,10 @@ const handleSubmit = async () => {
     const response = await fetch('http://localhost:8000/api/jobs/publish', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${authStore.accessToken}`
+        // NO establecer Content-Type: multipart/form-data, el navegador lo hace automáticamente
       },
-      body: JSON.stringify(jobData),
+      body: formData,
       signal: controller.signal
     })
 

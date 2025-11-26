@@ -637,24 +637,124 @@ GET  /api/jobs/applicant/profile-completeness/
 ## 💳 FASE 7: PLANES DE PAGO Y COMPROBANTE
 **Descripción**: Sistema de planes y subida de comprobante de pago
 
-### 7.1 Modelos Backend
+### 7.1 SISTEMA DE VERIFICACIÓN DE PAGO POR SUPERADMIN (CRÍTICO) 🆕
+**Descripción**: Comprobante obligatorio + Aprobación manual del superadmin
+
+#### 7.1.1 Base de Datos Django
+**Campos nuevos en modelo Job** (`jobs/models.py`):
+```python
+proofOfPayment = models.ImageField(
+    upload_to='payment_proofs/',
+    null=False,          # OBLIGATORIO
+    blank=False
+)
+paymentVerified = models.BooleanField(default=False)
+paymentVerifiedBy = models.ForeignKey(User, null=True, blank=True)
+paymentVerificationDate = models.DateTimeField(null=True, blank=True)
+paymentVerificationNotes = models.TextField(blank=True)
+```
+
+**Tareas**:
+- [ ] 7.1.1.1 Crear migración Django con nuevos campos
+- [ ] 7.1.1.2 Validar relación con User superadmin
+
+#### 7.1.2 Backend Validación
+**Endpoint POST `/api/jobs/publish`** (`jobs/views.py`):
+- [ ] 7.1.2.1 Validar `proofOfPayment` obligatorio
+- [ ] 7.1.2.2 Validar tamaño (máx 5MB)
+- [ ] 7.1.2.3 Validar tipo (solo imágenes)
+- [ ] 7.1.2.4 Crear Job con `paymentVerified=False`
+
+#### 7.1.3 Backend Verificación Superadmin
+**Endpoint POST `/api/jobs/{id}/verify-payment/`** (`jobs/views.py`):
+```python
+# Solo superadmin puede acceder
+@permission_classes([IsAuthenticated, IsSuperAdmin])
+def verify_payment(request, job_id):
+    job.paymentVerified = request.data.get('approved')
+    job.paymentVerifiedBy = request.user
+    job.paymentVerificationDate = timezone.now()
+    job.save()
+```
+
+**Tareas**:
+- [ ] 7.1.3.1 Crear endpoint POST `/api/jobs/{id}/verify-payment/`
+- [ ] 7.1.3.2 Validar permisos (solo superadmin)
+- [ ] 7.1.3.3 Guardar notas de verificación
+- [ ] 7.1.3.4 Cambiar estado a `published` si aprueba
+
+#### 7.1.4 Django Admin Personalizado
+**Personalización** (`jobs/admin.py`):
+- [ ] 7.1.4.1 Agregar campos a `list_display`
+- [ ] 7.1.4.2 Agregar filtros por `paymentVerified`
+- [ ] 7.1.4.3 Mostrar preview de imagen de comprobante
+- [ ] 7.1.4.4 Agregar acciones en lote (Aprobar/Rechazar)
+
+#### 7.1.5 Frontend - Validación Obligatoria
+**PublishView.vue** (`frontend/src/views/PublishView.vue`):
+- [ ] 7.1.5.1 Validar `proofOfPaymentPreview` NO sea null
+- [ ] 7.1.5.2 Mostrar error si falta comprobante
+- [ ] 7.1.5.3 Bloquear botón "PUBLICAR" sin comprobante
+- [ ] 7.1.5.4 Enviar archivo en FormData
+
+#### 7.1.6 Frontend - Indicador de Estado
+**SummaryCard.vue** (`frontend/src/components/Cards/SummaryCard.vue`):
+- [ ] 7.1.6.1 Mostrar badge "Verificación pendiente" si `paymentVerified=false`
+- [ ] 7.1.6.2 Mostrar badge "Verificado ✅" si `paymentVerified=true`
+- [ ] 7.1.6.3 No permitir edición si está pendiente
+
+#### 7.1.7 Flujo Completo
+```
+1. Usuario sube comprobante → proofOfPaymentPreview se llena
+2. Usuario click "PUBLICAR"
+3. Frontend valida comprobante ≠ null
+4. Si falta → Error "Comprobante requerido" ❌
+5. Si existe → POST /api/jobs/publish + archivo
+6. Backend guarda en proofOfPayment + paymentVerified=FALSE
+7. Superadmin revisa en Django Admin
+8. Si OK → Click "Aprobar" → paymentVerified=TRUE + status=published ✅
+9. Si falso → Click "Rechazar" → paymentVerified=FALSE ❌
+10. Usuario ve estado en dashboard (Pendiente/Verificado)
+```
+
+#### 7.1.8 Tareas de Configuración
+- [ ] 7.1.8.1 Configurar MEDIA_ROOT y MEDIA_URL en settings.py
+- [ ] 7.1.8.2 Crear carpeta media/payment_proofs/
+- [ ] 7.1.8.3 Agregar permisos superadmin en backend
+- [ ] 7.1.8.4 Agregar permisos en JWT tokens si usa DRF
+
+**Status**: ✅ COMPLETADO - FUNCIONANDO EN PRODUCCIÓN
+
+**Lo que se implementó:**
+- ✅ 5 campos nuevos en modelo Job (proofOfPayment, paymentVerified, paymentVerifiedBy, paymentVerificationDate, paymentVerificationNotes)
+- ✅ Migración Django creada y aplicada
+- ✅ Backend valida comprobante obligatorio (formato, tamaño)
+- ✅ Endpoint PATCH `/api/jobs/{id}/verify-payment` para superadmin
+- ✅ Django Admin personalizado con resumen de verificación
+- ✅ Frontend valida comprobante antes de publicar
+- ✅ Almacenamiento seguro en media/payment_proofs/
+- ✅ Test realizado: Anuncio creado y pagado verificado exitosamente (ID: 09e36c2f)
+
+---
+
+### 7.2 Modelos Backend (Antiguo)
 - [ ] Modelo Payment con campos
 
-### 7.2 API REST
+### 7.3 API REST (Antiguo)
 - [ ] POST /api/payments - Crear pago
 - [ ] POST /api/payments/{id}/upload - Subir comprobante
 - [ ] GET /api/payments - Ver mis pagos
 
-### 7.3 Frontend
+### 7.4 Frontend (Antiguo)
 - [ ] PaymentModal.vue
 - [ ] PlanSelector.vue
 - [ ] ProofUpload.vue
 
-### 7.4 QR Predefinidos
+### 7.5 QR Predefinidos
 - [ ] Generar QR para cada plan
 - [ ] Mostrar en modal de pago
 
-### 7.5 Features
+### 7.6 Features
 - [ ] Validación de comprobante
 - [ ] Estados de pago
 - [ ] Historial de pagos
