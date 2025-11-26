@@ -2050,8 +2050,8 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
 .header-grid {
   display: grid;
-  grid-template-columns: 160px 1fr auto;
-  gap: 1.5rem 2rem;
+  grid-template-columns: 160px 1.2fr 1fr;
+  gap: 2rem;
   align-items: flex-start;
 }
 
