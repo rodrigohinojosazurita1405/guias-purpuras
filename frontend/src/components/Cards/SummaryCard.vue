@@ -2010,13 +2010,13 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
 /* ========== HEADER - LAYOUT PROFESIONAL ========== */
 .job-header {
-  padding: 2rem 3rem 3rem 3rem;
+  padding: 1.5rem 2.5rem 2.25rem 2.5rem;
   border-bottom: 2px solid #F0F3FF;
   background: white;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
 }
 
 /* BADGES TOP ROW */
@@ -2029,8 +2029,8 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
 .header-grid {
   display: grid;
-  grid-template-columns: 200px 1fr auto;
-  gap: 2rem 2.5rem;
+  grid-template-columns: 160px 1fr auto;
+  gap: 1.5rem 2rem;
   align-items: flex-start;
 }
 
@@ -2039,7 +2039,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 3.2rem;
+  padding-top: 2.2rem;
 }
 
 .company-logo-container {
@@ -2084,7 +2084,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
 .info-column {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 0.8rem;
 }
 
 /* TÍTULO DEL PUESTO */
@@ -2111,12 +2111,12 @@ watch(() => props.formData.coordinates, (newCoords) => {
   letter-spacing: -0.3px;
 }
 
-/* GRID DE INFORMACIÓN 2x2 */
+/* GRID DE INFORMACIÓN - Layout optimizado */
 .info-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 2.5rem 2rem;
-  margin-top: 1rem;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 1.5rem 1.5rem;
+  margin-top: 0.5rem;
 }
 
 .info-item {
