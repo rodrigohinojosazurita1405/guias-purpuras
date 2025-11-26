@@ -594,8 +594,8 @@ def apply_to_job(request, job_id):
         }, status=500)
 
 
-@require_http_methods(["GET"])
 @token_required
+@require_http_methods(["GET"])
 def list_applications(request, job_id):
     """
     Endpoint para listar todas las aplicaciones de una oferta de trabajo
@@ -663,9 +663,9 @@ def list_applications(request, job_id):
         }, status=500)
 
 
-@require_http_methods(["PATCH"])
-@csrf_exempt
 @token_required
+@csrf_exempt
+@require_http_methods(["PATCH"])
 def update_application_status(request, job_id, application_id):
     """
     Endpoint para actualizar el estado de una aplicación
@@ -731,8 +731,8 @@ def update_application_status(request, job_id, application_id):
         }, status=500)
 
 
-@require_http_methods(["GET"])
 @token_required
+@require_http_methods(["GET"])
 def get_user_statistics(request):
     """
     Endpoint para obtener estadísticas del usuario en el dashboard
@@ -797,8 +797,8 @@ def get_user_statistics(request):
         }, status=500)
 
 
-@require_http_methods(["GET"])
 @token_required
+@require_http_methods(["GET"])
 def get_user_published_jobs(request):
     """
     Endpoint para obtener trabajos publicados por el usuario
@@ -852,8 +852,8 @@ def get_user_published_jobs(request):
         }, status=500)
 
 
-@require_http_methods(["GET"])
 @token_required
+@require_http_methods(["GET"])
 def get_user_applied_jobs(request):
     """
     Endpoint para obtener trabajos a los que el usuario ha aplicado
@@ -905,8 +905,8 @@ def get_user_applied_jobs(request):
         }, status=500)
 
 
-@require_http_methods(["GET"])
 @token_required
+@require_http_methods(["GET"])
 def get_user_activities(request):
     """
     Endpoint para obtener actividades recientes del usuario
@@ -971,9 +971,9 @@ def get_user_activities(request):
         }, status=500)
 
 
-@require_http_methods(["PATCH"])
-@csrf_exempt
 @token_required
+@csrf_exempt
+@require_http_methods(["PATCH"])
 def verify_payment(request, job_id):
     """
     Endpoint para verificar el pago de una oferta de trabajo (SOLO SUPERADMIN)
