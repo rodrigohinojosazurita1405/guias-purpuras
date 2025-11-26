@@ -551,92 +551,6 @@
         </div>
       </div>
 
-      <!-- ACORDEÓN 6: INFORMACIÓN DE CONTACTO -->
-      <div class="accordion-section" :class="{ 'expanded': expandedSections.contact }">
-        <div class="accordion-header" @click="toggleSection('contact')">
-          <div class="accordion-header-left">
-            <div class="accordion-icon">
-              <va-icon name="phone" size="1.5rem" />
-            </div>
-            <div class="accordion-title-group">
-              <h3 class="accordion-title">Información de Contacto</h3>
-              <p v-if="!expandedSections.contact" class="accordion-summary">
-                {{ getSummary('contact') }}
-              </p>
-            </div>
-          </div>
-          <va-icon
-            :name="expandedSections.contact ? 'expand_less' : 'expand_more'"
-            size="1.5rem"
-            class="accordion-chevron"
-          />
-        </div>
-
-        <div v-if="expandedSections.contact" class="accordion-content">
-
-          <!-- EMAIL DE CONTACTO -->
-          <div class="form-row">
-            <div class="form-label">Email de Contacto *</div>
-            <va-input
-              v-model="localFormData.email"
-              type="email"
-              placeholder="correo@empresa.com"
-              :rules="[(v) => !!v || 'Email es requerido', (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || 'Email inválido']"
-            >
-              <template #prepend>
-                <va-icon name="email" color="purple" />
-              </template>
-            </va-input>
-          </div>
-
-          <!-- WHATSAPP -->
-          <div class="form-row">
-            <div class="form-label">WhatsApp (Teléfono) *</div>
-            <va-input
-              v-model="localFormData.whatsapp"
-              placeholder="Ej: +591 XXXXXXXXX o 6532-4767"
-              :rules="[(v) => !!v || 'WhatsApp es requerido']"
-            >
-              <template #prepend>
-                <va-icon name="phone" color="purple" />
-              </template>
-            </va-input>
-            <small class="form-hint">Incluye el código de país (+591) o el número local</small>
-          </div>
-
-          <!-- SITIO WEB (OPCIONAL) -->
-          <div class="form-row">
-            <div class="form-label">Sitio Web (Opcional)</div>
-            <va-input
-              v-model="localFormData.website"
-              type="url"
-              placeholder="https://www.ejemplo.com"
-            >
-              <template #prepend>
-                <va-icon name="language" color="purple" />
-              </template>
-            </va-input>
-          </div>
-
-          <!-- INSTRUCCIONES DE APLICACIÓN -->
-          <div class="form-row">
-            <div class="form-label">Instrucciones de Postulación (Opcional)</div>
-            <va-textarea
-              v-model="localFormData.applicationInstructions"
-              placeholder="Ej: Enviar CV a correo, llenar formulario, agendar entrevista, etc."
-              :min-rows="3"
-              counter
-              maxlength="500"
-            >
-              <template #prepend>
-                <va-icon name="description" color="purple" />
-              </template>
-            </va-textarea>
-          </div>
-
-        </div>
-      </div>
-
       <!-- BOTONES DE NAVEGACIÓN -->
       <div class="navigation-buttons">
         <button class="btn btn-secondary" @click="handleBack">
@@ -671,8 +585,7 @@ const expandedSections = ref({
   basicInfo: true,
   requirements: false,
   location: false,
-  compensation: false,
-  contact: false
+  compensation: false
 })
 
 // ========== DATA LOCAL (REF + WATCH) ==========
@@ -820,12 +733,6 @@ const getSummary = (sectionName) => {
       }
       return summary || 'Configura compensación y vacantes'
 
-    case 'contact':
-      if (localFormData.value.email && localFormData.value.whatsapp) {
-        return `${localFormData.value.email} • ${localFormData.value.whatsapp}`
-      }
-      return 'Agrega información de contacto'
-
     default:
       return ''
   }
@@ -918,17 +825,6 @@ const validate = () => {
   
   if (localFormData.value.salaryType === 'fixed' && !localFormData.value.salaryFixed) {
     errors.push('El salario es requerido')
-  }
-
-  // Validaciones de contacto
-  if (!localFormData.value.email) {
-    errors.push('El email de contacto es requerido')
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(localFormData.value.email)) {
-    errors.push('El email no es válido')
-  }
-
-  if (!localFormData.value.whatsapp) {
-    errors.push('El número de WhatsApp/Teléfono es requerido')
   }
 
   if (errors.length > 0) {

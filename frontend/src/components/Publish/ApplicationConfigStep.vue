@@ -277,6 +277,66 @@
         </div>
       </div>
 
+      <!-- INFORMACIÓN DE CONTACTO (si es interna o ambas) -->
+      <div v-if="['internal', 'both'].includes(modelValue.applicationType)" class="form-section">
+        <h3 class="section-title">
+          <va-icon name="phone" size="1.25rem" />
+          Información de Contacto Directo
+        </h3>
+        <p class="section-description">
+          Proporciona los medios por los cuales los candidatos pueden enviarte su CV
+        </p>
+
+        <!-- Email de Contacto -->
+        <div class="form-row">
+          <label for="contact-email">Email de Contacto (Opcional)</label>
+          <input
+            id="contact-email"
+            :value="modelValue.email || ''"
+            type="email"
+            placeholder="correo@empresa.com"
+            class="form-input"
+            @input="updateData('email', $event.target.value)"
+          />
+          <small class="form-hint">Los candidatos podrán enviar su CV a este email</small>
+        </div>
+
+        <!-- WhatsApp/Teléfono -->
+        <div class="form-row">
+          <label for="contact-whatsapp">WhatsApp/Teléfono (Opcional)</label>
+          <input
+            id="contact-whatsapp"
+            :value="modelValue.whatsapp || ''"
+            type="text"
+            placeholder="Ej: +591 XXXXXXXXX o 6532-4767"
+            class="form-input"
+            @input="updateData('whatsapp', $event.target.value)"
+          />
+          <small class="form-hint">Los candidatos podrán contactarte por WhatsApp o llamada</small>
+        </div>
+
+        <!-- Sitio Web (Opcional) -->
+        <div class="form-row">
+          <label for="contact-website">Sitio Web (Opcional)</label>
+          <input
+            id="contact-website"
+            :value="modelValue.website || ''"
+            type="url"
+            placeholder="https://www.ejemplo.com"
+            class="form-input"
+            @input="updateData('website', $event.target.value)"
+          />
+          <small class="form-hint">Enlace a tu sitio web o portafolio</small>
+        </div>
+
+        <div class="contact-info-box">
+          <va-icon name="lightbulb" color="#7C3AED" size="1.5rem" />
+          <div class="info-content">
+            <strong>Consejo:</strong> Proporciona al menos un método de contacto (Email o WhatsApp) para recibir aplicaciones internas exitosamente.
+          </div>
+        </div>
+      </div>
+
       <!-- Info Box -->
       <div class="info-box">
         <va-icon name="info" color="#7C3AED" size="1.5rem" />

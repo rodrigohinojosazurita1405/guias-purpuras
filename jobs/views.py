@@ -103,12 +103,13 @@ def publish_job(request):
         elif len(description) < 20:
             errors['description'] = 'La descripción debe tener al menos 20 caracteres'
 
-        # 3. Email
+        # 3. Email (Opcional - solo se valida si se proporciona)
         email = (data.get('email') or '').strip()
-        if not email:
-            errors['email'] = 'El email de contacto es requerido'
-        elif '@' not in email or '.' not in email:
+        if email and ('@' not in email or '.' not in email):
             errors['email'] = 'Email inválido (ej: user@example.com)'
+        if not email:
+            # Si no hay email, usar un placeholder
+            email = 'contact@empresa.com'
 
         # 4. City
         city = (data.get('city') or '').strip()
