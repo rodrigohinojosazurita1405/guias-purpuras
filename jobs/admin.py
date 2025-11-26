@@ -42,7 +42,8 @@ class JobAdmin(admin.ModelAdmin):
         'createdAt',
         'updatedAt',
         'payment_verification_summary',
-        'job_analytics_display'
+        'job_analytics_display',
+        'proof_of_payment_preview'
     )
 
     # Acciones personalizadas
@@ -79,7 +80,7 @@ class JobAdmin(admin.ModelAdmin):
             'fields': ('selectedPlan', 'status', 'views')
         }),
         ('Verificación de Pago (FASE 7.1)', {
-            'fields': ('proofOfPayment', 'payment_verification_summary', 'paymentVerified', 'paymentVerifiedBy', 'paymentVerificationDate', 'paymentVerificationNotes'),
+            'fields': ('proofOfPayment', 'proof_of_payment_preview', 'payment_verification_summary', 'paymentVerified', 'paymentVerifiedBy', 'paymentVerificationDate', 'paymentVerificationNotes'),
             'classes': ('wide',),
             'description': 'Información de verificación de pago obligatorio'
         }),
@@ -102,24 +103,50 @@ class JobAdmin(admin.ModelAdmin):
     company_display.short_description = 'Empresa'
 
     def status_badge(self, obj):
-        """Badge de estado"""
-        labels = {
+        """Badge de estado con colores"""
+        status_colors = {
+            'active': '#10B981',     # Verde
+            'closed': '#EF4444',     # Rojo
+            'draft': '#9CA3AF'       # Gris
+        }
+        status_labels = {
             'active': 'ACTIVA',
             'closed': 'CERRADA',
             'draft': 'BORRADOR'
         }
-        return labels.get(obj.status, obj.status.upper())
+        color = status_colors.get(obj.status, '#6B7280')
+        label = status_labels.get(obj.status, obj.status.upper())
+
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 5px 12px; '
+            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            'display: inline-block;">{}</span>',
+            color, label
+        )
     status_badge.short_description = 'Estado'
 
     def payment_badge(self, obj):
-        """Badge de estado de pago"""
+        """Badge de estado de pago con colores y estilos"""
         if obj.paymentVerified:
-            return 'VERIFICADO'
+            color = '#059669'  # Verde oscuro
+            label = '✓ VERIFICADO'
+            icon = '✓'
         elif obj.proofOfPayment:
-            return 'PENDIENTE'
+            color = '#F59E0B'  # Naranja
+            label = '⏳ PENDIENTE'
+            icon = '⏳'
         else:
-            return 'SIN PAGO'
-    payment_badge.short_description = 'Pago'
+            color = '#DC2626'  # Rojo oscuro
+            label = '✗ SIN PAGO'
+            icon = '✗'
+
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 6px 14px; '
+            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            'display: inline-block; letter-spacing: 0.5px;">{}</span>',
+            color, label
+        )
+    payment_badge.short_description = 'Estado Pago'
 
     def applications_count(self, obj):
         """Muestra el contador de aplicaciones"""
@@ -144,17 +171,65 @@ class JobAdmin(admin.ModelAdmin):
         )
     job_analytics_display.short_description = 'Analíticas'
 
-    def payment_verification_summary(self, obj):
-        """Resumen de la verificación de pago"""
+    def proof_of_payment_preview(self, obj):
+        """Muestra preview de la imagen de comprobante de pago"""
         if not obj.proofOfPayment:
-            return 'Sin comprobante de pago'
+            return format_html(
+                '<div style="background-color: #FEE2E2; padding: 12px; border-radius: 6px; '
+                'text-align: center; color: #991B1B;"><strong>✗ Sin comprobante</strong></div>'
+            )
 
-        status = 'VERIFICADO' if obj.paymentVerified else 'PENDIENTE'
-        verified_by = obj.paymentVerifiedBy.username if obj.paymentVerifiedBy else 'N/A'
+        return format_html(
+            '<div style="border: 2px solid #E5E7EB; border-radius: 8px; padding: 10px; '
+            'max-width: 400px; background-color: #F9FAFB;">'
+            '<img src="{}" style="max-width: 100%; height: auto; border-radius: 6px; '
+            'box-shadow: 0 4px 6px rgba(0,0,0,0.1);" alt="Comprobante de pago">'
+            '</div>',
+            obj.proofOfPayment.url
+        )
+    proof_of_payment_preview.short_description = 'Vista Previa'
+
+    def payment_verification_summary(self, obj):
+        """Resumen de la verificación de pago con estilos CSS"""
+        if not obj.proofOfPayment:
+            return format_html(
+                '<div style="background-color: #FEE2E2; padding: 12px; border-radius: 6px; '
+                'border-left: 4px solid #DC2626; color: #991B1B;">'
+                '<strong>✗ Sin comprobante de pago</strong>'
+                '</div>'
+            )
+
+        # Determinar color según estado
+        if obj.paymentVerified:
+            bg_color = '#ECFDF5'
+            border_color = '#059669'
+            text_color = '#065F46'
+            status_label = '✓ VERIFICADO'
+            status_color = '#059669'
+        else:
+            bg_color = '#FFFBEB'
+            border_color = '#F59E0B'
+            text_color = '#78350F'
+            status_label = '⏳ PENDIENTE'
+            status_color = '#F59E0B'
+
+        verified_by = obj.paymentVerifiedBy.username if obj.paymentVerifiedBy else 'Sin verificar'
         date_str = obj.paymentVerificationDate.strftime("%d/%m/%Y %H:%M") if obj.paymentVerificationDate else 'N/A'
-        notes = obj.paymentVerificationNotes or ''
+        notes = obj.paymentVerificationNotes or '(Sin notas)'
 
-        return f'Estado: {status}, Verificado por: {verified_by}, Fecha: {date_str}'
+        html_content = (
+            f'<div style="background-color: {bg_color}; padding: 14px; border-radius: 6px; '
+            f'border-left: 4px solid {border_color}; color: {text_color}; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto;">'
+            f'<p style="margin: 0 0 8px 0; font-weight: bold; font-size: 14px;">'
+            f'<span style="color: {status_color}; font-size: 16px; margin-right: 6px;">'
+            f'{status_label.split()[0]}</span>{status_label}</p>'
+            f'<p style="margin: 0 0 4px 0; font-size: 13px;">Verificado por: <strong>{verified_by}</strong></p>'
+            f'<p style="margin: 0 0 4px 0; font-size: 13px;">Fecha: <strong>{date_str}</strong></p>'
+            f'<p style="margin: 0; font-size: 13px; font-style: italic; color: {text_color}; opacity: 0.8;">Notas: {notes}</p>'
+            f'</div>'
+        )
+
+        return format_html(html_content)
     payment_verification_summary.short_description = 'Resumen de Verificación'
 
     # ========== ACCIONES PERSONALIZADAS ==========
@@ -178,8 +253,9 @@ class JobAdmin(admin.ModelAdmin):
             paymentVerifiedBy=request.user,
             paymentVerificationDate=datetime.now()
         )
-        self.message_user(request, f'{updated} pagos VERIFICADOS exitosamente')
-    verify_payment_action.short_description = 'VERIFICAR pagos seleccionados'
+        from django.contrib.admin import messages as admin_messages
+        self.message_user(request, f'✓ {updated} pago(s) VERIFICADO(s) exitosamente', admin_messages.SUCCESS)
+    verify_payment_action.short_description = '✓ VERIFICAR pagos seleccionados'
 
     def reject_payment_action(self, request, queryset):
         """Acción: Rechazar pago"""
@@ -188,8 +264,9 @@ class JobAdmin(admin.ModelAdmin):
             paymentVerifiedBy=None,
             paymentVerificationDate=None
         )
-        self.message_user(request, f'{updated} pagos RECHAZADOS')
-    reject_payment_action.short_description = 'RECHAZAR pagos seleccionados'
+        from django.contrib.admin import messages as admin_messages
+        self.message_user(request, f'✗ {updated} pago(s) RECHAZADO(s)', admin_messages.WARNING)
+    reject_payment_action.short_description = '✗ RECHAZAR pagos seleccionados'
 
 
 @admin.register(Application)
