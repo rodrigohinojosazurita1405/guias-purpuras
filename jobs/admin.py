@@ -93,20 +93,12 @@ class JobAdmin(admin.ModelAdmin):
 
     def job_title_display(self, obj):
         """Muestra el título del trabajo"""
-        if obj.status == 'active':
-            icon = '🔵'
-        elif obj.status == 'closed':
-            icon = '⚫'
-        else:
-            icon = '🟡'
-        return f'{icon} {obj.title[:50]}'
+        return obj.title[:50]
     job_title_display.short_description = 'Título'
 
     def company_display(self, obj):
         """Muestra el nombre de la empresa"""
-        if obj.companyAnonymous:
-            return 'Anónimo'
-        return obj.companyName
+        return 'Anónimo' if obj.companyAnonymous else obj.companyName
     company_display.short_description = 'Empresa'
 
     def status_badge(self, obj):
