@@ -121,10 +121,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 // ========== COMPOSABLES ==========
 const router = useRouter()
 const { init: notify } = useToast()
+const authStore = useAuthStore()
 
 // ========== PROPS ==========
 const props = defineProps({
@@ -181,33 +183,31 @@ const loadJobs = async () => {
   try {
     loading.value = true
 
-    const storedUser = localStorage.getItem('auth_user')
-    const storedToken = localStorage.getItem('access_token')
-
-    if (!storedUser) {
-      console.warn('No hay usuario autenticado')
+    // Usar auth store en lugar de localStorage
+    if (!authStore.user) {
+      console.warn('No hay usuario autenticado en authStore')
       loading.value = false
       return
     }
 
-    if (!storedToken) {
-      console.warn('No hay token de autenticación')
+    if (!authStore.accessToken) {
+      console.warn('No hay token de autenticación en authStore')
       loading.value = false
       return
     }
 
-    const user = JSON.parse(storedUser)
-    const email = user.email || ''
+    const email = authStore.user.email || ''
 
     console.log('JobsManager - Email buscando:', email)
-    console.log('JobsManager - Token:', storedToken ? 'Presente' : 'No presente')
+    console.log('JobsManager - Token presente:', !!authStore.accessToken)
+    console.log('JobsManager - isAuthenticated:', authStore.isAuthenticated)
 
     const response = await fetch(
       `/api/user/published?email=${encodeURIComponent(email)}`,
       {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${storedToken}`,
+          'Authorization': `Bearer ${authStore.accessToken}`,
           'Content-Type': 'application/json'
         }
       }
