@@ -704,44 +704,92 @@
                   <h1 class="job-title">{{ jobData.title }}</h1>
                 </div>
 
-                <!-- Información: 3 items en columna central -->
-                <div class="info-left-section">
-                  <div class="info-item">
-                    <div class="info-content">
-                      <span class="info-label">
-                        <va-icon name="business" size="small" />
-                        Empresa:
-                      </span>
-                      <span class="info-value">
-                        {{ jobData.companyAnonymous ? 'Empresa Confidencial' : jobData.companyName }}
-                      </span>
+                <!-- Grid de Información: 2 columnas bien definidas -->
+                <div class="info-grid">
+                  <!-- Columna 1: Izquierda -->
+                  <div class="info-column-left">
+                    <div class="info-item">
+                      <div class="info-content">
+                        <span class="info-label">
+                          <va-icon name="business" size="small" />
+                          Empresa:
+                        </span>
+                        <span class="info-value">
+                          {{ jobData.companyAnonymous ? 'Empresa Confidencial' : jobData.companyName }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="info-item">
+                      <div class="info-content">
+                        <span class="info-label">
+                          <va-icon name="location_on" size="small" />
+                          Ubicación:
+                        </span>
+                        <span class="info-value">
+                          {{ jobData.municipality ? `${jobData.city} - ${jobData.municipality}` : jobData.city }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="info-item">
+                      <div class="info-content">
+                        <span class="info-label">
+                          <va-icon name="category" size="small" />
+                          Categoría:
+                        </span>
+                        <span class="info-value">{{ jobData.jobCategory }}</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div class="info-item">
-                    <div class="info-content">
-                      <span class="info-label">
-                        <va-icon name="location_on" size="small" />
-                        Ubicación:
-                      </span>
-                      <span class="info-value">
-                        {{ jobData.municipality ? `${jobData.city} - ${jobData.municipality}` : jobData.city }}
-                      </span>
+                  <!-- Columna 2: Derecha -->
+                  <div class="info-column-right">
+                    <div class="info-item">
+                      <div class="info-content">
+                        <span class="info-label">
+                          <va-icon name="work_history" size="small" />
+                          Contrato:
+                        </span>
+                        <span class="info-value">{{ jobData.contractType }}</span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div class="info-item">
-                    <div class="info-content">
-                      <span class="info-label">
-                        <va-icon name="category" size="small" />
-                        Categoría:
-                      </span>
-                      <span class="info-value">{{ jobData.jobCategory }}</span>
+                    <div class="info-item">
+                      <div class="info-content">
+                        <span class="info-label">
+                          <va-icon name="calendar_today" size="small" />
+                          Vencimiento:
+                        </span>
+                        <span class="info-value" :class="{ 'expired-text': isExpired }">
+                          {{ isExpired ? 'CONVOCATORIA CERRADA' : formatDate(jobData.expiryDate) }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div class="info-item">
+                      <div class="info-content">
+                        <span class="info-label">
+                          <va-icon name="how_to_reg" size="small" />
+                          Tipo de Aplicación:
+                        </span>
+                        <span class="info-value">
+                          <template v-if="jobData.applicationType === 'internal'">
+                            Interna
+                          </template>
+                          <template v-else-if="jobData.applicationType === 'external'">
+                            Externa
+                          </template>
+                          <template v-else>
+                            Ambas
+                          </template>
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- Email (si existe) -->
+                <!-- Email (si existe, spanning completo) -->
                 <div v-if="jobData.email" class="info-item email-item">
                   <div class="info-content">
                     <span class="info-label">
@@ -755,54 +803,8 @@
                 </div>
               </div>
 
-              <!-- COLUMNA 3: INFORMACIÓN DERECHA + METADATA -->
-              <div class="info-right-column">
-                <!-- Información Derecha -->
-                <div class="info-right-section">
-                  <div class="info-item">
-                    <div class="info-content">
-                      <span class="info-label">
-                        <va-icon name="work_history" size="small" />
-                        Contrato:
-                      </span>
-                      <span class="info-value">{{ jobData.contractType }}</span>
-                    </div>
-                  </div>
-
-                  <div class="info-item">
-                    <div class="info-content">
-                      <span class="info-label">
-                        <va-icon name="calendar_today" size="small" />
-                        Vencimiento:
-                      </span>
-                      <span class="info-value" :class="{ 'expired-text': isExpired }">
-                        {{ isExpired ? 'CONVOCATORIA CERRADA' : formatDate(jobData.expiryDate) }}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="info-item">
-                    <div class="info-content">
-                      <span class="info-label">
-                        <va-icon name="how_to_reg" size="small" />
-                        Tipo de Aplicación:
-                      </span>
-                      <span class="info-value">
-                        <template v-if="jobData.applicationType === 'internal'">
-                          Interna
-                        </template>
-                        <template v-else-if="jobData.applicationType === 'external'">
-                          Externa
-                        </template>
-                        <template v-else>
-                          Ambas
-                        </template>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Metadata (Vacantes y Publicado) -->
+              <!-- COLUMNA 3: METADATA -->
+              <div class="metadata-column">
                 <div class="metadata-container">
                   <div v-if="jobData.vacancies" class="meta-item">
                     <va-icon name="person" size="small" />
@@ -2048,8 +2050,8 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
 .header-grid {
   display: grid;
-  grid-template-columns: 160px 1fr 1fr;
-  gap: 2rem;
+  grid-template-columns: 160px 1fr auto;
+  gap: 1.5rem 2rem;
   align-items: flex-start;
 }
 
@@ -2104,26 +2106,6 @@ watch(() => props.formData.coordinates, (newCoords) => {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-}
-
-/* SECCIONES DE INFORMACIÓN */
-.info-left-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* COLUMNA 3: INFORMACIÓN DERECHA */
-.info-right-column {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.info-right-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
 }
 
 /* TÍTULO DEL PUESTO */
