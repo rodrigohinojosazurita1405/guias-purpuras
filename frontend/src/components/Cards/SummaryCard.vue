@@ -3259,36 +3259,46 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
   .company-logo-container {
     width: 100%;
+    justify-content: flex-start;
   }
 
   .company-logo {
-    width: 65px;
-    height: 65px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #E5E7EB;
   }
 
   .company-logo-placeholder {
-    width: 65px;
-    height: 65px;
-    font-size: 1.7rem;
-    border-radius: 8px;
+    width: 80px;
+    height: 80px;
+    font-size: 1.9rem;
+    border-radius: 10px;
+    border: 1px solid #E5E7EB;
   }
 
   .company-name {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #2D2D2D;
   }
 
   .job-title-label {
-    font-size: 0.65rem;
-    font-weight: 600;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.5rem;
   }
 
   .job-title {
-    font-size: 1.2rem;
+    font-size: 1.35rem;
     font-weight: 700;
     line-height: 1.25;
-    margin: 0.25rem 0;
+    margin: 0.35rem 0 0 0;
+    color: #7C3AED;
   }
 
   .info-column {
@@ -3330,11 +3340,12 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .badge {
-    padding: 0.35rem 0.75rem;
-    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.65rem;
     font-weight: 600;
     border-radius: 4px;
     line-height: 1;
+    white-space: nowrap;
   }
 
   .meta-item {
