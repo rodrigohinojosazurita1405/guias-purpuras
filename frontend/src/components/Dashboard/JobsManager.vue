@@ -182,8 +182,16 @@ const loadJobs = async () => {
     loading.value = true
 
     const storedUser = localStorage.getItem('authUser')
+    const storedToken = localStorage.getItem('accessToken')
+
     if (!storedUser) {
       console.warn('No hay usuario autenticado')
+      loading.value = false
+      return
+    }
+
+    if (!storedToken) {
+      console.warn('No hay token de autenticación')
       loading.value = false
       return
     }
@@ -192,7 +200,14 @@ const loadJobs = async () => {
     const email = user.email || ''
 
     const response = await fetch(
-      `/api/user/published?email=${encodeURIComponent(email)}`
+      `/api/user/published?email=${encodeURIComponent(email)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${storedToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
     )
 
     if (!response.ok) {
@@ -213,6 +228,7 @@ const loadJobs = async () => {
       }))
     }
   } catch (err) {
+    console.error('Error en loadJobs:', err)
     notify({
       message: `Error: ${err.message}`,
       color: 'danger',
