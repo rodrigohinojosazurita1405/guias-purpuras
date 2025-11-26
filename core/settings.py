@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'auth_api',
     'jobs',
     'profiles',
+    'plans',
 
     # Django default apps
     'django.contrib.admin',
