@@ -3352,18 +3352,19 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
   .meta-item {
     font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
-    background: #F5F3FF;
-    border-radius: 6px;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
     display: flex;
     align-items: center;
     gap: 0.4rem;
     white-space: nowrap;
+    color: #64748B;
   }
 
   .meta-item span {
-    font-weight: 600;
-    color: #2E1065;
+    font-weight: 500;
+    color: #1E293B;
   }
 
   .job-content {
