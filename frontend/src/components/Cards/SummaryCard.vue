@@ -3116,9 +3116,17 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .metadata-column {
-    gap: 0.75rem;
-    align-items: flex-end;
-    justify-content: flex-end;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .metadata-container {
+    gap: 0.5rem;
+    flex-direction: row;
+    justify-content: center;
   }
 
   .badges-top-row {
