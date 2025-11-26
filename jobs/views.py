@@ -807,34 +807,48 @@ def get_user_published_jobs(request):
     Retorna:
     - Lista de trabajos publicados con información resumida
     """
+    email = request.GET.get('email', '')
+    print(f'DEBUG: get_user_published_jobs - Email buscando: {email}')
+
+    if not email:
+        return JsonResponse({
+            'success': False,
+            'message': 'Email requerido'
+        }, status=400)
+
     try:
-        email = request.GET.get('email', '')
-        print(f'DEBUG: get_user_published_jobs - Email buscando: {email}')
+        jobs = Job.objects.filter(email=email).order_by('-createdAt')
 
-        if not email:
-            return JsonResponse({
-                'success': False,
-                'message': 'Email requerido'
-            }, status=400)
-
-        jobs_list = list(Job.objects.filter(email=email).values(
-            'id', 'title', 'companyName', 'status', 'views',
-            'applications', 'createdAt', 'city', 'modality'
-        ).order_by('-createdAt'))
+        # Convertir a lista con fechas como strings
+        jobs_list = []
+        for job in jobs:
+            job_dict = {
+                'id': str(job.id),
+                'title': str(job.title),
+                'companyName': str(job.companyName),
+                'status': str(job.status),
+                'views': int(job.views or 0),
+                'applications': int(job.applications or 0),
+                'createdAt': str(job.createdAt.isoformat()) if job.createdAt else None,
+                'city': str(job.city) if job.city else '',
+                'modality': str(job.modality) if job.modality else ''
+            }
+            jobs_list.append(job_dict)
 
         print(f'DEBUG: get_user_published_jobs - Total de trabajos encontrados: {len(jobs_list)}')
-        print(f'DEBUG: get_user_published_jobs - Trabajos: {jobs_list}')
 
         return JsonResponse({
             'success': True,
             'jobs': jobs_list
-        }, status=200)
+        })
 
     except Exception as e:
-        print(f'Error al obtener trabajos publicados: {str(e)}')
+        import traceback
+        print(f'ERROR en get_user_published_jobs: {str(e)}')
+        print(traceback.format_exc())
         return JsonResponse({
             'success': False,
-            'message': f'Error: {str(e)}'
+            'message': f'Error al obtener trabajos: {str(e)}'
         }, status=500)
 
 
