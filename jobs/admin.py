@@ -15,6 +15,8 @@ class JobAdmin(admin.ModelAdmin):
         'city',
         'status_badge',
         'payment_badge',
+        'plan_display',
+        'expiry_countdown',
         'applications_count',
         'views_count',
         'created_date_display'
@@ -179,6 +181,83 @@ class JobAdmin(admin.ModelAdmin):
             obj.createdAt.strftime('%d/%m/%Y')
         )
     created_date_display.short_description = 'Publicado'
+
+    def plan_display(self, obj):
+        """Muestra el plan seleccionado con colores temáticos"""
+        plan_colors = {
+            'escencial': {
+                'color': '#3B82F6',      # Azul
+                'bg': '#DBEAFE',         # Azul claro
+                'label': 'Escencial (35 Bs)'
+            },
+            'purpura': {
+                'color': '#8B5CF6',      # Púrpura
+                'bg': '#EDE9FE',         # Púrpura claro
+                'label': 'Púrpura (79 Bs)'
+            },
+            'impulso': {
+                'color': '#EC4899',      # Rosa/Impulso
+                'bg': '#FCE7F3',         # Rosa claro
+                'label': 'Impulso Pro (169 Bs)'
+            }
+        }
+
+        plan_info = plan_colors.get(obj.selectedPlan, plan_colors['escencial'])
+
+        return format_html(
+            '<span style="background-color: {}; color: {}; padding: 6px 14px; '
+            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            'display: inline-block;">💰 {}</span>',
+            plan_info['bg'], plan_info['color'], plan_info['label']
+        )
+    plan_display.short_description = 'Plan'
+
+    def expiry_countdown(self, obj):
+        """Muestra días restantes con color dinámico según urgencia"""
+        from datetime import date, timedelta
+
+        today = date.today()
+        days_remaining = (obj.expiryDate - today).days
+
+        # Determinar color según urgencia
+        if days_remaining < 0:
+            color = '#DC2626'      # Rojo - Expirado
+            bg_color = '#FEE2E2'
+            status = 'EXPIRADO'
+            icon = '✗'
+        elif days_remaining == 0:
+            color = '#DC2626'      # Rojo - Vence hoy
+            bg_color = '#FEE2E2'
+            status = 'VENCE HOY'
+            icon = '⚠️'
+        elif days_remaining <= 3:
+            color = '#DC2626'      # Rojo - Menos de 3 días
+            bg_color = '#FEE2E2'
+            status = f'{days_remaining} día{"s" if days_remaining != 1 else ""} restante{"s" if days_remaining != 1 else ""}'
+            icon = '🔴'
+        elif days_remaining <= 7:
+            color = '#F59E0B'      # Naranja - Una semana
+            bg_color = '#FFFBEB'
+            status = f'{days_remaining} días restantes'
+            icon = '🟡'
+        elif days_remaining <= 14:
+            color = '#F59E0B'      # Naranja claro - Dos semanas
+            bg_color = '#FFFBEB'
+            status = f'{days_remaining} días restantes'
+            icon = '🟡'
+        else:
+            color = '#10B981'      # Verde - Tiempo suficiente
+            bg_color = '#ECFDF5'
+            status = f'{days_remaining} días restantes'
+            icon = '🟢'
+
+        return format_html(
+            '<span style="background-color: {}; color: {}; padding: 6px 14px; '
+            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            'display: inline-block;">{} {}</span>',
+            bg_color, color, icon, status
+        )
+    expiry_countdown.short_description = 'Vencimiento'
 
     def job_analytics_display(self, obj):
         """Muestra analíticas del trabajo"""
