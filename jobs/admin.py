@@ -183,22 +183,25 @@ class JobAdmin(admin.ModelAdmin):
     created_date_display.short_description = 'Publicado'
 
     def plan_display(self, obj):
-        """Muestra el plan seleccionado con colores temáticos"""
+        """Muestra el plan seleccionado con colores temáticos y duración"""
         plan_colors = {
             'escencial': {
                 'color': '#3B82F6',      # Azul
                 'bg': '#DBEAFE',         # Azul claro
-                'label': 'Escencial (35 Bs)'
+                'label': 'Escencial (35 Bs)',
+                'duration': '15 días'
             },
             'purpura': {
                 'color': '#8B5CF6',      # Púrpura
                 'bg': '#EDE9FE',         # Púrpura claro
-                'label': 'Púrpura (79 Bs)'
+                'label': 'Púrpura (79 Bs)',
+                'duration': '30 días'
             },
             'impulso': {
                 'color': '#EC4899',      # Rosa/Impulso
                 'bg': '#FCE7F3',         # Rosa claro
-                'label': 'Impulso Pro (169 Bs)'
+                'label': 'Impulso Pro (169 Bs)',
+                'duration': '30 días'
             }
         }
 
@@ -207,8 +210,8 @@ class JobAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: {}; padding: 6px 14px; '
             'border-radius: 20px; font-weight: bold; font-size: 12px; '
-            'display: inline-block;">💰 {}</span>',
-            plan_info['bg'], plan_info['color'], plan_info['label']
+            'display: inline-block;">💰 {} ({} vigencia)</span>',
+            plan_info['bg'], plan_info['color'], plan_info['label'], plan_info['duration']
         )
     plan_display.short_description = 'Plan'
 
