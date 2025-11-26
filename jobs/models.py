@@ -80,7 +80,7 @@ class Job(models.Model):
 
     # Contacto
     email = models.EmailField(verbose_name="Email de contacto")
-    whatsapp = models.CharField(max_length=20, verbose_name="WhatsApp")
+    whatsapp = models.CharField(max_length=20, blank=True, verbose_name="WhatsApp")
     website = models.URLField(blank=True, verbose_name="Sitio web")
     applicationInstructions = models.TextField(blank=True, verbose_name="Instrucciones de aplicación")
 
