@@ -149,18 +149,35 @@ class JobAdmin(admin.ModelAdmin):
     payment_badge.short_description = 'Estado Pago'
 
     def applications_count(self, obj):
-        """Muestra el contador de aplicaciones"""
-        return f'{obj.applications} aplicaciones'
+        """Muestra el contador de aplicaciones con estilo"""
+        count = obj.applications
+        return format_html(
+            '<span style="background-color: #EDE9FE; color: #6D28D9; padding: 6px 12px; '
+            'border-radius: 20px; font-weight: bold; font-size: 13px; '
+            'display: inline-block; border-left: 4px solid #7C3AED;">👥 {}</span>',
+            f'{count} aplicación{"es" if count != 1 else ""}'
+        )
     applications_count.short_description = 'Aplicaciones'
 
     def views_count(self, obj):
-        """Muestra el contador de vistas"""
-        return f'{obj.views} vistas'
+        """Muestra el contador de vistas con estilo"""
+        count = obj.views
+        return format_html(
+            '<span style="background-color: #DBEAFE; color: #1E40AF; padding: 6px 12px; '
+            'border-radius: 20px; font-weight: bold; font-size: 13px; '
+            'display: inline-block; border-left: 4px solid #3B82F6;">👁️ {}</span>',
+            f'{count} vista{"s" if count != 1 else ""}'
+        )
     views_count.short_description = 'Vistas'
 
     def created_date_display(self, obj):
-        """Muestra la fecha de creación de forma amigable"""
-        return obj.createdAt.strftime('%d/%m/%Y')
+        """Muestra la fecha de creación con estilo"""
+        return format_html(
+            '<span style="background-color: #ECFDF5; color: #065F46; padding: 6px 12px; '
+            'border-radius: 20px; font-weight: bold; font-size: 13px; '
+            'display: inline-block; border-left: 4px solid #10B981;">📅 {}</span>',
+            obj.createdAt.strftime('%d/%m/%Y')
+        )
     created_date_display.short_description = 'Publicado'
 
     def job_analytics_display(self, obj):
