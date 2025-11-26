@@ -675,10 +675,7 @@
           <!-- ========== HEADER PROFESIONAL: BADGES ARRIBA + INFORMACIÓN EN GRID ========== -->
           <div class="job-header">
             <!-- TOP: BADGES EN LÍNEA HORIZONTAL -->
-            <div class="badges-top-row">
-              <span class="badge badge-plan" :class="`plan-${jobData.selectedPlan}`">
-                {{ getJobPlanName(jobData.selectedPlan).replace('Plan ', '') }}
-              </span>
+            <div v-if="planBadges.length > 0" class="badges-top-row">
               <span v-for="planBadge in planBadges" :key="planBadge" class="badge" :class="`badge-${getBadgeClass(planBadge)}`">
                 <va-icon v-if="getBadgeIcon(planBadge)" :name="getBadgeIcon(planBadge)" size="small" class="badge-icon" />
                 {{ planBadge }}
