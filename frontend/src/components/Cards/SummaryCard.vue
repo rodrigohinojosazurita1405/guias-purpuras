@@ -3261,8 +3261,8 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .company-logo {
-    width: 90px;
-    height: 90px;
+    width: 120px;
+    height: 120px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border: 2px solid #E5E7EB;
@@ -3270,11 +3270,21 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .company-logo-placeholder {
-    width: 90px;
-    height: 90px;
-    font-size: 2rem;
+    width: 120px;
+    height: 120px;
+    font-size: 3rem;
     border-radius: 12px;
     border: 2px solid #E5E7EB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F9FAFB;
+  }
+
+  .company-logo-placeholder :deep(.va-icon) {
+    font-size: 3.5rem !important;
+    width: auto !important;
+    height: auto !important;
   }
 
   .company-name {
@@ -3339,10 +3349,10 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .badge {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.6rem;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.5rem;
     font-weight: 600;
-    border-radius: 3px;
+    border-radius: 2px;
     line-height: 1;
     white-space: nowrap;
     min-width: auto;
