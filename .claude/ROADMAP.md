@@ -5,7 +5,7 @@
 ```
 FASE 1: Wizard de Publicación              ✅ 100% COMPLETADA (5 pasos funcionales)
 FASE 1.1: Preguntas de Filtrado            ✅ 100% COMPLETADA (Edición + CRUD)
-FASE 1.2: Formulario Aplicación Candidato  ⏳ 0% (PRÓXIMA - Mostrar preguntas)
+FASE 1.2: Formulario Aplicación Candidato  ✅ 100% COMPLETADA (ApplicationProcess funcional)
 FASE 2: Flujo de Publicación Completo      ✅ 100% COMPLETADA (Backend integrado)
 FASE 3: Búsqueda y Filtrado                ⏳ 0% (PENDIENTE)
 FASE 3.6: Autenticación Real               ✅ 100% COMPLETADA
@@ -871,10 +871,45 @@ Error: #EF4444 (Red)
 ---
 
 ## 📅 ÚLTIMA ACTUALIZACIÓN
-- **Fecha**: 2025-11-26 (Sesión 9 - ACTUAL)
-- **Sesión**: FASE 7.1 Completada - Publicación de Anuncios Funcionando
+- **Fecha**: 2025-11-26 (Sesión 10 - ACTUAL)
+- **Sesión**: FASE 1.2 en Progreso - Formulario de Aplicación para Candidatos
 
-- **Sesión actual (Sesión 9 - FASE 7.1 COMPLETADA)**:
+- **Sesión actual (Sesión 10 - FASE 1.2 COMPLETADA)**:
+  - ✅ **FASE 1.2: Formulario de Aplicación - 100% COMPLETADA**
+    * ✅ Creación de useApplicationStore.js con todos los métodos
+    * ✅ ApplicationProcess.vue ya funcional (4 steps completos)
+    * ✅ Verificación backend: apply_to_job endpoint funcional
+    * ✅ Verificación backend: get_job endpoint con screeningQuestions
+    * ✅ Componente integrado con store (loadJobData, submitApplication)
+    * ✅ Validación completa de formulario
+    * ✅ Flujo completo: candidato → preguntas → CV → confirmación → envío
+
+  - 📊 **Stores/Composables Creados**:
+    * ✅ useApplicationStore.js (frontend/src/stores/)
+      - loadJobData(jobId) - carga datos del trabajo desde API
+      - submitApplication() - envía aplicación al backend
+      - validateApplication() - valida datos antes de enviar
+      - State: currentApplicationData, jobData, applications
+      - Getters: salaryDisplayText, calculatedNetSalary, screeningQuestions
+
+  - **Componentes del Sistema**:
+    * ✅ ApplicationProcess.vue (4 steps):
+      1. Pretensión Salarial + Carta de Presentación
+      2. Responder Preguntas de Filtrado (dinámicas)
+      3. Currículum (upload, crear o usar guardado)
+      4. Confirmación y Envío
+    * ✅ CVFormWizard.vue para crear CV
+    * ✅ CVList.vue para seleccionar CV guardado
+    * ✅ Validación de obligatoriedad en preguntas
+    * ✅ Pre-relleno de datos del usuario autenticado
+
+  - **Backend Endpoints Funcionales**:
+    * ✅ GET /api/jobs/{id}/ - retorna job + screeningQuestions
+    * ✅ POST /api/jobs/{id}/apply - acepta aplicación + screening answers
+    * ✅ Validación de duplicados (mismo email no puede aplicar 2 veces)
+    * ✅ Incremento automático de contador de aplicaciones
+
+- **Sesión anterior (Sesión 9 - FASE 7.1 COMPLETADA)**:
   - ✅ **FASE 7.1: Validación de Pago - 100% COMPLETADO**
     * ✅ Arreglo estructura excepciones en publish_job (respuesta éxito aún dentro except)
     * ✅ Cambio UntypedToken → AccessToken en decorador JWT
