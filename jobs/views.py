@@ -24,8 +24,8 @@ def publish_job(request):
     - email (str): Email de contacto
     - city (str): Ciudad
     - contractType (str): Tipo de contrato
-    - expiryDate (str ISO): Fecha de vencimiento (YYYY-MM-DD)
     - requirements (str): Requisitos
+    - selectedPlan (str: 'escencial'|'purpura'|'impulso'): Plan elegido
     - proofOfPayment (file): Comprobante de pago (imagen, max 5MB)
 
     CAMPOS OPCIONALES:
@@ -52,7 +52,6 @@ def publish_job(request):
     - applicationInstructions (str)
     - applicationType (str: 'internal'|'external'|'both', default: 'internal')
     - externalApplicationUrl (str)
-    - selectedPlan (str: 'escencial'|'purpura'|'impulso', default: 'escencial')
     - screeningQuestions (list)
 
     RESPUESTA EXITOSA (201):
@@ -121,42 +120,26 @@ def publish_job(request):
         if not contract_type:
             errors['contractType'] = 'El tipo de contrato es requerido'
 
-        # 6. Expiry Date
-        expiry_date = data.get('expiryDate')
-        if not expiry_date:
-            errors['expiryDate'] = 'La fecha de vencimiento es requerida (formato: YYYY-MM-DD)'
-        else:
-            # Convertir diferentes formatos de fecha a YYYY-MM-DD
-            try:
-                from datetime import datetime
-                expiry_str = str(expiry_date).strip()
+        # 6. Plan Selection (para calcular automáticamente la fecha de expiración)
+        plan = (data.get('selectedPlan') or 'escencial').lower()
+        if plan not in ['escencial', 'purpura', 'impulso']:
+            errors['selectedPlan'] = "Plan no válido. Debe ser 'escencial', 'purpura' o 'impulso'"
 
-                # Intentar diferentes formatos
-                if 'T' in expiry_str:  # ISO 8601 (2025-12-05T04:00:00.000Z)
-                    expiry_date = datetime.fromisoformat(expiry_str.replace('Z', '+00:00')).strftime('%Y-%m-%d')
-                elif '-' in expiry_str and expiry_str.count('-') == 2:  # YYYY-MM-DD
-                    parts = expiry_str.split('-')
-                    if len(parts[0]) == 4:  # Year first
-                        expiry_date = expiry_str  # Ya está en formato correcto
-                    else:
-                        raise ValueError(f'Formato no reconocido: {expiry_str}')
-                else:
-                    # Intenta parsear como JavaScript Date toString()
-                    # Ejemplo: 'Sun Nov 30 2025 00:00:00 GMT-0400 (hora de Bolivia)'
-                    try:
-                        import re
-                        # Extraer la fecha usando regex
-                        match = re.search(r'(\d{4})\s+(\d{1,2}):(\d{2})', expiry_str)
-                        if match:
-                            # Intenta con el patrón: "Sun Nov 30 2025 00:00:00"
-                            date_part = ' '.join(expiry_str.split()[:4])  # "Sun Nov 30 2025"
-                            expiry_date = datetime.strptime(date_part, '%a %b %d %Y').strftime('%Y-%m-%d')
-                        else:
-                            raise ValueError(f'No se pudo parsear: {expiry_str}')
-                    except ValueError:
-                        raise ValueError(f'Formato de fecha no soportado: {expiry_str}')
-            except Exception as e:
-                errors['expiryDate'] = f'Formato de fecha inválido: {str(e)}'
+        # Calcular expiryDate automáticamente basándose en el plan
+        # Escencial: 15 días, Púrpura: 30 días, Impulso: 30 días
+        from datetime import datetime, timedelta
+        try:
+            today = datetime.now().date()
+            plan_durations = {
+                'escencial': 15,
+                'purpura': 30,
+                'impulso': 30
+            }
+            duration_days = plan_durations.get(plan, 15)
+            expiry_date = today + timedelta(days=duration_days)
+            expiry_date = expiry_date.strftime('%Y-%m-%d')
+        except Exception as e:
+            errors['expiryDate'] = f'Error al calcular fecha de vencimiento: {str(e)}'
 
         # 7. Requirements
         requirements = (data.get('requirements') or '').strip()
@@ -202,22 +185,6 @@ def publish_job(request):
         app_type = (data.get('applicationType') or 'internal').lower()
         if app_type not in ['internal', 'external', 'both']:
             errors['applicationType'] = "Debe ser 'internal', 'external' o 'both'"
-
-        # Selected Plan
-        plan = (data.get('selectedPlan') or 'escencial').lower()
-        # Mapear nombres del frontend al backend
-        plan_mapping = {
-            'basico': 'escencial',
-            'escencial': 'escencial',
-            'professional': 'purpura',
-            'purpura': 'purpura',
-            'premium': 'impulso',
-            'impulso': 'impulso'
-        }
-        if plan not in plan_mapping:
-            errors['selectedPlan'] = "Plan no válido"
-        else:
-            plan = plan_mapping[plan]
 
         # Salary validation (si es tipo range)
         if salary_type == 'range':
