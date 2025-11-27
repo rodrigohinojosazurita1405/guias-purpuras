@@ -78,7 +78,7 @@
           </div>
           <div class="stat-item plan-stat">
             <va-icon name="card_giftcard" />
-            <span class="stat-text plan-badge" :class="`plan-${job.selectedPlan}`">
+            <span class="stat-text plan-badge" :class="getPlanCssClass(job.selectedPlan)">
               {{ formatPlanName(job.selectedPlan, job.planLabel) }}
             </span>
           </div>
@@ -345,10 +345,18 @@ const formatPlanName = (planKey, planLabel) => {
   if (!planKey) return 'Sin plan'
   const planNames = {
     'estandar': 'Estándar',
+    'escencial': 'Estándar',  // Soporte para nombre antiguo
     'purpura': 'Púrpura',
     'impulso': 'Impulso Pro'
   }
   return planNames[planKey.toLowerCase()] || planKey
+}
+
+const getPlanCssClass = (planKey) => {
+  // Normalizar plan key para aplicar la clase CSS correcta
+  // Mapear 'escencial' a 'estandar' para compatibilidad
+  const normalizedKey = planKey === 'escencial' ? 'estandar' : planKey
+  return `plan-${normalizedKey}`
 }
 
 const viewJob = async (job) => {
@@ -802,6 +810,11 @@ const activateJob = async () => {
 }
 
 .plan-estandar {
+  background: linear-gradient(135deg, #F59E0B, #FBBF24);
+}
+
+.plan-escencial {
+  /* Alias para compatibilidad con jobs antiguos */
   background: linear-gradient(135deg, #F59E0B, #FBBF24);
 }
 
