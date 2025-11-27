@@ -25,7 +25,10 @@
           </div>
           <div class="company-info-header">
             <h2 class="company-name">{{ job.companyName }}</h2>
-            <p v-if="job.city" class="company-location">📍 {{ job.city }}</p>
+            <div v-if="job.city" class="company-location">
+              <va-icon name="location_on" />
+              <span>{{ job.city }}</span>
+            </div>
           </div>
         </div>
 
@@ -326,6 +329,15 @@ const formatDate = (dateString) => {
   font-size: 0.95rem;
   color: #6B7280;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.company-location svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .info-section {
