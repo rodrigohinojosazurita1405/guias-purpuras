@@ -79,7 +79,7 @@
           <div class="stat-item plan-stat">
             <va-icon name="card_giftcard" />
             <span class="stat-text plan-badge" :class="`plan-${job.selectedPlan}`">
-              {{ formatPlanName(job.selectedPlan) }}
+              {{ formatPlanName(job.selectedPlan, job.planLabel) }}
             </span>
           </div>
           <div class="stat-divider">|</div>
@@ -260,7 +260,11 @@ const loadJobs = async () => {
         applications: job.applications || 0,
         createdAt: new Date(job.createdAt).toISOString(),
         expiryDate: job.expiryDate,
-        selectedPlan: job.selectedPlan
+        selectedPlan: job.selectedPlan,
+        // Datos del plan capturados en el momento de publicación
+        planLabel: job.planLabel,
+        planPrice: job.planPrice,
+        planDuration: job.planDuration
       }))
     } else {
       console.warn('JobsManager - Respuesta sin éxito:', data)
@@ -334,7 +338,10 @@ const calculateDaysRemaining = (expiryDateString) => {
   return days
 }
 
-const formatPlanName = (planKey) => {
+const formatPlanName = (planKey, planLabel) => {
+  // Usar el planLabel capturado en el momento de publicación si está disponible
+  if (planLabel) return planLabel
+
   if (!planKey) return 'Sin plan'
   const planNames = {
     'estandar': 'Estándar',

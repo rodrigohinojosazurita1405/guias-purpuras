@@ -218,6 +218,11 @@ def publish_job(request):
                 except (UserProfile.DoesNotExist, AttributeError):
                     company_profile = None
 
+            # Capturar datos del plan en el momento de publicación
+            plan_label = plan_obj.label if 'plan_obj' in locals() else f"{plan.capitalize()} (--)"
+            plan_price = f"{plan_obj.price} {plan_obj.currency}" if 'plan_obj' in locals() else "--"
+            plan_duration = plan_obj.duration_days if 'plan_obj' in locals() else None
+
             job = Job.objects.create(
                 title=title,
                 companyProfile=company_profile,  # Asignar CompanyProfile si existe
@@ -251,6 +256,10 @@ def publish_job(request):
                 applicationType=app_type,
                 externalApplicationUrl=(data.get('externalApplicationUrl') or '').strip(),
                 selectedPlan=plan,
+                # Datos del plan capturados en el momento de publicación
+                planLabel=plan_label,
+                planPrice=plan_price,
+                planDuration=plan_duration,
                 screeningQuestions=data.get('screeningQuestions', []),
                 proofOfPayment=proof_of_payment,  # FASE 7.1: Comprobante de pago obligatorio
             )
@@ -866,6 +875,10 @@ def get_user_published_jobs(request):
                 'createdAt': str(job.createdAt.isoformat()) if job.createdAt else None,
                 'expiryDate': str(job.expiryDate.isoformat()) if job.expiryDate else None,
                 'selectedPlan': str(job.selectedPlan) if job.selectedPlan else None,
+                # Datos del plan capturados en el momento de publicación
+                'planLabel': str(job.planLabel) if job.planLabel else None,
+                'planPrice': str(job.planPrice) if job.planPrice else None,
+                'planDuration': int(job.planDuration) if job.planDuration else None,
                 'city': str(job.city) if job.city else '',
                 'modality': str(job.modality) if job.modality else ''
             }

@@ -109,6 +109,24 @@ class Job(models.Model):
         verbose_name="Plan seleccionado"
     )
 
+    # Datos del plan capturados en el momento de publicación
+    # (para que cambios futuros en Admin no afecten trabajos anteriores)
+    planLabel = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Etiqueta del plan (capturada al publicar)"
+    )
+    planPrice = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Precio del plan (capturado al publicar)"
+    )
+    planDuration = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Duración del plan en días (capturada al publicar)"
+    )
+
     # Screening questions (JSON)
     screeningQuestions = models.JSONField(default=list, blank=True, verbose_name="Preguntas de filtrado")
 
