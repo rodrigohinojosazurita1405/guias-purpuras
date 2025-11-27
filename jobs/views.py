@@ -297,6 +297,16 @@ def get_job(request, job_id):
         job.views += 1
         job.save(update_fields=['views'])
 
+        # Obtener URL absoluta del logo si existe
+        company_logo = None
+        if job.companyProfile and job.companyProfile.logo:
+            logo_url = job.companyProfile.logo.url
+            # Si la URL es relativa, hacerla absoluta
+            if not logo_url.startswith(('http://', 'https://')):
+                company_logo = request.build_absolute_uri(logo_url)
+            else:
+                company_logo = logo_url
+
         return JsonResponse({
             'success': True,
             'job': {
@@ -305,7 +315,7 @@ def get_job(request, job_id):
                 'title': job.title,
                 'companyName': job.companyName if not job.companyAnonymous else 'Empresa Confidencial',
                 'companyAnonymous': job.companyAnonymous,
-                'companyLogo': job.companyProfile.logo.url if job.companyProfile and job.companyProfile.logo else None,
+                'companyLogo': company_logo,
                 'description': job.description,
 
                 # Clasificación

@@ -11,7 +11,7 @@
     />
     <!-- Header -->
     <div class="manager-header">
-      <h1>Administrador De Empleos</h1>
+      <h1>Administrador Anuncios</h1>
       <router-link to="/publicar" class="publish-btn-new">
         <va-icon name="add_circle" />
         Publicar Nuevo
@@ -523,7 +523,7 @@ const activateJob = async () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  background: linear-gradient(135deg, #9f7aea, #8b5cf6);
   color: white;
   border-radius: 8px;
   text-decoration: none;
@@ -558,8 +558,8 @@ const activateJob = async () => {
 }
 
 .search-box:focus-within {
-  border-color: #5C0099;
-  box-shadow: 0 0 0 3px rgba(92, 0, 153, 0.1);
+  border-color: #9f7aea;
+  box-shadow: 0 0 0 3px rgba(159, 122, 234, 0.1);
 }
 
 .search-input {
@@ -586,13 +586,13 @@ const activateJob = async () => {
 }
 
 .filter-select:hover {
-  border-color: #5C0099;
+  border-color: #9f7aea;
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: #5C0099;
-  box-shadow: 0 0 0 3px rgba(92, 0, 153, 0.1);
+  border-color: #9f7aea;
+  box-shadow: 0 0 0 3px rgba(159, 122, 234, 0.1);
 }
 
 /* ========== LOADING STATE ========== */
@@ -703,10 +703,10 @@ const activateJob = async () => {
   align-items: center;
   gap: 0.4rem;
   padding: 0.5rem 0.85rem;
-  border: 1px solid #5C0099;
+  border: 1px solid #9f7aea;
   border-radius: 6px;
   background: white;
-  color: #5C0099;
+  color: #8b5cf6;
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 500;
@@ -714,9 +714,9 @@ const activateJob = async () => {
 }
 
 .action-btn:hover {
-  border-color: #5C0099;
-  background: #f9f7ff;
-  color: #3D0066;
+  border-color: #9f7aea;
+  background: #faf5ff;
+  color: #7c3aed;
 }
 
 .action-btn.edit {
