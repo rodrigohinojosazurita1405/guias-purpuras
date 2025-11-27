@@ -68,41 +68,32 @@
 
         <!-- Card Stats -->
         <div class="job-stats">
-          <div class="stat">
+          <div class="stat-item">
             <va-icon name="visibility" />
-            <span>{{ job.views }} vistas</span>
+            <span class="stat-text">{{ job.views }}</span>
           </div>
-          <div class="stat">
+          <div class="stat-item">
             <va-icon name="people" />
-            <span>{{ job.applications }} aplicaciones</span>
+            <span class="stat-text">{{ job.applications }}</span>
           </div>
-          <div class="stat">
+          <div class="stat-item plan-stat">
             <va-icon name="card_giftcard" />
-            <div class="stat-content">
-              <span class="stat-label">Plan:</span>
-              <span class="stat-value plan-badge" :class="`plan-${job.selectedPlan}`">{{ formatPlanName(job.selectedPlan) }}</span>
-            </div>
+            <span class="stat-text plan-badge" :class="`plan-${job.selectedPlan}`">
+              {{ formatPlanName(job.selectedPlan) }}
+            </span>
           </div>
-          <div class="stat">
+          <div class="stat-divider">|</div>
+          <div class="stat-item">
             <va-icon name="schedule" />
-            <div class="stat-content">
-              <span class="stat-label">Publicado:</span>
-              <span class="stat-value">{{ formatExactDateTime(job.createdAt) }}</span>
-            </div>
+            <span class="stat-text stat-date">{{ formatExactDateTime(job.createdAt) }}</span>
           </div>
-          <div class="stat">
+          <div class="stat-item">
             <va-icon name="event_note" />
-            <div class="stat-content">
-              <span class="stat-label">Vence:</span>
-              <span class="stat-value">{{ formatExpiryDate(job.expiryDate) }}</span>
-            </div>
+            <span class="stat-text stat-date">{{ formatExpiryDate(job.expiryDate) }}</span>
           </div>
-          <div class="stat">
+          <div class="stat-item">
             <va-icon name="timer" />
-            <div class="stat-content">
-              <span class="stat-label">Días restantes:</span>
-              <span class="stat-value">{{ calculateDaysRemaining(job.expiryDate) }} días</span>
-            </div>
+            <span class="stat-text">{{ calculateDaysRemaining(job.expiryDate) }}d</span>
           </div>
         </div>
 
@@ -746,58 +737,61 @@ const activateJob = async () => {
 
 /* ========== JOB STATS ========== */
 .job-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #f0f0f0;
+  flex-wrap: wrap;
 }
 
-.stat {
+.stat-item {
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.4rem;
   color: #666;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 
-.stat svg {
+.stat-item svg {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  margin-top: 2px;
+  width: 16px;
+  height: 16px;
   color: #9f7aea;
 }
 
-.stat-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.stat-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.stat-value {
-  font-size: 0.95rem;
+.stat-text {
   font-weight: 500;
   color: #1a1a1a;
 }
 
+.stat-date {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.plan-stat {
+  margin: 0 0.5rem;
+}
+
+.stat-divider {
+  color: #ddd;
+  font-size: 1.2rem;
+  font-weight: 300;
+  margin: 0 0.2rem;
+  line-height: 1;
+}
+
 .plan-badge {
   display: inline-block;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: white;
-  width: fit-content;
+  white-space: nowrap;
 }
 
 .plan-estandar {
@@ -957,8 +951,15 @@ const activateJob = async () => {
   }
 
   .job-stats {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 0.75rem;
+  }
+
+  .stat-item {
+    font-size: 0.75rem;
+  }
+
+  .stat-date {
+    font-size: 0.65rem;
   }
 
   .job-actions {
