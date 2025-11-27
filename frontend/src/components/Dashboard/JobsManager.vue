@@ -1,6 +1,14 @@
 <!-- frontend/src/components/Dashboard/JobsManager.vue -->
 <template>
   <div class="jobs-manager">
+    <!-- Job Detail Modal -->
+    <JobDetailModal
+      :visible="showDetailModal"
+      :job="selectedJob || {}"
+      @close="showDetailModal = false"
+      @close-job="closeJob"
+      @reopen-job="reopenJob"
+    />
     <!-- Header -->
     <div class="manager-header">
       <h1>Administrador De Empleos</h1>
@@ -76,7 +84,7 @@
 
         <!-- Card Actions -->
         <div class="job-actions">
-          <button class="action-btn view" title="Ver detalles">
+          <button class="action-btn view" title="Ver detalles" @click="viewJob(job)">
             <va-icon name="visibility" />
             Ver
           </button>
@@ -122,6 +130,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import { useAuthStore } from '@/stores/useAuthStore'
+import JobDetailModal from '@/components/Modals/JobDetailModal.vue'
 
 // ========== COMPOSABLES ==========
 const router = useRouter()
@@ -142,6 +151,8 @@ const jobs = ref([])
 const searchQuery = ref('')
 const filterStatus = ref('')
 const sortBy = ref('recent')
+const showDetailModal = ref(false)
+const selectedJob = ref(null)
 
 // ========== COMPUTED ==========
 const filteredJobs = computed(() => {
@@ -276,12 +287,22 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
 }
 
+const viewJob = (job) => {
+  selectedJob.value = job
+  showDetailModal.value = true
+  console.log('Mostrando detalles del trabajo:', job.id)
+}
+
 const editJob = (job) => {
   notify({
-    message: `Editando "${job.title}"`,
+    message: `Abriendo editor para "${job.title}"...`,
     color: 'info'
   })
-  // TODO: Abrir modal/página de edición
+  // Navegar a vista de edición con ID del trabajo
+  router.push({
+    name: 'publicar', // O la ruta que sea para editar
+    query: { jobId: job.id }
+  })
 }
 
 const duplicateJob = async (job) => {
@@ -290,15 +311,29 @@ const duplicateJob = async (job) => {
       message: `Duplicando "${job.title}"...`,
       color: 'info'
     })
-    // TODO: Llamar API para duplicar trabajo
-    setTimeout(() => {
-      notify({
-        message: '✓ Trabajo duplicado exitosamente',
-        color: 'success'
-      })
-      loadJobs()
-    }, 1000)
+
+    const response = await fetch(`/api/jobs/${job.id}/duplicate/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al duplicar trabajo')
+    }
+
+    notify({
+      message: '✓ Trabajo duplicado exitosamente',
+      color: 'success'
+    })
+
+    loadJobs()
   } catch (err) {
+    console.error('Error duplicating job:', err)
     notify({
       message: `Error: ${err.message}`,
       color: 'danger'
@@ -313,13 +348,29 @@ const toggleJobStatus = async (job) => {
       message: `${newStatus === 'active' ? 'Reabriendo' : 'Cerrando'} trabajo...`,
       color: 'info'
     })
-    // TODO: Llamar API para cambiar estado
+
+    const response = await fetch(`/api/jobs/${job.id}/update`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: newStatus })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al actualizar estado')
+    }
+
     job.status = newStatus
     notify({
-      message: `✓ Estado actualizado`,
+      message: `✓ Estado actualizado a ${newStatus === 'active' ? 'Activo' : 'Cerrado'}`,
       color: 'success'
     })
   } catch (err) {
+    console.error('Error updating job status:', err)
     notify({
       message: `Error: ${err.message}`,
       color: 'danger'
@@ -335,13 +386,122 @@ const deleteJob = async (job) => {
       message: 'Eliminando trabajo...',
       color: 'info'
     })
-    // TODO: Llamar API para eliminar
+
+    const response = await fetch(`/api/jobs/${job.id}/delete`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al eliminar trabajo')
+    }
+
     jobs.value = jobs.value.filter(j => j.id !== job.id)
     notify({
-      message: '✓ Trabajo eliminado',
+      message: '✓ Trabajo eliminado exitosamente',
       color: 'success'
     })
   } catch (err) {
+    console.error('Error deleting job:', err)
+    notify({
+      message: `Error: ${err.message}`,
+      color: 'danger'
+    })
+  }
+}
+
+const closeJob = async () => {
+  if (!selectedJob.value) return
+
+  try {
+    notify({
+      message: 'Cerrando oferta...',
+      color: 'info'
+    })
+
+    const response = await fetch(`/api/jobs/${selectedJob.value.id}/update`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: 'closed' })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al cerrar oferta')
+    }
+
+    // Actualizar en lista
+    const jobIndex = jobs.value.findIndex(j => j.id === selectedJob.value.id)
+    if (jobIndex !== -1) {
+      jobs.value[jobIndex].status = 'closed'
+    }
+
+    selectedJob.value.status = 'closed'
+
+    notify({
+      message: '✓ Oferta cerrada exitosamente',
+      color: 'success'
+    })
+
+    showDetailModal.value = false
+  } catch (err) {
+    console.error('Error closing job:', err)
+    notify({
+      message: `Error: ${err.message}`,
+      color: 'danger'
+    })
+  }
+}
+
+const reopenJob = async () => {
+  if (!selectedJob.value) return
+
+  try {
+    notify({
+      message: 'Reabriendo oferta...',
+      color: 'info'
+    })
+
+    const response = await fetch(`/api/jobs/${selectedJob.value.id}/update`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: 'active' })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al reabrir oferta')
+    }
+
+    // Actualizar en lista
+    const jobIndex = jobs.value.findIndex(j => j.id === selectedJob.value.id)
+    if (jobIndex !== -1) {
+      jobs.value[jobIndex].status = 'active'
+    }
+
+    selectedJob.value.status = 'active'
+
+    notify({
+      message: '✓ Oferta reabierta exitosamente',
+      color: 'success'
+    })
+
+    showDetailModal.value = false
+  } catch (err) {
+    console.error('Error reopening job:', err)
     notify({
       message: `Error: ${err.message}`,
       color: 'danger'

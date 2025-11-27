@@ -25,6 +25,15 @@ urlpatterns = [
     # Obtener detalle de un trabajo (DEBE estar después de /publish para evitar conflictos)
     path('jobs/<str:job_id>/', views.get_job, name='get_job'),
 
+    # Actualizar un trabajo
+    path('jobs/<str:job_id>/update', views.update_job, name='update_job'),
+
+    # Eliminar un trabajo
+    path('jobs/<str:job_id>/delete', views.delete_job, name='delete_job'),
+
+    # Duplicar un trabajo
+    path('jobs/<str:job_id>/duplicate/', views.duplicate_job, name='duplicate_job'),
+
     # Aplicar a un trabajo
     path('jobs/<str:job_id>/apply', views.apply_to_job, name='apply_to_job'),
 

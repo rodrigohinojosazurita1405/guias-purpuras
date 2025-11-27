@@ -1052,6 +1052,208 @@ def verify_payment(request, job_id):
         }, status=500)
 
 
+@token_required
+@csrf_exempt
+@require_http_methods(["PATCH"])
+def update_job(request, job_id):
+    """
+    Endpoint para actualizar un trabajo existente
+    PATCH /api/jobs/<job_id>/
+
+    Body esperado (solo campos a actualizar):
+    {
+        "title": "string",
+        "description": "string",
+        "city": "string",
+        "contractType": "string",
+        "modality": "presencial|remoto|hibrido",
+        "status": "active|closed|draft",
+        ...otros campos opcionales
+    }
+
+    RESPUESTA EXITOSA (200):
+    {
+        'success': True,
+        'message': 'Trabajo actualizado exitosamente',
+        'job': {...actualizado}
+    }
+    """
+    try:
+        job = Job.objects.get(id=job_id)
+
+        # Parsear datos del request
+        data = json.loads(request.body) if request.body else {}
+
+        # Campos permitidos para actualizar
+        allowed_fields = [
+            'title', 'description', 'city', 'contractType', 'modality',
+            'jobCategory', 'municipality', 'subcategory', 'requirements',
+            'responsibilities', 'education', 'experience', 'languages',
+            'technicalSkills', 'softSkills', 'salaryType', 'salaryMin',
+            'salaryMax', 'salaryFixed', 'benefits', 'vacancies', 'email',
+            'whatsapp', 'website', 'applicationInstructions', 'applicationType',
+            'externalApplicationUrl', 'status'
+        ]
+
+        # Actualizar campos permitidos
+        for field in allowed_fields:
+            if field in data:
+                setattr(job, field, data[field])
+
+        job.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Trabajo actualizado exitosamente',
+            'job': {
+                'id': job.id,
+                'title': job.title,
+                'status': job.status,
+                'updatedAt': job.updatedAt.isoformat()
+            }
+        }, status=200)
+
+    except Job.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Trabajo no encontrado'
+        }, status=404)
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Error: JSON inválido'
+        }, status=400)
+
+    except Exception as e:
+        print(f'Error al actualizar trabajo: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+@token_required
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def delete_job(request, job_id):
+    """
+    Endpoint para eliminar un trabajo
+    DELETE /api/jobs/<job_id>/
+
+    RESPUESTA EXITOSA (200):
+    {
+        'success': True,
+        'message': 'Trabajo eliminado exitosamente',
+        'id': job_id
+    }
+    """
+    try:
+        job = Job.objects.get(id=job_id)
+        job_id_for_response = job.id
+        job.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Trabajo eliminado exitosamente',
+            'id': job_id_for_response
+        }, status=200)
+
+    except Job.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Trabajo no encontrado'
+        }, status=404)
+
+    except Exception as e:
+        print(f'Error al eliminar trabajo: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+@token_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def duplicate_job(request, job_id):
+    """
+    Endpoint para duplicar un trabajo
+    POST /api/jobs/<job_id>/duplicate/
+
+    Crea una copia del trabajo con status='draft'
+
+    RESPUESTA EXITOSA (201):
+    {
+        'success': True,
+        'message': 'Trabajo duplicado exitosamente',
+        'newJobId': new_job_id,
+        'createdAt': timestamp
+    }
+    """
+    try:
+        job = Job.objects.get(id=job_id)
+
+        # Crear una copia del trabajo
+        new_job = Job.objects.create(
+            title=f"{job.title} (Copia)",
+            companyName=job.companyName,
+            companyAnonymous=job.companyAnonymous,
+            description=job.description,
+            jobCategory=job.jobCategory,
+            city=job.city,
+            municipality=job.municipality,
+            subcategory=job.subcategory,
+            contractType=job.contractType,
+            modality=job.modality,
+            expiryDate=job.expiryDate,
+            requirements=job.requirements,
+            responsibilities=job.responsibilities,
+            education=job.education,
+            experience=job.experience,
+            languages=job.languages,
+            technicalSkills=job.technicalSkills,
+            softSkills=job.softSkills,
+            salaryType=job.salaryType,
+            salaryMin=job.salaryMin,
+            salaryMax=job.salaryMax,
+            salaryFixed=job.salaryFixed,
+            benefits=job.benefits,
+            vacancies=job.vacancies,
+            email=job.email,
+            whatsapp=job.whatsapp,
+            website=job.website,
+            applicationInstructions=job.applicationInstructions,
+            applicationType=job.applicationType,
+            externalApplicationUrl=job.externalApplicationUrl,
+            selectedPlan=job.selectedPlan,
+            screeningQuestions=job.screeningQuestions,
+            status='draft'  # Nueva copia siempre comienza en draft
+        )
+
+        print(f'[OK] Trabajo duplicado: ID original={job.id}, ID nuevo={new_job.id}')
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Trabajo duplicado exitosamente',
+            'newJobId': new_job.id,
+            'createdAt': new_job.createdAt.isoformat()
+        }, status=201)
+
+    except Job.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Trabajo no encontrado'
+        }, status=404)
+
+    except Exception as e:
+        print(f'Error al duplicar trabajo: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+
 @require_http_methods(["GET"])
 @csrf_exempt
 def get_job_categories(request):
