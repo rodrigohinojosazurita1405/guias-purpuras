@@ -92,10 +92,6 @@
             <va-icon name="edit" />
             Editar
           </button>
-          <button class="action-btn duplicate" title="Duplicar" @click="duplicateJob(job)">
-            <va-icon name="file_copy" />
-            Duplicar
-          </button>
           <button
             class="action-btn"
             :class="job.status === 'active' ? 'close' : 'reopen'"
@@ -325,42 +321,6 @@ const editJob = (job) => {
     name: 'PublishJob',
     query: { jobId: job.id }
   })
-}
-
-const duplicateJob = async (job) => {
-  try {
-    notify({
-      message: `Duplicando "${job.title}"...`,
-      color: 'info'
-    })
-
-    const response = await fetch(`/api/jobs/${job.id}/duplicate/`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Error al duplicar trabajo')
-    }
-
-    notify({
-      message: '✓ Trabajo duplicado exitosamente',
-      color: 'success'
-    })
-
-    loadJobs()
-  } catch (err) {
-    console.error('Error duplicating job:', err)
-    notify({
-      message: `Error: ${err.message}`,
-      color: 'danger'
-    })
-  }
 }
 
 const toggleJobStatus = async (job) => {

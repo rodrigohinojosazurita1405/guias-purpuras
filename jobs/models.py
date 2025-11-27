@@ -166,6 +166,17 @@ class Job(models.Model):
         verbose_name="Notas de verificación"
     )
 
+    # Borrado lógico
+    isDeleted = models.BooleanField(
+        default=False,
+        verbose_name="Eliminado (borrado lógico)"
+    )
+    deletedAt = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de eliminación"
+    )
+
     class Meta:
         verbose_name = "Oferta de Trabajo"
         verbose_name_plural = "Ofertas de Trabajo"

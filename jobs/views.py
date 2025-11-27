@@ -286,6 +286,13 @@ def get_job(request, job_id):
     try:
         job = Job.objects.get(id=job_id)
 
+        # Verificar que no esté borrado
+        if job.isDeleted:
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta oferta ha sido eliminada'
+            }, status=404)
+
         # Incrementar vistas
         job.views += 1
         job.save(update_fields=['views'])
@@ -432,7 +439,7 @@ def list_jobs(request):
     Formato optimizado para JobCard component
     """
     try:
-        jobs = Job.objects.filter(status='active')
+        jobs = Job.objects.filter(status='active', isDeleted=False)
 
         # Filtros opcionales
         city = request.GET.get('city')
@@ -1193,8 +1200,11 @@ def update_job(request, job_id):
 @require_http_methods(["DELETE"])
 def delete_job(request, job_id):
     """
-    Endpoint para eliminar un trabajo
+    Endpoint para eliminar un trabajo (Borrado Lógico)
     DELETE /api/jobs/<job_id>/delete
+
+    Marca el trabajo como eliminado sin eliminar el registro de BD.
+    Las aplicaciones y auditoría se mantienen para historial.
 
     RESPUESTA EXITOSA (200):
     {
@@ -1208,17 +1218,21 @@ def delete_job(request, job_id):
         job_id_for_response = job.id
         job_title = job.title
 
-        # Crear log de auditoría antes de eliminar
+        # Realizar borrado lógico
+        from datetime import datetime, timezone
+        job.isDeleted = True
+        job.deletedAt = datetime.now(timezone.utc)
+        job.save()
+
+        # Crear log de auditoría
         userEmail = request.user.email if request.user else 'anonymous'
         create_audit_log(
             job=job,
             action='deleted',
             userEmail=userEmail,
-            notes=f'Trabajo eliminado: "{job_title}"',
+            notes=f'Trabajo marcado como eliminado: "{job_title}"',
             request=request
         )
-
-        job.delete()
 
         return JsonResponse({
             'success': True,
