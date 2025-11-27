@@ -64,9 +64,6 @@ class JobAdmin(admin.ModelAdmin):
         ('Clasificación', {
             'fields': ('jobCategory', 'city', 'municipality', 'subcategory', 'contractType', 'modality')
         }),
-        ('Requisitos', {
-            'fields': ('requirements', 'responsibilities', 'education', 'experience', 'languages', 'technicalSkills', 'softSkills')
-        }),
         ('Compensación', {
             'fields': ('salaryType', 'salaryMin', 'salaryMax', 'salaryFixed', 'benefits')
         }),

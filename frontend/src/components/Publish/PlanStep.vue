@@ -196,7 +196,7 @@ import { ref, watch, onMounted } from 'vue'
 const props = defineProps({
   modelValue: {
     type: String,
-    default: 'escencial'
+    default: 'estandar'
   }
 })
 
@@ -238,8 +238,8 @@ const loadPlans = async () => {
     plans.value = [
       {
         id: 1,
-        name: 'escencial',
-        label: 'Escencial (35 Bs)',
+        name: 'estandar',
+        label: 'Estandar (35 Bs)',
         price: 35,
         currency: 'Bs',
         durationDays: 15,

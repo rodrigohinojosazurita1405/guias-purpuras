@@ -10,7 +10,7 @@ export const PAYMENT_CONFIG = {
       price: 35,
       currency: 'Bs.',
       duration: '15 días',
-      qrCode: '/qr-codes/qr-escencial.png', // Ruta segura en public/ (mantener nombre del archivo)
+      qrCode: '/qr-codes/qr-estandar.png', // Ruta segura en public/
       description: 'Plan básico para publicaciones simples'
     },
     purpura: {

@@ -49,15 +49,6 @@ class Job(models.Model):
     )
     expiryDate = models.DateField(verbose_name="Fecha de vencimiento")
 
-    # Requisitos
-    requirements = models.TextField(verbose_name="Requisitos")
-    responsibilities = models.TextField(blank=True, verbose_name="Responsabilidades")
-    education = models.CharField(max_length=200, blank=True, verbose_name="Formación requerida")
-    experience = models.CharField(max_length=200, blank=True, verbose_name="Experiencia necesaria")
-    languages = models.CharField(max_length=200, blank=True, verbose_name="Idiomas requeridos")
-    technicalSkills = models.CharField(max_length=500, blank=True, verbose_name="Habilidades técnicas")
-    softSkills = models.CharField(max_length=500, blank=True, verbose_name="Habilidades blandas")
-
     # Compensación
     salaryType = models.CharField(
         max_length=20,

@@ -1,316 +1,128 @@
-<!-- 
+<!--
   ==========================================
-  INFORMATIONSTEPJOB.VUE
-  ✅ VERSIÓN CORREGIDA - PATRÓN CONSISTENTE
+  INFORMATIONSTEPJOB.VUE - VERSIÓN SIMPLIFICADA
+  ✨ Formulario limpio sin acordeones
+  📝 Editor de texto rico para información del empleo
   ==========================================
 -->
 <template>
   <div class="information-step-job">
 
-    <!-- HEADER -->
-    <div class="step-header">
-      <div class="header-icon">
-        <va-icon name="work" size="2rem" color="#FFFFFF" />
-      </div>
-      <div>
-        <h2 class="step-title">Información del Trabajo</h2>
-        <p class="step-subtitle">
-          Completa los datos de la oferta laboral - Expande las secciones según sea necesario
-        </p>
-      </div>
-    </div>
-
-    <!-- FORMULARIO CON ACORDEONES -->
+    <!-- FORMULARIO SIMPLE Y LIMPIO CON HEADER INTEGRADO -->
     <div class="form-content">
 
-      <!-- ACORDEÓN 1: INFORMACIÓN ESENCIAL -->
-      <div class="accordion-section" :class="{ 'expanded': expandedSections.basicInfo }">
-        <div class="accordion-header" @click="toggleSection('basicInfo')">
-          <div class="accordion-header-left">
-            <div class="accordion-icon">
-              <va-icon name="info" size="1.5rem" />
-            </div>
-            <div class="accordion-title-group">
-              <h3 class="accordion-title">Información Esencial</h3>
-              <p v-if="!expandedSections.basicInfo" class="accordion-summary">
-                {{ getSummary('basicInfo') }}
-              </p>
-            </div>
-          </div>
-          <va-icon
-            :name="expandedSections.basicInfo ? 'expand_less' : 'expand_more'"
-            size="1.5rem"
-            class="accordion-chevron"
-          />
+      <!-- HEADER INTEGRADO -->
+      <div class="integrated-header">
+        <div class="header-icon">
+          <va-icon name="work" size="2rem" style="color: white;" />
         </div>
+        <div>
+          <h2 class="step-title">Información del Trabajo</h2>
+          <p class="step-subtitle">
+            Completa los detalles principales de la oferta laboral de forma simple y directa
+          </p>
+        </div>
+      </div>
 
-        <div v-if="expandedSections.basicInfo" class="accordion-content">
-
-          <!-- TÍTULO DEL PUESTO -->
-          <div class="form-row">
-            <div class="form-label">Título del Puesto *</div>
-            <va-input
-              v-model="localFormData.title"
-              placeholder="Ej: Administrador de empresas, Contador, Diseñador Gráfico, , Community Manager"
-              counter
-              maxlength="100"
-              :rules="[
-                (v) => !!v || 'El título es requerido',
-                (v) => (v && v.length >= 5) || 'Mínimo 5 caracteres'
-              ]"
-            >
-              <template #prepend>
-                <va-icon name="title" color="purple" />
-              </template>
-            </va-input>
-
-            <div class="input-hint success-hint" style="margin-top: 0.75rem;">
-              <va-icon name="info" size="small" />
-              <span>Títulos claros reciben más postulaciones</span>
-            </div>
-          </div>
-
+      <!-- SECCIÓN UNIFICADA -->
+      <div class="form-section unified-job-section">
+        <!-- GRUPO 1: DATOS BÁSICOS -->
+        <div class="field-group">
+          <!-- TÍTULO Y EMPRESA (GRID 2 COL) -->
           <div class="form-grid">
-            <!-- NOMBRE DE LA EMPRESA -->
-            <div class="form-row">
-              <div class="form-label" :class="{ 'opacity-50': localFormData.companyAnonymous }">Nombre de la Empresa <span v-if="!localFormData.companyAnonymous">*</span></div>
+            <div class="form-row compact">
+              <label class="form-label">Título *</label>
               <va-input
-                v-model="localFormData.companyName"
-                placeholder="Ej: TechCorp Bolivia, Startups Innovadoras, Consultora ABC"
-                :disabled="localFormData.companyAnonymous"
+                v-model="localFormData.title"
+                placeholder="Ej: Administrador de empresas"
+                counter
+                maxlength="100"
                 :rules="[
-                  (v) => localFormData.companyAnonymous || !!v || 'El nombre de la empresa es requerido'
+                  (v) => !!v || 'El título es requerido',
+                  (v) => (v && v.length >= 5) || 'Mínimo 5 caracteres'
                 ]"
+                size="small"
               >
                 <template #prepend>
-                  <va-icon name="business" color="purple" />
+                  <va-icon name="title" color="purple" />
                 </template>
               </va-input>
             </div>
 
-            <!-- CHECKBOX ANÓNIMO - INLINE -->
-            <div class="form-row">
-              <div class="anonymous-switch-container">
+            <div class="form-row compact">
+              <label class="form-label" :class="{ 'opacity-50': localFormData.companyAnonymous }">
+                Empresa <span v-if="!localFormData.companyAnonymous">*</span>
+              </label>
+              <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                <va-input
+                  v-model="localFormData.companyName"
+                  placeholder="TechCorp Bolivia"
+                  :disabled="localFormData.companyAnonymous"
+                  :rules="[
+                    (v) => localFormData.companyAnonymous || !!v || 'El nombre de la empresa es requerido'
+                  ]"
+                  size="small"
+                  style="flex: 1;"
+                >
+                  <template #prepend>
+                    <va-icon name="business" color="purple" />
+                  </template>
+                </va-input>
+                <!-- ANÓNIMO (INLINE) -->
                 <va-switch
                   v-model="localFormData.companyAnonymous"
-                  label="Publicar de forma anónima"
+                  label="Anónimo"
                   color="warning"
                   size="small"
+                  style="margin-top: 0.35rem;"
                 />
-                <span class="anonymous-helper-text">Sin logo ni nombre visible</span>
               </div>
             </div>
           </div>
 
-          <!-- DESCRIPCIÓN DEL TRABAJO -->
-          <div class="form-row">
-            <div class="form-label">Descripción del Trabajo *</div>
-            <va-textarea
-              v-model="localFormData.description"
-              placeholder="Describe el puesto, funciones principales y qué esperas del candidato"
-              :min-rows="6"
-              counter
-              maxlength="1000"
-              :rules="[
-                (v) => !!v || 'La descripción es requerida',
-                (v) => (v && v.length >= 50) || 'Mínimo 50 caracteres para una buena descripción'
-              ]"
-            >
-              <template #prepend>
-                <va-icon name="description" color="purple" />
-              </template>
-            </va-textarea>
-
-            <div class="input-hint" style="margin-top: 0.75rem;">
-              <va-icon name="info" size="small" />
-              <span>Descripciones detalladas atraen candidatos de mejor calidad</span>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ACORDEÓN 2: REQUISITOS Y RESPONSABILIDADES -->
-      <div class="accordion-section" :class="{ 'expanded': expandedSections.requirements }">
-        <div class="accordion-header" @click="toggleSection('requirements')">
-          <div class="accordion-header-left">
-            <div class="accordion-icon">
-              <va-icon name="assignment_ind" size="1.5rem" />
-            </div>
-            <div class="accordion-title-group">
-              <h3 class="accordion-title">Requisitos y Competencias</h3>
-              <p v-if="!expandedSections.requirements" class="accordion-summary">
-                {{ getSummary('requirements') }}
-              </p>
-            </div>
-          </div>
-          <va-icon
-            :name="expandedSections.requirements ? 'expand_less' : 'expand_more'"
-            size="1.5rem"
-            class="accordion-chevron"
-          />
-        </div>
-
-        <div v-if="expandedSections.requirements" class="accordion-content">
-
-          <!-- REQUISITOS -->
-          <div class="form-row">
-            <div class="form-label">Requisitos *</div>
-            <va-textarea
-              v-model="localFormData.requirements"
-              placeholder="Ej: Experiencia previa, conocimientos específicos, disponibilidad de tiempo..."
-              :min-rows="3"
-              counter
-              maxlength="500"
-              :rules="[
-                (v) => !!v || 'Los requisitos son requeridos'
-              ]"
-            >
-              <template #prepend>
-                <va-icon name="assignment" color="purple" />
-              </template>
-            </va-textarea>
-          </div>
-
-          <!-- RESPONSABILIDADES -->
-          <div class="form-row">
-            <div class="form-label">Responsabilidades (Opcional)</div>
-            <va-textarea
-              v-model="localFormData.responsibilities"
-              placeholder="Ej: Funciones principales, tareas diarias, colaborar en equipo..."
-              :min-rows="3"
-              counter
-              maxlength="500"
-            >
-              <template #prepend>
-                <va-icon name="task_alt" color="purple" />
-              </template>
-            </va-textarea>
-          </div>
-
-          <!-- FORMACIÓN -->
-          <div class="form-row">
-            <div class="form-label">Formación (Opcional)</div>
-            <va-input
-              v-model="localFormData.education"
-              placeholder="Ej: Licenciatura en Informática, certificación profesional, diploma técnico"
-            >
-              <template #prepend>
-                <va-icon name="school" color="purple" />
-              </template>
-            </va-input>
-          </div>
-
-          <!-- EXPERIENCIA -->
-          <div class="form-row">
-            <div class="form-label">Experiencia (Opcional)</div>
-            <va-select
-              v-model="localFormData.experience"
-              :options="experienceOptions"
-              placeholder="Selecciona el nivel de experiencia"
-              clearable
-            >
-              <template #prepend>
-                <va-icon name="history" color="purple" />
-              </template>
-            </va-select>
-          </div>
-
-          <!-- IDIOMAS -->
-          <div class="form-row">
-            <div class="form-label">Idiomas (Opcional)</div>
-            <va-input
-              v-model="localFormData.languages"
-              placeholder="Ej: Español nativo, inglés avanzado, otro idioma"
-            >
-              <template #prepend>
-                <va-icon name="language" color="purple" />
-              </template>
-            </va-input>
-          </div>
-
-          <!-- HABILIDADES TÉCNICAS -->
-          <div class="form-row">
-            <div class="form-label">Habilidades Técnicas (Opcional)</div>
-            <va-textarea
-              v-model="localFormData.technicalSkills"
-              placeholder="Ej: Herramientas especializadas, software específico, conocimientos técnicos requeridos"
-              :min-rows="3"
-              counter
-              maxlength="500"
-            >
-              <template #prepend>
-                <va-icon name="code" color="purple" />
-              </template>
-            </va-textarea>
-          </div>
-
-          <!-- HABILIDADES BLANDAS -->
-          <div class="form-row">
-            <div class="form-label">Habilidades Blandas (Opcional)</div>
-            <va-textarea
-              v-model="localFormData.softSkills"
-              placeholder="Ej: Comunicación, trabajo en equipo, liderazgo, creatividad, adaptabilidad"
-              :min-rows="3"
-              counter
-              maxlength="500"
-            >
-              <template #prepend>
-                <va-icon name="people" color="purple" />
-              </template>
-            </va-textarea>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ACORDEÓN 3: UBICACIÓN -->
-      <div class="accordion-section" :class="{ 'expanded': expandedSections.location }">
-        <div class="accordion-header" @click="toggleSection('location')">
-          <div class="accordion-header-left">
-            <div class="accordion-icon">
-              <va-icon name="location_on" size="1.5rem" />
-            </div>
-            <div class="accordion-title-group">
-              <h3 class="accordion-title">Ubicación y Fecha Límite</h3>
-              <p v-if="!expandedSections.location" class="accordion-summary">
-                {{ getSummary('location') }}
-              </p>
-            </div>
-          </div>
-          <va-icon
-            :name="expandedSections.location ? 'expand_less' : 'expand_more'"
-            size="1.5rem"
-            class="accordion-chevron"
-          />
-        </div>
-
-        <div v-if="expandedSections.location" class="accordion-content">
-
-          <!-- CATEGORÍA (Full width) -->
-          <div class="form-row">
-            <div class="form-label">Categoría/Área *</div>
-            <va-select
-              v-model="localFormData.jobCategory"
-              :options="categoryOptions"
-              placeholder="Selecciona una categoría"
-              :rules="[(v) => !!v || 'La categoría es requerida']"
-            >
-              <template #prepend>
-                <va-icon name="category" color="purple" />
-              </template>
-            </va-select>
-          </div>
-
-          <!-- CIUDAD Y MUNICIPIO (Grid 2 columnas) -->
+          <!-- CATEGORÍA Y TIPO (GRID 2 COL) -->
           <div class="form-grid">
-            <div class="form-row">
-              <div class="form-label">Ciudad *</div>
+            <div class="form-row compact">
+              <label class="form-label">Categoría *</label>
+              <va-select
+                v-model="localFormData.jobCategory"
+                :options="categoryOptions"
+                placeholder="Selecciona"
+                :rules="[(v) => !!v || 'La categoría es requerida']"
+                size="small"
+              >
+                <template #prepend>
+                  <va-icon name="category" color="purple" />
+                </template>
+              </va-select>
+            </div>
+
+            <div class="form-row compact">
+              <label class="form-label">Tipo Contrato *</label>
+              <va-select
+                v-model="localFormData.contractType"
+                :options="contractTypeOptions"
+                placeholder="Selecciona"
+                :rules="[(v) => !!v || 'El tipo de contrato es requerido']"
+                size="small"
+              >
+                <template #prepend>
+                  <va-icon name="schedule" color="purple" />
+                </template>
+              </va-select>
+            </div>
+          </div>
+
+          <!-- CIUDAD, FECHA, PROVINCIA (GRID 3 COL) -->
+          <div class="form-grid grid-3col">
+            <div class="form-row compact">
+              <label class="form-label">Ciudad *</label>
               <va-select
                 v-model="localFormData.city"
                 :options="cityOptions"
-                placeholder="Selecciona la ciudad"
+                placeholder="Selecciona"
                 :rules="[(v) => !!v || 'La ciudad es requerida']"
+                size="small"
               >
                 <template #prepend>
                   <va-icon name="location_city" color="purple" />
@@ -318,11 +130,26 @@
               </va-select>
             </div>
 
-            <div class="form-row">
-              <div class="form-label">Provincia / Municipio</div>
+            <div class="form-row compact">
+              <label class="form-label">Fecha Vencimiento *</label>
+              <va-date-input
+                v-model="localFormData.expiryDate"
+                placeholder="Selecciona"
+                :rules="[(v) => !!v || 'La fecha de vencimiento es requerida']"
+                size="small"
+              >
+                <template #prepend>
+                  <va-icon name="event" color="purple" />
+                </template>
+              </va-date-input>
+            </div>
+
+            <div class="form-row compact">
+              <label class="form-label">Provincia / Municipio</label>
               <va-input
                 v-model="localFormData.municipality"
-                placeholder="Ingresa la provincia o municipio"
+                placeholder="Opcional"
+                size="small"
               >
                 <template #prepend>
                   <va-icon name="place" color="purple" />
@@ -330,225 +157,156 @@
               </va-input>
             </div>
           </div>
-
-          <!-- TIPO DE CONTRATO Y FECHA DE VENCIMIENTO (Grid 2 columnas) -->
-          <div class="form-grid">
-            <div class="form-row">
-              <div class="form-label">Tipo de Contrato *</div>
-              <va-select
-                v-model="localFormData.contractType"
-                :options="contractTypeOptions"
-                placeholder="Selecciona el tipo"
-                :rules="[(v) => !!v || 'El tipo de contrato es requerido']"
-              >
-                <template #prepend>
-                  <va-icon name="schedule" color="purple" />
-                </template>
-              </va-select>
-            </div>
-
-            <div class="form-row">
-              <div class="form-label">Fecha de Vencimiento *</div>
-              <va-date-input
-                v-model="localFormData.expiryDate"
-                placeholder="Selecciona fecha"
-                :rules="[(v) => !!v || 'La fecha de vencimiento es requerida']"
-              >
-                <template #prepend>
-                  <va-icon name="event" color="purple" />
-                </template>
-              </va-date-input>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ACORDEÓN 4: COMPENSACIÓN Y VACANTES -->
-      <div class="accordion-section" :class="{ 'expanded': expandedSections.compensation }">
-        <div class="accordion-header" @click="toggleSection('compensation')">
-          <div class="accordion-header-left">
-            <div class="accordion-icon">
-              <va-icon name="attach_money" size="1.5rem" />
-            </div>
-            <div class="accordion-title-group">
-              <h3 class="accordion-title">Compensación Económica y Vacantes Requeridos</h3>
-              <p v-if="!expandedSections.compensation" class="accordion-summary">
-                {{ getSummary('compensation') }}
-              </p>
-            </div>
-          </div>
-          <va-icon
-            :name="expandedSections.compensation ? 'expand_less' : 'expand_more'"
-            size="1.5rem"
-            class="accordion-chevron"
-          />
         </div>
 
-        <div v-if="expandedSections.compensation" class="accordion-content">
+        <!-- SEPARADOR VISUAL -->
+        <div class="field-separator"></div>
 
-          <div class="salary-tip">
-          <va-icon name="lightbulb" color="warning" />
-          <div>
-            <strong>Consejo:</strong> Publicaciones con salario visible reciben más postulaciones y candidatos de mejor calidad
+        <!-- GRUPO 2: EDITOR DE TEXTO RICO -->
+        <div class="field-group">
+          <div class="form-row">
+            <label class="form-label">Detalles del Empleo *</label>
+            <QuillEditor
+              :key="quillKey"
+              v-model="localFormData.jobDetailsHtml"
+              content-type="html"
+              theme="snow"
+              :toolbar="quillToolbar"
+              class="job-details-editor"
+              placeholder="Describe el puesto, responsabilidades, requisitos, habilidades necesarias... ¡A tu gusto!"
+            />
           </div>
         </div>
 
-        <div class="salary-options">
-          <label class="salary-radio">
-            <va-radio
-              v-model="localFormData.salaryType"
-              option="range"
-              label=""
-            />
-            <span>Rango salarial específico</span>
-          </label>
-          <label class="salary-radio">
-            <va-radio
-              v-model="localFormData.salaryType"
-              option="fixed"
-              label=""
-            />
-            <span>Salario fijo</span>
-          </label>
-          <label class="salary-radio">
-            <va-radio
-              v-model="localFormData.salaryType"
-              option="negotiable"
-              label=""
-            />
-            <span>A convenir</span>
-          </label>
-          <label class="salary-radio">
-            <va-radio
-              v-model="localFormData.salaryType"
-              option="hidden"
-              label=""
-            />
-            <span>No mostrar salario</span>
-          </label>
-        </div>
+        <!-- SEPARADOR VISUAL -->
+        <div class="field-separator"></div>
 
-        <!-- SALARIO - RANGO -->
-        <div v-if="localFormData.salaryType === 'range'" class="form-row">
-          <div class="form-label">Salario Mínimo (Bs.) *</div>
-          <div class="salary-inputs">
-            <div class="form-field">
+        <!-- GRUPO 3: COMPENSACIÓN Y VACANTES (COMPACTO) -->
+        <div class="field-group">
+          <h4 class="group-subtitle">
+            <va-icon name="attach_money" size="1rem" />
+            Compensación y Vacantes
+          </h4>
+
+          <!-- GRID COMPACTO: VACANTES + TIPO SALARIO -->
+          <div class="form-grid compact-compensation-grid">
+            <!-- VACANTES -->
+            <div class="form-row compact">
+              <label class="form-label">Vacantes *</label>
+              <div class="vacancy-input-group compact">
+                <button
+                  type="button"
+                  class="vacancy-btn-sm"
+                  @click="decrementVacancies"
+                  :disabled="localFormData.vacancies <= 1"
+                >
+                  −
+                </button>
+                <input
+                  v-model.number="localFormData.vacancies"
+                  type="number"
+                  min="1"
+                  max="100"
+                  class="vacancy-input-sm"
+                  @input="(e) => updateVacancies(parseInt(e.target.value) || 1)"
+                />
+                <button
+                  type="button"
+                  class="vacancy-btn-sm"
+                  @click="incrementVacancies"
+                  :disabled="localFormData.vacancies >= 100"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <!-- TIPO SALARIO -->
+            <div class="form-row compact">
+              <label class="form-label">Salario *</label>
+              <div class="salary-type-compact">
+                <label class="radio-label-compact">
+                  <va-radio
+                    v-model="localFormData.salaryType"
+                    option="range"
+                    label=""
+                  />
+                  <span>Rango</span>
+                </label>
+                <label class="radio-label-compact">
+                  <va-radio
+                    v-model="localFormData.salaryType"
+                    option="fixed"
+                    label=""
+                  />
+                  <span>Fijo</span>
+                </label>
+                <label class="radio-label-compact">
+                  <va-radio
+                    v-model="localFormData.salaryType"
+                    option="negotiable"
+                    label=""
+                  />
+                  <span>A convenir</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- SALARIO - RANGO (INLINE) -->
+          <div v-if="localFormData.salaryType === 'range'" class="salary-inputs-inline">
+            <div class="form-field-inline">
+              <label class="form-label-sm">Mín (Bs.) *</label>
               <va-input
                 v-model.number="localFormData.salaryMin"
                 type="number"
-                placeholder="Ingresa el salario mínimo"
-                :rules="[(v) => !!v || 'El salario mínimo es requerido']"
-              >
-                <template #prepend>
-                  <span class="currency-symbol">Bs.</span>
-                </template>
-              </va-input>
+                placeholder="Min"
+                :rules="[(v) => !!v || 'Requerido']"
+                size="small"
+              />
             </div>
-            <span class="salary-separator">-</span>
-            <div class="form-field">
-              <div class="form-label" style="font-size: 0.85rem;">Máximo *</div>
+            <span class="separator">−</span>
+            <div class="form-field-inline">
+              <label class="form-label-sm">Máx (Bs.) *</label>
               <va-input
                 v-model.number="localFormData.salaryMax"
                 type="number"
-                placeholder="Ingresa el salario máximo"
+                placeholder="Max"
                 :rules="[
-                  (v) => !!v || 'El salario máximo es requerido',
-                  (v) => !localFormData.salaryMin || v > localFormData.salaryMin || 'El máximo debe ser mayor al mínimo'
+                  (v) => !!v || 'Requerido',
+                  (v) => !localFormData.salaryMin || v > localFormData.salaryMin || 'Debe ser mayor'
                 ]"
-              >
-                <template #prepend>
-                  <span class="currency-symbol">Bs.</span>
-                </template>
-              </va-input>
+                size="small"
+              />
             </div>
           </div>
-        </div>
 
-        <!-- SALARIO - FIJO -->
-        <div v-if="localFormData.salaryType === 'fixed'" class="form-row">
-          <div class="form-label">Salario (Bs.) *</div>
-          <va-input
-            v-model.number="localFormData.salaryFixed"
-            type="number"
-            placeholder="Ingresa el salario fijo"
-            :rules="[(v) => !!v || 'El salario es requerido']"
-          >
-            <template #prepend>
-              <span class="currency-symbol">Bs.</span>
-            </template>
-          </va-input>
-        </div>
-
-        <!-- BENEFICIOS ADICIONALES -->
-        <div class="form-row">
-          <div class="form-label">Beneficios Adicionales (Opcional)</div>
-          <va-textarea
-            v-model="localFormData.benefits"
-            placeholder="Ej: Seguro de salud, bonos trimestrales, capacitación pagada, descuentos en productos..."
-            :min-rows="3"
-            counter
-            maxlength="500"
-          >
-            <template #prepend>
-              <va-icon name="card_giftcard" color="purple" />
-            </template>
-          </va-textarea>
-          
-          <div class="input-hint success-hint">
-            <va-icon name="trending_up" size="small" />
-            <span>Incrementa el atractivo de tu oferta mencionando beneficios extra</span>
-          </div>
-        </div>
-
-        <!-- NÚMERO DE VACANTES -->
-        <div class="form-row">
-          <label class="form-label">¿Cuántos puestos disponibles? *</label>
-          <div class="vacancy-input-group">
-            <button
-              type="button"
-              class="vacancy-btn"
-              @click="decrementVacancies"
-              :disabled="localFormData.vacancies <= 1"
-            >
-              −
-            </button>
-            <input
-              v-model.number="localFormData.vacancies"
+          <!-- SALARIO - FIJO (INLINE) -->
+          <div v-if="localFormData.salaryType === 'fixed'" class="form-row compact">
+            <label class="form-label-sm">Salario (Bs.) *</label>
+            <va-input
+              v-model.number="localFormData.salaryFixed"
               type="number"
-              min="1"
-              max="100"
-              class="vacancy-input"
-              @input="(e) => updateVacancies(parseInt(e.target.value) || 1)"
+              placeholder="Salario fijo"
+              :rules="[(v) => !!v || 'Requerido']"
+              size="small"
             />
-            <button
-              type="button"
-              class="vacancy-btn"
-              @click="incrementVacancies"
-              :disabled="localFormData.vacancies >= 100"
-            >
-              +
-            </button>
           </div>
-          <small class="form-hint">
-            Puedes publicar{{ localFormData.vacancies > 1 ? ` ${localFormData.vacancies} puestos iguales` : ' 1 puesto' }}
-          </small>
+
+          <!-- BENEFICIOS (COMPACTO) -->
+          <div class="form-row compact">
+            <label class="form-label">Beneficios (Opcional)</label>
+            <va-textarea
+              v-model="localFormData.benefits"
+              placeholder="Ej: Seguro de salud, bonos, capacitación..."
+              :min-rows="2"
+              counter
+              maxlength="300"
+              size="small"
+            />
+          </div>
         </div>
 
-        <!-- Visualización de vacantes -->
-        <div class="vacancy-tracker">
-          <div
-            v-for="n in Math.min(localFormData.vacancies, 10)"
-            :key="n"
-            class="vacancy-icon"
-            :title="`Vacante ${n}`"
-          >
-            <va-icon name="person" />
-          </div>
-          <div v-if="localFormData.vacancies > 10" class="vacancy-more">
-            +{{ localFormData.vacancies - 10 }} más
-          </div>
-        </div>
-        </div>
       </div>
 
       <!-- BOTONES DE NAVEGACIÓN -->
@@ -563,12 +321,15 @@
           <va-icon name="arrow_forward" size="small" />
         </button>
       </div>
+
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 // ========== PROPS Y EMITS ==========
 const props = defineProps({
@@ -580,43 +341,39 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'next', 'back'])
 
-// ========== ACCORDION STATE ==========
-const expandedSections = ref({
-  basicInfo: true,
-  requirements: false,
-  location: false,
-  compensation: false
+// ========== FUNCIÓN HELPER PARA INICIALIZAR DATOS ==========
+const initializeFormData = (modelValue) => ({
+  title: modelValue.title || '',
+  companyName: modelValue.companyName || '',
+  companyAnonymous: modelValue.companyAnonymous || false,
+  jobDetailsHtml: modelValue.jobDetailsHtml || modelValue.description || '',
+  jobCategory: modelValue.jobCategory || '',
+  city: modelValue.city || '',
+  municipality: modelValue.municipality || '',
+  contractType: modelValue.contractType || '',
+  expiryDate: modelValue.expiryDate || null,
+  salaryType: modelValue.salaryType || 'range',
+  salaryMin: modelValue.salaryMin || null,
+  salaryMax: modelValue.salaryMax || null,
+  salaryFixed: modelValue.salaryFixed || null,
+  benefits: modelValue.benefits || '',
+  vacancies: modelValue.vacancies || 1
 })
 
-// ========== DATA LOCAL (REF + WATCH) ==========
-const localFormData = ref({
-  title: props.modelValue.title || '',
-  companyName: props.modelValue.companyName || '',
-  companyAnonymous: props.modelValue.companyAnonymous || false,
-  description: props.modelValue.description || '',
-  jobCategory: props.modelValue.jobCategory || '',
-  city: props.modelValue.city || '',
-  municipality: props.modelValue.municipality || '',
-  contractType: props.modelValue.contractType || '',
-  expiryDate: props.modelValue.expiryDate || null,
-  requirements: props.modelValue.requirements || '',
-  responsibilities: props.modelValue.responsibilities || '',
-  education: props.modelValue.education || '',
-  experience: props.modelValue.experience || '',
-  languages: props.modelValue.languages || '',
-  technicalSkills: props.modelValue.technicalSkills || '',
-  softSkills: props.modelValue.softSkills || '',
-  salaryType: props.modelValue.salaryType || 'range',
-  salaryMin: props.modelValue.salaryMin || null,
-  salaryMax: props.modelValue.salaryMax || null,
-  salaryFixed: props.modelValue.salaryFixed || null,
-  benefits: props.modelValue.benefits || '',
-  vacancies: props.modelValue.vacancies || 1,
-  email: props.modelValue.email || '',
-  whatsapp: props.modelValue.whatsapp || '',
-  website: props.modelValue.website || '',
-  applicationInstructions: props.modelValue.applicationInstructions || ''
-})
+// ========== DATA LOCAL ==========
+const localFormData = ref(initializeFormData(props.modelValue))
+
+// ========== QUILL KEY PARA REINICIALIZACIÓN ==========
+const quillKey = ref(0)
+
+// ========== QUILL EDITOR TOOLBAR ==========
+const quillToolbar = [
+  ['bold', 'italic', 'underline'],
+  [{ 'header': [1, 2, 3, false] }],
+  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+  ['blockquote'],
+  ['clean']
+]
 
 // ========== OPCIONES DE FORMULARIO ==========
 const categoryOptions = ref([])
@@ -629,22 +386,6 @@ const contractTypeOptions = [
   { text: 'Temporal', value: 'Temporal' },
   { text: 'Pasantía', value: 'Pasantía' },
   { text: 'Freelance', value: 'Freelance' }
-]
-
-const experienceOptions = [
-  { text: 'Sin experiencia', value: 'Sin experiencia' },
-  { text: 'Menos de 1 año', value: 'Menos de 1 año' },
-  { text: '1-2 años', value: '1-2 años' },
-  { text: '2-3 años', value: '2-3 años' },
-  { text: '3-5 años', value: '3-5 años' },
-  { text: '5-10 años', value: '5-10 años' },
-  { text: 'Más de 10 años', value: 'Más de 10 años' }
-]
-
-const questionTypeOptions = [
-  { text: 'Texto corto', value: 'text' },
-  { text: 'Sí / No', value: 'yesno' },
-  { text: 'Opción múltiple', value: 'multiple' }
 ]
 
 const cityOptions = [
@@ -660,18 +401,31 @@ const cityOptions = [
 ]
 
 // ========== WATCH PARA SINCRONIZACIÓN ==========
+// Watch para cambios internos del formulario - emite actualizaciones al parent
 watch(localFormData, (newValue) => {
-  // Extraer solo los valores de los selects (en caso de que sean objetos)
   const cleanedValue = {
     ...props.modelValue,
     ...newValue,
+    description: newValue.jobDetailsHtml, // Mapear editor HTML a description
     jobCategory: typeof newValue.jobCategory === 'object' ? newValue.jobCategory?.value : newValue.jobCategory,
     city: typeof newValue.city === 'object' ? newValue.city?.value : newValue.city,
-    contractType: typeof newValue.contractType === 'object' ? newValue.contractType?.value : newValue.contractType,
-    experience: typeof newValue.experience === 'object' ? newValue.experience?.value : newValue.experience
+    contractType: typeof newValue.contractType === 'object' ? newValue.contractType?.value : newValue.contractType
   }
   emit('update:modelValue', cleanedValue)
 }, { deep: true })
+
+// Watch para sincronizar cuando vuelves atrás - carga datos guardados
+watch(() => [props.modelValue.description, props.modelValue.title, props.modelValue.jobDetailsHtml],
+  (newVals) => {
+    const [description] = newVals
+    // Si el description del store cambió pero jobDetailsHtml local no coincide, recargar
+    if (description && description !== localFormData.value.jobDetailsHtml) {
+      localFormData.value = initializeFormData(props.modelValue)
+      quillKey.value++ // Forzar reinicialización del Quill
+    }
+  },
+  { deep: true }
+)
 
 // ========== MÉTODOS DE VACANTES ==========
 const incrementVacancies = () => {
@@ -689,52 +443,6 @@ const decrementVacancies = () => {
 const updateVacancies = (value) => {
   if (value >= 1 && value <= 100) {
     localFormData.value.vacancies = value
-  }
-}
-
-// ========== ACCORDION METHODS ==========
-const toggleSection = (sectionName) => {
-  expandedSections.value[sectionName] = !expandedSections.value[sectionName]
-}
-
-const getSummary = (sectionName) => {
-  switch (sectionName) {
-    case 'basicInfo':
-      if (localFormData.value.title) {
-        return localFormData.value.title
-      }
-      return 'Completa los datos básicos del puesto'
-
-    case 'requirements':
-      if (localFormData.value.requirements) {
-        return 'Requisitos y competencias definidos'
-      }
-      return 'Define requisitos y responsabilidades'
-
-    case 'location':
-      if (localFormData.value.city && localFormData.value.contractType) {
-        return `${localFormData.value.city} - ${localFormData.value.contractType}`
-      }
-      return 'Define ubicación y tipo de contrato'
-
-    case 'compensation':
-      let summary = ''
-      if (localFormData.value.salaryType === 'range' && localFormData.value.salaryMin) {
-        summary = `Bs. ${localFormData.value.salaryMin} - ${localFormData.value.salaryMax || '...'}`
-      } else if (localFormData.value.salaryType === 'fixed' && localFormData.value.salaryFixed) {
-        summary = `Bs. ${localFormData.value.salaryFixed}`
-      } else if (localFormData.value.salaryType === 'negotiable') {
-        summary = 'A convenir'
-      } else if (localFormData.value.salaryType === 'hidden') {
-        summary = 'No visible'
-      }
-      if (localFormData.value.vacancies) {
-        summary += (summary ? ' • ' : '') + `${localFormData.value.vacancies} ${localFormData.value.vacancies === 1 ? 'vacante' : 'vacantes'}`
-      }
-      return summary || 'Configura compensación y vacantes'
-
-    default:
-      return ''
   }
 }
 
@@ -775,40 +483,35 @@ const handleBack = () => {
 // ========== VALIDACIÓN ==========
 const validate = () => {
   const errors = []
-  
+
   if (!localFormData.value.title) {
     errors.push('El título del puesto es requerido')
   }
-  
-  // Validar empresa solo si NO es anónima
+
   if (!localFormData.value.companyAnonymous && !localFormData.value.companyName) {
     errors.push('El nombre de la empresa es requerido (o marca como anónima)')
   }
-  
-  if (!localFormData.value.description || localFormData.value.description.length < 50) {
-    errors.push('La descripción debe tener al menos 50 caracteres')
+
+  if (!localFormData.value.jobDetailsHtml || localFormData.value.jobDetailsHtml.length < 50) {
+    errors.push('La información del empleo debe tener al menos 50 caracteres')
   }
-  
+
   if (!localFormData.value.jobCategory) {
     errors.push('La categoría es requerida')
   }
-  
+
   if (!localFormData.value.city) {
     errors.push('La ciudad es requerida')
   }
-  
+
   if (!localFormData.value.contractType) {
     errors.push('El tipo de contrato es requerido')
   }
-  
+
   if (!localFormData.value.expiryDate) {
     errors.push('La fecha de vencimiento es requerida')
   }
-  
-  if (!localFormData.value.requirements) {
-    errors.push('Los requisitos son requeridos')
-  }
-  
+
   // Validación de salario
   if (localFormData.value.salaryType === 'range') {
     if (!localFormData.value.salaryMin) {
@@ -817,28 +520,24 @@ const validate = () => {
     if (!localFormData.value.salaryMax) {
       errors.push('El salario máximo es requerido')
     }
-    if (localFormData.value.salaryMin && localFormData.value.salaryMax && 
+    if (localFormData.value.salaryMin && localFormData.value.salaryMax &&
         localFormData.value.salaryMin >= localFormData.value.salaryMax) {
       errors.push('El salario máximo debe ser mayor al mínimo')
     }
   }
-  
+
   if (localFormData.value.salaryType === 'fixed' && !localFormData.value.salaryFixed) {
     errors.push('El salario es requerido')
   }
 
   if (errors.length > 0) {
     console.error('❌ ERRORES DE VALIDACIÓN:', errors)
-    console.log('📋 Datos actuales:', localFormData.value)
-    
-    // Mostrar alert con los errores
     const errorMessage = errors.join('\n• ')
     alert(`⚠️ Por favor completa los siguientes campos:\n\n• ${errorMessage}`)
-    
     return false
   }
-  
-  console.log('✅ Validación exitosa - todos los campos obligatorios completos')
+
+  console.log('✅ Validación exitosa - todos los campos obligatorios completo')
   return true
 }
 
@@ -849,55 +548,11 @@ defineExpose({
 </script>
 
 <style scoped>
-/* ========== GLOBAL VUESTIC LABEL STYLES ========== */
-:deep(.va-input__label),
-:deep(.va-textarea__label),
-:deep(.va-select__label),
-:deep(.va-date-input__label) {
-  font-size: 1.35rem !important;
-  font-weight: 800 !important;
-  color: #0F172A !important;
-  letter-spacing: 0.5px !important;
-  text-transform: none !important;
-  line-height: 1.4 !important;
-  display: block !important;
-}
-
-/* Input container spacing */
-:deep(.va-input),
-:deep(.va-textarea),
-:deep(.va-select),
-:deep(.va-date-input) {
-  margin-bottom: 0.75rem !important;
-}
-
-/* Input field text size - aggressive overrides */
-:deep(.va-input__field::placeholder),
-:deep(.va-textarea__field::placeholder) {
-  font-size: 1.0rem !important;
-}
-
-:deep(input.va-input__field),
-:deep(textarea.va-textarea__field),
-:deep(select.va-select__field),
-:deep(input[type="text"]) {
-  font-size: 1.0rem !important;
-  line-height: 1.5 !important;
-}
-
-/* Direct targeting of input content */
-.information-step-job :deep(input),
-.information-step-job :deep(textarea),
-.information-step-job :deep(select) {
-  font-size: 1.0rem !important;
-  line-height: 1.5 !important;
-}
-
 .information-step-job {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  background: linear-gradient(135deg, #F9F5FF 0%, #F3E8FF 100%);
+  background: linear-gradient(135deg, #FAFBFF 0%, #F5F3FF 100%);
   min-height: 100vh;
   padding: 1.5rem;
 }
@@ -953,6 +608,15 @@ defineExpose({
   font-weight: 500;
 }
 
+.integrated-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #E9D5FF;
+  margin-bottom: 1rem;
+}
+
 .form-content {
   display: flex;
   flex-direction: column;
@@ -962,7 +626,8 @@ defineExpose({
   border-radius: 16px;
   max-width: 1160px;
   margin: 0 auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.1);
   width: 100%;
 }
 
@@ -971,9 +636,9 @@ defineExpose({
   flex-direction: column;
   gap: 1.5rem;
   padding: 2rem;
-  background: #F8FAFC;
+  background: linear-gradient(135deg, #FAFBFF 0%, #F7F6FF 100%);
   border-radius: 12px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #E9D5FF;
   position: relative;
 }
 
@@ -997,24 +662,96 @@ defineExpose({
   color: #1E293B;
   margin: 0;
   padding-bottom: 0.75rem;
+  border-bottom: 2px solid #E9D5FF;
 }
 
-.section-description {
-  color: #666;
-  font-size: 0.95rem;
-  margin: -0.5rem 0 0.5rem 0;
+.section-title va-icon {
+  color: #7C3AED;
+  font-size: 1.5rem;
 }
 
 .form-row {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  margin-bottom: 0.75rem;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.form-row.compact {
+  margin-bottom: 1.25rem;
+  gap: 0.35rem;
+}
+
+.form-row-flex {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 0.3rem;
+}
+
+.form-row-flex.compact {
+  gap: 0.5rem;
+}
+
+.anonymous-inline-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.15rem;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.form-grid.compact-grid {
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.form-grid.grid-3col {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ========== UNIFIED JOB SECTION STYLES ========== */
+.unified-job-section {
+  gap: 1.25rem;
+  padding: 1.75rem;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field-separator {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #E9D5FF, transparent);
+  margin: 0.75rem 0;
+}
+
+.group-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1E293B;
+  margin: 0.25rem 0 0.5rem 0;
+  padding: 0;
+}
+
+.group-subtitle va-icon {
+  color: #7C3AED;
+}
+
+.basic-info-section {
   gap: 0.75rem;
 }
 
@@ -1024,15 +761,214 @@ defineExpose({
   gap: 0.75rem;
 }
 
-.field-label,
 .form-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   font-weight: 600;
   color: #1E293B;
-  font-size: 0.95rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* ========== INPUT UNIFORMITY - ALL INPUTS IDENTICAL ========== */
+/* Base sizing for all input elements */
+:deep(.va-input),
+:deep(.va-input__field),
+:deep(.va-textarea),
+:deep(.va-textarea__textarea),
+:deep(.va-select),
+:deep(.va-date-input) {
+  height: 32px !important;
+  font-size: 0.85rem !important;
+}
+
+/* VA-INPUT styling */
+:deep(.va-input) {
+  background: white !important;
+  color: #1E293B !important;
+}
+
+:deep(.va-input__field) {
+  height: 32px !important;
+  padding: 0.4rem 0.7rem !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 5px !important;
+  font-size: 0.85rem !important;
+  background: white !important;
+  color: #1E293B !important;
+}
+
+:deep(.va-input__field::placeholder) {
+  font-size: 1rem !important;
+  opacity: 1 !important;
+}
+
+:deep(.va-input__field) {
+  --va-font-size: 1rem !important;
+}
+
+:deep(.va-input__field:focus) {
+  border-color: #7C3AED !important;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1) !important;
+}
+
+/* VA-TEXTAREA styling */
+:deep(.va-textarea) {
+  height: auto !important;
+  background: white !important;
+  color: #1E293B !important;
+}
+
+:deep(.va-textarea__textarea) {
+  height: 32px !important;
+  padding: 0.4rem 0.7rem !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 5px !important;
+  font-size: 0.85rem !important;
+  background: white !important;
+  color: #1E293B !important;
+}
+
+:deep(.va-textarea__textarea::placeholder) {
+  font-size: 1rem !important;
+  opacity: 1 !important;
+}
+
+:deep(.va-textarea__textarea) {
+  --va-font-size: 1rem !important;
+}
+
+/* VA-SELECT styling */
+:deep(.va-select) {
+  height: 32px !important;
+  background: white !important;
+  color: #1E293B !important;
+}
+
+:deep(.va-select__field) {
+  height: 32px !important;
+  padding: 0.4rem 0.7rem !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 5px !important;
+  font-size: 0.85rem !important;
+  display: flex !important;
+  align-items: center !important;
+  background: white !important;
+  color: #1E293B !important;
+}
+
+:deep(.va-select__field:focus) {
+  border-color: #7C3AED !important;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1) !important;
+}
+
+/* Select placeholder text - make it larger and visible */
+:deep(.va-select__placeholder) {
+  font-size: 1rem !important;
+  opacity: 1 !important;
+  --va-font-size: 1rem !important;
+}
+
+:deep(.va-select__field .va-select__placeholder) {
+  font-size: 1rem !important;
+  --va-font-size: 1rem !important;
+}
+
+/* Select option text */
+:deep(.va-select__content) {
+  font-size: 0.85rem !important;
+}
+
+:deep(.va-select__option) {
+  font-size: 0.85rem !important;
+}
+
+/* VA-DATE-INPUT styling */
+:deep(.va-date-input) {
+  height: 32px !important;
+  background: white !important;
+  color: #1E293B !important;
+}
+
+:deep(.va-date-input__field) {
+  height: 32px !important;
+  padding: 0.4rem 0.7rem !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 5px !important;
+  font-size: 0.85rem !important;
+  display: flex !important;
+  align-items: center !important;
+  background: white !important;
+  color: #1E293B !important;
+}
+
+:deep(.va-date-input__field:focus) {
+  border-color: #7C3AED !important;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1) !important;
+}
+
+:deep(.va-date-input__field::placeholder) {
+  font-size: 0.9rem !important;
+  opacity: 1 !important;
+}
+
+/* Generic input and textarea fallback */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="date"],
+textarea {
+  height: 32px !important;
+  padding: 0.4rem 0.7rem !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 5px !important;
+  font-size: 0.85rem !important;
+  background: white !important;
+  color: #1E293B !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  font-size: 1rem !important;
+  opacity: 1 !important;
+}
+
+/* Additional Vuestic input element targeting */
+:deep(.va-input input),
+:deep(.va-textarea textarea),
+:deep(.va-select select),
+:deep(.va-date-input input) {
+  background: white !important;
+  color: #1E293B !important;
+}
+
+/* Target all wrapper containers */
+:deep(.va-input__container),
+:deep(.va-textarea__container),
+:deep(.va-select__container),
+:deep(.va-date-input__container) {
+  background: white !important;
+  color: #1E293B !important;
+}
+
+/* ========== VALIDATION ERROR MESSAGES ========== */
+:deep(.va-input__error-messages),
+:deep(.va-select__error-messages),
+:deep(.va-textarea__error-messages),
+:deep(.va-date-input__error-messages) {
+  font-size: 0.75rem !important;
+  color: #DC2626 !important;
+  margin-top: 0.35rem !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+  display: block !important;
+  word-wrap: break-word !important;
+}
+
+:deep(.va-input__error-message),
+:deep(.va-select__error-message),
+:deep(.va-textarea__error-message),
+:deep(.va-date-input__error-message) {
+  font-size: 0.75rem !important;
+  color: #DC2626 !important;
 }
 
 .input-hint {
@@ -1049,19 +985,39 @@ defineExpose({
   margin-top: 0.4rem;
 }
 
+.input-hint.compact-hint {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  margin-top: 0.2rem;
+}
+
 .success-hint {
   background: #F0FDF4;
   color: #166534;
   border-left-color: #16A34A;
 }
 
-.whatsapp-prefix {
-  font-weight: 700;
-  color: #7C3AED;
-  padding: 0.5rem 0.75rem;
-  background: #E0E7FF;
-  border-radius: 6px;
-  font-size: 0.9rem;
+.anonymous-switch-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #F5F3FF;
+  border-radius: 8px;
+  border-left: 3px solid #DDD6FE;
+}
+
+.anonymous-switch-container.compact {
+  padding: 0.5rem;
+  gap: 0.25rem;
+  background: transparent;
+  border: none;
+}
+
+.anonymous-helper-text {
+  font-size: 0.85rem;
+  color: #5B21B6;
+  font-weight: 500;
 }
 
 .currency-symbol {
@@ -1073,74 +1029,6 @@ defineExpose({
   font-size: 0.9rem;
 }
 
-/* ========== Logo Preview ========== */
-.logo-preview-container {
-  margin-top: 1rem;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 12px;
-  border: 2px dashed #E2E8F0;
-}
-
-.logo-preview-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #7C3AED;
-  margin: 0 0 1rem 0;
-}
-
-.logo-preview-image {
-  width: 120px;
-  height: 120px;
-  border-radius: 12px;
-  object-fit: cover;
-  border: 3px solid #7C3AED;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
-}
-
-/* ========== Anonymous Section ========== */
-.anonymous-switch-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: #F5F3FF;
-  border-radius: 8px;
-  border-left: 3px solid #DDD6FE;
-}
-
-.anonymous-helper-text {
-  font-size: 0.85rem;
-  color: #5B21B6;
-  font-weight: 500;
-}
-
-/* ========== Accordion Subsection ========== */
-.accordion-subsection {
-  padding: 1.5rem;
-  background: #F8FAFC;
-  border-left: 4px solid #7C3AED;
-  border-radius: 8px;
-  margin-top: 1.5rem;
-}
-
-.subsection-title {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #1E293B;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #E9D5FF;
-}
-
-.subsection-title va-icon {
-  color: #7C3AED;
-}
-
-/* ========== Salary Section ========== */
 .salary-tip {
   display: flex;
   gap: 0.75rem;
@@ -1160,22 +1048,10 @@ defineExpose({
   flex-direction: column;
   gap: 1rem;
   padding: 1.5rem;
-  background: #F8FAFC;
+  background: white;
   border-radius: 12px;
   border: 1px solid #E2E8F0;
-}
-
-.salary-inputs {
-  display: flex;
-  align-items: flex-end;
-  gap: 1rem;
-}
-
-.salary-separator {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #7C3AED;
-  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .salary-radio {
@@ -1194,7 +1070,19 @@ defineExpose({
   background: #F1F5F9;
 }
 
-/* ========== Vacantes ========== */
+.salary-inputs {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.salary-separator {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #7C3AED;
+  padding-bottom: 0.5rem;
+}
+
 .vacancy-input-group {
   display: flex;
   align-items: center;
@@ -1248,196 +1136,85 @@ defineExpose({
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
 }
 
-.vacancy-tracker {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  padding: 1.5rem;
+/* ========== QUILL EDITOR STYLES - DOCUMENT STYLE ========== */
+.job-details-editor {
   background: white;
+  border: none;
   border-radius: 12px;
-  border: 1px solid #E2E8F0;
-  margin-top: 1rem;
+  min-height: 280px;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.12);
+  overflow: hidden;
 }
 
-.vacancy-icon {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
-  border-radius: 8px;
-  color: white;
-  font-size: 1.25rem;
-  transition: all 0.2s;
+:deep(.ql-toolbar) {
+  background: linear-gradient(135deg, #F8FAFC 0%, #F5F3FF 100%);
+  border: none;
+  border-bottom: 1px solid #E9D5FF;
+  border-radius: 12px 12px 0 0;
+  padding: 0.75rem 1rem;
 }
 
-.vacancy-icon:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(124, 58, 237, 0.2);
+:deep(.ql-toolbar.ql-snow) {
+  padding: 0.75rem 1rem;
 }
 
-.vacancy-more {
-  padding: 0.5rem 1rem;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  font-weight: 700;
+:deep(.ql-toolbar button) {
   color: #7C3AED;
-  font-size: 0.9rem;
 }
 
-/* ========== Responsive ========== */
-@media (max-width: 1024px) {
-  .information-step-job {
-    padding: 1.5rem;
-  }
-
-  .form-content {
-    padding: 1.5rem;
-  }
-
-  .form-section {
-    padding: 1rem;
-  }
+:deep(.ql-toolbar button:hover) {
+  color: #A855F7;
 }
 
-@media (max-width: 768px) {
-  .information-step-job {
-    padding: 1rem;
-  }
-
-  .step-header {
-    flex-direction: column;
-    text-align: center;
-    gap: 0.75rem;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .header-icon {
-    width: 56px;
-    height: 56px;
-  }
-
-  .step-title {
-    font-size: 1.5rem;
-  }
-
-  .step-subtitle {
-    font-size: 0.95rem;
-    margin: 0.5rem 0 0 0;
-  }
-
-  .form-content {
-    padding: 1.5rem;
-    gap: 1.25rem;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .form-section {
-    padding: 1rem;
-  }
-
-  .section-title {
-    font-size: 1rem;
-  }
-
-  .salary-inputs {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .salary-separator {
-    display: none !important;
-  }
-
-  .accordion-header {
-    padding: 1.25rem 1.5rem;
-    gap: 1rem;
-  }
-
-  .accordion-icon {
-    width: 48px;
-    height: 48px;
-  }
-
-  .accordion-title {
-    font-size: 1.1rem;
-  }
-
-  .accordion-summary {
-    font-size: 0.85rem;
-  }
-
-  .accordion-content {
-    padding: 1.25rem;
-  }
+:deep(.ql-container) {
+  border: none;
+  border-radius: 0 0 12px 12px;
+  font-size: 0.95rem;
+  background: white;
 }
 
-@media (max-width: 480px) {
-  .information-step-job {
-    padding: 0.75rem;
-  }
-
-  .step-header {
-    padding: 1rem;
-    gap: 0.5rem;
-  }
-
-  .header-icon {
-    width: 48px;
-    height: 48px;
-  }
-
-  .step-title {
-    font-size: 1.25rem;
-  }
-
-  .step-subtitle {
-    font-size: 0.9rem;
-    margin: 0.25rem 0 0 0;
-  }
-
-  .form-content {
-    padding: 1rem;
-    gap: 1rem;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .accordion-header {
-    padding: 1rem;
-    gap: 0.75rem;
-  }
-
-  .accordion-icon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .accordion-title {
-    font-size: 1rem;
-  }
-
-  .accordion-summary {
-    font-size: 0.8rem;
-  }
-
-  .accordion-content {
-    padding: 1rem;
-  }
+:deep(.ql-editor) {
+  min-height: 240px;
+  padding: 2rem 1.5rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #334155;
 }
 
-/* ========== Botones de Navegación ========== */
+:deep(.ql-editor.ql-blank::before) {
+  color: #CBD5E1;
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+:deep(.ql-editor h1) {
+  font-size: 1.75rem;
+  margin: 0.5rem 0;
+}
+
+:deep(.ql-editor h2) {
+  font-size: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+:deep(.ql-editor h3) {
+  font-size: 1.25rem;
+  margin: 0.4rem 0;
+}
+
+:deep(.ql-editor p) {
+  margin: 0.5rem 0;
+}
+
+:deep(.ql-editor ul, .ql-editor ol) {
+  margin: 0.5rem 0 0.5rem 2rem;
+}
+
+:deep(.ql-editor li) {
+  margin: 0.25rem 0;
+}
+
+/* ========== BOTONES DE NAVEGACIÓN ========== */
 .navigation-buttons {
   display: flex;
   gap: 1rem;
@@ -1483,7 +1260,173 @@ defineExpose({
   border-color: #D1D5DB;
 }
 
+.opacity-50 {
+  opacity: 0.5;
+}
+
+/* ========== COMPENSATION & VACANCIES COMPACT STYLES ========== */
+
+.form-grid.compact-compensation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.vacancy-input-group.compact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vacancy-btn-sm {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #E2E8F0;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #7C3AED;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.vacancy-btn-sm:hover:not(:disabled) {
+  background: #F8FAFC;
+  border-color: #7C3AED;
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
+}
+
+.vacancy-btn-sm:disabled {
+  color: #CBD5E1;
+  cursor: not-allowed;
+  border-color: #E2E8F0;
+}
+
+.vacancy-input-sm {
+  width: 60px;
+  padding: 0.5rem;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 600;
+  color: #7C3AED;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.vacancy-input-sm:focus {
+  outline: none;
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.salary-type-compact {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.radio-label-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: #1E293B;
+}
+
+.radio-label-compact:hover {
+  color: #7C3AED;
+}
+
+.salary-inputs-inline {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.form-field-inline {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.form-label-sm {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.separator {
+  color: #7C3AED;
+  font-weight: 600;
+  padding-bottom: 0.5rem;
+  line-height: 1;
+}
+
+/* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
+  .information-step-job {
+    padding: 1rem;
+  }
+
+  .step-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .header-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .step-title {
+    font-size: 1.5rem;
+  }
+
+  .step-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .form-content {
+    padding: 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
+  }
+
+  .salary-inputs {
+    flex-direction: column;
+  }
+
+  .salary-separator {
+    display: none;
+  }
+
   .navigation-buttons {
     flex-direction: column-reverse;
     gap: 1rem;
@@ -1493,202 +1436,47 @@ defineExpose({
     width: 100%;
     justify-content: center;
   }
-}
 
-/* ========== ACCORDION STYLES ========== */
-.accordion-section {
-  background: white;
-  border-radius: 16px;
-  border: 2px solid #E2E8F0;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  margin-bottom: 0;
-}
-
-.accordion-section:hover {
-  border-color: #DDD6FE;
-  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.1);
-}
-
-.accordion-section.expanded {
-  border-color: #7C3AED;
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.15);
-}
-
-.accordion-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  cursor: pointer;
-  background: white;
-  transition: all 0.3s ease;
-  user-select: none;
-  gap: 1.5rem;
-}
-
-.accordion-header:hover {
-  background: #F8FAFC;
-}
-
-.accordion-section.expanded .accordion-header {
-  background: linear-gradient(135deg, #F9F5FF 0%, #F3E8FF 100%);
-  border-bottom: 2px solid #E9D5FF;
-}
-
-.accordion-header-left {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  flex: 1;
-  min-width: 0;
-}
-
-.accordion-header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-shrink: 0;
-}
-
-.accordion-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6D28D9;
-  flex-shrink: 0;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.accordion-section.expanded .accordion-icon {
-  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
-  color: white;
-  transform: scale(1.12) translateY(-2px);
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
-}
-
-.accordion-title-group {
-  flex: 1;
-  min-width: 0;
-}
-
-.accordion-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #1E293B;
-  margin: 0;
-  line-height: 1.4;
-  transition: color 0.3s ease;
-}
-
-.accordion-section.expanded .accordion-title {
-  color: #7C3AED;
-}
-
-.accordion-summary {
-  font-size: 0.95rem;
-  color: #7C3AED;
-  font-weight: 500;
-  margin: 0.25rem 0 0 0;
-  max-width: 400px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: all 0.3s ease;
-}
-
-.accordion-chevron {
-  color: #94A3B8;
-  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  flex-shrink: 0;
-}
-
-.accordion-section.expanded .accordion-chevron {
-  color: #7C3AED;
-  transform: rotate(180deg) scale(1.1);
-}
-
-.accordion-content {
-  padding: 2rem;
-  background: white;
-  animation: accordionSlideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-@keyframes accordionSlideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Mobile accordion adjustments */
-@media (max-width: 768px) {
-  .accordion-header {
-    padding: 1.25rem 1.5rem;
-    gap: 1rem;
-  }
-
-  .accordion-header-left {
-    gap: 1rem;
-  }
-
-  .accordion-icon {
-    width: 48px;
-    height: 48px;
-  }
-
-  .accordion-title {
-    font-size: 1.1rem;
-  }
-
-  .accordion-summary {
-    font-size: 0.85rem;
-  }
-
-  .accordion-content {
-    padding: 1.5rem;
+  :deep(.ql-editor) {
+    min-height: 200px;
   }
 }
 
 @media (max-width: 480px) {
-  .accordion-header {
+  .information-step-job {
+    padding: 0.75rem;
+  }
+
+  .step-header {
     padding: 1rem;
-  }
-
-  .accordion-header-left {
-    gap: 0.75rem;
-  }
-
-  .accordion-icon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .accordion-title {
-    font-size: 1rem;
-  }
-
-  .accordion-summary {
-    font-size: 0.8rem;
-  }
-
-  .accordion-content {
-    padding: 1rem;
-  }
-
-  .accordion-header-right {
     gap: 0.5rem;
+  }
+
+  .header-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .step-title {
+    font-size: 1.25rem;
+  }
+
+  .form-content {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .section-title {
+    font-size: 0.95rem;
+  }
+
+  .form-label {
+    font-size: 0.9rem;
+  }
+
+  :deep(.ql-editor) {
+    min-height: 150px;
+    padding: 0.75rem;
   }
 }
 </style>

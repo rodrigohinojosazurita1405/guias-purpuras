@@ -472,50 +472,9 @@
             <span class="label">Empresa:</span>
             <span class="value">{{ jobData.companyAnonymous ? 'Empresa Confidencial' : jobData.companyName }}</span>
           </div>
-          <div class="info-row full-width">
-            <span class="label">Descripción:</span>
-            <p class="value description">{{ jobData.description }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- REQUISITOS Y COMPETENCIAS (ACORDEÓN 2) -->
-      <div v-if="type === 'job' && jobData" class="summary-section">
-        <div class="section-header">
-          <h3 class="section-title">
-            <va-icon name="assignment_ind" size="1.25rem" />
-            Requisitos y Competencias
-          </h3>
-        </div>
-
-        <div class="section-content">
-          <div class="info-row full-width">
-            <span class="label">Requisitos:</span>
-            <p class="value description">{{ jobData.requirements }}</p>
-          </div>
-          <div v-if="jobData.responsibilities" class="info-row full-width">
-            <span class="label">Responsabilidades:</span>
-            <p class="value description">{{ jobData.responsibilities }}</p>
-          </div>
-          <div v-if="jobData.education" class="info-row">
-            <span class="label">Formación:</span>
-            <span class="value">{{ jobData.education }}</span>
-          </div>
-          <div v-if="jobData.experience" class="info-row">
-            <span class="label">Experiencia:</span>
-            <span class="value">{{ jobData.experience }}</span>
-          </div>
-          <div v-if="jobData.languages" class="info-row">
-            <span class="label">Idiomas:</span>
-            <span class="value">{{ jobData.languages }}</span>
-          </div>
-          <div v-if="jobData.technicalSkills" class="info-row full-width">
-            <span class="label">Habilidades Técnicas:</span>
-            <p class="value description">{{ jobData.technicalSkills }}</p>
-          </div>
-          <div v-if="jobData.softSkills" class="info-row full-width">
-            <span class="label">Habilidades Blandas:</span>
-            <p class="value description">{{ jobData.softSkills }}</p>
+          <div v-if="jobData.description" class="info-row full-width">
+            <span class="label">Detalles del Empleo:</span>
+            <div class="value description" v-html="jobData.description"></div>
           </div>
         </div>
       </div>
@@ -830,48 +789,6 @@
               <p class="block-text">{{ jobData.description }}</p>
             </section>
 
-            <!-- ===== REQUISITOS ===== -->
-            <section class="content-block requirements-block">
-              <h2 class="block-title">
-                <va-icon name="checklist" size="small" />
-                Requisitos
-              </h2>
-              <p v-if="jobData.requirements" class="block-text">{{ jobData.requirements }}</p>
-
-              <!-- Detalles de Requisitos como viñetas -->
-              <ul v-if="jobData.education || jobData.experience || jobData.languages || jobData.technicalSkills || jobData.softSkills" class="requirements-list">
-                <li v-if="jobData.education" class="requirement-item">
-                  <va-icon name="school" class="requirement-icon" />
-                  <div>
-                    <strong>Formación:</strong> {{ jobData.education }}
-                  </div>
-                </li>
-                <li v-if="jobData.experience" class="requirement-item">
-                  <va-icon name="work_history" class="requirement-icon" />
-                  <div>
-                    <strong>Experiencia:</strong> {{ jobData.experience }}
-                  </div>
-                </li>
-                <li v-if="jobData.languages" class="requirement-item">
-                  <va-icon name="language" class="requirement-icon" />
-                  <div>
-                    <strong>Idiomas:</strong> {{ jobData.languages }}
-                  </div>
-                </li>
-                <li v-if="jobData.technicalSkills" class="requirement-item">
-                  <va-icon name="build" class="requirement-icon" />
-                  <div>
-                    <strong>Habilidades Técnicas:</strong> {{ jobData.technicalSkills }}
-                  </div>
-                </li>
-                <li v-if="jobData.softSkills" class="requirement-item">
-                  <va-icon name="people" class="requirement-icon" />
-                  <div>
-                    <strong>Habilidades Blandas:</strong> {{ jobData.softSkills }}
-                  </div>
-                </li>
-              </ul>
-            </section>
 
             <!-- ===== BENEFICIOS ===== -->
             <section v-if="jobData.benefits" class="content-block benefits-block">
@@ -1301,7 +1218,7 @@ const getQuestionTypeLabel = (type) => {
 
 const getJobPlanName = (plan) => {
   const plans = {
-    escencial: 'Plan Escencial',
+    estandar: 'Plan Estandar',
     purpura: 'Plan Púrpura',
     impulso: 'Plan Impulso Pro'
   }
@@ -1310,7 +1227,7 @@ const getJobPlanName = (plan) => {
 
 const getJobPlanIcon = (plan) => {
   const icons = {
-    escencial: 'check_circle',
+    estandar: 'check_circle',
     purpura: 'star',
     impulso: 'workspace_premium'
   }
@@ -1319,7 +1236,7 @@ const getJobPlanIcon = (plan) => {
 
 const getJobPlanDescription = (plan) => {
   const descriptions = {
-    escencial: 'Plan Escencial - 35 Bs. Tu oferta de trabajo estará visible por 30 días.',
+    estandar: 'Plan Estandar - 35 Bs. Tu oferta de trabajo estará visible por 15 días.',
     purpura: 'Plan Púrpura - 79 Bs. Tu oferta será destacada con mayor visibilidad por 30 días.',
     impulso: 'Plan Impulso Pro - 169 Bs. Tu oferta tendrá máxima visibilidad y aparecerá primero por 30 días.'
   }
@@ -1330,7 +1247,7 @@ const getJobPlanDescription = (plan) => {
 // Solo mostrar features adicionales, no el plan base
 const getPlanBadges = (plan) => {
   const badges = {
-    escencial: [],
+    estandar: [],
     purpura: ['Destacado', 'Urgente'],
     impulso: ['Patrocinado', 'Urgente']
   }
@@ -1842,7 +1759,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
   background: linear-gradient(135deg, #F5F0FF 0%, #FFFFFF 100%);
 }
 
-.plan-card.plan-escencial {
+.plan-card.plan-estandar {
   border-color: #4CAF50;
   background: #F1F8F4;
 }
@@ -2261,7 +2178,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
   box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
 }
 
-.badge-plan.plan-escencial {
+.badge-plan.plan-estandar {
   background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
   color: #16A34A;
   border: 2px solid rgba(22, 163, 74, 0.3);
