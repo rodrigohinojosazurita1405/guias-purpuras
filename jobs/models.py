@@ -228,3 +228,69 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.applicantName} - {self.job.title}"
+
+
+class JobAuditLog(models.Model):
+    """Modelo para auditoría de cambios en ofertas de trabajo"""
+
+    ACTION_CHOICES = [
+        ('created', 'Creado'),
+        ('updated', 'Actualizado'),
+        ('activated', 'Activado'),
+        ('deactivated', 'Desactivado'),
+        ('duplicated', 'Duplicado'),
+        ('deleted', 'Eliminado'),
+        ('payment_verified', 'Pago verificado'),
+        ('payment_rejected', 'Pago rechazado'),
+    ]
+
+    # ID único
+    id = models.CharField(max_length=8, primary_key=True, default=generate_job_id)
+
+    # Relación con el trabajo
+    job = models.ForeignKey(
+        Job,
+        on_delete=models.CASCADE,
+        related_name='audit_logs',
+        verbose_name="Trabajo"
+    )
+
+    # Información del evento
+    action = models.CharField(
+        max_length=20,
+        choices=ACTION_CHOICES,
+        verbose_name="Acción"
+    )
+
+    # Email del usuario que realizó la acción
+    userEmail = models.EmailField(verbose_name="Email del usuario", blank=True)
+
+    # Campos modificados (para updated)
+    changedFields = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Campos modificados",
+        help_text="JSON con before/after de los campos que cambieron"
+    )
+
+    # Notas/Razón del cambio
+    notes = models.TextField(blank=True, verbose_name="Notas")
+
+    # IP del cliente (para rastrear)
+    clientIP = models.GenericIPAddressField(blank=True, null=True, verbose_name="IP del cliente")
+
+    # Timestamp
+    timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Fecha y hora")
+
+    class Meta:
+        verbose_name = "Auditoría de Trabajo"
+        verbose_name_plural = "Auditorías de Trabajos"
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['job', '-timestamp']),
+            models.Index(fields=['userEmail', '-timestamp']),
+            models.Index(fields=['action']),
+        ]
+
+    def __str__(self):
+        return f"{self.job.title} - {self.get_action_display()} - {self.timestamp.strftime('%Y-%m-%d %H:%M')}"

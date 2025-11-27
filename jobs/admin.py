@@ -2,8 +2,9 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import Job, Application
+from .models import Job, Application, JobAuditLog
 from datetime import datetime
+import json
 
 
 @admin.register(Job)
@@ -576,3 +577,144 @@ class ApplicationAdmin(admin.ModelAdmin):
         updated = queryset.update(status='accepted')
         self.message_user(request, f'{updated} aplicaciones ACEPTADAS')
     mark_as_accepted.short_description = 'Marcar como ACEPTADA'
+
+
+@admin.register(JobAuditLog)
+class JobAuditLogAdmin(admin.ModelAdmin):
+    """Admin para auditoría de cambios en trabajos"""
+
+    list_display = (
+        'timestamp_display',
+        'job_link',
+        'action_badge',
+        'user_display',
+        'client_ip_display'
+    )
+
+    list_filter = (
+        'action',
+        'timestamp',
+        'userEmail',
+    )
+
+    search_fields = (
+        'job__title',
+        'job__id',
+        'userEmail',
+        'clientIP',
+        'notes'
+    )
+
+    readonly_fields = (
+        'id',
+        'job',
+        'timestamp',
+        'changed_fields_display',
+        'user_email_display',
+        'action_display'
+    )
+
+    fieldsets = (
+        ('Información del Evento', {
+            'fields': ('id', 'job', 'action_display', 'timestamp')
+        }),
+        ('Usuario y IP', {
+            'fields': ('user_email_display', 'clientIP')
+        }),
+        ('Cambios Realizados', {
+            'fields': ('changed_fields_display',),
+            'classes': ('wide',)
+        }),
+        ('Notas', {
+            'fields': ('notes',),
+            'classes': ('wide',)
+        }),
+    )
+
+    def timestamp_display(self, obj):
+        """Muestra la fecha y hora formateada"""
+        return obj.timestamp.strftime('%d/%m/%Y %H:%M:%S')
+    timestamp_display.short_description = 'Fecha y Hora'
+
+    def job_link(self, obj):
+        """Link al trabajo"""
+        url = reverse('admin:jobs_job_change', args=[obj.job.id])
+        return format_html(
+            '<a href="{}">{}</a>',
+            url,
+            obj.job.title[:40]
+        )
+    job_link.short_description = 'Trabajo'
+
+    def action_badge(self, obj):
+        """Badge con el tipo de acción"""
+        action_colors = {
+            'created': '#10B981',        # Verde
+            'updated': '#3B82F6',        # Azul
+            'activated': '#059669',      # Verde oscuro
+            'deactivated': '#DC2626',    # Rojo
+            'duplicated': '#F59E0B',     # Naranja
+            'deleted': '#7C2D12',        # Marrón
+            'payment_verified': '#10B981', # Verde
+            'payment_rejected': '#DC2626',  # Rojo
+        }
+        color = action_colors.get(obj.action, '#6B7280')
+
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 6px 14px; '
+            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            'display: inline-block;">{}</span>',
+            color, obj.get_action_display()
+        )
+    action_badge.short_description = 'Acción'
+
+    def user_display(self, obj):
+        """Muestra el email del usuario"""
+        return obj.userEmail or 'Sistema'
+    user_display.short_description = 'Usuario'
+
+    def client_ip_display(self, obj):
+        """Muestra la IP del cliente"""
+        return obj.clientIP or 'N/A'
+    client_ip_display.short_description = 'IP Cliente'
+
+    def user_email_display(self, obj):
+        """Display del email del usuario"""
+        return obj.userEmail or 'No registrado'
+    user_email_display.short_description = 'Email del Usuario'
+
+    def action_display(self, obj):
+        """Display amigable de la acción"""
+        return obj.get_action_display()
+    action_display.short_description = 'Tipo de Acción'
+
+    def changed_fields_display(self, obj):
+        """Muestra los cambios realizados de forma legible"""
+        if not obj.changedFields:
+            return 'Sin cambios específicos'
+
+        html_content = '<div style="background-color: #F3F4F6; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 13px;">'
+
+        for field, changes in obj.changedFields.items():
+            if isinstance(changes, dict) and 'before' in changes and 'after' in changes:
+                before = changes['before']
+                after = changes['after']
+                html_content += f'<div style="margin-bottom: 10px; padding: 8px; background-color: white; border-radius: 4px; border-left: 3px solid #3B82F6;">'
+                html_content += f'<strong style="color: #1F2937;">{field}:</strong><br>'
+                html_content += f'<span style="color: #7C3AED;">❌ Antes:</span> <code style="background: #F9FAFB; padding: 2px 4px; border-radius: 3px; color: #1F2937;">{before}</code><br>'
+                html_content += f'<span style="color: #059669;">✅ Después:</span> <code style="background: #F9FAFB; padding: 2px 4px; border-radius: 3px; color: #1F2937;">{after}</code>'
+                html_content += '</div>'
+
+        html_content += '</div>'
+        return format_html(html_content)
+    changed_fields_display.short_description = 'Campos Modificados'
+
+    # No permitir editar registros de auditoría
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

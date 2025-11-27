@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.db import models
-from .models import Job, Application
+from .models import Job, Application, JobAuditLog
 from auth_api.decorators import token_required
 
 
@@ -387,6 +387,41 @@ def calculate_days_ago(date_obj):
         date_obj = date_obj.replace(tzinfo=timezone.utc)
     days = (now - date_obj).days
     return days
+
+
+def create_audit_log(job, action, userEmail='', changedFields=None, notes='', request=None):
+    """
+    Crea un registro de auditoría para cambios en trabajos
+
+    Args:
+        job: Instancia del modelo Job
+        action: Tipo de acción (created, updated, activated, deactivated, etc.)
+        userEmail: Email del usuario que realizó la acción
+        changedFields: Dict con campos modificados {field: {before: old_value, after: new_value}}
+        notes: Notas adicionales
+        request: HttpRequest para extraer IP del cliente
+    """
+    try:
+        clientIP = None
+        if request:
+            # Intentar obtener IP real del cliente (detrás de proxies)
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                clientIP = x_forwarded_for.split(',')[0].strip()
+            else:
+                clientIP = request.META.get('REMOTE_ADDR')
+
+        JobAuditLog.objects.create(
+            job=job,
+            action=action,
+            userEmail=userEmail,
+            changedFields=changedFields or {},
+            notes=notes,
+            clientIP=clientIP
+        )
+        print(f'[AUDIT] {action.upper()}: Job={job.id}, User={userEmail}')
+    except Exception as e:
+        print(f'[ERROR] Error creando audit log: {str(e)}')
 
 
 @require_http_methods(["GET"])
@@ -1058,7 +1093,7 @@ def verify_payment(request, job_id):
 def update_job(request, job_id):
     """
     Endpoint para actualizar un trabajo existente
-    PATCH /api/jobs/<job_id>/
+    PATCH /api/jobs/<job_id>/update
 
     Body esperado (solo campos a actualizar):
     {
@@ -1095,12 +1130,32 @@ def update_job(request, job_id):
             'externalApplicationUrl', 'status'
         ]
 
-        # Actualizar campos permitidos
+        # Rastrear cambios para auditoría
+        changedFields = {}
         for field in allowed_fields:
             if field in data:
+                old_value = str(getattr(job, field))
+                new_value = str(data[field])
+                if old_value != new_value:
+                    changedFields[field] = {
+                        'before': old_value,
+                        'after': new_value
+                    }
                 setattr(job, field, data[field])
 
         job.save()
+
+        # Crear log de auditoría si hubo cambios
+        if changedFields:
+            action = 'activated' if data.get('status') == 'active' else 'deactivated' if data.get('status') == 'closed' else 'updated'
+            userEmail = request.user.email if request.user else 'anonymous'
+            create_audit_log(
+                job=job,
+                action=action,
+                userEmail=userEmail,
+                changedFields=changedFields,
+                request=request
+            )
 
         return JsonResponse({
             'success': True,
@@ -1139,7 +1194,7 @@ def update_job(request, job_id):
 def delete_job(request, job_id):
     """
     Endpoint para eliminar un trabajo
-    DELETE /api/jobs/<job_id>/
+    DELETE /api/jobs/<job_id>/delete
 
     RESPUESTA EXITOSA (200):
     {
@@ -1151,6 +1206,18 @@ def delete_job(request, job_id):
     try:
         job = Job.objects.get(id=job_id)
         job_id_for_response = job.id
+        job_title = job.title
+
+        # Crear log de auditoría antes de eliminar
+        userEmail = request.user.email if request.user else 'anonymous'
+        create_audit_log(
+            job=job,
+            action='deleted',
+            userEmail=userEmail,
+            notes=f'Trabajo eliminado: "{job_title}"',
+            request=request
+        )
+
         job.delete()
 
         return JsonResponse({
@@ -1229,6 +1296,25 @@ def duplicate_job(request, job_id):
             selectedPlan=job.selectedPlan,
             screeningQuestions=job.screeningQuestions,
             status='draft'  # Nueva copia siempre comienza en draft
+        )
+
+        # Crear log de auditoría para el trabajo duplicado
+        userEmail = request.user.email if request.user else 'anonymous'
+        create_audit_log(
+            job=new_job,
+            action='created',
+            userEmail=userEmail,
+            notes=f'Duplicado desde trabajo: {job.id}',
+            request=request
+        )
+
+        # Crear log de auditoría para el trabajo original
+        create_audit_log(
+            job=job,
+            action='duplicated',
+            userEmail=userEmail,
+            notes=f'Se creó duplicado con ID: {new_job.id}',
+            request=request
         )
 
         print(f'[OK] Trabajo duplicado: ID original={job.id}, ID nuevo={new_job.id}')
