@@ -9,7 +9,7 @@ class PlanAdmin(admin.ModelAdmin):
 
     list_display = (
         'plan_name_display',
-        'price_display',
+        'actual_price_display',
         'duration_display',
         'status_badge',
         'order'
@@ -59,15 +59,15 @@ class PlanAdmin(admin.ModelAdmin):
         return obj.label
     plan_name_display.short_description = 'Plan'
 
-    def price_display(self, obj):
-        """Muestra el precio con formato"""
+    def actual_price_display(self, obj):
+        """Muestra el precio actual de la BD con formato"""
         return format_html(
             '<span style="background-color: #ECFDF5; color: #065F46; padding: 6px 12px; '
             'border-radius: 20px; font-weight: bold; font-size: 13px; '
             'display: inline-block;">💰 {} {}</span>',
             obj.price, obj.currency
         )
-    price_display.short_description = 'Precio'
+    actual_price_display.short_description = 'Precio (BD)'
 
     def duration_display(self, obj):
         """Muestra la duración en días"""
