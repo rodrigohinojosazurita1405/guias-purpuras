@@ -121,7 +121,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'
+import { defineEmits } from 'vue'
 
 defineProps({
   visible: {
@@ -134,7 +134,7 @@ defineProps({
   }
 })
 
-defineEmits(['close', 'deactivate-job', 'activate-job'])
+const emit = defineEmits(['close', 'deactivate-job', 'activate-job'])
 
 const close = () => {
   emit('close')
@@ -151,8 +151,6 @@ const formatDate = (dateString) => {
   if (days < 7) return `Hace ${days} días`
   return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
 }
-
-const { emit } = defineProps({})
 </script>
 
 <style scoped>
