@@ -77,6 +77,13 @@
             <span>{{ job.applications }} aplicaciones</span>
           </div>
           <div class="stat">
+            <va-icon name="card_giftcard" />
+            <div class="stat-content">
+              <span class="stat-label">Plan:</span>
+              <span class="stat-value plan-badge" :class="`plan-${job.selectedPlan}`">{{ formatPlanName(job.selectedPlan) }}</span>
+            </div>
+          </div>
+          <div class="stat">
             <va-icon name="schedule" />
             <div class="stat-content">
               <span class="stat-label">Publicado:</span>
@@ -334,6 +341,16 @@ const calculateDaysRemaining = (expiryDateString) => {
   const diff = expiryDate - today
   const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
   return days
+}
+
+const formatPlanName = (planKey) => {
+  if (!planKey) return 'Sin plan'
+  const planNames = {
+    'estandar': 'Estándar',
+    'purpura': 'Púrpura',
+    'impulso': 'Impulso Pro'
+  }
+  return planNames[planKey.toLowerCase()] || planKey
 }
 
 const viewJob = async (job) => {
@@ -771,6 +788,28 @@ const activateJob = async () => {
   font-size: 0.95rem;
   font-weight: 500;
   color: #1a1a1a;
+}
+
+.plan-badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white;
+  width: fit-content;
+}
+
+.plan-estandar {
+  background: linear-gradient(135deg, #F59E0B, #FBBF24);
+}
+
+.plan-purpura {
+  background: linear-gradient(135deg, #9F7AEA, #A78BFA);
+}
+
+.plan-impulso {
+  background: linear-gradient(135deg, #10B981, #34D399);
 }
 
 /* ========== JOB ACTIONS ========== */
