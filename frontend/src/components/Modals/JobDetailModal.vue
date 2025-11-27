@@ -12,6 +12,23 @@
 
       <!-- Body -->
       <div class="modal-body">
+        <!-- Company Header with Logo -->
+        <div class="company-header">
+          <img
+            v-if="job.companyLogo"
+            :src="job.companyLogo"
+            :alt="job.companyName"
+            class="company-logo"
+          />
+          <div v-else class="company-logo-placeholder">
+            <va-icon name="business" />
+          </div>
+          <div class="company-info-header">
+            <h2 class="company-name">{{ job.companyName }}</h2>
+            <p v-if="job.city" class="company-location">📍 {{ job.city }}</p>
+          </div>
+        </div>
+
         <!-- Company Info -->
         <div class="info-section">
           <h3>Información de la Empresa</h3>
@@ -255,6 +272,59 @@ const formatDate = (dateString) => {
   flex: 1;
   overflow-y: auto;
   padding: 2rem;
+}
+
+.company-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.company-logo {
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.company-logo-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid white;
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.company-info-header {
+  flex: 1;
+}
+
+.company-name {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.3;
+}
+
+.company-location {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
 }
 
 .info-section {
