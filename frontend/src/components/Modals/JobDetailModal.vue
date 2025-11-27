@@ -280,9 +280,10 @@ const formatDate = (dateString) => {
   gap: 1.5rem;
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  background: #F9FAFB;
   border-radius: 12px;
-  color: white;
+  color: #1F2937;
+  border: 1px solid #E5E7EB;
 }
 
 .company-logo {
@@ -316,14 +317,14 @@ const formatDate = (dateString) => {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-  color: white;
+  color: #1F2937;
   line-height: 1.3;
 }
 
 .company-location {
   margin: 0.5rem 0 0 0;
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #6B7280;
   font-weight: 500;
 }
 
@@ -338,7 +339,7 @@ const formatDate = (dateString) => {
   margin: 0 0 1rem 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #7C3AED;
+  color: #A78BFA;
 }
 
 .info-grid {
@@ -378,14 +379,14 @@ const formatDate = (dateString) => {
 }
 
 .info-item a {
-  color: #7C3AED;
+  color: #A78BFA;
   text-decoration: none;
   word-break: break-all;
   transition: color 0.2s;
 }
 
 .info-item a:hover {
-  color: #6D28D9;
+  color: #9F7AEA;
   text-decoration: underline;
 }
 
@@ -407,7 +408,7 @@ const formatDate = (dateString) => {
 .stat svg {
   width: 24px;
   height: 24px;
-  color: #7C3AED;
+  color: #6B7280;
   flex-shrink: 0;
 }
 

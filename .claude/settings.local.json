@@ -6,7 +6,8 @@
       "Bash(python manage.py makemigrations:*)",
       "Bash(python manage.py migrate:*)",
       "Bash(cd d:Proyectos DjangoGuiasPurpuras_V1.0)",
-      "Bash(python manage.py showmigrations:*)"
+      "Bash(python manage.py showmigrations:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

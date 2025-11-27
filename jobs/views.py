@@ -207,8 +207,20 @@ def publish_job(request):
 
         # ========== CREAR JOB ==========
         try:
+            # Obtener el CompanyProfile del usuario autenticado
+            company_profile = None
+            if request.user and request.user.is_authenticated:
+                try:
+                    from profiles.models import UserProfile
+                    user_profile = request.user.userprofile
+                    # Obtener el primer CompanyProfile del usuario (si existe)
+                    company_profile = user_profile.company_profiles.first()
+                except (UserProfile.DoesNotExist, AttributeError):
+                    company_profile = None
+
             job = Job.objects.create(
                 title=title,
+                companyProfile=company_profile,  # Asignar CompanyProfile si existe
                 companyName=(data.get('companyName') or 'Empresa Confidencial').strip(),
                 companyAnonymous=bool(data.get('companyAnonymous', False)),
                 description=description,
