@@ -1183,6 +1183,57 @@ Error: #EF4444 (Red)
 
 ---
 
+## 🔄 FASE 7.3 REFINADA (Sesión 13 - Mejoras de Negocio)
+**Descripción**: Implementar borrado lógico y eliminar funcionalidad de duplicación
+
+### ✅ Cambios completados:
+
+**Backend - jobs/models.py**
+- ✅ Agregar campos `isDeleted` (BooleanField) y `deletedAt` (DateTimeField)
+- ✅ Migración 0017 aplicada exitosamente
+- ✅ Borrado lógico preserva integridad de datos y auditoría
+
+**Backend - jobs/views.py**
+- ✅ Endpoint `delete_job` modificado para borrado lógico (marca como eliminado, no borra)
+- ✅ Endpoint `list_jobs` actualizado para filtrar `isDeleted=False`
+- ✅ Endpoint `get_job` verifica que no esté eliminado (retorna 404 si lo está)
+- ✅ Registro de auditoría se mantiene para todos los trabajos eliminados
+
+**Frontend - JobsManager.vue**
+- ✅ Remover botón "Duplicar" de template (líneas 95-98)
+- ✅ Remover función `duplicateJob()` del script (líneas 326-360)
+- ✅ Conservar botones: Ver, Editar, Desactivar/Activar, Eliminar
+
+**Lógica de Negocio**
+- ✅ Eliminación de botón "Duplicar" (contradice modelo de ingresos: cada anuncio = pago)
+- ✅ Usuarios deben crear nuevo anuncio en lugar de duplicar gratis
+- ✅ Previene spam y confusión en tablero de empleos
+- ✅ Preserva consistencia del sistema de planes
+
+### 📊 Mejoras de Auditoría:
+```
+✅ Trabajos eliminados mantienen:
+   - Todos los datos del anuncio original
+   - Historial de aplicaciones recibidas
+   - Logs de auditoría completos
+   - Fecha y usuario que eliminó
+
+✅ Recuperación:
+   - Datos nunca se pierden de BD
+   - Admin puede restaurar si es necesario
+   - Cumplimiento regulatorio (GDPR-like)
+```
+
+### 📋 Commits de sesión 13:
+- `cb10837` - Implementar borrado lógico y eliminar botón duplicar
+
+### 🎯 Próximas mejoras:
+1. Agregar vista "Anuncios Archivados" para usuarios (opcional)
+2. Endpoint admin para restaurar trabajos eliminados (si se requiere)
+3. Reportes de trabajos eliminados por período
+
+---
+
 ## 🆕 MEJORAS DESCUBIERTAS (Sesión 12 - Sincronización JobsCards)
 **Descripción**: Datos desincronizados en JobsCards de GuideView
 
