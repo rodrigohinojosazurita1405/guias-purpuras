@@ -159,7 +159,7 @@
 
       <!-- Footer -->
       <div class="modal-footer">
-        <button class="btn btn-secondary" @click="close">Cerrar Modal</button>
+        <button class="btn btn-secondary" @click="close">Cerrar</button>
         <button
           v-if="job.status === 'active'"
           class="btn btn-danger"

@@ -322,7 +322,7 @@ const editJob = (job) => {
   })
   // Navegar a vista de edición con ID del trabajo
   router.push({
-    name: 'publicar', // O la ruta que sea para editar
+    name: 'PublishJob',
     query: { jobId: job.id }
   })
 }

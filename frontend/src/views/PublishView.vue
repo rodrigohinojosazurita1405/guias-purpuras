@@ -111,21 +111,94 @@ const publishedJob = ref(null)
 
 // ========== CARGAR BORRADOR Y OBTENER EMPRESA ==========
 onMounted(async () => {
-  // Primero, cargar borrador guardado del almacenamiento
-  publishStore.loadDraftFromStorage()
+  // Verificar si viene un jobId en query params (edición de anuncio existente)
+  const jobId = router.currentRoute.value.query.jobId
+
+  if (jobId) {
+    // Modo edición: cargar datos del anuncio existente
+    try {
+      console.log('📋 Cargando anuncio para editar:', jobId)
+      const response = await fetch(`/api/jobs/${jobId}/`, {
+        headers: {
+          'Authorization': `Bearer ${authStore.accessToken}`
+        }
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.job) {
+        const job = data.job
+        // Cargar todos los datos del trabajo en la store
+        publishStore.setJobData({
+          id: job.id,
+          title: job.title,
+          description: job.description,
+          city: job.city,
+          municipality: job.municipality,
+          subcategory: job.subcategory,
+          contractType: job.contractType,
+          modality: job.modality,
+          expiryDate: job.expiryDate,
+          requirements: job.requirements,
+          responsibilities: job.responsibilities,
+          education: job.education,
+          experience: job.experience,
+          languages: job.languages,
+          technicalSkills: job.technicalSkills,
+          softSkills: job.softSkills,
+          salaryType: job.salaryType,
+          salaryMin: job.salaryMin,
+          salaryMax: job.salaryMax,
+          salaryFixed: job.salaryFixed,
+          benefits: job.benefits,
+          vacancies: job.vacancies,
+          applicationInstructions: job.applicationInstructions,
+          applicationType: job.applicationType,
+          externalApplicationUrl: job.externalApplicationUrl,
+          selectedPlan: job.selectedPlan,
+          jobCategory: job.jobCategory,
+          companyName: job.companyName,
+          companyAnonymous: job.companyAnonymous,
+          screeningQuestions: job.screeningQuestions || []
+        })
+
+        // Ir al paso 2 (Información) ya que el plan ya está seleccionado
+        publishStore.setCurrentStep(2)
+        notify({
+          message: `✓ Anuncio cargado: ${job.title}`,
+          color: 'success'
+        })
+      } else {
+        throw new Error(data.message || 'Error al cargar anuncio')
+      }
+    } catch (error) {
+      console.error('Error cargando anuncio:', error)
+      notify({
+        message: `Error al cargar anuncio: ${error.message}`,
+        color: 'danger'
+      })
+      // Volver al paso 0 en caso de error
+      publishStore.setCurrentStep(0)
+    }
+  } else {
+    // Modo creación: cargar borrador guardado
+    publishStore.loadDraftFromStorage()
+  }
 
   try {
     // Obtener la empresa del usuario autenticado
     const result = await companyStore.getMyCompany()
 
     if (result.success && result.company) {
-      // Asignar datos de empresa al jobData (solo si no vienen del borrador)
-      publishStore.setJobData({
-        companyName: result.company.companyName,
-        companyId: result.company.id,
-        logo: result.company.logo || null, // URL completa desde el backend
-        city: publishStore.jobData.city || result.company.city // Prioriza lo guardado
-      })
+      // Asignar datos de empresa al jobData (solo si no vienen del borrador o del trabajo cargado)
+      if (!jobId) {
+        publishStore.setJobData({
+          companyName: result.company.companyName,
+          companyId: result.company.id,
+          logo: result.company.logo || null, // URL completa desde el backend
+          city: publishStore.jobData.city || result.company.city // Prioriza lo guardado
+        })
+      }
     }
   } catch (error) {
     console.error('Error al obtener empresa:', error)
