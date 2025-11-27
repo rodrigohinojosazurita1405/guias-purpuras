@@ -76,65 +76,126 @@
         </div>
       </div>
 
-      <!-- Comparison Table -->
-      <div class="comparison-section">
+      <!-- Comparison Table (Dinámico) -->
+      <div v-if="!isLoading" class="comparison-section">
         <h3 class="comparison-title">Comparación de Planes</h3>
 
         <div class="comparison-table">
+          <!-- Header con nombres de planes dinámicos -->
           <div class="comparison-row header">
             <div class="feature-name">Característica</div>
-            <div class="plan-col">Escencial</div>
-            <div class="plan-col">Púrpura</div>
-            <div class="plan-col">Impulso Pro</div>
+            <div
+              v-for="plan in plans"
+              :key="plan.id"
+              class="plan-col"
+              :class="{ 'featured-text': plan.order === 2 }"
+            >
+              {{ plan.label.split('(')[0].trim() }}
+            </div>
           </div>
 
+          <!-- Precio -->
           <div class="comparison-row">
             <div class="feature-name">Precio</div>
-            <div class="plan-col">35 Bs.</div>
-            <div class="plan-col featured-text">79 Bs.</div>
-            <div class="plan-col">169 Bs.</div>
+            <div
+              v-for="plan in plans"
+              :key="`price-${plan.id}`"
+              class="plan-col"
+              :class="{ 'featured-text': plan.order === 2 }"
+            >
+              {{ Math.floor(plan.price) }} {{ plan.currency }}.
+            </div>
           </div>
 
+          <!-- Duración -->
           <div class="comparison-row">
             <div class="feature-name">Duración</div>
-            <div class="plan-col">15 días</div>
-            <div class="plan-col featured-text">30 días</div>
-            <div class="plan-col">30 días</div>
+            <div
+              v-for="plan in plans"
+              :key="`duration-${plan.id}`"
+              class="plan-col"
+              :class="{ 'featured-text': plan.order === 2 }"
+            >
+              {{ plan.durationDays }} días
+            </div>
           </div>
 
+          <!-- Avisos/Anuncios -->
           <div class="comparison-row">
             <div class="feature-name">Avisos</div>
-            <div class="plan-col">1</div>
-            <div class="plan-col featured-text">1</div>
-            <div class="plan-col">Hasta 3</div>
+            <div
+              v-for="plan in plans"
+              :key="`avisos-${plan.id}`"
+              class="plan-col"
+              :class="{ 'featured-text': plan.order === 2 }"
+            >
+              {{ plan.features.maxAnnouncements > 1 ? `Hasta ${plan.features.maxAnnouncements}` : plan.features.maxAnnouncements }}
+            </div>
           </div>
 
+          <!-- Visibilidad -->
           <div class="comparison-row">
-            <div class="feature-name">Visibilidad en la Web (Anchado)</div>
-            <div class="plan-col">Normal</div>
-            <div class="plan-col featured-text">Destacado</div>
-            <div class="plan-col">Patrocinado</div>
+            <div class="feature-name">Visibilidad en la Web</div>
+            <div
+              v-for="plan in plans"
+              :key="`visibility-${plan.id}`"
+              class="plan-col"
+              :class="{ 'featured-text': plan.order === 2 }"
+            >
+              {{ plan.features.featured ? (plan.order === 3 ? 'Patrocinado' : 'Destacado') : 'Normal' }}
+            </div>
           </div>
 
+          <!-- Formulario -->
           <div class="comparison-row">
-            <div class="feature-name">Posts Redes</div>
-            <div class="plan-col">1</div>
-            <div class="plan-col featured-text">4</div>
-            <div class="plan-col">6</div>
+            <div class="feature-name">Formulario</div>
+            <div
+              v-for="plan in plans"
+              :key="`form-${plan.id}`"
+              class="plan-col"
+              :class="{ 'featured-text': plan.order === 2 }"
+            >
+              {{ plan.features.applicationForm === 'custom' ? 'Personalizado' : 'Estándar' }}
+            </div>
           </div>
 
+          <!-- Resultados Destacados -->
           <div class="comparison-row">
-            <div class="feature-name">Etiqueta Urgente</div>
-            <div class="plan-col">No</div>
-            <div class="plan-col featured-text">Sí</div>
-            <div class="plan-col">Sí</div>
+            <div class="feature-name">Resultados Destacados</div>
+            <div
+              v-for="plan in plans"
+              :key="`results-${plan.id}`"
+              class="plan-col"
+              :class="{ 'featured-text': plan.order === 2 }"
+            >
+              {{ plan.features.highlightedResults ? 'Sí' : 'No' }}
+            </div>
           </div>
 
+          <!-- Badge Premium -->
           <div class="comparison-row">
-            <div class="feature-name">Cambios</div>
-            <div class="plan-col">No</div>
-            <div class="plan-col featured-text">1 cambio</div>
-            <div class="plan-col">1 por aviso</div>
+            <div class="feature-name">Badge Premium</div>
+            <div
+              v-for="plan in plans"
+              :key="`badge-${plan.id}`"
+              class="plan-col"
+              :class="{ 'featured-text': plan.order === 2 }"
+            >
+              {{ plan.features.premiumBadge ? 'Sí' : 'No' }}
+            </div>
+          </div>
+
+          <!-- Compartir en Redes -->
+          <div class="comparison-row">
+            <div class="feature-name">Compartir en Redes</div>
+            <div
+              v-for="plan in plans"
+              :key="`social-${plan.id}`"
+              class="plan-col"
+              :class="{ 'featured-text': plan.order === 2 }"
+            >
+              {{ plan.features.socialMediaShare ? 'Sí' : 'No' }}
+            </div>
           </div>
         </div>
       </div>
