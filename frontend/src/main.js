@@ -35,7 +35,7 @@ const vuesticConfig = {
     }
   },
 
-  // ✨ CONFIGURACIÓN DE TRADUCCIONES AL ESPAÑOL
+  // CONFIGURACIÓN DE TRADUCCIONES AL ESPAÑOL
   i18n: vuesticSpanishConfig
 }
 

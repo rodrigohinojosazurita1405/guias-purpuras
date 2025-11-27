@@ -1181,3 +1181,33 @@ Error: #EF4444 (Red)
     - 📋 FASE 2: Esperando backend
     - 📋 FASE 7.3: Botones JobsManager pendientes
     - 📋 FASE 9: Planificada y documentada
+
+---
+
+## 🆕 MEJORAS DESCUBIERTAS (Sesión 12 - Sincronización JobsCards)
+**Descripción**: Datos desincronizados en JobsCards de GuideView
+
+### 📋 Tareas identificadas:
+1. **Backend - Endpoint list_jobs**
+   - [ ] Cambiar `status='active'` → `status='published'` (línea 400)
+   - [ ] Verificar sincronización de campos entre Job model y JSON response
+   - [ ] Agregar validaciones de datos antes de retornar
+
+2. **Frontend - GuideView.vue**
+   - [ ] Revisar cómo está cargando datos de `/api/jobs`
+   - [ ] Verificar que está usando el endpoint correcto
+   - [ ] Validar que filtros se aplican correctamente
+
+3. **Frontend - JobCard.vue**
+   - [ ] Agregar fallbacks para datos faltantes
+   - [ ] Mejorar manejo de campos opcionales (companyLogo, salary, etc.)
+   - [ ] Sincronizar nombres de campos con respuesta API
+
+4. **Testing**
+   - [ ] Verificar que JobsCards se renderizan correctamente
+   - [ ] Validar sincronización de datos en tiempo real
+   - [ ] Probar filtros (city, category, contractType)
+
+**Prioridad**: 🟡 Media (antes de FASE 3 completa)
+**Tiempo estimado**: 1-2 horas
+**Bloqueador**: No afecta FASE 7.3, se puede hacer en paralelo

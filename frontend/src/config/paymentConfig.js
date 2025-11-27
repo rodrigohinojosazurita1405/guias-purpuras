@@ -5,12 +5,12 @@
 
 export const PAYMENT_CONFIG = {
   plans: {
-    escencial: {
-      name: 'Escencial',
+    estandar: {
+      name: 'Estandar',
       price: 35,
       currency: 'Bs.',
       duration: '15 días',
-      qrCode: '/qr-codes/qr-escencial.png', // Ruta segura en public/
+      qrCode: '/qr-codes/qr-escencial.png', // Ruta segura en public/ (mantener nombre del archivo)
       description: 'Plan básico para publicaciones simples'
     },
     purpura: {

@@ -54,10 +54,54 @@
           </div>
         </div>
 
-        <!-- Requirements -->
-        <div class="info-section" v-if="job.requirements">
-          <h3>Requisitos</h3>
-          <p class="value">{{ job.requirements }}</p>
+        <!-- Requirements & Details -->
+        <div class="info-section" v-if="job.requirements || job.experience || job.education || job.languages || job.technicalSkills">
+          <h3>Requisitos y Habilidades</h3>
+          <div class="info-grid">
+            <div class="info-item full-width" v-if="job.requirements">
+              <span class="label">Requisitos:</span>
+              <p class="value description">{{ job.requirements }}</p>
+            </div>
+            <div class="info-item full-width" v-if="job.experience">
+              <span class="label">Experiencia:</span>
+              <p class="value description">{{ job.experience }}</p>
+            </div>
+            <div class="info-item" v-if="job.education">
+              <span class="label">Formación:</span>
+              <span class="value">{{ job.education }}</span>
+            </div>
+            <div class="info-item" v-if="job.languages">
+              <span class="label">Idiomas:</span>
+              <span class="value">{{ job.languages }}</span>
+            </div>
+            <div class="info-item full-width" v-if="job.technicalSkills">
+              <span class="label">Habilidades Técnicas:</span>
+              <p class="value description">{{ job.technicalSkills }}</p>
+            </div>
+            <div class="info-item full-width" v-if="job.softSkills">
+              <span class="label">Habilidades Blandas:</span>
+              <p class="value description">{{ job.softSkills }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Benefits & Contact -->
+        <div class="info-section" v-if="job.benefits || job.whatsapp || job.website">
+          <h3>Beneficios y Contacto</h3>
+          <div class="info-grid">
+            <div class="info-item full-width" v-if="job.benefits">
+              <span class="label">Beneficios:</span>
+              <p class="value description">{{ job.benefits }}</p>
+            </div>
+            <div class="info-item" v-if="job.whatsapp">
+              <span class="label">WhatsApp:</span>
+              <span class="value">{{ job.whatsapp }}</span>
+            </div>
+            <div class="info-item" v-if="job.website">
+              <span class="label">Sitio Web:</span>
+              <span class="value"><a :href="job.website" target="_blank">{{ job.website }}</a></span>
+            </div>
+          </div>
         </div>
 
         <!-- Stats -->
@@ -261,6 +305,18 @@ const formatDate = (dateString) => {
   line-height: 1.6;
   color: #4B5563;
   font-weight: 400;
+}
+
+.info-item a {
+  color: #7C3AED;
+  text-decoration: none;
+  word-break: break-all;
+  transition: color 0.2s;
+}
+
+.info-item a:hover {
+  color: #6D28D9;
+  text-decoration: underline;
 }
 
 .stats-grid {

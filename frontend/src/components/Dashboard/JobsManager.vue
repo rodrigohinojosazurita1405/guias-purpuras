@@ -287,10 +287,32 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
 }
 
-const viewJob = (job) => {
-  selectedJob.value = job
-  showDetailModal.value = true
-  console.log('Mostrando detalles del trabajo:', job.id)
+const viewJob = async (job) => {
+  try {
+    // Llamar a get_job para traer datos completos
+    const response = await fetch(`/api/jobs/${job.id}/`, {
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`
+      }
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al cargar detalles del trabajo')
+    }
+
+    // Usar los datos completos del endpoint get_job
+    selectedJob.value = data.job
+    showDetailModal.value = true
+    console.log('Detalles completos del trabajo cargados:', job.id)
+  } catch (err) {
+    console.error('Error cargando detalles del trabajo:', err)
+    notify({
+      message: `Error al cargar detalles: ${err.message}`,
+      color: 'danger'
+    })
+  }
 }
 
 const editJob = (job) => {
