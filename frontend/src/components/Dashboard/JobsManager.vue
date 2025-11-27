@@ -77,8 +77,25 @@
             <span>{{ job.applications }} aplicaciones</span>
           </div>
           <div class="stat">
-            <va-icon name="calendar_today" />
-            <span>{{ formatDate(job.createdAt) }}</span>
+            <va-icon name="schedule" />
+            <div class="stat-content">
+              <span class="stat-label">Publicado:</span>
+              <span class="stat-value">{{ formatExactDateTime(job.createdAt) }}</span>
+            </div>
+          </div>
+          <div class="stat">
+            <va-icon name="event_note" />
+            <div class="stat-content">
+              <span class="stat-label">Vence:</span>
+              <span class="stat-value">{{ formatExpiryDate(job.expiryDate) }}</span>
+            </div>
+          </div>
+          <div class="stat">
+            <va-icon name="timer" />
+            <div class="stat-content">
+              <span class="stat-label">Días restantes:</span>
+              <span class="stat-value">{{ calculateDaysRemaining(job.expiryDate) }} días</span>
+            </div>
           </div>
         </div>
 
@@ -243,7 +260,9 @@ const loadJobs = async () => {
         status: job.status,
         views: job.views || 0,
         applications: job.applications || 0,
-        createdAt: new Date(job.createdAt).toISOString()
+        createdAt: new Date(job.createdAt).toISOString(),
+        expiryDate: job.expiryDate,
+        selectedPlan: job.selectedPlan
       }))
     } else {
       console.warn('JobsManager - Respuesta sin éxito:', data)
@@ -281,6 +300,40 @@ const formatDate = (dateString) => {
   if (days === 1) return 'Ayer'
   if (days < 7) return `Hace ${days} días`
   return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+}
+
+const formatExactDateTime = (dateString) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }) + ' ' + date.toLocaleTimeString('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
+
+const formatExpiryDate = (dateString) => {
+  if (!dateString) return 'Sin fecha'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  })
+}
+
+const calculateDaysRemaining = (expiryDateString) => {
+  if (!expiryDateString) return -1
+  const expiryDate = new Date(expiryDateString)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  expiryDate.setHours(0, 0, 0, 0)
+  const diff = expiryDate - today
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
+  return days
 }
 
 const viewJob = async (job) => {
@@ -676,8 +729,9 @@ const activateJob = async () => {
 
 /* ========== JOB STATS ========== */
 .job-stats {
-  display: flex;
-  gap: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #f0f0f0;
@@ -685,10 +739,38 @@ const activateJob = async () => {
 
 .stat {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  align-items: flex-start;
+  gap: 0.75rem;
   color: #666;
   font-size: 0.9rem;
+}
+
+.stat svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  color: #9f7aea;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.stat-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #1a1a1a;
 }
 
 /* ========== JOB ACTIONS ========== */
@@ -836,7 +918,7 @@ const activateJob = async () => {
   }
 
   .job-stats {
-    flex-direction: column;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
 

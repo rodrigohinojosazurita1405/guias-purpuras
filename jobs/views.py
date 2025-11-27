@@ -864,6 +864,8 @@ def get_user_published_jobs(request):
                 'views': int(job.views or 0),
                 'applications': int(job.applications or 0),
                 'createdAt': str(job.createdAt.isoformat()) if job.createdAt else None,
+                'expiryDate': str(job.expiryDate.isoformat()) if job.expiryDate else None,
+                'selectedPlan': str(job.selectedPlan) if job.selectedPlan else None,
                 'city': str(job.city) if job.city else '',
                 'modality': str(job.modality) if job.modality else ''
             }
