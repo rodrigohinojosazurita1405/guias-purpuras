@@ -481,6 +481,23 @@ const handleBack = () => {
 }
 
 // ========== VALIDACIÓN ==========
+// Función auxiliar para extraer texto sin HTML
+const stripHtmlTags = (html) => {
+  if (!html) return ''
+  // Crear elemento temporal para extraer texto
+  const temp = document.createElement('div')
+  temp.innerHTML = html
+  // Obtener solo el texto, eliminando tags pero respetando espacios
+  return temp.textContent || temp.innerText || ''
+}
+
+// Función auxiliar para contar caracteres sin espacios excesivos
+const cleanTextLength = (html) => {
+  const text = stripHtmlTags(html)
+  // Eliminar espacios en blanco al inicio/final y espacios múltiples
+  return text.trim().replace(/\s+/g, ' ').length
+}
+
 const validate = () => {
   const errors = []
 
@@ -492,8 +509,10 @@ const validate = () => {
     errors.push('El nombre de la empresa es requerido (o marca como anónima)')
   }
 
-  if (!localFormData.value.jobDetailsHtml || localFormData.value.jobDetailsHtml.length < 50) {
-    errors.push('La información del empleo debe tener al menos 50 caracteres')
+  // Validar contenido del Quill editor (contar solo texto real, sin HTML)
+  const jobDetailsLength = cleanTextLength(localFormData.value.jobDetailsHtml)
+  if (!localFormData.value.jobDetailsHtml || jobDetailsLength < 50) {
+    errors.push(`La información del empleo debe tener al menos 50 caracteres (actualmente: ${jobDetailsLength})`)
   }
 
   if (!localFormData.value.jobCategory) {
