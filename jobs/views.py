@@ -25,7 +25,7 @@ def publish_job(request):
     - city (str): Ciudad
     - contractType (str): Tipo de contrato
     - requirements (str): Requisitos
-    - selectedPlan (str: 'escencial'|'purpura'|'impulso'): Plan elegido
+    - selectedPlan (str: 'estandar'|'purpura'|'impulso'): Plan elegido
     - proofOfPayment (file): Comprobante de pago (imagen, max 5MB)
 
     CAMPOS OPCIONALES:
@@ -124,14 +124,14 @@ def publish_job(request):
         from plans.models import Plan
         from datetime import datetime, timedelta
 
-        plan = (data.get('selectedPlan') or 'escencial').lower()
+        plan = (data.get('selectedPlan') or 'estandar').lower()
 
         # Obtener el plan desde la BD
         try:
             plan_obj = Plan.objects.get(name=plan, is_active=True)
             duration_days = plan_obj.duration_days
         except Plan.DoesNotExist:
-            errors['selectedPlan'] = "Plan no válido o inactivo. Debe ser 'escencial', 'purpura' o 'impulso'"
+            errors['selectedPlan'] = "Plan no válido o inactivo. Debe ser 'estandar', 'purpura' o 'impulso'"
             duration_days = 15  # Default fallback
 
         # Calcular expiryDate automáticamente basándose en el plan
