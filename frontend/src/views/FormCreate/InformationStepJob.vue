@@ -371,7 +371,7 @@
               <va-icon name="attach_money" size="1.5rem" />
             </div>
             <div class="accordion-title-group">
-              <h3 class="accordion-title">Compensación y Vacantes</h3>
+              <h3 class="accordion-title">Compensación Económica y Vacantes Requeridos</h3>
               <p v-if="!expandedSections.compensation" class="accordion-summary">
                 {{ getSummary('compensation') }}
               </p>

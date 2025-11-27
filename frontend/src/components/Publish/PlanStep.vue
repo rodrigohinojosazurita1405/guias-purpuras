@@ -41,29 +41,23 @@
 
           <div class="plan-divider"></div>
 
-          <!-- Badges de características -->
+          <!-- Badges (Dinámicos desde Django y características) -->
           <div class="plan-badges">
-            <span
-              v-if="plan.features.featured"
-              class="badge"
-              :class="plan.order === 3 ? 'badge-sponsored' : 'badge-featured'"
-            >
-              {{ plan.order === 3 ? 'Patrocinado' : 'Destacado' }}
+            <span v-if="plan.badgeLabel" class="badge" :class="getBadgeClass(plan)">
+              {{ plan.badgeLabel }}
             </span>
             <span
               v-if="plan.features.highlightedResults"
               class="badge badge-urgent"
             >
-              {{ plan.order === 2 ? 'Urgente' : 'Urgente' }}
+              Urgente
             </span>
-            <span v-else class="badge badge-basic">Básico</span>
           </div>
 
           <ul class="plan-features">
             <li>{{ plan.features.maxAnnouncements }} Aviso{{ plan.features.maxAnnouncements > 1 ? 's' : '' }}</li>
             <li v-if="plan.features.featured">Visibilidad Destacada</li>
             <li v-else>Visibilidad Normal</li>
-            <li>Soporte: {{ plan.features.applicationForm === 'custom' ? 'Formulario Personalizado' : 'Formulario Estándar' }}</li>
           </ul>
 
           <button
@@ -80,123 +74,106 @@
       <div v-if="!isLoading" class="comparison-section">
         <h3 class="comparison-title">Comparación de Planes</h3>
 
-        <div class="comparison-table">
-          <!-- Header con nombres de planes dinámicos -->
-          <div class="comparison-row header">
-            <div class="feature-name">Característica</div>
-            <div
-              v-for="plan in plans"
-              :key="plan.id"
-              class="plan-col"
-              :class="{ 'featured-text': plan.order === 2 }"
-            >
-              {{ plan.label.split('(')[0].trim() }}
-            </div>
-          </div>
+        <div class="comparison-table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr class="table-header">
+                <th class="header-feature">Característica</th>
+                <th
+                  v-for="plan in plans"
+                  :key="`header-${plan.id}`"
+                  class="header-plan"
+                  :class="{ 'featured': plan.order === 2 }"
+                >
+                  {{ plan.label.split('(')[0].trim() }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Precio -->
+              <tr class="table-row">
+                <td class="row-feature">Precio</td>
+                <td
+                  v-for="plan in plans"
+                  :key="`price-${plan.id}`"
+                  class="row-data"
+                  :class="{ 'featured': plan.order === 2 }"
+                >
+                  {{ Math.floor(plan.price) }} {{ plan.currency }}.
+                </td>
+              </tr>
 
-          <!-- Precio -->
-          <div class="comparison-row">
-            <div class="feature-name">Precio</div>
-            <div
-              v-for="plan in plans"
-              :key="`price-${plan.id}`"
-              class="plan-col"
-              :class="{ 'featured-text': plan.order === 2 }"
-            >
-              {{ Math.floor(plan.price) }} {{ plan.currency }}.
-            </div>
-          </div>
+              <!-- Duración y Cantidad -->
+              <tr class="table-row">
+                <td class="row-feature">Duración y Cantidad</td>
+                <td
+                  v-for="plan in plans"
+                  :key="`duration-${plan.id}`"
+                  class="row-data"
+                  :class="{ 'featured': plan.order === 2 }"
+                >
+                  {{ plan.durationDays }} días ({{ plan.features.maxAnnouncements }} aviso{{ plan.features.maxAnnouncements > 1 ? 's' : '' }})
+                </td>
+              </tr>
 
-          <!-- Duración -->
-          <div class="comparison-row">
-            <div class="feature-name">Duración</div>
-            <div
-              v-for="plan in plans"
-              :key="`duration-${plan.id}`"
-              class="plan-col"
-              :class="{ 'featured-text': plan.order === 2 }"
-            >
-              {{ plan.durationDays }} días
-            </div>
-          </div>
+              <!-- Visibilidad en Web (Anclado) -->
+              <tr class="table-row">
+                <td class="row-feature">Visibilidad en Web (Anclado)</td>
+                <td
+                  v-for="plan in plans"
+                  :key="`visibility-${plan.id}`"
+                  class="row-data"
+                  :class="{ 'featured': plan.order === 2 }"
+                >
+                  {{ plan.features.featured ? (plan.order === 3 ? `Patrocinado (${plan.features.featuredDays} días)` : `Destacado (${plan.features.featuredDays} días)`) : 'Normal' }}
+                </td>
+              </tr>
 
-          <!-- Avisos/Anuncios -->
-          <div class="comparison-row">
-            <div class="feature-name">Avisos</div>
-            <div
-              v-for="plan in plans"
-              :key="`avisos-${plan.id}`"
-              class="plan-col"
-              :class="{ 'featured-text': plan.order === 2 }"
-            >
-              {{ plan.features.maxAnnouncements > 1 ? `Hasta ${plan.features.maxAnnouncements}` : plan.features.maxAnnouncements }}
-            </div>
-          </div>
+              <!-- Sustitución de Aviso -->
+              <tr class="table-row">
+                <td class="row-feature">Sustitución de Aviso (Si cubres la vacante antes)</td>
+                <td
+                  v-for="plan in plans"
+                  :key="`substitution-${plan.id}`"
+                  class="row-data"
+                  :class="{ 'featured': plan.order === 2 }"
+                >
+                  {{ plan.features.announcementSubstitutions === 0 ? 'No incluido' : (plan.features.announcementSubstitutions === 1 ? '1 cambio permitido' : `1 cambio por aviso (${plan.features.announcementSubstitutions} total)`) }}
+                </td>
+              </tr>
 
-          <!-- Visibilidad -->
-          <div class="comparison-row">
-            <div class="feature-name">Visibilidad en la Web</div>
-            <div
-              v-for="plan in plans"
-              :key="`visibility-${plan.id}`"
-              class="plan-col"
-              :class="{ 'featured-text': plan.order === 2 }"
-            >
-              {{ plan.features.featured ? (plan.order === 3 ? 'Patrocinado' : 'Destacado') : 'Normal' }}
-            </div>
-          </div>
+              <!-- Difusión en Redes Sociales -->
+              <tr class="table-row">
+                <td class="row-feature">Difusión en Redes Sociales</td>
+                <td
+                  v-for="plan in plans"
+                  :key="`social-${plan.id}`"
+                  class="row-data"
+                  :class="{ 'featured': plan.order === 2 }"
+                >
+                  <span v-if="plan.features.socialMedia">
+                    {{ plan.features.socialMedia.facebook }} post FB/IG<br>
+                    <span v-if="plan.features.socialMedia.linkedin > 0">+ {{ plan.features.socialMedia.linkedin }} LinkedIn<br></span>
+                    <span v-if="plan.features.socialMedia.tiktok > 0">+ {{ plan.features.socialMedia.tiktok }} TikTok</span>
+                  </span>
+                  <span v-else>1 post en Facebook/IG</span>
+                </td>
+              </tr>
 
-          <!-- Formulario -->
-          <div class="comparison-row">
-            <div class="feature-name">Formulario</div>
-            <div
-              v-for="plan in plans"
-              :key="`form-${plan.id}`"
-              class="plan-col"
-              :class="{ 'featured-text': plan.order === 2 }"
-            >
-              {{ plan.features.applicationForm === 'custom' ? 'Personalizado' : 'Estándar' }}
-            </div>
-          </div>
-
-          <!-- Resultados Destacados -->
-          <div class="comparison-row">
-            <div class="feature-name">Resultados Destacados</div>
-            <div
-              v-for="plan in plans"
-              :key="`results-${plan.id}`"
-              class="plan-col"
-              :class="{ 'featured-text': plan.order === 2 }"
-            >
-              {{ plan.features.highlightedResults ? 'Sí' : 'No' }}
-            </div>
-          </div>
-
-          <!-- Badge Premium -->
-          <div class="comparison-row">
-            <div class="feature-name">Badge Premium</div>
-            <div
-              v-for="plan in plans"
-              :key="`badge-${plan.id}`"
-              class="plan-col"
-              :class="{ 'featured-text': plan.order === 2 }"
-            >
-              {{ plan.features.premiumBadge ? 'Sí' : 'No' }}
-            </div>
-          </div>
-
-          <!-- Compartir en Redes -->
-          <div class="comparison-row">
-            <div class="feature-name">Compartir en Redes</div>
-            <div
-              v-for="plan in plans"
-              :key="`social-${plan.id}`"
-              class="plan-col"
-              :class="{ 'featured-text': plan.order === 2 }"
-            >
-              {{ plan.features.socialMediaShare ? 'Sí' : 'No' }}
-            </div>
-          </div>
+              <!-- Etiqueta Urgente -->
+              <tr class="table-row">
+                <td class="row-feature">Etiqueta "Urgente"</td>
+                <td
+                  v-for="plan in plans"
+                  :key="`urgent-${plan.id}`"
+                  class="row-data"
+                  :class="{ 'featured': plan.order === 2 }"
+                >
+                  {{ plan.features.highlightedResults ? 'Sí' : 'No' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -235,7 +212,9 @@ const loadPlans = async () => {
   try {
     isLoading.value = true
     error.value = null
-    const response = await fetch('/api/plans/', {
+    // Agregar timestamp para evitar cache
+    const timestamp = new Date().getTime()
+    const response = await fetch(`/api/plans/?_t=${timestamp}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -303,6 +282,14 @@ const handleNext = () => {
   if (validate()) {
     emit('next')
   }
+}
+
+// Determinar la clase CSS del badge basado en el orden del plan
+const getBadgeClass = (plan) => {
+  if (plan.order === 1) return 'badge-basic'      // Primer plan (Básico)
+  if (plan.order === 2) return 'badge-featured'   // Segundo plan (Destacado/Recomendado)
+  if (plan.order === 3) return 'badge-sponsored'  // Tercer plan (Patrocinado)
+  return 'badge-basic'                            // Por defecto
 }
 
 watch(() => props.modelValue, (newValue) => {
@@ -481,9 +468,11 @@ defineExpose({
 }
 
 .badge-basic {
-  background: #F0F4F8;
-  color: #475569;
-  border: 1px solid #CBD5E1;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: white;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
 }
 
 .badge-featured {
@@ -653,58 +642,121 @@ defineExpose({
   text-align: center;
 }
 
-.comparison-table {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.comparison-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 1rem;
-  padding: 1.25rem 1rem;
+.comparison-table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #E5E7EB;
   background: white;
-  border-bottom: 1px solid #E5E7EB;
-  align-items: center;
+  -webkit-overflow-scrolling: touch;
+
+  /* Scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: #D1D5DB #F3F4F6;
 }
 
-.comparison-row:last-child {
-  border-bottom: none;
+.comparison-table-wrapper::-webkit-scrollbar {
+  height: 8px;
 }
 
-.comparison-row.header {
+.comparison-table-wrapper::-webkit-scrollbar-track {
+  background: #F3F4F6;
+  border-radius: 10px;
+}
+
+.comparison-table-wrapper::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 10px;
+}
+
+.comparison-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+/* Header Styling */
+.comparison-table thead {
   background: var(--color-purple);
+}
+
+.comparison-table .table-header {
+  background: var(--color-purple);
+}
+
+.comparison-table .table-header th {
   color: white;
   font-weight: 700;
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.95rem;
 }
 
-.feature-name {
-  font-weight: 600;
+.comparison-table .table-header th:last-child {
+  border-right: none;
+}
+
+.comparison-table .header-feature {
+  text-align: left;
+}
+
+/* Body Row Styling */
+.comparison-table tbody tr {
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.comparison-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* Alternating row backgrounds */
+.comparison-table tbody tr:nth-child(odd) {
+  background: #FFFFFF;
+}
+
+.comparison-table tbody tr:nth-child(even) {
+  background: #F9FAFB;
+}
+
+.comparison-table tbody td {
+  padding: 1.25rem 1rem;
+  text-align: center;
+  border-right: 1px solid #E5E7EB;
+  font-size: 0.95rem;
   color: #374151;
 }
 
-.comparison-row.header .feature-name {
-  color: white;
-  font-weight: 700;
+.comparison-table tbody td:last-child {
+  border-right: none;
 }
 
-.plan-col {
+.comparison-table .row-feature {
+  text-align: left;
+  font-weight: 600;
+  color: #1F2937;
+  background: inherit !important;
+  min-width: 250px;
+}
+
+.comparison-table .row-data {
   text-align: center;
   color: #6B7280;
   font-weight: 500;
 }
 
-.comparison-row.header .plan-col {
-  color: white;
-  font-weight: 700;
+/* Featured plan (Púrpura) styling - same as other plans */
+.comparison-table .row-data.featured {
+  background: inherit;
+  color: #6B7280;
+  font-weight: 500;
 }
 
-.plan-col.featured-text {
-  color: var(--color-purple);
-  font-weight: 700;
+.comparison-table .header-plan.featured {
+  background: var(--color-purple);
 }
 
 /* Navigation Buttons */

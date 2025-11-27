@@ -13,12 +13,10 @@ class PlanForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Hacer el campo features un textarea más grande
-        self.fields['features'].widget = forms.Textarea(attrs={
-            'rows': 8,
-            'cols': 60,
-            'style': 'font-family: monospace; font-size: 12px;'
-        })
+        # Ocultar el campo features ya que se genera automáticamente
+        if 'features' in self.fields:
+            self.fields['features'].widget = forms.HiddenInput()
+            self.fields['features'].required = False
 
 
 @admin.register(Plan)
@@ -46,12 +44,11 @@ class PlanAdmin(admin.ModelAdmin):
         'created_at',
         'updated_at',
         'features_preview',
-        'features_help_text',
     )
 
     fieldsets = (
         ('Información Básica', {
-            'fields': ('name', 'label', 'description')
+            'fields': ('name', 'label', 'description', 'badge_label')
         }),
         ('Pricing', {
             'fields': ('price', 'currency')
@@ -60,10 +57,31 @@ class PlanAdmin(admin.ModelAdmin):
             'fields': ('duration_days',),
             'description': 'Duración en días que el anuncio permanecerá activo'
         }),
-        ('Características del Plan', {
-            'fields': ('features', 'features_help_text', 'features_preview'),
+        ('📊 Características del Plan', {
+            'fields': (
+                'max_announcements',
+                'is_featured',
+                'featured_days',
+                'has_highlighted_results',
+                'announcement_substitutions',
+            ),
             'classes': ('wide',),
-            'description': 'Edita las características en formato JSON. Ver ayuda abajo para valores válidos.'
+            'description': 'Edita las características principales del plan. Todos los cambios se reflejarán automáticamente en el frontend.'
+        }),
+        ('📱 Difusión en Redes Sociales', {
+            'fields': (
+                'facebook_posts',
+                'linkedin_posts',
+                'tiktok_posts',
+            ),
+            'classes': ('wide',),
+            'description': 'Configura cuántos posts se permiten en cada red social.'
+        }),
+        ('🔍 Vista Previa (Solo Lectura)', {
+            'fields': (
+                'features_preview',
+            ),
+            'classes': ('wide',),
         }),
         ('Visualización', {
             'fields': ('order', 'is_active'),
@@ -117,46 +135,26 @@ class PlanAdmin(admin.ModelAdmin):
         )
     status_badge.short_description = 'Estado'
 
-    def features_help_text(self, obj):
-        """Muestra ayuda sobre qué características se pueden editar"""
-        help_html = '''
-        <div style="background-color: #F0F9FF; padding: 16px; border-radius: 8px; border-left: 4px solid #3B82F6;">
-            <h4 style="margin-top: 0; color: #1E40AF;">Características Disponibles (JSON):</h4>
-            <p style="margin: 8px 0; font-size: 13px; color: #374151;">
-                <strong>maxAnnouncements</strong>: Número máximo de anuncios (ej: 1, 3)<br>
-                <strong>maxEditions</strong>: Ediciones permitidas (ej: 999 = sin límite)<br>
-                <strong>applicationForm</strong>: "standard" o "custom" (tipo de formulario)<br>
-                <strong>featured</strong>: true/false (anuncio destacado)<br>
-                <strong>highlightedResults</strong>: true/false (resultados destacados)<br>
-                <strong>premiumBadge</strong>: true/false (mostrar badge premium)<br>
-                <strong>socialMediaShare</strong>: true/false (permitir compartir en redes)
-            </p>
-            <p style="margin: 8px 0; font-size: 12px; color: #6B7280; font-style: italic;">
-                💡 Estos valores se mostrarán automáticamente en el frontend y tabla de comparación
-            </p>
-        </div>
-        '''
-        return format_html(help_html)
-
-    features_help_text.short_description = 'Guía de Características'
-
     def features_preview(self, obj):
-        """Preview de las características en formato JSON"""
+        """Vista previa auto-generada del JSON de características"""
         import json
         if not obj.features:
             return format_html(
-                '<div style="background-color: #FEE2E2; padding: 12px; border-radius: 6px; '
-                'text-align: center; color: #991B1B;"><strong>Sin características configuradas</strong></div>'
+                '<div style="background-color: #ECFDF5; padding: 12px; border-radius: 6px; '
+                'border-left: 4px solid #059669; color: #065F46;"><strong>✓ Auto-generado (campos por defecto)</strong></div>'
             )
 
         try:
             features_json = json.dumps(obj.features, indent=2, ensure_ascii=False)
-            return format_html(
-                '<pre style="background-color: #F3F4F6; padding: 12px; border-radius: 6px; '
-                'overflow-x: auto; font-family: monospace; font-size: 12px;">{}</pre>',
-                features_json
-            )
-        except:
-            return 'Error al procesar características'
+            preview_html = f'''
+            <div style="background-color: #ECFDF5; padding: 12px; border-radius: 6px; border-left: 4px solid #059669;">
+                <p style="margin: 0 0 8px 0; color: #065F46; font-weight: bold;">✓ JSON Auto-generado desde los campos</p>
+                <pre style="background-color: #F0FDF4; padding: 8px; border-radius: 4px;
+                overflow-x: auto; font-family: monospace; font-size: 11px; margin: 0; color: #166534;">{features_json}</pre>
+            </div>
+            '''
+            return format_html(preview_html)
+        except Exception as e:
+            return f'Error al procesar características: {str(e)}'
 
-    features_preview.short_description = 'Vista Previa (Lectura)'
+    features_preview.short_description = 'Vista Previa JSON (Auto-generado)'

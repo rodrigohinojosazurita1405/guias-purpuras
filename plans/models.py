@@ -5,18 +5,11 @@ import json
 class Plan(models.Model):
     """Modelo para gestionar planes de publicación de anuncios"""
 
-    PLAN_CHOICES = [
-        ('escencial', 'Escencial'),
-        ('purpura', 'Púrpura'),
-        ('impulso', 'Impulso Pro'),
-    ]
-
     # Identificador del plan
     name = models.CharField(
         max_length=50,
-        choices=PLAN_CHOICES,
         unique=True,
-        help_text="Nombre único del plan"
+        help_text="Nombre único del plan (ej: escencial, purpura, impulso)"
     )
 
     # Información básica
@@ -29,6 +22,13 @@ class Plan(models.Model):
         blank=True,
         default="",
         help_text="Descripción del plan para el usuario"
+    )
+
+    badge_label = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        help_text="Texto del badge (ej: 'Básico', 'Popular', 'Premium'). Dejar vacío si no deseas mostrar badge."
     )
 
     # Pricing
@@ -50,11 +50,53 @@ class Plan(models.Model):
         help_text="Duración del anuncio en días"
     )
 
-    # Características del plan (JSON)
+    # ========== CARACTERÍSTICAS DEL PLAN (CAMPOS VISUALES) ==========
+    max_announcements = models.IntegerField(
+        default=1,
+        help_text="Número máximo de anuncios que puede publicar"
+    )
+
+    is_featured = models.BooleanField(
+        default=False,
+        help_text="¿Anuncio destacado/patrocinado?"
+    )
+
+    featured_days = models.IntegerField(
+        default=0,
+        help_text="Días que permanecerá destacado (0 = sin duración)"
+    )
+
+    has_highlighted_results = models.BooleanField(
+        default=False,
+        help_text="¿Mostrar resultados destacados?"
+    )
+
+    announcement_substitutions = models.IntegerField(
+        default=0,
+        help_text="Número de sustituciones de aviso permitidas (0 = No incluido)"
+    )
+
+    # Difusión en Redes Sociales
+    facebook_posts = models.IntegerField(
+        default=1,
+        help_text="Posts en Facebook/Instagram permitidos"
+    )
+
+    linkedin_posts = models.IntegerField(
+        default=0,
+        help_text="Posts en LinkedIn permitidos"
+    )
+
+    tiktok_posts = models.IntegerField(
+        default=0,
+        help_text="Posts en TikTok permitidos"
+    )
+
+    # Características del plan (JSON - se genera automáticamente)
     features = models.JSONField(
         default=dict,
         blank=True,
-        help_text="Características y límites del plan en formato JSON"
+        help_text="Generado automáticamente desde los campos anteriores"
     )
 
     # Estado
@@ -81,6 +123,22 @@ class Plan(models.Model):
     def __str__(self):
         return f"{self.label} ({self.price} {self.currency})"
 
+    def save(self, *args, **kwargs):
+        """Auto-generar features JSON desde campos separados"""
+        self.features = {
+            'maxAnnouncements': self.max_announcements,
+            'featured': self.is_featured,
+            'featuredDays': self.featured_days,
+            'highlightedResults': self.has_highlighted_results,
+            'announcementSubstitutions': self.announcement_substitutions,
+            'socialMedia': {
+                'facebook': self.facebook_posts,
+                'linkedin': self.linkedin_posts,
+                'tiktok': self.tiktok_posts,
+            }
+        }
+        super().save(*args, **kwargs)
+
     def get_features(self):
         """Obtener características como diccionario"""
         return self.features if isinstance(self.features, dict) else json.loads(self.features or '{}')
@@ -92,6 +150,7 @@ class Plan(models.Model):
             'name': self.name,
             'label': self.label,
             'description': self.description,
+            'badgeLabel': self.badge_label,
             'price': float(self.price),
             'currency': self.currency,
             'durationDays': self.duration_days,
