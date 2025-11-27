@@ -9,120 +9,69 @@
         </p>
       </div>
 
-      <!-- Grid de Planes -->
+      <!-- Grid de Planes (Dinámico desde API) -->
+      <div v-if="isLoading" class="loading-state">
+        <p>Cargando planes...</p>
+      </div>
+
+      <div v-else-if="error" class="error-state">
+        <p>Error: {{ error }}</p>
+        <p style="font-size: 0.9rem; color: #6B7280;">Usando planes predeterminados</p>
+      </div>
+
       <div class="plans-grid">
-        <!-- Plan Escencial (35 Bs) -->
         <div
-          @click="selectPlan('escencial')"
+          v-for="plan in plans"
+          :key="plan.id"
+          @click="selectPlan(plan.name)"
           class="plan-card"
-          :class="{ selected: selectedPlan === 'escencial' }"
+          :class="{
+            selected: selectedPlan === plan.name,
+            featured: plan.order === 2
+          }"
         >
+          <div v-if="plan.order === 2" class="plan-badge">Recomendado</div>
           <div class="plan-tier">Plan</div>
-          <h3 class="plan-name">Escencial</h3>
+          <h3 class="plan-name">{{ plan.label.split('(')[0].trim() }}</h3>
           <div class="plan-price-block">
-            <span class="plan-price">35</span>
-            <span class="plan-currency">Bs.</span>
+            <span class="plan-price">{{ Math.floor(plan.price) }}</span>
+            <span class="plan-currency">{{ plan.currency }}.</span>
           </div>
-          <p class="plan-period">15 días</p>
+          <p class="plan-period">{{ plan.durationDays }} días</p>
 
           <div class="plan-divider"></div>
 
           <!-- Badges de características -->
           <div class="plan-badges">
-            <span class="badge badge-basic">Básico</span>
+            <span
+              v-if="plan.features.featured"
+              class="badge"
+              :class="plan.order === 3 ? 'badge-sponsored' : 'badge-featured'"
+            >
+              {{ plan.order === 3 ? 'Patrocinado' : 'Destacado' }}
+            </span>
+            <span
+              v-if="plan.features.highlightedResults"
+              class="badge badge-urgent"
+            >
+              {{ plan.order === 2 ? 'Urgente' : 'Urgente' }}
+            </span>
+            <span v-else class="badge badge-basic">Básico</span>
           </div>
 
           <ul class="plan-features">
-            <li>Visibilidad Normal</li>
-            <li>1 Aviso de Trabajo</li>
-            <li>1 Post en Redes</li>
+            <li>{{ plan.features.maxAnnouncements }} Aviso{{ plan.features.maxAnnouncements > 1 ? 's' : '' }}</li>
+            <li v-if="plan.features.featured">Visibilidad Destacada</li>
+            <li v-else>Visibilidad Normal</li>
+            <li>Soporte: {{ plan.features.applicationForm === 'custom' ? 'Formulario Personalizado' : 'Formulario Estándar' }}</li>
           </ul>
 
           <button
-            @click.stop="selectPlan('escencial')"
+            @click.stop="selectPlan(plan.name)"
             class="plan-select-btn"
-            :class="{ active: selectedPlan === 'escencial' }"
+            :class="{ active: selectedPlan === plan.name }"
           >
-            {{ selectedPlan === 'escencial' ? 'Seleccionado' : 'Seleccionar' }}
-          </button>
-        </div>
-
-        <!-- Plan Púrpura (79 Bs) - DESTACADO -->
-        <div
-          @click="selectPlan('purpura')"
-          class="plan-card featured"
-          :class="{ selected: selectedPlan === 'purpura' }"
-        >
-          <div class="plan-badge">Recomendado</div>
-          <div class="plan-tier">Plan</div>
-          <h3 class="plan-name">Púrpura</h3>
-          <div class="plan-price-block">
-            <span class="plan-price">79</span>
-            <span class="plan-currency">Bs.</span>
-          </div>
-          <p class="plan-period">30 días</p>
-
-          <div class="plan-divider"></div>
-
-          <!-- Badges de características -->
-          <div class="plan-badges">
-            <span class="badge badge-featured">Destacado</span>
-            <span class="badge badge-urgent">Urgente</span>
-          </div>
-
-          <ul class="plan-features">
-            <li>Destacado (10 días)</li>
-            <li>1 Aviso de Trabajo</li>
-            <li>4 Posts en Redes</li>
-            <li>Etiqueta Urgente</li>
-            <li>1 Cambio Incluido</li>
-          </ul>
-
-          <button
-            @click.stop="selectPlan('purpura')"
-            class="plan-select-btn"
-            :class="{ active: selectedPlan === 'purpura' }"
-          >
-            {{ selectedPlan === 'purpura' ? 'Seleccionado' : 'Seleccionar' }}
-          </button>
-        </div>
-
-        <!-- Plan Impulso Pro (169 Bs) -->
-        <div
-          @click="selectPlan('impulso')"
-          class="plan-card"
-          :class="{ selected: selectedPlan === 'impulso' }"
-        >
-          <div class="plan-tier">Plan</div>
-          <h3 class="plan-name">Impulso Pro</h3>
-          <div class="plan-price-block">
-            <span class="plan-price">169</span>
-            <span class="plan-currency">Bs.</span>
-          </div>
-          <p class="plan-period">30 días</p>
-
-          <div class="plan-divider"></div>
-
-          <!-- Badges de características -->
-          <div class="plan-badges">
-            <span class="badge badge-sponsored">Patrocinado</span>
-            <span class="badge badge-urgent">Urgente</span>
-          </div>
-
-          <ul class="plan-features">
-            <li>Patrocinado (10 días)</li>
-            <li>Hasta 3 Avisos</li>
-            <li>6 Posts en Redes</li>
-            <li>Etiqueta Urgente</li>
-            <li>1 Cambio por Aviso</li>
-          </ul>
-
-          <button
-            @click.stop="selectPlan('impulso')"
-            class="plan-select-btn"
-            :class="{ active: selectedPlan === 'impulso' }"
-          >
-            {{ selectedPlan === 'impulso' ? 'Seleccionado' : 'Seleccionar' }}
+            {{ selectedPlan === plan.name ? 'Seleccionado' : 'Seleccionar' }}
           </button>
         </div>
       </div>
@@ -313,6 +262,31 @@ defineExpose({
   padding: 2rem;
   background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
   min-height: 100vh;
+}
+
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+}
+
+.loading-state p,
+.error-state p {
+  color: #6B7280;
+  font-size: 1rem;
+  margin: 0.5rem 0;
+}
+
+.error-state {
+  background: #FEE2E2;
+  border: 1px solid #FECACA;
+}
+
+.error-state p {
+  color: #991B1B;
 }
 
 .plan-container {
