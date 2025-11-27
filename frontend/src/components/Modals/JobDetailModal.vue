@@ -150,6 +150,13 @@
               </div>
             </div>
             <div class="stat">
+              <va-icon name="access_time" />
+              <div>
+                <span class="stat-value">{{ formatExactDateTime(job.createdAt) }}</span>
+                <span class="stat-label">Fecha y Hora Exacta</span>
+              </div>
+            </div>
+            <div class="stat">
               <va-icon name="info" />
               <div>
                 <span class="stat-value">{{ job.status }}</span>
@@ -214,6 +221,19 @@ const formatDate = (dateString) => {
   if (days === 1) return 'Ayer'
   if (days < 7) return `Hace ${days} días`
   return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+const formatExactDateTime = (dateString) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }) + ' ' + date.toLocaleTimeString('es-ES', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
 }
 </script>
 
