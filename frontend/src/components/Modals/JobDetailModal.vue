@@ -98,22 +98,22 @@
 
       <!-- Footer -->
       <div class="modal-footer">
-        <button class="btn btn-secondary" @click="close">Cerrar</button>
+        <button class="btn btn-secondary" @click="close">Cerrar Modal</button>
         <button
           v-if="job.status === 'active'"
           class="btn btn-danger"
-          @click="$emit('close-job')"
+          @click="$emit('deactivate-job')"
         >
-          <va-icon name="close" />
-          Cerrar Anuncio
+          <va-icon name="visibility_off" />
+          Desactivar Anuncio
         </button>
         <button
           v-else
           class="btn btn-success"
-          @click="$emit('reopen-job')"
+          @click="$emit('activate-job')"
         >
-          <va-icon name="check_circle" />
-          Reabrir Anuncio
+          <va-icon name="visibility" />
+          Activar Anuncio
         </button>
       </div>
     </div>
@@ -134,7 +134,7 @@ defineProps({
   }
 })
 
-defineEmits(['close', 'close-job', 'reopen-job'])
+defineEmits(['close', 'deactivate-job', 'activate-job'])
 
 const close = () => {
   emit('close')

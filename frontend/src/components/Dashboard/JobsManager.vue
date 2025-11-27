@@ -6,8 +6,8 @@
       :visible="showDetailModal"
       :job="selectedJob || {}"
       @close="showDetailModal = false"
-      @close-job="closeJob"
-      @reopen-job="reopenJob"
+      @deactivate-job="deactivateJob"
+      @activate-job="activateJob"
     />
     <!-- Header -->
     <div class="manager-header">
@@ -101,8 +101,8 @@
             :class="job.status === 'active' ? 'close' : 'reopen'"
             @click="toggleJobStatus(job)"
           >
-            <va-icon :name="job.status === 'active' ? 'close' : 'check_circle'" />
-            {{ job.status === 'active' ? 'Cerrar' : 'Reabrir' }}
+            <va-icon :name="job.status === 'active' ? 'visibility_off' : 'visibility' " />
+            {{ job.status === 'active' ? 'Desactivar' : 'Activar' }}
           </button>
           <button class="action-btn delete" title="Eliminar" @click="deleteJob(job)">
             <va-icon name="delete" />
@@ -344,8 +344,9 @@ const duplicateJob = async (job) => {
 const toggleJobStatus = async (job) => {
   try {
     const newStatus = job.status === 'active' ? 'closed' : 'active'
+    const action = newStatus === 'active' ? 'Activando' : 'Desactivando'
     notify({
-      message: `${newStatus === 'active' ? 'Reabriendo' : 'Cerrando'} trabajo...`,
+      message: `${action} anuncio...`,
       color: 'info'
     })
 
@@ -361,12 +362,13 @@ const toggleJobStatus = async (job) => {
     const data = await response.json()
 
     if (!response.ok) {
-      throw new Error(data.message || 'Error al actualizar estado')
+      throw new Error(data.message || 'Error al actualizar anuncio')
     }
 
     job.status = newStatus
+    const result = newStatus === 'active' ? 'Anuncio activado' : 'Anuncio desactivado'
     notify({
-      message: `✓ Estado actualizado a ${newStatus === 'active' ? 'Activo' : 'Cerrado'}`,
+      message: `✓ ${result} exitosamente`,
       color: 'success'
     })
   } catch (err) {
@@ -415,12 +417,12 @@ const deleteJob = async (job) => {
   }
 }
 
-const closeJob = async () => {
+const deactivateJob = async () => {
   if (!selectedJob.value) return
 
   try {
     notify({
-      message: 'Cerrando oferta...',
+      message: 'Desactivando anuncio...',
       color: 'info'
     })
 
@@ -436,7 +438,7 @@ const closeJob = async () => {
     const data = await response.json()
 
     if (!response.ok) {
-      throw new Error(data.message || 'Error al cerrar oferta')
+      throw new Error(data.message || 'Error al desactivar anuncio')
     }
 
     // Actualizar en lista
@@ -448,13 +450,13 @@ const closeJob = async () => {
     selectedJob.value.status = 'closed'
 
     notify({
-      message: '✓ Oferta cerrada exitosamente',
+      message: '✓ Anuncio desactivado exitosamente',
       color: 'success'
     })
 
     showDetailModal.value = false
   } catch (err) {
-    console.error('Error closing job:', err)
+    console.error('Error deactivating job:', err)
     notify({
       message: `Error: ${err.message}`,
       color: 'danger'
@@ -462,12 +464,12 @@ const closeJob = async () => {
   }
 }
 
-const reopenJob = async () => {
+const activateJob = async () => {
   if (!selectedJob.value) return
 
   try {
     notify({
-      message: 'Reabriendo oferta...',
+      message: 'Activando anuncio...',
       color: 'info'
     })
 
@@ -483,7 +485,7 @@ const reopenJob = async () => {
     const data = await response.json()
 
     if (!response.ok) {
-      throw new Error(data.message || 'Error al reabrir oferta')
+      throw new Error(data.message || 'Error al activar anuncio')
     }
 
     // Actualizar en lista
@@ -495,13 +497,13 @@ const reopenJob = async () => {
     selectedJob.value.status = 'active'
 
     notify({
-      message: '✓ Oferta reabierta exitosamente',
+      message: '✓ Anuncio activado exitosamente',
       color: 'success'
     })
 
     showDetailModal.value = false
   } catch (err) {
-    console.error('Error reopening job:', err)
+    console.error('Error activating job:', err)
     notify({
       message: `Error: ${err.message}`,
       color: 'danger'
