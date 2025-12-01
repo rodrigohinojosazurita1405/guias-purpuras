@@ -1695,3 +1695,279 @@ mockCV = {
 7. Búsqueda/Filtrado avanzado
 8. Notificaciones en tiempo real
 9. Admin dashboard mejorado (Jazzmin)
+
+---
+
+## 🆕 TAREAS PENDIENTES PARA EMPRESA (Sesión 16 en adelante)
+
+**Descripción**: Implementar las funcionalidades faltantes en el dashboard de empresa según Point 4 del roadmap
+
+### PENDIENTE 1: Mis Órdenes (COMPRAS DE PLANES)
+**Prioridad**: 🔴 CRÍTICA | **Estimado**: 3-4 horas | **Estado**: 0%
+
+#### 1.1 Backend Django (jobs/models.py + api)
+- [ ] Modelo `PlanOrder` con campos:
+  - user (FK a CustomUser - empresa)
+  - plan (FK a Plan)
+  - invoice_number (CharField unique - número de factura)
+  - nit (CharField - NIT de la empresa)
+  - razon_social (CharField - Razón social de la empresa)
+  - ci (CharField - CI del representante)
+  - amount_paid (DecimalField - monto pagado)
+  - payment_proof (ImageField - comprobante de pago)
+  - order_date (DateTimeField - cuando se hizo el pedido)
+  - electronic_invoice_sent_date (DateTimeField - cuando se envió la factura electrónica)
+  - electronic_invoice_email (EmailField - email donde se envió)
+  - electronic_invoice_whatsapp (CharField - WhatsApp donde se envió, opcional)
+  - status (CharField: PENDING/PAID/INVOICE_SENT/COMPLETED)
+  - company_data (JSONField - datos del SummaryCard al momento de compra)
+  - created_at, updated_at
+
+- [ ] Endpoints API:
+  - `GET /api/orders/me` - Mis órdenes de compra
+  - `GET /api/orders/:id` - Detalle de orden específica
+  - `GET /api/orders/invoices/:id/download` - Descargar factura electrónica PDF
+  - `POST /api/orders/:id/resend-invoice` - Reenviar factura a email/WhatsApp
+
+#### 1.2 Frontend - OrdersList.vue (en /dashboard/jobs)
+- [ ] Tabla de mis órdenes con columnas:
+  - Plan (nombre y precio)
+  - Fecha de compra
+  - Número de factura
+  - Estado (badge: Pendiente/Pagado/Factura Enviada/Completado)
+  - NIT y Razón Social
+  - Acciones: Ver, Descargar Factura, Reenviar
+
+- [ ] Card de orden:
+  ```
+  ┌───────────────────────────────────┐
+  │ Plan Púrpura - Bs. 79             │ ✓ PAGADO
+  │ Factura #INV-2025-001234          │
+  │ Comprado: 25 nov 2025             │
+  │                                    │
+  │ NIT: 123456789-1                   │
+  │ Razón Social: Tech Solutions S.R.L │
+  │ CI: 7123456                        │
+  │                                    │
+  │ Factura electrónica enviada:       │
+  │ Email: empresa@example.com         │
+  │ WhatsApp: +591 76543210            │
+  │ Fecha: 25 nov 2025, 14:30          │
+  │                                    │
+  │ [Ver Detalle] [Descargar] [Reenviar] │
+  └───────────────────────────────────┘
+  ```
+
+#### 1.3 Frontend - OrderDetail.vue (Modal o página)
+- [ ] Mostrar:
+  - Información del plan (nombre, precio, duración, características)
+  - Datos de la empresa (NIT, Razón Social, CI, email, teléfono)
+  - Datos del comprobante de pago (imagen + vista previa)
+  - Número de factura
+  - Fecha de compra y fecha de factura electrónica enviada
+  - Email/WhatsApp donde se envió la factura
+  - Botones: Descargar Factura, Reenviar Factura, Volver
+
+#### 1.4 Datos Dummy para Testing
+```javascript
+mockOrders = [
+  {
+    id: "order-001",
+    plan: {
+      id: "plan-1",
+      name: "Plan Púrpura",
+      label: "Púrpura - Bs. 79",
+      price: 79,
+      currency: "BOB",
+      durationDays: 30,
+      maxAnnouncements: 5,
+      features: ["Destacado", "Recomendado", "Soporte prioritario"]
+    },
+    invoiceNumber: "INV-2025-001234",
+    nit: "123456789-1",
+    razonSocial: "Tech Solutions S.R.L",
+    ci: "7123456",
+    amountPaid: 79,
+    paymentProof: "path/to/payment.jpg",
+    orderDate: "2025-11-25T10:30:00Z",
+    electronicInvoiceSentDate: "2025-11-25T14:30:00Z",
+    electronicInvoiceEmail: "empresa@example.com",
+    electronicInvoiceWhatsapp: "+591 76543210",
+    status: "COMPLETED",
+    companyData: {
+      companyName: "Tech Solutions S.R.L",
+      nit: "123456789-1",
+      email: "empresa@example.com",
+      phone: "+591 76543210"
+    }
+  }
+]
+```
+
+#### 1.5 Integración con Payment Flow
+- [ ] Cuando se completa compra en PlanStep/PublishView:
+  - Backend crea PlanOrder con datos del SummaryCard
+  - Genera número de factura automático
+  - Guarda comprobante de pago
+  - Envía factura electrónica a email/WhatsApp
+  - Marca como COMPLETED
+
+#### 1.6 Sincronización Frontend-Backend
+- [ ] usePlanOrderStore.js (Pinia Store):
+  - loadOrders() - obtener mis órdenes
+  - getOrderDetail(orderId)
+  - downloadInvoice(orderId)
+  - resendInvoice(orderId, channels=['email', 'whatsapp'])
+
+---
+
+### PENDIENTE 2: Bloqueos (Bloquear Postulantes)
+**Prioridad**: 🟡 MEDIA | **Estimado**: 2-3 horas | **Estado**: 0%
+
+#### 2.1 Backend Django (jobs/models.py + api)
+- [ ] Modelo `BlockedUser` con campos:
+  - company (FK a CustomUser - empresa que bloquea)
+  - blocked_user (FK a CustomUser - postulante bloqueado)
+  - reason (CharField: SPAM/UNQUALIFIED/OTHER - opcional)
+  - reason_notes (TextField - notas adicionales)
+  - blocked_at (DateTimeField)
+  - blocked_until (DateTimeField - null si es indefinido)
+  - is_permanent (BooleanField)
+
+- [ ] Endpoints API:
+  - `POST /api/blocked-users/block` - Bloquear postulante
+    ```
+    POST /api/blocked-users/block
+    {
+      blocked_user_id: "user-123",
+      reason: "SPAM",
+      reason_notes: "Envía múltiples aplicaciones de baja calidad",
+      is_permanent: true
+    }
+    ```
+  - `GET /api/blocked-users/me` - Mi lista de bloqueados
+  - `DELETE /api/blocked-users/:id` - Desbloquear
+  - `GET /api/blocked-users/check/:userId` - Verificar si usuario está bloqueado
+
+- [ ] Validación en endpoints de aplicación:
+  - Antes de permitir aplicación, verificar:
+    ```python
+    if BlockedUser.is_blocked(applicant_user, company_user):
+        return 403 "No puedes aplicar a esta empresa"
+    ```
+
+#### 2.2 Frontend - BlockedUsersList.vue (en /dashboard/blocked)
+- [ ] Tabla/lista de usuarios bloqueados con columnas:
+  - Nombre del postulante
+  - Email
+  - Motivo del bloqueo
+  - Fecha de bloqueo
+  - Duración (si es temporal)
+  - Acciones: Ver Notas, Desbloquear
+
+- [ ] Card de usuario bloqueado:
+  ```
+  ┌────────────────────────────────┐
+  │ Juan Pérez                     │ 🚫 BLOQUEADO
+  │ juan.perez@example.com         │
+  │                                │
+  │ Motivo: SPAM                   │
+  │ Notas: Envía múltiples apps... │
+  │ Bloqueado: 20 nov 2025         │
+  │ Duración: Permanente           │
+  │                                │
+  │ [Ver CV] [Desbloquear]         │
+  └────────────────────────────────┘
+  ```
+
+#### 2.3 Frontend - BlockUserModal.vue
+- [ ] Modal para bloquear postulante con campos:
+  - Campo de búsqueda: "Selecciona postulante"
+  - Radio buttons: Temporal / Permanente
+  - Select: Motivo (SPAM, UNQUALIFIED, OTHER)
+  - TextArea: Notas adicionales
+  - DatePicker: Si es temporal, hasta cuándo
+  - Botones: Bloquear, Cancelar
+
+- [ ] Trigger:
+  - Botón "Bloquear" en ApplicationDetail de cada postulante
+  - O acceder desde /dashboard/blocked → "Agregar Bloqueo"
+
+#### 2.4 Integración en ApplicationDetail.vue
+- [ ] Cuando empresa visualiza postulante, agregar:
+  - Botón "Bloquear este postulante" (si no está bloqueado)
+  - O badge "Bloqueado" (si ya está bloqueado)
+  - Link rápido para desbloquear con confirmación
+
+#### 2.5 Datos Dummy para Testing
+```javascript
+mockBlockedUsers = [
+  {
+    id: "blocked-001",
+    blockedUser: {
+      id: "user-456",
+      name: "Carlos Spam",
+      email: "carlos.spam@example.com"
+    },
+    reason: "SPAM",
+    reasonNotes: "Envía 10+ aplicaciones en 1 hora a todos los anuncios",
+    blockedAt: "2025-11-20T10:30:00Z",
+    blockedUntil: null,
+    isPermanent: true
+  },
+  {
+    id: "blocked-002",
+    blockedUser: {
+      id: "user-789",
+      name: "Andrea NoCalif",
+      email: "andrea@example.com"
+    },
+    reason: "UNQUALIFIED",
+    reasonNotes: "No cumple requisitos mínimos (sin experiencia)",
+    blockedAt: "2025-11-15T14:15:00Z",
+    blockedUntil: "2025-12-15T14:15:00Z",
+    isPermanent: false
+  }
+]
+```
+
+#### 2.6 Sincronización Frontend-Backend
+- [ ] useBlockedUsersStore.js (Pinia Store):
+  - loadBlockedUsers() - obtener mi lista de bloqueados
+  - blockUser(userId, reason, notes, isPermanent)
+  - unblockUser(blockedUserId)
+  - checkIfBlocked(userId) - usado para validación
+
+---
+
+## 📊 RESUMEN - COMPANY DASHBOARD PENDIENTE
+
+### Status Actual (Sesión 16)
+```
+✅ Perfil Empresa           - COMPLETADO
+✅ Mis Anuncios            - COMPLETADO (JobsManager funcional)
+✅ Solicitudes Recibidas   - COMPLETADO (ApplicationsList para empresa)
+✅ Candidatos Guardados    - COMPLETADO (SavedCandidates)
+✅ Registro de Actividad   - COMPLETADO (ActivityLog)
+✅ Mensajes                - COMPLETADO (Mensajería básica)
+⏳ Mis Órdenes            - PENDIENTE (3-4h)
+⏳ Bloqueos                - PENDIENTE (2-3h)
+```
+
+### Estimación Total
+- **Mis Órdenes**: 3-4 horas
+- **Bloqueos**: 2-3 horas
+- **Total**: ~6 horas = menos de 1 día full-time
+
+### Orden Recomendado de Implementación
+
+**Sprint 1** (Hoy):
+1. Mis Órdenes (modelo + endpoints + UI)
+2. Bloqueos (modelo + endpoints + UI)
+
+**Sprint 2** (Después):
+- Integración con payment flow
+- Pruebas exhaustivas
+- Refinamiento UI/UX
+
+---
