@@ -7,7 +7,7 @@ FASE 1: Wizard de Publicación              ✅ 100% COMPLETADA (5 pasos funcion
 FASE 1.1: Preguntas de Filtrado            ✅ 100% COMPLETADA (Edición + CRUD)
 FASE 1.2: Formulario Aplicación Candidato  ✅ 100% COMPLETADA (ApplicationProcess funcional)
 FASE 2: Flujo de Publicación Completo      ✅ 100% COMPLETADA (Backend integrado)
-FASE 3: Búsqueda y Filtrado                ⏳ 0% (PENDIENTE)
+FASE 3: Búsqueda y Filtrado GuideView      ⏳ 0% (PENDIENTE)
 FASE 3.6: Autenticación Real               ✅ 100% COMPLETADA
 FASE 4: Perfiles de Usuario                ✅ 100% COMPLETADA + FOTO CRUD ✅
 FASE 5: Perfiles de Empresa                ✅ 100% COMPLETADA (CRUD + CRUD fotos)
@@ -17,9 +17,112 @@ FASE 7.1: Validación de Pago               ✅ 100% COMPLETADA (Anuncios sin er
 FASE 7.2: Configuración de Aplicación      ✅ 100% COMPLETADA (Campos condicionales)
 FASE 7.3: Gestión de Anuncios              ⏳ 70% (JobsManager mostrado, botones pendientes)
 FASE 7.4: Aplicaciones a Anuncios          ⏳ 0% (PENDIENTE)
-FASE 7.5: Dashboard de Publicador          ⏳ 0% (PENDIENTE)
-FASE 8: Dashboard Admin                    ⏳ 0% (PENDIENTE)
-FASE 9: Dashboard Multi-Rol                ⏳ 0% (PLANIFICADA)
+
+!CLAUDE ESTO ES MUY IMPORTANTE UPDATE DATE 01/12/2025¡
+
+**** OBSERVACIONES CRITICAS DEL USURIARIO DEV RODRIGO - CEO DE GUIAS PURPURAS BOLIVIA *****
+*NOTA* tu como dev Senior debes mejorar estas observaciones criticas de la mejor forma posible.
+
+1.- actualmente el loguin es generico, sin embargo deberia mejorarse, un login y registro exclusivo para postulantes
+y otro login y registro exclusivo para EMPRESAS  (en nuestra mpv estamos enfocados en guias de trabajos) pero el perfil de empresas
+deberia soportar las demas guias, gatronomicas, negocios y profesionales.
+
+2. Los planes deben actualizarse (src/components/Publish/PlanStep) -> con los planes de deje en .claude/planesupdate.png 
+
+3.- El usuario registrado como Postulante solo deber visualizar en su dasboard cosas limitadas: 
+Disebar Menu: Perfil Personal, CV (CRUD solo puede tener hasta 2 cv como maximo), Postulaciones, Aplicar, Guardado o Favorito, Mensajes, Registro de actividad o historial. Los anuncios a los que el postulante postulo -> (debe incluir badgets como postulacion cerrada cuando se venza el plazo del anuncio, o bien el reclutador ya haya cerrado y/o eliminado el anuncio.)
+
+4.- Usuario Registrado como Perfil Empresa solo deber visualizar en su dasboard lo siguiente: 
+Disebar Menu: Perfil Empresa, mis anuncios, solicitudes recibidas, candidatos guardados,registro de actividad,mensajes, mis ordenes ( aqui se debe mostrar aqui el detalle del plan que adquirio para la emision de su factura tambien incluir datos que el usuario envio al final del sumarycard, asi como la fecha de envio de su factura electronica a su email o wthasp el nit, razon social ci entre otros datos),  bloqueos (para bloquear algun postulante), 
+
+5.- Actualmente hay un boton en home de publicar anuncio, debe eliminarse y solo se deberia poder publicar una vez registrado
+el usuario como Perfil Empresa o Perfil Postulante, tambien debe forzar al usuario a llenar los datos de sus perfiles siendo obligatorio la foto del perfil en especial en perfil Empresa, esto nos ayudara en la visualizacion de su logo en los anuncios
+de forma automatica. tanto en el SumaryCard/GuideView.
+
+6.- Se debe pulir y mejorar el JobsManager.vue btns de edicion colores solidos y mejor estilizados, ademas de añadir un btn tipo  Switch en la opcion de activar o desactivar anuncio tipo facebookAds, el btn editar deberia mostrar 
+una ventana tipo modal sobre el mismo dasboard que permita al usuario editar su anuncio, de forma limitada solo datos realmente importantes,actualmente es redirigido al InformationStepJob -> lo cual es incorrecto.
+
+7.- El GuideView deberá mostrar entre los primeros puestos, los anuncios con badget Recomendado y Destacado segun 
+los dias de anclado en la web todo segun lo planteado en el PlanStep.
+
+8.- El JobDetailView debe quedar sincronizado con toas las caracteristicas el anuncio en cuestion. Se debe realizar test de sicronizacion tanto en la DB, endpoints, y Django. Se debe mejorar la apariencia visual que en la actualidad se ve muy mala. El usuario registrado como Postulante debe tener la capacidad de poder guardar Anuncio de empleos en su dasboard. la opcion compartir debe permitir compartir ese empleo en cualquier red social mediante el enlace generado, ademas el btn quiero postularme no redirecciona al Forms/Process/AplicationProcess/Candidate/Manager/CvFormWizard (esto deber verificarse a detalle), por ultimo el JobDetailView podria mostrar anuncios similares al postulante, esto con fines de marketing cross-selling.
+
+9.- Se debe Trabajar mas en Admin Django, Instalar Jazzmin para mejorar la apariencia visual, mejorar los badgets en toda forma con
+tonalidades mas bajas y textos reducidos pero legibles, ademas de implementar las siguientes mejoras:
+para esto deberás configurar en Jazzmin en mi proyecto para mejorar el admin de mi app 'jobs''plans', 
+Debes crear un esquema completo de `JAZZMIN_SETTINGS` en `settings.py` que cumpla con lo siguiente: (nota tu debes analizar
+mejor que yo este apartado, para esto deberas comparar las funcionalidades ya hechas con las que te presento.)
+
+1. Branding:
+   - Título del sitio: "Guías Púrpuras Admin"
+   - Encabezado: "Guías Púrpuras"
+   - Mensaje de bienvenida: "Bienvenido al panel de administración"
+   - Colores corporativos: (mantener el color dark de jazzmin por defecto)
+   - Logo personalizado en la esquina superior izquierda (se encuentra en assets/guiaspurpuras.ico).
+
+2. Menús anidados:
+   - Dropdown "Gestión de Trabajos" con enlaces a:
+     - Ofertas de trabajo pendientes → `admin:jobs_job_changelist` + usernma (debe mostrar tambien el usuerio registrado que    publica el anuncio y tambien sus datos personales para saber quien publicó)
+     - Ofertas de trabajo activas → `admin:jobs_job_changelist`
+     - Ofertas de trabajo por vencer y concluidos → `admin:jobs_job_changelist`
+     - crud Categorías → `admin:jobs_category_changelist`--> actualmente harcodeados
+     - crud Sub-categorías → `admin:jobs_subcategory_changelist` --> actualmente harcodeados
+     - Postulaciones → `admin:jobs_application_changelist`
+     - Empresas → `admin:jobs_company_changelist`
+(actualmente gestion de trabajos esta en una sola pagina de forma caotica)
+
+   - Dropdown "Reportes" con enlaces a vistas personalizadas:
+     - Estadísticas de publicaciones → `/admin/jobs/reports/publications`
+     - Postulaciones por oferta → `/admin/jobs/reports/applications`
+     - Conversiones → `/admin/jobs/reports/conversions`
+
+    - Dropdown "Gestión de Usuarios" con enlaces a:
+        - Usuarios activos → `admin:auth_user_changelist` filtrado por `is_active=True`.
+        - Usuarios bloqueados → `admin:auth_user_changelist` filtrado por `is_active=False`.
+        - Usuarios inactivos→ `admin:auth_user_changelist` filtrado por `is_active=False`.
+        - Perfiles de postulantes → `admin:jobs_candidateprofile_changelist`.
+        - Perfiles de empresas → `admin:jobs_companyprofile_changelist`.
+
+    - Dropdown "Reportes de Usuarios" con enlaces a vistas personalizadas:
+        - Estadísticas de registros → `/admin/users/reports/registrations`
+        - Distribución por roles (postulante vs empresa) → `/admin/users/reports/roles`
+        - Usuarios activos por mes → `/admin/users/reports/active`
+
+3. Funcionalidad:
+   - Menú lateral expandido por defecto.
+   - Íconos FontAwesome: maletín (`fas fa-briefcase`) para trabajos y gráfico (`fas fa-chart-line`) para reportes.
+   - Habilitar `show_ui_builder` para poder ajustar colores en tiempo real.
+ 
+4. Extra:
+   - Organiza los menús de forma clara y profesional.
+   - No romper ninguna funcionalidad del `ModelAdmin` existente.
+  
+
+5. Funcionalidad:
+   - No romper el `ModelAdmin` existente.
+   - Asegúrate de que los reportes y “Mis anuncios” estén listos para conectarse con vistas personalizadas en `jobs/admin.py`.
+   - En `JobAdmin`, implementa `get_urls` para añadir la ruta `/my_ads/` que filtre los anuncios según el usuario logueado.
+
+Genera:
+- El modelo `CustomUser` con roles.
+- Los modelos `CandidateProfile` y `CompanyProfile`.
+- El bloque completo de `JAZZMIN_SETTINGS` listo para `settings.py`.
+Modelo de usuario:
+   - Usa un `CustomUser` que extienda `AbstractUser`.
+   - Añade un campo `role` con opciones: "candidate" (postulante) y "company" (empresa).
+   - Mantén un único registro de usuario, pero diferenciado por rol.
+
+Perfiles:
+   - Crea `CandidateProfile` con campos: CV (archivo), habilidades, historial de postulaciones.
+   - Crea `CompanyProfile` con campos: nombre de empresa, NIT, sector, verificación.
+   - Ambos perfiles deben estar vinculados con `OneToOneField` al usuario.
+
+6.- Actualmente las categorias y sub categorias son harcodeadas, el admin de django deberia tener la capacidad de relaizar un crud sobre estos.
+
+7.- Se debe Aplicar cambios similares en la app Plans
+
+ ***** nota final podrias añadir estas mejoras como nuevas fases **********
+*end*
 
 MEJORAS RECIENTES (Sesión 10 - ACTUAL):
 - ✅ Emojis removidos de PublishSuccessModal.vue (diseño profesional)
@@ -33,9 +136,7 @@ MEJORAS RECIENTES (Sesión 10 - ACTUAL):
 - 🔧 5 bugs críticos solucionados
 - 📋 Roadmap actualizado con progreso FASE 7.3
 ```
-
 ---
-
 ## ✅ COMPLETADO EN ESTA SESIÓN (Sesión 10 - FASE 7 Mostrar Anuncios + Preparación FASE 7.3)
 
 ### FASE 7.3: Gestión de Anuncios - PROGRESO 70% ✅
@@ -1176,10 +1277,11 @@ Error: #EF4444 (Red)
     - ✅ FASE 1: 95% completada (Paso 3 + Preguntas filtrado funcionales)
     - ✅ FASE 7: 100% completada (Planes + PublishFlow completos)
     - ✅ FASE 7.3: 100% COMPLETADA (Botones JobsManager + Auditoría + Modal datos completos)
+    - ✅ FASE 9 Sprint 1: 100% COMPLETADA (Sistema Multi-Rol Fundación)
     - ✅ Sistema de Planes: 100% funcional y dinámico
     - 📋 FASE 1.2: Planificada y documentada
     - 📋 FASE 2: Esperando backend
-    - 📋 FASE 9: Planificada y documentada
+    - 📋 FASE 9 Sprint 2-3: Aplicaciones y Postulaciones
 
 ---
 
@@ -1261,3 +1363,335 @@ Error: #EF4444 (Red)
 **Prioridad**: 🟡 Media (antes de FASE 3 completa)
 **Tiempo estimado**: 1-2 horas
 **Bloqueador**: No afecta FASE 7.3, se puede hacer en paralelo
+
+---
+
+## 🆕 TAREAS PENDIENTES PARA POSTULANTE (Sesión 15 en adelante)
+
+**Descripción**: Implementar las funcionalidades faltantes en el dashboard de postulante
+
+### PENDIENTE 1: CV Manager (FASE 6 - CRITICAL)
+**Prioridad**: 🔴 ALTA | **Estimado**: 4-5 horas | **Estado**: 0%
+
+#### 1.1 Backend Django (jobs/models.py + api)
+- [ ] Modelo `CV` con campos:
+  - user (FK a CustomUser)
+  - title (CharField: "CV Principal", "CV Alterno", etc)
+  - content (JSONField o TextField - Formato Harvard)
+  - file (FileField - PDF/DOCX opcional)
+  - is_default (BooleanField - CV usado en aplicaciones)
+  - created_at, updated_at
+  - completeness_percentage (auto-calculado)
+
+- [ ] Endpoints API:
+  - `POST /api/cv/create` - Crear nuevo CV
+  - `GET /api/cv/me` - Obtener todos mis CVs
+  - `GET /api/cv/:id` - Obtener CV específico
+  - `PATCH /api/cv/:id` - Editar CV (por secciones)
+  - `DELETE /api/cv/:id` - Eliminar CV
+  - `POST /api/cv/:id/set-default` - Marcar como default
+  - `POST /api/cv/:id/upload-file` - Upload PDF/DOCX
+  - `GET /api/cv/:id/completeness` - % completitud
+
+#### 1.2 Frontend - CVManager.vue
+- [ ] Component que muestre:
+  - Lista de CVs (máximo 2)
+  - Botones: Ver, Editar, Descargar, Eliminar
+  - Badge "Default" en CV principal
+  - Opción para crear nuevo CV
+  - Card mostrando % completitud de cada CV
+
+#### 1.3 Frontend - CVFormWizard.vue (Refactorizado a Formato Harvard)
+- [ ] 5 pasos con validación:
+  1. **Información Personal**
+     - Nombre, Email, Teléfono, Dirección
+     - LinkedIn, Portfolio URL
+     - Foto de perfil
+
+  2. **Educación**
+     - Institución, Grado, Carrera
+     - Fecha inicio/fin, GPA
+     - Campos adicionales, Logros
+
+  3. **Experiencia Laboral**
+     - Empresa, Cargo, Tipo (Full-time/Part-time/etc)
+     - Fecha inicio/fin, Ubicación
+     - Descripción (max 500 chars)
+     - Logros (bullet points máximo 5)
+
+  4. **Habilidades & Idiomas**
+     - Skills técnicas (tags seleccionables)
+     - Idiomas con nivel (Básico/Intermedio/Avanzado/Fluido)
+     - Certificaciones relevantes
+
+  5. **Referencias**
+     - Contactos profesionales (nombre, cargo, email, teléfono)
+     - Máximo 3 referencias
+
+- [ ] Features:
+  - Auto-save en cada step
+  - Preview en tiempo real formato Harvard
+  - Validación de campos requeridos por step
+  - Progreso visual (60%, 80%, 100%)
+  - Botón "Usar este CV en aplicación"
+
+#### 1.4 Datos Dummy para Testing
+```javascript
+mockCV = {
+  title: "CV Principal",
+  personalInfo: {
+    name: "María Varquera",
+    email: "maria@example.com",
+    phone: "+591 76543210",
+    location: "La Paz, Bolivia",
+    linkedin: "linkedin.com/in/mariavarquera",
+    profilePhoto: null
+  },
+  education: [
+    {
+      institution: "Universidad Mayor de San Andrés",
+      degree: "Licenciada",
+      field: "Ingeniería de Sistemas",
+      startDate: "2018-01-01",
+      endDate: "2022-12-31",
+      gpa: 3.8
+    }
+  ],
+  experience: [
+    {
+      company: "Tech Company Bolivia",
+      position: "Desarrolladora Frontend",
+      type: "full-time",
+      startDate: "2023-01-01",
+      endDate: null,
+      location: "La Paz",
+      description: "Desarrollo de aplicaciones Vue.js",
+      achievements: ["Rediseñé dashboard", "Optimicé performance 40%"]
+    }
+  ],
+  skills: ["Vue.js", "JavaScript", "CSS", "Git", "REST APIs"],
+  languages: [
+    { language: "Español", level: "fluent" },
+    { language: "English", level: "advanced" }
+  ],
+  references: [],
+  completeness: 75
+}
+```
+
+---
+
+### PENDIENTE 2: Applications Manager (FASE 1.2 + FASE 9 Sprint 2)
+**Prioridad**: 🔴 ALTA | **Estimado**: 3-4 horas | **Estado**: 0%
+
+#### 2.1 Backend Django
+- [ ] Modelo `Application` con campos:
+  - job (FK a Job)
+  - applicant (FK a CustomUser)
+  - cv_used (FK a CV - opcional)
+  - status (CharField: APPLIED/REVIEWED/SHORTLISTED/REJECTED/ACCEPTED/WITHDRAWN)
+  - answers (JSONField - respuestas a preguntas de filtrado)
+  - created_at, updated_at
+  - accepted_date (si status=ACCEPTED)
+
+- [ ] Endpoints API:
+  - `POST /api/applications/create` - Crear postulación
+  - `GET /api/applications/me` - Mis postulaciones
+  - `GET /api/applications/job/:id` - Postulaciones de un anuncio (empresa)
+  - `PATCH /api/applications/:id/status` - Cambiar estado (empresa)
+  - `POST /api/applications/:id/withdraw` - Retirar postulación (postulante)
+  - `GET /api/applications/:id/messages` - Mensajes de una postulación
+
+#### 2.2 Frontend - ApplicationsManager.vue (Para Postulante)
+- [ ] Mostrar tabla/lista de mis postulaciones:
+  - Anuncio (título, empresa, fecha)
+  - Estado (color-coded badge: Aplicado/Revisado/Preseleccionado/Rechazado)
+  - Acciones: Ver, Retirar
+  - Filtros por estado
+  - Búsqueda por título/empresa
+  - Sorting por fecha reciente
+
+- [ ] Card de postulación:
+  ```
+  ┌─────────────────────────────┐
+  │ Desarrollador Frontend React │ 🟢 PRESELECCIONADO
+  │ Tech Solutions Bolivia       │
+  │ La Paz • 3 días ago          │
+  │                              │
+  │ [Ver] [Retirar] [Mensajes]   │
+  └─────────────────────────────┘
+  ```
+
+#### 2.3 Frontend - ApplicationDetail.vue (Modal/Página)
+- [ ] Mostrar:
+  - Datos del anuncio completo
+  - Fecha de aplicación
+  - Estado actual con timeline:
+    `Aplicado (15 dic) → Revisado (18 dic) → Preseleccionado (20 dic)`
+  - Mensajes del reclutador
+  - CV que usaste
+  - Botón "Retirar postulación"
+
+#### 2.4 States & Badges
+```
+🟢 APPLIED     (Verde claro)  - Acabas de aplicar
+🔵 REVIEWED    (Azul)         - Empresa revisó tu CV
+🟣 SHORTLISTED (Púrpura)      - ¡Pasaste a siguiente ronda!
+🔴 REJECTED    (Rojo)         - Lamentablemente rechazada
+⚫ WITHDRAWN   (Gris)         - Retiraste tu postulación
+⚪ ACCEPTED    (Verde oscuro) - ¡ACEPTADA!
+```
+
+---
+
+### PENDIENTE 3: Application Form (FASE 1.2 - cuando haga click en "Aplicar")
+**Prioridad**: 🟡 MEDIA | **Estimado**: 2-3 horas | **Estado**: 0%
+
+#### 3.1 Frontend - ProcessApplicationModal.vue
+- [ ] Modal que muestre:
+  1. Seleccionar CV a usar (o crear new)
+  2. Mostrar preguntas de filtrado del anuncio
+  3. Campos de respuesta dinámicos (text/radio/select según tipo)
+  4. Validar obligatoriedad
+  5. Botón "Enviar Postulación"
+  6. Confirmación de éxito
+
+#### 3.2 Features
+- [ ] Si CV < 70% completo → Alert "Completa tu CV primero"
+- [ ] Pre-llenar datos del CV automáticamente
+- [ ] Validación real-time de respuestas
+- [ ] Loading state durante envío
+
+---
+
+### PENDIENTE 4: Favoritos / Shortlist (Guardar Anuncios)
+**Prioridad**: 🟡 MEDIA | **Estimado**: 1-2 horas | **Estado**: Parcial (ya existe ruta)
+
+#### 4.1 Backend Django
+- [ ] Modelo `SavedJob` con campos:
+  - user (FK a CustomUser)
+  - job (FK a Job)
+  - saved_at (DateTimeField)
+
+- [ ] Endpoints API:
+  - `POST /api/saved-jobs/create` - Guardar anuncio
+  - `GET /api/saved-jobs/me` - Mis favoritos
+  - `DELETE /api/saved-jobs/:id` - Eliminar de favoritos
+
+#### 4.2 Frontend - SavedJobsList.vue (en /dashboard/shortlisted)
+- [ ] Lista de anuncios guardados
+- [ ] Cada card mostrar:
+  - Anuncio (título, empresa, ciudad)
+  - Botones: Ver, Aplicar, Eliminar de favoritos
+  - Fecha guardado
+  - Badge si ya has aplicado ("✓ Ya aplicaste")
+
+---
+
+### PENDIENTE 5: Perfil Personal Completo
+**Prioridad**: 🟡 MEDIA | **Estimado**: 2-3 horas | **Estado**: Parcial
+
+#### 5.1 Campos faltantes en UserProfile
+- [ ] Foto de perfil (obligatoria)
+- [ ] Teléfono
+- [ ] Bio/Resumen profesional
+- [ ] Ubicación
+- [ ] LinkedIn URL
+- [ ] Portfolio/Website
+
+#### 5.2 Frontend - UserProfileEdit.vue (Mejorado)
+- [ ] Agregar campos faltantes
+- [ ] Upload foto perfil con preview
+- [ ] Validación de URL (LinkedIn, Portfolio)
+- [ ] Indicador % completitud
+
+---
+
+### PENDIENTE 6: Mensajes (Chat) entre Postulante y Empresa
+**Prioridad**: 🟡 MEDIA | **Estimado**: 3-4 horas | **Estado**: 0%
+
+#### 6.1 Backend Django
+- [ ] Modelo `Message` con campos:
+  - sender (FK a CustomUser)
+  - recipient (FK a CustomUser)
+  - application (FK a Application - opcional)
+  - content (TextField)
+  - is_read (BooleanField)
+  - created_at
+
+- [ ] Endpoints API:
+  - `POST /api/messages/send` - Enviar mensaje
+  - `GET /api/messages/conversation/:userId` - Chat con usuario
+  - `GET /api/messages/inbox` - Mi bandeja
+  - `PATCH /api/messages/:id/mark-read` - Marcar como leído
+
+#### 6.2 Frontend - MessagesPage.vue
+- [ ] Bandeja de entrada (lista de conversaciones)
+- [ ] Chat window (conversación activa)
+- [ ] Indicador "online/offline" (si es realtime)
+- [ ] Notificaciones de mensajes nuevos
+
+---
+
+### PENDIENTE 7: Búsqueda y Filtrado de Anuncios (FASE 3)
+**Prioridad**: 🟢 BAJA | **Estimado**: 3-5 horas | **Estado**: Diseño existe, no datos reales
+
+#### 7.1 Backend Django
+- [ ] Endpoint `GET /api/jobs/search` con filtros:
+  - query (búsqueda por texto)
+  - city
+  - category
+  - contract_type
+  - salary_min/max
+  - modality (presencial/remoto/híbrido)
+  - posted_after (últimas 7 días)
+  - sort_by (relevant/recent/salary)
+  - page (paginación)
+
+#### 7.2 Frontend - GuideView.vue (Mejorado)
+- [ ] SearchBar funcional
+- [ ] FilterPanel dinámico
+- [ ] Resultados en tiempo real
+- [ ] Paginación
+- [ ] "No hay resultados" state
+- [ ] Guardar búsquedas favoritas
+
+---
+
+## 📊 RESUMEN - TAREAS PENDIENTES POR PRIORIDAD
+
+### 🔴 CRÍTICAS (Bloquean flujo de postulante):
+1. **CV Manager** (4-5h)
+2. **Applications Manager** (3-4h)
+3. **Application Form** (2-3h)
+
+**Total**: ~10-12 horas = 1.5 días full-time
+
+### 🟡 IMPORTANTES (Mejoran UX):
+4. **Perfil Personal Completo** (2-3h)
+5. **Favoritos/Shortlist** (1-2h)
+6. **Mensajes/Chat** (3-4h)
+
+**Total**: ~6-9 horas = 1 día full-time
+
+### 🟢 OPCIONALES (Marketing):
+7. **Búsqueda/Filtrado Avanzado** (3-5h)
+
+---
+
+## 🎯 RECOMENDACIÓN DE ORDEN DE IMPLEMENTACIÓN
+
+**Sprint 1** (Hoy/Mañana):
+1. CV Manager ✅
+2. Application Form ✅
+3. Applications Manager ✅
+
+**Sprint 2** (Después):
+4. Perfil Personal Completo
+5. Favoritos/Shortlist
+6. Mensajes básico
+
+**Sprint 3** (Polish):
+7. Búsqueda/Filtrado avanzado
+8. Notificaciones en tiempo real
+9. Admin dashboard mejorado (Jazzmin)
