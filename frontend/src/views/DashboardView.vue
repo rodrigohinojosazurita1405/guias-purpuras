@@ -62,6 +62,11 @@
         </div>
       </div>
 
+      <!-- Blocked Users Section (Company Only) -->
+      <div v-else-if="activeSection === 'blocked'" class="dashboard-section">
+        <BlockedUsersList :user-profile-id="userProfileId" />
+      </div>
+
       <!-- Placeholder Sections -->
       <div v-else class="dashboard-placeholder">
         <va-icon :name="getSectionIcon(activeSection)" size="3rem" color="purple" />
@@ -83,6 +88,7 @@ import DashboardHome from '@/components/Dashboard/DashboardHome.vue'
 import JobsManager from '@/components/Dashboard/JobsManager.vue'
 import MisOrdenes from '@/components/Dashboard/MisOrdenes.vue'
 import CandidatesView from '@/components/Dashboard/CandidatesView.vue'
+import BlockedUsersList from '@/components/Dashboard/BlockedUsersList.vue'
 
 // ========== COMPOSABLES ==========
 const route = useRoute()
