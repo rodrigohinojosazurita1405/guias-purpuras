@@ -81,28 +81,26 @@
           </router-link>
 
           <router-link
+            to="/dashboard/candidates"
+            class="menu-item"
+            :class="{ active: activeSection === 'candidates' }"
+          >
+            <va-icon name="people" />
+            <span>Solicitudes Recibidas</span>
+          </router-link>
+
+          <router-link
             to="/dashboard/jobs"
             class="menu-item"
             :class="{ active: activeSection === 'jobs' }"
           >
             <va-icon name="work" />
-            <span>Solicitudes Recibidas</span>
+            <span>Mis Órdenes</span>
           </router-link>
         </template>
 
         <!-- ========== SECCIÓN INTERACCIONES ========== -->
         <div class="menu-section-title">INTERACCIONES</div>
-
-        <!-- Candidatos Guardados: Solo para empresas -->
-        <router-link
-          v-if="authStore.user?.role === 'company'"
-          to="/dashboard/candidates"
-          class="menu-item"
-          :class="{ active: activeSection === 'candidates' }"
-        >
-          <va-icon name="people" />
-          <span>Candidatos Guardados</span>
-        </router-link>
 
         <!-- Favoritos: Solo para postulantes -->
         <router-link
@@ -124,7 +122,9 @@
           <span>Mensajes</span>
         </router-link>
 
+        <!-- Bloqueados: Solo para empresas -->
         <router-link
+          v-if="authStore.user?.role === 'company'"
           to="/dashboard/blocked"
           class="menu-item"
           :class="{ active: activeSection === 'blocked' }"
@@ -260,6 +260,10 @@ const updateActiveSection = () => {
     activeSection.value = 'jobs'
   } else if (path.includes('/candidates')) {
     activeSection.value = 'candidates'
+  } else if (path.includes('/cv')) {
+    activeSection.value = 'cv'
+  } else if (path.includes('/applications')) {
+    activeSection.value = 'applications'
   } else if (path.includes('/messages')) {
     activeSection.value = 'messages'
   } else if (path.includes('/users')) {

@@ -4,7 +4,7 @@
     <!-- Header -->
     <div class="section-header">
       <h2>Mis Órdenes</h2>
-      <p class="section-subtitle">Trabajos a los que has aplicado</p>
+      <p class="section-subtitle">Historial de compras de planes y facturas</p>
     </div>
 
     <!-- Filter Bar -->
