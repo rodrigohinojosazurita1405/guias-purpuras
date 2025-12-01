@@ -12,8 +12,8 @@
       </div>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="stats-grid">
+    <!-- Stats Grid - EMPRESA -->
+    <div v-if="authStore.user?.role === 'company'" class="stats-grid">
       <!-- Card: Publicaciones -->
       <div class="stat-card" @click="goToSection('jobs')">
         <div class="stat-icon jobs">
@@ -68,8 +68,64 @@
       </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="quick-actions">
+    <!-- Stats Grid - POSTULANTE -->
+    <div v-else-if="authStore.user?.role === 'applicant'" class="stats-grid">
+      <!-- Card: Mis Postulaciones -->
+      <div class="stat-card" @click="goToSection('applications')">
+        <div class="stat-icon applications">
+          <va-icon name="assignment" />
+        </div>
+        <div class="stat-content">
+          <h3>Mis Postulaciones</h3>
+          <div class="stat-number">{{ stats.totalApplications }}</div>
+          <p class="stat-subtitle">{{ stats.pendingApplications }} pendientes</p>
+        </div>
+        <va-icon name="arrow_forward" class="stat-arrow" />
+      </div>
+
+      <!-- Card: Favoritos -->
+      <div class="stat-card" @click="goToSection('shortlisted')">
+        <div class="stat-icon views">
+          <va-icon name="bookmark" />
+        </div>
+        <div class="stat-content">
+          <h3>Favoritos</h3>
+          <div class="stat-number">{{ stats.savedJobs }}</div>
+          <p class="stat-subtitle">Anuncios guardados</p>
+        </div>
+        <va-icon name="arrow_forward" class="stat-arrow" />
+      </div>
+
+      <!-- Card: Perfil Completado -->
+      <div class="stat-card" :class="{ incomplete: !stats.profileComplete }">
+        <div class="stat-icon profile" :class="{ incomplete: !stats.profileComplete }">
+          <va-icon :name="stats.profileComplete ? 'check_circle' : 'person'" />
+        </div>
+        <div class="stat-content">
+          <h3>Perfil</h3>
+          <div class="stat-number">{{ stats.profilePercentage }}%</div>
+          <p class="stat-subtitle" v-if="!stats.profileComplete">Completa tu perfil</p>
+          <p class="stat-subtitle" v-else>Perfil completo</p>
+        </div>
+        <va-icon name="arrow_forward" class="stat-arrow" />
+      </div>
+
+      <!-- Card: CV -->
+      <div class="stat-card" @click="goToSection('cv')">
+        <div class="stat-icon jobs">
+          <va-icon name="description" />
+        </div>
+        <div class="stat-content">
+          <h3>Mi CV</h3>
+          <div class="stat-number">{{ stats.cvCount }}</div>
+          <p class="stat-subtitle">CV creados</p>
+        </div>
+        <va-icon name="arrow_forward" class="stat-arrow" />
+      </div>
+    </div>
+
+    <!-- Quick Actions - EMPRESA -->
+    <div v-if="authStore.user?.role === 'company'" class="quick-actions">
       <h2>Acciones Rápidas</h2>
       <div class="actions-grid">
         <button class="action-btn" @click="goToPublish">
@@ -83,6 +139,29 @@
         <button class="action-btn" @click="goToSection('candidates')">
           <va-icon name="people" />
           <span>Ver Interacciones</span>
+        </button>
+        <button class="action-btn" @click="goToSection('profile')">
+          <va-icon name="person" />
+          <span>Mi Perfil</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Actions - POSTULANTE -->
+    <div v-else-if="authStore.user?.role === 'applicant'" class="quick-actions">
+      <h2>Acciones Rápidas</h2>
+      <div class="actions-grid">
+        <button class="action-btn" @click="goToPublish">
+          <va-icon name="search" />
+          <span>Buscar Trabajos</span>
+        </button>
+        <button class="action-btn" @click="goToSection('applications')">
+          <va-icon name="assignment" />
+          <span>Ver Postulaciones</span>
+        </button>
+        <button class="action-btn" @click="goToSection('cv')">
+          <va-icon name="description" />
+          <span>Mi CV</span>
         </button>
         <button class="action-btn" @click="goToSection('profile')">
           <va-icon name="person" />
