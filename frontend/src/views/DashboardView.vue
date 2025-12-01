@@ -42,6 +42,26 @@
         <CandidatesView />
       </div>
 
+      <!-- CV Section (Applicant Only) -->
+      <div v-else-if="activeSection === 'cv'" class="dashboard-section">
+        <div class="dashboard-placeholder">
+          <va-icon name="description" size="3rem" color="purple" />
+          <h2>Mi CV</h2>
+          <p>Aquí podrás gestionar tus currículum vitae (máximo 2 CVs)</p>
+          <p style="font-size: 0.9rem; color: #999;">Funcionalidad próximamente disponible</p>
+        </div>
+      </div>
+
+      <!-- Applications Section (Applicant Only) -->
+      <div v-else-if="activeSection === 'applications'" class="dashboard-section">
+        <div class="dashboard-placeholder">
+          <va-icon name="assignment" size="3rem" color="purple" />
+          <h2>Mis Postulaciones</h2>
+          <p>Aquí verás todas las postulaciones que has enviado y el estado de cada una</p>
+          <p style="font-size: 0.9rem; color: #999;">Funcionalidad próximamente disponible</p>
+        </div>
+      </div>
+
       <!-- Placeholder Sections -->
       <div v-else class="dashboard-placeholder">
         <va-icon :name="getSectionIcon(activeSection)" size="3rem" color="purple" />

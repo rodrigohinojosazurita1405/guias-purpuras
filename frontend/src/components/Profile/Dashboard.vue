@@ -34,6 +34,28 @@
           <span>Editar Perfil Personal</span>
         </router-link>
 
+        <!-- Mi CV: Solo para postulantes -->
+        <router-link
+          v-if="authStore.user?.role === 'applicant'"
+          to="/dashboard/cv"
+          class="menu-item"
+          :class="{ active: activeSection === 'cv' }"
+        >
+          <va-icon name="description" />
+          <span>Mi CV</span>
+        </router-link>
+
+        <!-- Mis Postulaciones: Solo para postulantes -->
+        <router-link
+          v-if="authStore.user?.role === 'applicant'"
+          to="/dashboard/applications"
+          class="menu-item"
+          :class="{ active: activeSection === 'applications' }"
+        >
+          <va-icon name="assignment" />
+          <span>Mis Postulaciones</span>
+        </router-link>
+
         <!-- Perfil Empresa: Solo para empresas -->
         <router-link
           v-if="authStore.user?.role === 'company'"

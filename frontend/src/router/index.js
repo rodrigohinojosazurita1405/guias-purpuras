@@ -177,6 +177,28 @@ const routes = [
     }
   },
   {
+    path: '/dashboard/cv',
+    name: 'DashboardCV',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'cv' },
+    meta: {
+      title: 'Mi CV - Guías Púrpuras',
+      requiresAuth: true,
+      requiredRole: 'applicant'
+    }
+  },
+  {
+    path: '/dashboard/applications',
+    name: 'DashboardApplications',
+    component: () => import('@/views/DashboardView.vue'),
+    props: { tab: 'applications' },
+    meta: {
+      title: 'Mis Postulaciones - Guías Púrpuras',
+      requiresAuth: true,
+      requiredRole: 'applicant'
+    }
+  },
+  {
     path: '/dashboard/shortlisted',
     name: 'DashboardShortlisted',
     component: () => import('@/views/DashboardView.vue'),
