@@ -3,7 +3,7 @@ Decoradores para proteger endpoints con autenticación JWT
 """
 from functools import wraps
 from django.http import JsonResponse
-from django.contrib.auth.models import User
+from auth_api.models import CustomUser
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError, AuthenticationFailed
 
@@ -44,9 +44,9 @@ def token_required(view_func):
 
             # Obtener el usuario
             try:
-                user = User.objects.get(id=user_id)
+                user = CustomUser.objects.get(id=user_id)
                 request.user = user
-            except User.DoesNotExist:
+            except CustomUser.DoesNotExist:
                 return JsonResponse({
                     'success': False,
                     'message': 'Usuario no encontrado'
