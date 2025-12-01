@@ -3,6 +3,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from .models import Job, Application, JobAuditLog, PlanOrder, BlockedUser
+from auth_api.models import CustomUser
 from datetime import datetime
 import json
 
