@@ -79,16 +79,25 @@ class JobAdmin(admin.ModelAdmin):
         ('Plan y Estado', {
             'fields': ('selectedPlan', 'status', 'views')
         }),
-        ('Verificación de Pago (FASE 7.1)', {
+        ('Verificación de Pago (FASE 7.1 - Solo Superadmin)', {
             'fields': ('proofOfPayment', 'proof_of_payment_preview', 'payment_verification_summary', 'paymentVerified', 'paymentVerifiedBy', 'paymentVerificationDate', 'paymentVerificationNotes'),
             'classes': ('wide',),
-            'description': 'Información de verificación de pago obligatorio'
+            'description': 'Solo administradores con permiso de superuser pueden verificar pagos'
         }),
         ('Timestamps', {
             'fields': ('createdAt', 'updatedAt'),
             'classes': ('collapse',)
         }),
     )
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """
+        Personalizar el queryset del campo paymentVerifiedBy
+        para mostrar solo superadmins
+        """
+        if db_field.name == 'paymentVerifiedBy':
+            kwargs['queryset'] = CustomUser.objects.filter(is_superuser=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     # ========== MÉTODOS DE DISPLAY PARA LA LISTA ==========
 
