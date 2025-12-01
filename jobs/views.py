@@ -21,26 +21,19 @@ def publish_job(request):
     CAMPOS REQUERIDOS:
     - title (str, 5-200 chars): Título del puesto
     - description (str, min 20 chars): Descripción del trabajo
-    - email (str): Email de contacto
     - city (str): Ciudad
     - contractType (str): Tipo de contrato
-    - requirements (str): Requisitos
     - selectedPlan (str: 'estandar'|'purpura'|'impulso'): Plan elegido
     - proofOfPayment (file): Comprobante de pago (imagen, max 5MB)
 
     CAMPOS OPCIONALES:
     - companyName (str, default: 'Empresa Confidencial')
     - companyAnonymous (bool, default: False)
+    - email (str, default: 'contact@empresa.com')
     - jobCategory (str)
     - municipality (str)
     - subcategory (str)
     - modality (str: 'presencial'|'remoto'|'hibrido', default: 'presencial')
-    - responsibilities (str)
-    - education (str)
-    - experience (str)
-    - languages (str)
-    - technicalSkills (str)
-    - softSkills (str)
     - salaryType (str: 'range'|'fixed'|'negotiable'|'hidden', default: 'range')
     - salaryMin (float)
     - salaryMax (float)
@@ -70,6 +63,19 @@ def publish_job(request):
     }
     """
     try:
+        # ========== VALIDAR QUE EL USUARIO SEA EMPRESA ==========
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'success': False,
+                'message': 'Debes iniciar sesión para publicar un anuncio'
+            }, status=401)
+
+        if request.user.role != 'company':
+            return JsonResponse({
+                'success': False,
+                'message': 'Solo las empresas pueden publicar anuncios de trabajo. Tu cuenta está registrada como postulante.'
+            }, status=403)
+
         # Parsear datos de POST multipart/form-data
         # Intentar primero JSON, si falla usar POST data
         try:
@@ -81,7 +87,7 @@ def publish_job(request):
         data.update(request.POST.dict())
         files = request.FILES.dict()
 
-        print(f'[PUBLISH] [PUBLISH_JOB] Usuario: {request.user.email}, Campos recibidos: {list(data.keys())}, Archivos: {list(files.keys())}')
+        print(f'[PUBLISH] [PUBLISH_JOB] Usuario: {request.user.email} (rol: {request.user.role}), Campos recibidos: {list(data.keys())}, Archivos: {list(files.keys())}')
 
         # ========== VALIDACIONES DE CAMPOS REQUERIDOS ==========
         errors = {}
@@ -141,11 +147,6 @@ def publish_job(request):
             expiry_date = expiry_date.strftime('%Y-%m-%d')
         except Exception as e:
             errors['expiryDate'] = f'Error al calcular fecha de vencimiento: {str(e)}'
-
-        # 7. Requirements
-        requirements = (data.get('requirements') or '').strip()
-        if not requirements:
-            errors['requirements'] = 'Los requisitos son requeridos'
 
         # 8. Proof of Payment (FASE 7.1)
         proof_of_payment = files.get('proofOfPayment')
@@ -236,13 +237,6 @@ def publish_job(request):
                 contractType=contract_type,
                 modality=modality,
                 expiryDate=expiry_date,
-                requirements=requirements,
-                responsibilities=(data.get('responsibilities') or '').strip(),
-                education=(data.get('education') or '').strip(),
-                experience=(data.get('experience') or '').strip(),
-                languages=(data.get('languages') or '').strip(),
-                technicalSkills=(data.get('technicalSkills') or '').strip(),
-                softSkills=(data.get('softSkills') or '').strip(),
                 salaryType=salary_type,
                 salaryMin=float(data.get('salaryMin')) if data.get('salaryMin') else None,
                 salaryMax=float(data.get('salaryMax')) if data.get('salaryMax') else None,
@@ -347,15 +341,6 @@ def get_job(request, job_id):
                 'contractType': job.contractType,
                 'modality': job.modality.capitalize() if hasattr(job, 'modality') else 'Presencial',
                 'expiryDate': job.expiryDate.isoformat(),
-
-                # Requisitos
-                'requirements': job.requirements,
-                'responsibilities': job.responsibilities,
-                'education': job.education,
-                'experience': job.experience,
-                'languages': job.languages,
-                'technicalSkills': job.technicalSkills,
-                'softSkills': job.softSkills,
 
                 # Compensación
                 'salaryType': job.salaryType,
@@ -1166,9 +1151,8 @@ def update_job(request, job_id):
         # Campos permitidos para actualizar
         allowed_fields = [
             'title', 'description', 'city', 'contractType', 'modality',
-            'jobCategory', 'municipality', 'subcategory', 'requirements',
-            'responsibilities', 'education', 'experience', 'languages',
-            'technicalSkills', 'softSkills', 'salaryType', 'salaryMin',
+            'jobCategory', 'municipality', 'subcategory',
+            'salaryType', 'salaryMin',
             'salaryMax', 'salaryFixed', 'benefits', 'vacancies', 'email',
             'whatsapp', 'website', 'applicationInstructions', 'applicationType',
             'externalApplicationUrl', 'status'
@@ -1325,13 +1309,6 @@ def duplicate_job(request, job_id):
             contractType=job.contractType,
             modality=job.modality,
             expiryDate=job.expiryDate,
-            requirements=job.requirements,
-            responsibilities=job.responsibilities,
-            education=job.education,
-            experience=job.experience,
-            languages=job.languages,
-            technicalSkills=job.technicalSkills,
-            softSkills=job.softSkills,
             salaryType=job.salaryType,
             salaryMin=job.salaryMin,
             salaryMax=job.salaryMax,

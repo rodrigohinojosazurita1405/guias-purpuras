@@ -113,6 +113,53 @@
             </div>
           </div>
 
+          <!-- Role Selection (Postulante o Empresa) -->
+          <div class="form-group">
+            <label for="role" class="form-label">
+              <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+                <path d="M22 7c0-1.657-1.343-3-3-3s-3 1.343-3 3"></path>
+              </svg>
+              ¿Quién eres?
+            </label>
+            <div class="input-wrapper role-wrapper">
+              <select
+                id="role"
+                v-model="formData.role"
+                class="form-input role-select"
+                required
+                :disabled="isLoading"
+              >
+                <option value="">Selecciona tu rol...</option>
+                <option value="applicant">Postulante - Busco oportunidades de empleo</option>
+                <option value="company">Empresa - Busco talento para mi equipo</option>
+              </select>
+              <!-- Icon que cambia según el rol seleccionado - IZQUIERDA -->
+              <svg v-if="!formData.role" class="role-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <!-- Icon para Postulante -->
+              <svg v-else-if="formData.role === 'applicant'" class="role-icon active" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <!-- Icon para Empresa -->
+              <svg v-else-if="formData.role === 'company'" class="role-icon active" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 11h4"></path>
+                <path d="M16 15h4"></path>
+                <path d="M6 11h.01"></path>
+                <path d="M6 15h.01"></path>
+              </svg>
+              <!-- Icon dropdown - DERECHA -->
+              <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+
           <!-- Password Input -->
           <div class="form-group">
             <label for="password" class="form-label">
@@ -237,16 +284,6 @@
             <span>{{ isLoading ? 'Creando cuenta...' : 'Crear Cuenta' }}</span>
           </button>
         </form>
-
-        <!-- Divider -->
-        <div class="divider">
-          <span>¿Ya tienes cuenta?</span>
-        </div>
-
-        <!-- Login Link -->
-        <router-link to="/login" class="btn-login-link">
-          Inicia sesión aquí
-        </router-link>
       </div>
 
       <!-- Footer -->
@@ -270,7 +307,8 @@ const formData = ref({
   name: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  role: 'applicant'  // 'applicant' (postulante) o 'company' (empresa)
 })
 
 const showPassword = ref(false)
@@ -292,6 +330,7 @@ const isFormValid = computed(() => {
     formData.value.email &&
     formData.value.password &&
     formData.value.confirmPassword &&
+    formData.value.role &&
     acceptTerms.value &&
     !validationErrors.value.name &&
     !validationErrors.value.email &&
@@ -304,9 +343,10 @@ const progressPercentage = computed(() => {
   let filled = 0
   if (formData.value.name) filled++
   if (formData.value.email) filled++
+  if (formData.value.role) filled++
   if (formData.value.password && passwordStrength.value.level !== 'weak') filled++
   if (formData.value.confirmPassword && formData.value.password === formData.value.confirmPassword) filled++
-  return (filled / 4) * 100
+  return (filled / 5) * 100
 })
 
 // Indicador de fortaleza de contraseña
@@ -396,12 +436,18 @@ const handleRegister = async () => {
     const result = await authStore.register(
       formData.value.name,
       formData.value.email,
-      formData.value.password
+      formData.value.password,
+      formData.value.role
     )
 
     if (result.success) {
       setTimeout(() => {
-        router.push('/')
+        // Redirigir inteligentemente según el rol
+        if (authStore.user?.role === 'company') {
+          router.push('/dashboard/company')
+        } else {
+          router.push('/dashboard/profile')
+        }
       }, 500)
     } else {
       errorMessage.value = result.error || 'Error al registrarse'
@@ -1354,51 +1400,6 @@ const currentYear = new Date().getFullYear()
   to { transform: rotate(360deg); }
 }
 
-/* Divisor */
-.divider {
-  position: relative;
-  margin: 24px 0;
-  text-align: center;
-}
-
-.divider::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: #e8e8e8;
-}
-
-.divider span {
-  position: relative;
-  background: white;
-  padding: 0 16px;
-  color: #999;
-  font-size: 13px;
-}
-
-/* Botón de login */
-.btn-login-link {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  text-align: center;
-  display: block;
-}
-
-.btn-login-link:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
-}
 
 /* Footer */
 .auth-footer {
@@ -1410,6 +1411,59 @@ const currentYear = new Date().getFullYear()
 
 .auth-footer p {
   margin: 0;
+}
+
+/* Role Select Styles */
+.role-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.role-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #999;
+  pointer-events: none;
+  transition: color 0.3s ease;
+  z-index: 5;
+}
+
+.role-icon.active {
+  color: #667eea;
+}
+
+.role-select {
+  appearance: none;
+  padding-left: 44px !important;
+  padding-right: 40px !important;
+  cursor: pointer;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.role-select:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.select-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #667eea;
+  pointer-events: none;
+  z-index: 5;
 }
 
 /* Responsive */

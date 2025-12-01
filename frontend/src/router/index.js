@@ -41,7 +41,8 @@ const routes = [
     meta: {
       title: 'Publicar Oferta de Trabajo - Guías Púrpuras',
       description: 'Publica tu oferta de trabajo de forma rápida y segura',
-      requiresAuth: true
+      requiresAuth: true,
+      requiredRole: 'company'  // Solo empresas pueden publicar
     }
   },
 
@@ -107,7 +108,8 @@ const routes = [
     props: { tab: 'profile' },
     meta: {
       title: 'Mi Perfil - Guías Púrpuras',
-      requiresAuth: true
+      requiresAuth: true,
+      requiredRole: 'applicant'
     }
   },
   {
@@ -117,7 +119,8 @@ const routes = [
     props: { tab: 'company' },
     meta: {
       title: 'Perfil De La Empresa - Guías Púrpuras',
-      requiresAuth: true
+      requiresAuth: true,
+      requiredRole: 'company'
     }
   },
   {
@@ -127,7 +130,8 @@ const routes = [
     props: { tab: 'jobs' },
     meta: {
       title: 'Mis Órdenes - Guías Púrpuras',
-      requiresAuth: true
+      requiresAuth: true,
+      requiredRole: 'company'
     }
   },
   {
@@ -137,7 +141,8 @@ const routes = [
     props: { tab: 'jobs_manager' },
     meta: {
       title: 'Administrador De Empleos - Guías Púrpuras',
-      requiresAuth: true
+      requiresAuth: true,
+      requiredRole: 'company'
     }
   },
   {
@@ -147,7 +152,8 @@ const routes = [
     props: { tab: 'candidates' },
     meta: {
       title: 'Mi Base De Talento - Guías Púrpuras',
-      requiresAuth: true
+      requiresAuth: true,
+      requiredRole: 'company'
     }
   },
   {
@@ -177,7 +183,8 @@ const routes = [
     props: { tab: 'shortlisted' },
     meta: {
       title: 'Favoritos - Guías Púrpuras',
-      requiresAuth: true
+      requiresAuth: true,
+      requiredRole: 'applicant'
     }
   },
   {
@@ -320,8 +327,15 @@ router.beforeEach((to, from, next) => {
         query: { redirect: to.fullPath }
       })
     } else {
-      console.log(`🛡️ [GUARD] Autenticado, permitiendo acceso`)
-      next()
+      // Verificar si la ruta requiere un rol específico
+      if (to.meta.requiredRole && authStore.user?.role !== to.meta.requiredRole) {
+        console.log(`🛡️ [GUARD] Rol insuficiente. Required: ${to.meta.requiredRole}, Current: ${authStore.user?.role}`)
+        // Redirigir al dashboard del usuario según su rol
+        next({ path: '/dashboard', query: { redirect: to.fullPath } })
+      } else {
+        console.log(`🛡️ [GUARD] Autenticado y con rol correcto, permitiendo acceso`)
+        next()
+      }
     }
   } else {
     next()

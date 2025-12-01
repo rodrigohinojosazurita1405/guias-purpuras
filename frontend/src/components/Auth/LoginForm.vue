@@ -244,9 +244,13 @@ const handleLogin = async () => {
       if (formData.value.rememberMe) {
         localStorage.setItem('rememberMe', 'true')
       }
-      // Redirigir al home después de login
+      // Redirigir inteligentemente según el rol
       setTimeout(() => {
-        router.push('/')
+        if (authStore.user?.role === 'company') {
+          router.push('/dashboard/jobs-manager')
+        } else {
+          router.push('/dashboard/profile')
+        }
       }, 500)
     } else {
       errorMessage.value = result.error || 'Error al iniciar sesión'
