@@ -28,23 +28,12 @@
 
       <!-- Actions -->
       <div class="nav-actions">
-        <!-- Publish Button - Visible for authenticated users OR click to redirect to login -->
-        <button
-          @click="handlePublishClick"
-          class="publish-btn desktop-only"
-          :title="authStore.isAuthenticated ? 'Publicar anuncio' : 'Inicia sesión para publicar'"
-        >
-          <va-icon name="add_circle_outline" size="small" />
-          <span class="btn-text">Publicar anuncio</span>
-          <span class="btn-text-short">Publicar</span>
-        </button>
-
         <!-- NOT Authenticated: Show Register & Login Buttons -->
-        <router-link v-if="!authStore.isAuthenticated" to="/login" class="login-btn desktop-only">
+        <router-link v-if="!authStore.isAuthenticated" to="/register" class="btn-register desktop-only">
           <span>Registrarse</span>
         </router-link>
 
-        <router-link v-if="!authStore.isAuthenticated" to="/login" class="login-btn desktop-only login-link">
+        <router-link v-if="!authStore.isAuthenticated" to="/login" class="btn-login desktop-only">
           <span>Ingresar</span>
         </router-link>
 
@@ -75,7 +64,13 @@
                 <span>Panel de Control</span>
               </router-link>
 
-              <router-link to="/dashboard/jobs-manager" class="dropdown-item" @click="closeDropdown">
+              <!-- Mis Anuncios: Solo para empresas -->
+              <router-link
+                v-if="authStore.user?.role === 'company'"
+                to="/dashboard/jobs-manager"
+                class="dropdown-item"
+                @click="closeDropdown"
+              >
                 <va-icon name="list_alt" size="small" />
                 <span>Mis Anuncios</span>
               </router-link>
@@ -147,12 +142,6 @@
               </div>
             </div>
 
-            <!-- Publish Button for Mobile -->
-            <button @click="handlePublishClickMobile" class="mobile-publish-btn">
-              <va-icon name="add_circle_outline" />
-              <span>Publicar anuncio</span>
-            </button>
-
             <!-- User Menu Items for Mobile -->
             <router-link to="/dashboard" class="mobile-link" @click="closeMobileMenu">
               <va-icon name="dashboard" />
@@ -212,27 +201,6 @@ const handleDropdownLogout = () => {
   doLogout()
 }
 
-// Handle Publish Button Click
-const handlePublishClick = () => {
-  if (!authStore.isAuthenticated) {
-    notify({ message: 'Por favor, inicia sesión para publicar un anuncio', color: 'warning', duration: 2000 })
-    router.push('/login')
-  } else {
-    router.push('/publicar')
-  }
-}
-
-// Handle Publish Button Click (Mobile version with menu close)
-const handlePublishClickMobile = () => {
-  closeMobileMenu()
-  if (!authStore.isAuthenticated) {
-    notify({ message: 'Por favor, inicia sesión para publicar un anuncio', color: 'warning', duration: 2000 })
-    router.push('/login')
-  } else {
-    router.push('/publicar')
-  }
-}
-
 // LOGOUT - Simple and Direct
 const doLogout = () => {
   console.log('🚪 LOGOUT - Clearing everything...')
@@ -275,11 +243,11 @@ const closeMobileMenu = () => {
 .navbar-content {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1rem 3rem;
+  padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 /* LOGO */
@@ -333,12 +301,12 @@ const closeMobileMenu = () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.8rem;
   color: white;
   text-decoration: none;
   border-radius: 8px;
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
   white-space: nowrap;
 }
@@ -357,9 +325,11 @@ const closeMobileMenu = () => {
 /* ACTIONS SECTION */
 .nav-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   align-items: center;
+  justify-content: flex-end;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .btn-text-short {
@@ -393,12 +363,12 @@ const closeMobileMenu = () => {
   color: var(--color-purple-darkest) !important;
 }
 
-/* LOGIN BUTTON - Registrarse */
-.login-btn {
-  display: flex;
+/* REGISTER BUTTON - Registrarse */
+.btn-register {
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
+  padding: 0.5rem 1.25rem;
   background: var(--color-yellow-primary);
   color: var(--color-purple-darkest);
   border: none;
@@ -411,22 +381,33 @@ const closeMobileMenu = () => {
   white-space: nowrap;
 }
 
-.login-btn:hover {
+.btn-register:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 20px rgba(253, 197, 0, 0.6), 0 4px 12px rgba(253, 197, 0, 0.3);
 }
 
 /* LOGIN BUTTON - Ingresar (variante outline) */
-.login-btn.login-link {
+.btn-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
   background: transparent;
   color: white;
   border: 2px solid white;
-  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
-.login-btn.login-link:hover {
+.btn-login:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
 }
 
 /* USER DROPDOWN */
