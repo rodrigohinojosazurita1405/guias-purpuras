@@ -23,7 +23,9 @@
         <!-- ========== SECCIÓN PERFIL ========== -->
         <div class="menu-section-title">MI PERFIL</div>
 
+        <!-- Perfil Personal: Solo para postulantes -->
         <router-link
+          v-if="authStore.user?.role === 'applicant'"
           to="/dashboard/profile"
           class="menu-item"
           :class="{ active: activeSection === 'profile' }"
@@ -32,7 +34,9 @@
           <span>Editar Perfil Personal</span>
         </router-link>
 
+        <!-- Perfil Empresa: Solo para empresas -->
         <router-link
+          v-if="authStore.user?.role === 'company'"
           to="/dashboard/company"
           class="menu-item"
           :class="{ active: activeSection === 'company' }"
@@ -41,31 +45,35 @@
           <span>Perfil De La Empresa</span>
         </router-link>
 
-        <!-- ========== SECCIÓN PUBLICACIONES ========== -->
-        <div class="menu-section-title">PUBLICACIONES</div>
+        <!-- ========== SECCIÓN PUBLICACIONES (SOLO EMPRESAS) ========== -->
+        <template v-if="authStore.user?.role === 'company'">
+          <div class="menu-section-title">PUBLICACIONES</div>
 
-        <router-link
-          to="/dashboard/jobs-manager"
-          class="menu-item"
-          :class="{ active: activeSection === 'jobs_manager' }"
-        >
-          <va-icon name="folder" />
-          <span>Mis Anuncios</span>
-        </router-link>
+          <router-link
+            to="/dashboard/jobs-manager"
+            class="menu-item"
+            :class="{ active: activeSection === 'jobs_manager' }"
+          >
+            <va-icon name="folder" />
+            <span>Mis Anuncios</span>
+          </router-link>
 
-        <router-link
-          to="/dashboard/jobs"
-          class="menu-item"
-          :class="{ active: activeSection === 'jobs' }"
-        >
-          <va-icon name="work" />
-          <span>Solicitudes Recibidas</span>
-        </router-link>
+          <router-link
+            to="/dashboard/jobs"
+            class="menu-item"
+            :class="{ active: activeSection === 'jobs' }"
+          >
+            <va-icon name="work" />
+            <span>Solicitudes Recibidas</span>
+          </router-link>
+        </template>
 
         <!-- ========== SECCIÓN INTERACCIONES ========== -->
         <div class="menu-section-title">INTERACCIONES</div>
 
+        <!-- Candidatos Guardados: Solo para empresas -->
         <router-link
+          v-if="authStore.user?.role === 'company'"
           to="/dashboard/candidates"
           class="menu-item"
           :class="{ active: activeSection === 'candidates' }"
@@ -74,7 +82,9 @@
           <span>Candidatos Guardados</span>
         </router-link>
 
+        <!-- Favoritos: Solo para postulantes -->
         <router-link
+          v-if="authStore.user?.role === 'applicant'"
           to="/dashboard/shortlisted"
           class="menu-item"
           :class="{ active: activeSection === 'shortlisted' }"
@@ -129,7 +139,12 @@
       <!-- Dashboard Navbar -->
       <div class="dashboard-navbar">
         <div class="navbar-actions">
-          <router-link to="/publicar" class="navbar-btn navbar-btn-primary">
+          <!-- Botón Publicar: Solo para empresas -->
+          <router-link
+            v-if="authStore.user?.role === 'company'"
+            to="/publicar"
+            class="navbar-btn navbar-btn-primary"
+          >
             <va-icon name="add_circle" />
             <span>Publicar Nuevo Anuncio</span>
           </router-link>
