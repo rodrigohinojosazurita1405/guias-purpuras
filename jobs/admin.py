@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import Job, Application, JobAuditLog
+from .models import Job, Application, JobAuditLog, PlanOrder, BlockedUser
 from datetime import datetime
 import json
 
@@ -715,3 +715,276 @@ class JobAuditLogAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+
+@admin.register(PlanOrder)
+class PlanOrderAdmin(admin.ModelAdmin):
+    """Admin para gestionar órdenes de planes"""
+
+    list_display = (
+        'invoice_number_display',
+        'razon_social_display',
+        'plan_link',
+        'amount_display',
+        'status_badge',
+        'order_date_display',
+        'invoice_sent_status'
+    )
+
+    list_filter = (
+        'status',
+        'order_date',
+        'plan__name',
+        'electronic_invoice_sent_date',
+    )
+
+    search_fields = (
+        'invoice_number',
+        'razon_social',
+        'nit',
+        'ci',
+        'user__email',
+        'plan__label'
+    )
+
+    readonly_fields = (
+        'id',
+        'order_date',
+        'created_at',
+        'updated_at',
+        'company_data_display',
+    )
+
+    fieldsets = (
+        ('Información General', {
+            'fields': ('id', 'user', 'plan', 'order_date')
+        }),
+        ('Datos de Factura', {
+            'fields': ('invoice_number', 'razon_social', 'nit', 'ci')
+        }),
+        ('Información de Pago', {
+            'fields': ('amount_paid', 'payment_proof', 'status')
+        }),
+        ('Factura Electrónica', {
+            'fields': ('electronic_invoice_email', 'electronic_invoice_whatsapp', 'electronic_invoice_sent_date')
+        }),
+        ('Datos de la Empresa', {
+            'fields': ('company_data_display',),
+            'classes': ('wide',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def invoice_number_display(self, obj):
+        """Muestra el número de factura"""
+        return f"#{obj.invoice_number}"
+    invoice_number_display.short_description = 'Factura'
+
+    def razon_social_display(self, obj):
+        """Muestra la razón social de la empresa"""
+        return obj.razon_social
+    razon_social_display.short_description = 'Razón Social'
+
+    def plan_link(self, obj):
+        """Link al plan"""
+        return obj.plan.label
+    plan_link.short_description = 'Plan'
+
+    def amount_display(self, obj):
+        """Muestra el monto pagado formateado"""
+        return format_html(
+            '<span style="color: #7C3AED; font-weight: bold;">Bs {}</span>',
+            f'{obj.amount_paid:.2f}'
+        )
+    amount_display.short_description = 'Monto'
+
+    def status_badge(self, obj):
+        """Badge del estado de la orden"""
+        status_colors = {
+            'PENDING': '#F59E0B',
+            'PAID': '#3B82F6',
+            'INVOICE_SENT': '#8B5CF6',
+            'COMPLETED': '#10B981',
+        }
+        status_labels = {
+            'PENDING': 'Pendiente',
+            'PAID': 'Pagado',
+            'INVOICE_SENT': 'Factura Enviada',
+            'COMPLETED': 'Completado',
+        }
+        color = status_colors.get(obj.status, '#6B7280')
+        label = status_labels.get(obj.status, obj.status)
+
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 6px 14px; '
+            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            'display: inline-block;">{}</span>',
+            color, label
+        )
+    status_badge.short_description = 'Estado'
+
+    def order_date_display(self, obj):
+        """Muestra la fecha de la orden"""
+        return obj.order_date.strftime('%d/%m/%Y %H:%M')
+    order_date_display.short_description = 'Fecha'
+
+    def invoice_sent_status(self, obj):
+        """Indica si la factura fue enviada"""
+        if obj.electronic_invoice_sent_date:
+            return format_html(
+                '<span style="color: #10B981; font-weight: bold;">✓ Enviada</span>'
+            )
+        return format_html(
+            '<span style="color: #999; font-weight: bold;">⏳ Pendiente</span>'
+        )
+    invoice_sent_status.short_description = 'Factura'
+
+    def company_data_display(self, obj):
+        """Muestra los datos de la empresa en JSON"""
+        if not obj.company_data:
+            return 'Sin datos'
+        return format_html(
+            '<pre style="background-color: #F3F4F6; padding: 12px; border-radius: 6px; '
+            'overflow: auto; max-height: 300px;">{}</pre>',
+            json.dumps(obj.company_data, ensure_ascii=False, indent=2)
+        )
+    company_data_display.short_description = 'Datos de la Empresa'
+
+
+@admin.register(BlockedUser)
+class BlockedUserAdmin(admin.ModelAdmin):
+    """Admin para gestionar usuarios bloqueados"""
+
+    list_display = (
+        'company_display',
+        'blocked_user_display',
+        'reason_badge',
+        'blocked_at_display',
+        'duration_display'
+    )
+
+    list_filter = (
+        'reason',
+        'blocked_at',
+        'is_permanent',
+    )
+
+    search_fields = (
+        'company__email',
+        'blocked_user__email',
+        'blocked_user__first_name',
+        'blocked_user__last_name',
+    )
+
+    readonly_fields = (
+        'blocked_at',
+        'blocked_user_info_display',
+    )
+
+    fieldsets = (
+        ('Empresa y Usuario', {
+            'fields': ('company', 'blocked_user', 'blocked_user_info_display')
+        }),
+        ('Motivo del Bloqueo', {
+            'fields': ('reason', 'reason_notes')
+        }),
+        ('Información de Bloqueo', {
+            'fields': ('is_permanent', 'blocked_at', 'blocked_until')
+        }),
+    )
+
+    def company_display(self, obj):
+        """Muestra la empresa que bloquea"""
+        return obj.company.email
+    company_display.short_description = 'Empresa'
+
+    def blocked_user_display(self, obj):
+        """Muestra el usuario bloqueado"""
+        name = f"{obj.blocked_user.first_name} {obj.blocked_user.last_name}".strip()
+        if not name:
+            name = obj.blocked_user.email
+        return name
+    blocked_user_display.short_description = 'Usuario Bloqueado'
+
+    def reason_badge(self, obj):
+        """Badge del motivo del bloqueo"""
+        reason_colors = {
+            'SPAM': '#DC2626',
+            'UNQUALIFIED': '#F59E0B',
+            'OTHER': '#6B7280',
+        }
+        reason_labels = {
+            'SPAM': 'Spam',
+            'UNQUALIFIED': 'No Calificado',
+            'OTHER': 'Otro',
+        }
+        color = reason_colors.get(obj.reason, '#6B7280')
+        label = reason_labels.get(obj.reason, obj.reason)
+
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 6px 14px; '
+            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            'display: inline-block;">{}</span>',
+            color, label
+        )
+    reason_badge.short_description = 'Razón'
+
+    def blocked_at_display(self, obj):
+        """Muestra la fecha de bloqueo"""
+        return obj.blocked_at.strftime('%d/%m/%Y %H:%M')
+    blocked_at_display.short_description = 'Bloqueado el'
+
+    def duration_display(self, obj):
+        """Muestra si es permanente o temporal"""
+        if obj.is_permanent:
+            return format_html(
+                '<span style="color: #DC2626; font-weight: bold;">∞ Permanente</span>'
+            )
+        else:
+            if obj.blocked_until:
+                return format_html(
+                    '<span style="color: #F59E0B; font-weight: bold;">⏰ Hasta {}</span>',
+                    obj.blocked_until.strftime('%d/%m/%Y')
+                )
+        return 'No especificado'
+    duration_display.short_description = 'Duración'
+
+    def blocked_user_info_display(self, obj):
+        """Muestra información completa del usuario bloqueado"""
+        html_content = (
+            '<div style="background-color: #F3F4F6; padding: 12px; border-radius: 8px; '
+            'font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto; font-size: 13px;">'
+        )
+
+        # Email
+        html_content += (
+            '<p style="margin: 0 0 8px 0; display: flex; align-items: center;">'
+            '<span style="color: #1F2937; font-weight: 600; margin-right: 8px;">✉️</span>'
+            f'<span style="color: #374151;">{obj.blocked_user.email}</span>'
+            '</p>'
+        )
+
+        # Nombre completo
+        if obj.blocked_user.first_name or obj.blocked_user.last_name:
+            full_name = f"{obj.blocked_user.first_name} {obj.blocked_user.last_name}".strip()
+            html_content += (
+                '<p style="margin: 0 0 8px 0; display: flex; align-items: center;">'
+                '<span style="color: #1F2937; font-weight: 600; margin-right: 8px;">👤</span>'
+                f'<span style="color: #374151;">{full_name}</span>'
+                '</p>'
+            )
+
+        # Role
+        html_content += (
+            '<p style="margin: 0; display: flex; align-items: center;">'
+            '<span style="color: #1F2937; font-weight: 600; margin-right: 8px;">🔖</span>'
+            f'<span style="color: #374151;">{obj.blocked_user.role}</span>'
+            '</p>'
+        )
+
+        html_content += '</div>'
+        return format_html(html_content)
+    blocked_user_info_display.short_description = 'Información del Usuario'
