@@ -1406,3 +1406,506 @@ def get_job_categories(request):
             'success': False,
             'message': f'Error: {str(e)}'
         }, status=500)
+
+
+# ========== ENDPOINTS PARA ÓRDENES DE PLANES ==========
+
+@token_required
+@require_http_methods(["GET"])
+@csrf_exempt
+def get_user_orders(request):
+    """
+    Obtener todas las órdenes de planes del usuario (empresa)
+    GET /api/orders/me
+
+    Returns:
+    {
+        'success': bool,
+        'orders': [
+            {
+                'id': int,
+                'invoiceNumber': str,
+                'planLabel': str,
+                'razonSocial': str,
+                'nit': str,
+                'ci': str,
+                'amountPaid': float,
+                'status': str,
+                'orderDate': str (ISO),
+                'electronicInvoiceSentDate': str (ISO) or null,
+                'electronicInvoiceEmail': str,
+                'electronicInvoiceWhatsapp': str
+            }
+        ],
+        'count': int
+    }
+    """
+    try:
+        from .models import PlanOrder
+
+        # Obtener órdenes del usuario autenticado
+        orders = PlanOrder.objects.filter(user=request.user).select_related('plan')
+
+        # Serializar órdenes
+        orders_data = []
+        for order in orders:
+            orders_data.append({
+                'id': order.id,
+                'invoiceNumber': order.invoice_number,
+                'planLabel': order.plan.label,
+                'razonSocial': order.razon_social,
+                'nit': order.nit,
+                'ci': order.ci,
+                'amountPaid': float(order.amount_paid),
+                'status': order.status,
+                'statusDisplay': order.get_status_display(),
+                'orderDate': order.order_date.isoformat(),
+                'electronicInvoiceSentDate': order.electronic_invoice_sent_date.isoformat() if order.electronic_invoice_sent_date else None,
+                'electronicInvoiceEmail': order.electronic_invoice_email,
+                'electronicInvoiceWhatsapp': order.electronic_invoice_whatsapp,
+                'paymentProof': order.payment_proof.url if order.payment_proof else None,
+                'createdAt': order.created_at.isoformat(),
+                'updatedAt': order.updated_at.isoformat()
+            })
+
+        return JsonResponse({
+            'success': True,
+            'orders': orders_data,
+            'count': len(orders_data)
+        }, status=200)
+
+    except Exception as e:
+        print(f'[ORDERS] Error al obtener órdenes: {str(e)}')
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+@token_required
+@require_http_methods(["GET"])
+@csrf_exempt
+def get_order_detail(request, order_id):
+    """
+    Obtener detalles de una orden específica
+    GET /api/orders/:id
+
+    Returns:
+    {
+        'success': bool,
+        'order': { ... orden completa ... }
+    }
+    """
+    try:
+        from .models import PlanOrder
+
+        # Obtener la orden y verificar que pertenece al usuario
+        order = PlanOrder.objects.get(id=order_id, user=request.user)
+
+        order_data = {
+            'id': order.id,
+            'invoiceNumber': order.invoice_number,
+            'planLabel': order.plan.label,
+            'planName': order.plan.name,
+            'razonSocial': order.razon_social,
+            'nit': order.nit,
+            'ci': order.ci,
+            'amountPaid': float(order.amount_paid),
+            'status': order.status,
+            'statusDisplay': order.get_status_display(),
+            'orderDate': order.order_date.isoformat(),
+            'electronicInvoiceSentDate': order.electronic_invoice_sent_date.isoformat() if order.electronic_invoice_sent_date else None,
+            'electronicInvoiceEmail': order.electronic_invoice_email,
+            'electronicInvoiceWhatsapp': order.electronic_invoice_whatsapp,
+            'paymentProof': order.payment_proof.url if order.payment_proof else None,
+            'companyData': order.company_data,
+            'createdAt': order.created_at.isoformat(),
+            'updatedAt': order.updated_at.isoformat()
+        }
+
+        return JsonResponse({
+            'success': True,
+            'order': order_data
+        }, status=200)
+
+    except PlanOrder.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Orden no encontrada o no tienes permiso para verla'
+        }, status=404)
+
+    except Exception as e:
+        print(f'[ORDERS] Error al obtener detalle de orden: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+@token_required
+@require_http_methods(["POST"])
+@csrf_exempt
+def resend_invoice(request, order_id):
+    """
+    Reenviar factura electrónica por email o WhatsApp
+    POST /api/orders/:id/resend-invoice
+
+    Body:
+    {
+        'method': 'email' | 'whatsapp' (opcional, por defecto intenta ambas)
+    }
+
+    Returns:
+    {
+        'success': bool,
+        'message': str,
+        'updatedOrder': { ... }
+    }
+    """
+    try:
+        import json
+        from .models import PlanOrder
+        from datetime import datetime
+
+        # Obtener la orden
+        order = PlanOrder.objects.get(id=order_id, user=request.user)
+
+        # Parsear body
+        body = json.loads(request.body) if request.body else {}
+        method = body.get('method', 'both')
+
+        # Actualizar fecha de envío
+        order.electronic_invoice_sent_date = datetime.now()
+        order.save()
+
+        # Aquí iría la lógica de envío real (email/WhatsApp)
+        # Por ahora solo registramos el intento
+        message = f'Factura reenviada por {method}'
+
+        order_data = {
+            'id': order.id,
+            'invoiceNumber': order.invoice_number,
+            'status': order.status,
+            'electronicInvoiceSentDate': order.electronic_invoice_sent_date.isoformat()
+        }
+
+        return JsonResponse({
+            'success': True,
+            'message': message,
+            'updatedOrder': order_data
+        }, status=200)
+
+    except PlanOrder.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Orden no encontrada'
+        }, status=404)
+
+    except Exception as e:
+        print(f'[ORDERS] Error al reenviar factura: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+# ========== ENDPOINTS PARA USUARIOS BLOQUEADOS ==========
+
+@token_required
+@require_http_methods(["GET"])
+@csrf_exempt
+def get_blocked_users(request):
+    """
+    Obtener lista de usuarios bloqueados por la empresa actual
+    GET /api/blocked-users/me
+
+    Returns:
+    {
+        'success': bool,
+        'blockedUsers': [
+            {
+                'id': int,
+                'email': str,
+                'reason': str,
+                'reasonDisplay': str,
+                'reasonNotes': str,
+                'blockedAt': str (ISO),
+                'blockedUntil': str (ISO) or null,
+                'isPermanent': bool
+            }
+        ],
+        'count': int
+    }
+    """
+    try:
+        from .models import BlockedUser
+
+        # Obtener usuarios bloqueados por esta empresa
+        blocked = BlockedUser.objects.filter(company=request.user).select_related('blocked_user')
+
+        # Serializar
+        blocked_data = []
+        for block in blocked:
+            blocked_data.append({
+                'id': block.id,
+                'email': block.blocked_user.email,
+                'firstName': block.blocked_user.first_name,
+                'lastName': block.blocked_user.last_name,
+                'reason': block.reason,
+                'reasonDisplay': block.get_reason_display(),
+                'reasonNotes': block.reason_notes,
+                'blockedAt': block.blocked_at.isoformat(),
+                'blockedUntil': block.blocked_until.isoformat() if block.blocked_until else None,
+                'isPermanent': block.is_permanent,
+                'blockedUserId': block.blocked_user.id
+            })
+
+        return JsonResponse({
+            'success': True,
+            'blockedUsers': blocked_data,
+            'count': len(blocked_data)
+        }, status=200)
+
+    except Exception as e:
+        print(f'[BLOCKED] Error al obtener usuarios bloqueados: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+@token_required
+@require_http_methods(["POST"])
+@csrf_exempt
+def block_user(request):
+    """
+    Bloquear un usuario
+    POST /api/blocked-users/block
+
+    Body:
+    {
+        'blockedUserId': int,
+        'reason': 'SPAM' | 'UNQUALIFIED' | 'OTHER',
+        'reasonNotes': str (opcional),
+        'isPermanent': bool (opcional, default true)
+    }
+
+    Returns:
+    {
+        'success': bool,
+        'message': str,
+        'blockedUser': { ... }
+    }
+    """
+    try:
+        import json
+        from .models import BlockedUser
+        from auth_api.models import CustomUser
+        from datetime import datetime, timedelta
+
+        # Parsear body
+        body = json.loads(request.body)
+        blocked_user_id = body.get('blockedUserId')
+        reason = body.get('reason', 'OTHER')
+        reason_notes = body.get('reasonNotes', '')
+        is_permanent = body.get('isPermanent', True)
+
+        if not blocked_user_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'blockedUserId es requerido'
+            }, status=400)
+
+        # Obtener el usuario a bloquear
+        try:
+            blocked_user = CustomUser.objects.get(id=blocked_user_id)
+        except CustomUser.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Usuario a bloquear no encontrado'
+            }, status=404)
+
+        # Verificar si ya existe bloqueo
+        existing = BlockedUser.objects.filter(company=request.user, blocked_user=blocked_user).first()
+        if existing:
+            return JsonResponse({
+                'success': False,
+                'message': 'Este usuario ya está bloqueado'
+            }, status=400)
+
+        # Crear bloqueo
+        block = BlockedUser.objects.create(
+            company=request.user,
+            blocked_user=blocked_user,
+            reason=reason,
+            reason_notes=reason_notes,
+            is_permanent=is_permanent,
+            blocked_until=None if is_permanent else datetime.now() + timedelta(days=30)
+        )
+
+        blocked_data = {
+            'id': block.id,
+            'email': block.blocked_user.email,
+            'firstName': block.blocked_user.first_name,
+            'lastName': block.blocked_user.last_name,
+            'reason': block.reason,
+            'reasonDisplay': block.get_reason_display(),
+            'reasonNotes': block.reason_notes,
+            'blockedAt': block.blocked_at.isoformat(),
+            'blockedUntil': block.blocked_until.isoformat() if block.blocked_until else None,
+            'isPermanent': block.is_permanent
+        }
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Usuario {blocked_user.email} bloqueado correctamente',
+            'blockedUser': blocked_data
+        }, status=201)
+
+    except Exception as e:
+        print(f'[BLOCKED] Error al bloquear usuario: {str(e)}')
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+@token_required
+@require_http_methods(["DELETE"])
+@csrf_exempt
+def unblock_user(request, block_id):
+    """
+    Desbloquear un usuario
+    DELETE /api/blocked-users/:id
+
+    Returns:
+    {
+        'success': bool,
+        'message': str
+    }
+    """
+    try:
+        from .models import BlockedUser
+
+        # Obtener y eliminar el bloqueo
+        block = BlockedUser.objects.get(id=block_id, company=request.user)
+        blocked_email = block.blocked_user.email
+
+        block.delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Usuario {blocked_email} desbloqueado correctamente'
+        }, status=200)
+
+    except BlockedUser.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Bloqueo no encontrado'
+        }, status=404)
+
+    except Exception as e:
+        print(f'[BLOCKED] Error al desbloquear usuario: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+@csrf_exempt
+def check_if_blocked(request, user_id):
+    """
+    Verificar si un usuario está bloqueado para una empresa
+    GET /api/blocked-users/check/:userId
+
+    Params:
+    - company_id: ID de la empresa (si no se proporciona, usa el usuario actual si está autenticado)
+
+    Returns:
+    {
+        'success': bool,
+        'isBlocked': bool,
+        'blockInfo': { ... } or null
+    }
+    """
+    try:
+        from .models import BlockedUser
+        from auth_api.models import CustomUser
+        from datetime import datetime
+
+        # Obtener empresa
+        company_id = request.GET.get('company_id')
+
+        if not company_id and not request.user.is_authenticated:
+            return JsonResponse({
+                'success': False,
+                'message': 'Empresa no especificada'
+            }, status=400)
+
+        # Usar empresa actual o la especificada
+        company = request.user if request.user.is_authenticated and not company_id else None
+        if company_id:
+            try:
+                company = CustomUser.objects.get(id=company_id)
+            except CustomUser.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Empresa no encontrada'
+                }, status=404)
+
+        # Obtener usuario
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Usuario no encontrado'
+            }, status=404)
+
+        # Buscar bloqueo
+        block = BlockedUser.objects.filter(company=company, blocked_user=user).first()
+
+        if not block:
+            return JsonResponse({
+                'success': True,
+                'isBlocked': False,
+                'blockInfo': None
+            }, status=200)
+
+        # Verificar si el bloqueo sigue siendo válido (temporal)
+        if not block.is_permanent and block.blocked_until:
+            if datetime.now() > block.blocked_until:
+                # Bloqueo expirado, eliminarlo
+                block.delete()
+                return JsonResponse({
+                    'success': True,
+                    'isBlocked': False,
+                    'blockInfo': None
+                }, status=200)
+
+        block_info = {
+            'id': block.id,
+            'reason': block.reason,
+            'reasonDisplay': block.get_reason_display(),
+            'reasonNotes': block.reason_notes,
+            'isPermanent': block.is_permanent,
+            'blockedUntil': block.blocked_until.isoformat() if block.blocked_until else None
+        }
+
+        return JsonResponse({
+            'success': True,
+            'isBlocked': True,
+            'blockInfo': block_info
+        }, status=200)
+
+    except Exception as e:
+        print(f'[BLOCKED] Error al verificar bloqueo: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)

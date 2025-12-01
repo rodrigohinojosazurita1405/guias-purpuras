@@ -1,16 +1,12 @@
 {
   "permissions": {
     "allow": [
+      "Bash(find:*)",
       "Bash(git add:*)",
+      "Bash(git reset:*)",
       "Bash(git commit:*)",
-      "Bash(python manage.py makemigrations:*)",
-      "Bash(python manage.py migrate:*)",
-      "Bash(cd d:Proyectos DjangoGuiasPurpuras_V1.0)",
-      "Bash(python manage.py showmigrations:*)",
-      "Bash(python:*)",
-      "Bash(git checkout:*)",
-      "Bash(npm install:*)",
-      "Bash(npm run build:*)"
+      "Bash(python manage.py shell:*)",
+      "Bash(python manage.py:*)"
     ],
     "deny": [],
     "ask": []

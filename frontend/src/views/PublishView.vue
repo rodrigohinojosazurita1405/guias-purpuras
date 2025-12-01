@@ -289,7 +289,7 @@ const handleSubmit = async () => {
   }
 
   // ========== VALIDAR DATOS MÍNIMOS ==========
-  const { title, description, city, contractType, expiryDate, requirements } = publishStore.jobData
+  const { title, description, city, contractType, expiryDate } = publishStore.jobData
   const email = authStore.user?.email // Email del usuario autenticado
   const fieldErrors = {}
 
@@ -299,7 +299,6 @@ const handleSubmit = async () => {
   if (!city?.trim()) fieldErrors.city = 'Ciudad es requerida'
   if (!contractType?.trim()) fieldErrors.contractType = 'Tipo de contrato es requerido'
   if (!expiryDate) fieldErrors.expiryDate = 'Fecha de vencimiento es requerida'
-  if (!requirements?.trim()) fieldErrors.requirements = 'Requisitos son requeridos'
 
   // FASE 7.1: Validación de comprobante de pago obligatorio (verificar el archivo real en la store)
   if (!publishStore.proofOfPaymentFile) fieldErrors.proofOfPayment = 'El comprobante de pago es requerido'

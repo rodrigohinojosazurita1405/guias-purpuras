@@ -162,19 +162,46 @@
         <!-- SEPARADOR VISUAL -->
         <div class="field-separator"></div>
 
-        <!-- GRUPO 2: EDITOR DE TEXTO RICO -->
+        <!-- GRUPO 2: EDITOR DE TEXTO CON TOOLBAR -->
         <div class="field-group">
           <div class="form-row">
             <label class="form-label">Detalles del Empleo *</label>
-            <QuillEditor
-              :key="quillKey"
-              v-model="localFormData.jobDetailsHtml"
-              content-type="html"
-              theme="snow"
-              :toolbar="quillToolbar"
-              class="job-details-editor"
-              placeholder="Describe el puesto, responsabilidades, requisitos, habilidades necesarias... ¡A tu gusto!"
-            />
+            <div class="editor-wrapper">
+              <div class="editor-toolbar">
+                <button type="button" @click="toggleBold" class="toolbar-btn" title="Negrita (Ctrl+B)">
+                  <strong>B</strong>
+                </button>
+                <button type="button" @click="toggleItalic" class="toolbar-btn" title="Itálica (Ctrl+I)">
+                  <em>I</em>
+                </button>
+                <button type="button" @click="toggleUnderline" class="toolbar-btn" title="Subrayado">
+                  <u>U</u>
+                </button>
+                <div class="toolbar-separator"></div>
+                <button type="button" @click="insertBulletList" class="toolbar-btn" title="Lista de puntos">
+                  <span class="bullet-icon">◦</span>
+                </button>
+                <button type="button" @click="insertNumberedList" class="toolbar-btn" title="Lista numerada">
+                  <span class="number-icon">1.</span>
+                </button>
+                <div class="toolbar-separator"></div>
+                <button type="button" @click="insertQuote" class="toolbar-btn" title="Cita/Bloque">
+                  <span class="quote-icon">❝</span>
+                </button>
+              </div>
+              <textarea
+                v-model="localFormData.jobDetailsHtml"
+                placeholder="Cuéntale al candidato sobre el puesto:
+• Descripción del trabajo
+• Responsabilidades principales
+• Requisitos y habilidades necesarias
+• Experiencia requerida
+• Beneficios y oportunidades"
+                class="job-details-editor"
+                @keydown="handleKeyDown"
+              />
+              <div class="editor-char-count">{{ localFormData.jobDetailsHtml.length }} / 2000 caracteres</div>
+            </div>
           </div>
         </div>
 
@@ -328,8 +355,6 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { QuillEditor } from '@vueup/vue-quill'
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 // ========== PROPS Y EMITS ==========
 const props = defineProps({
@@ -340,6 +365,97 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'next', 'back'])
+
+// ========== EDITOR TOOLBAR METHODS ==========
+const toggleBold = () => {
+  insertFormatting('**', '**', 'Texto en negrita')
+}
+
+const toggleItalic = () => {
+  insertFormatting('*', '*', 'Texto en itálica')
+}
+
+const toggleUnderline = () => {
+  insertFormatting('__', '__', 'Texto subrayado')
+}
+
+const insertQuote = () => {
+  const textarea = document.querySelector('.job-details-editor')
+  if (textarea) {
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const beforeText = localFormData.value.jobDetailsHtml.substring(0, start)
+    const selectedText = localFormData.value.jobDetailsHtml.substring(start, end) || 'Cita importante'
+    const afterText = localFormData.value.jobDetailsHtml.substring(end)
+    localFormData.value.jobDetailsHtml = beforeText + '> ' + selectedText + '\n' + afterText
+    nextTick(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + 2 + selectedText.length
+      textarea.focus()
+    })
+  }
+}
+
+const insertBulletList = () => {
+  const textarea = document.querySelector('.job-details-editor')
+  if (textarea) {
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const beforeText = localFormData.value.jobDetailsHtml.substring(0, start)
+    const selectedText = localFormData.value.jobDetailsHtml.substring(start, end) || 'Elemento'
+    const afterText = localFormData.value.jobDetailsHtml.substring(end)
+    localFormData.value.jobDetailsHtml = beforeText + '• ' + selectedText + '\n' + afterText
+    nextTick(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + 2 + selectedText.length
+      textarea.focus()
+    })
+  }
+}
+
+const insertNumberedList = () => {
+  const textarea = document.querySelector('.job-details-editor')
+  if (textarea) {
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const beforeText = localFormData.value.jobDetailsHtml.substring(0, start)
+    const selectedText = localFormData.value.jobDetailsHtml.substring(start, end) || 'Elemento'
+    const afterText = localFormData.value.jobDetailsHtml.substring(end)
+    localFormData.value.jobDetailsHtml = beforeText + '1. ' + selectedText + '\n' + afterText
+    nextTick(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + 3 + selectedText.length
+      textarea.focus()
+    })
+  }
+}
+
+const insertFormatting = (before, after, placeholder) => {
+  const textarea = document.querySelector('.job-details-editor')
+  if (textarea) {
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selectedText = localFormData.value.jobDetailsHtml.substring(start, end) || placeholder
+    const beforeText = localFormData.value.jobDetailsHtml.substring(0, start)
+    const afterText = localFormData.value.jobDetailsHtml.substring(end)
+    localFormData.value.jobDetailsHtml = beforeText + before + selectedText + after + afterText
+    nextTick(() => {
+      textarea.selectionStart = start + before.length
+      textarea.selectionEnd = start + before.length + selectedText.length
+      textarea.focus()
+    })
+  }
+}
+
+const handleKeyDown = (event) => {
+  // Optional: Add keyboard shortcuts
+  if (event.ctrlKey || event.metaKey) {
+    if (event.key === 'b') {
+      event.preventDefault()
+      toggleBold()
+    } else if (event.key === 'i') {
+      event.preventDefault()
+      toggleItalic()
+    }
+  }
+}
 
 // ========== FUNCIÓN HELPER PARA INICIALIZAR DATOS ==========
 const initializeFormData = (modelValue) => ({
@@ -362,18 +478,6 @@ const initializeFormData = (modelValue) => ({
 
 // ========== DATA LOCAL ==========
 const localFormData = ref(initializeFormData(props.modelValue))
-
-// ========== QUILL KEY PARA REINICIALIZACIÓN ==========
-const quillKey = ref(0)
-
-// ========== QUILL EDITOR TOOLBAR ==========
-const quillToolbar = [
-  ['bold', 'italic', 'underline'],
-  [{ 'header': [1, 2, 3, false] }],
-  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-  ['blockquote'],
-  ['clean']
-]
 
 // ========== OPCIONES DE FORMULARIO ==========
 const categoryOptions = ref([])
@@ -421,7 +525,6 @@ watch(() => [props.modelValue.description, props.modelValue.title, props.modelVa
     // Si el description del store cambió pero jobDetailsHtml local no coincide, recargar
     if (description && description !== localFormData.value.jobDetailsHtml) {
       localFormData.value = initializeFormData(props.modelValue)
-      quillKey.value++ // Forzar reinicialización del Quill
     }
   },
   { deep: true }
@@ -481,23 +584,6 @@ const handleBack = () => {
 }
 
 // ========== VALIDACIÓN ==========
-// Función auxiliar para extraer texto sin HTML
-const stripHtmlTags = (html) => {
-  if (!html) return ''
-  // Crear elemento temporal para extraer texto
-  const temp = document.createElement('div')
-  temp.innerHTML = html
-  // Obtener solo el texto, eliminando tags pero respetando espacios
-  return temp.textContent || temp.innerText || ''
-}
-
-// Función auxiliar para contar caracteres sin espacios excesivos
-const cleanTextLength = (html) => {
-  const text = stripHtmlTags(html)
-  // Eliminar espacios en blanco al inicio/final y espacios múltiples
-  return text.trim().replace(/\s+/g, ' ').length
-}
-
 const validate = () => {
   const errors = []
 
@@ -509,8 +595,8 @@ const validate = () => {
     errors.push('El nombre de la empresa es requerido (o marca como anónima)')
   }
 
-  // Validar contenido del Quill editor (contar solo texto real, sin HTML)
-  const jobDetailsLength = cleanTextLength(localFormData.value.jobDetailsHtml)
+  // Validar contenido de detalles del empleo
+  const jobDetailsLength = (localFormData.value.jobDetailsHtml || '').trim().length
   if (!localFormData.value.jobDetailsHtml || jobDetailsLength < 50) {
     errors.push(`La información del empleo debe tener al menos 50 caracteres (actualmente: ${jobDetailsLength})`)
   }
@@ -1155,82 +1241,118 @@ textarea::placeholder {
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
 }
 
-/* ========== QUILL EDITOR STYLES - DOCUMENT STYLE ========== */
-.job-details-editor {
-  background: white;
-  border: none;
-  border-radius: 12px;
-  min-height: 280px;
-  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.12);
+/* ========== EDITOR STYLES ========== */
+.editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
   overflow: hidden;
-}
-
-:deep(.ql-toolbar) {
-  background: linear-gradient(135deg, #F8FAFC 0%, #F5F3FF 100%);
-  border: none;
-  border-bottom: 1px solid #E9D5FF;
-  border-radius: 12px 12px 0 0;
-  padding: 0.75rem 1rem;
-}
-
-:deep(.ql-toolbar.ql-snow) {
-  padding: 0.75rem 1rem;
-}
-
-:deep(.ql-toolbar button) {
-  color: #7C3AED;
-}
-
-:deep(.ql-toolbar button:hover) {
-  color: #A855F7;
-}
-
-:deep(.ql-container) {
-  border: none;
-  border-radius: 0 0 12px 12px;
-  font-size: 0.95rem;
   background: white;
 }
 
-:deep(.ql-editor) {
-  min-height: 240px;
-  padding: 2rem 1.5rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-  color: #334155;
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #F9F5FF 0%, #F5EFFF 100%);
+  border-bottom: 2px solid #E9D5FF;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.05);
 }
 
-:deep(.ql-editor.ql-blank::before) {
-  color: #CBD5E1;
-  font-style: italic;
+.toolbar-btn {
+  padding: 0.6rem 0.85rem;
+  border: 1.5px solid #DDD6FE;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #5B21B6;
   font-size: 0.95rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(124, 58, 237, 0.08);
 }
 
-:deep(.ql-editor h1) {
-  font-size: 1.75rem;
-  margin: 0.5rem 0;
+.toolbar-btn:hover {
+  background: linear-gradient(135deg, #EDE9FE 0%, #F3E8FF 100%);
+  border-color: #7C3AED;
+  color: #7C3AED;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(124, 58, 237, 0.15);
 }
 
-:deep(.ql-editor h2) {
-  font-size: 1.5rem;
-  margin: 0.5rem 0;
+.toolbar-btn:active {
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+  color: white;
+  border-color: #7C3AED;
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.3);
 }
 
-:deep(.ql-editor h3) {
-  font-size: 1.25rem;
-  margin: 0.4rem 0;
+.toolbar-separator {
+  width: 1.5px;
+  height: 28px;
+  background: linear-gradient(180deg, transparent, #E9D5FF, transparent);
+  margin: 0 0.5rem;
 }
 
-:deep(.ql-editor p) {
-  margin: 0.5rem 0;
+.bullet-icon {
+  font-size: 1.2rem;
+  line-height: 1;
 }
 
-:deep(.ql-editor ul, .ql-editor ol) {
-  margin: 0.5rem 0 0.5rem 2rem;
+.number-icon {
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
-:deep(.ql-editor li) {
-  margin: 0.25rem 0;
+.quote-icon {
+  font-size: 1.1rem;
+  opacity: 0.8;
+}
+
+.job-details-editor {
+  border: none !important;
+  padding: 1rem !important;
+  font-size: 0.95rem !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  line-height: 1.6 !important;
+  color: #334155 !important;
+  min-height: 250px;
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.job-details-editor::placeholder {
+  color: #9CA3AF !important;
+  opacity: 0.7 !important;
+  white-space: pre-line;
+}
+
+.job-details-editor:focus {
+  outline: none;
+}
+
+.editor-wrapper:has(.job-details-editor:focus) {
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.editor-char-count {
+  font-size: 0.8rem;
+  color: #64748B;
+  text-align: right;
+  padding: 0 1rem 0.5rem 1rem;
+  background: white;
 }
 
 /* ========== BOTONES DE NAVEGACIÓN ========== */
@@ -1455,10 +1577,6 @@ textarea::placeholder {
     width: 100%;
     justify-content: center;
   }
-
-  :deep(.ql-editor) {
-    min-height: 200px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -1491,11 +1609,6 @@ textarea::placeholder {
 
   .form-label {
     font-size: 0.9rem;
-  }
-
-  :deep(.ql-editor) {
-    min-height: 150px;
-    padding: 0.75rem;
   }
 }
 </style>

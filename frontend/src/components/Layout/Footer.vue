@@ -23,7 +23,7 @@
             <h4 class="social-title">Síguenos</h4>
             <div class="social-links">
               <a 
-                href="https://facebook.com/guiaspurpuras" 
+                href="https://www.facebook.com/profile.php?id=61582734578250" 
                 target="_blank"
                 rel="noopener noreferrer"
                 class="social-link facebook"

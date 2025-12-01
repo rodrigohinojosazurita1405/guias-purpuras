@@ -207,11 +207,30 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(92, 0, 153, 0.7) 0%, rgba(92, 0, 153, 0.8) 100%), url('@/assets/hero/herosection.png') center/cover no-repeat;
+  background: var(--color-purple-dark);
   z-index: 1;
   margin: 0;
 }
 
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('@/assets/hero/banner-hero-transparente.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.8;
+  z-index: 1;
+}
+
+.hero-section > * {
+  position: relative;
+  z-index: 2;
+}
 /* ==========================================
    CONTENIDO DEL HERO
    ========================================== */

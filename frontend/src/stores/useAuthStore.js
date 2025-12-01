@@ -106,15 +106,18 @@ export const useAuthStore = defineStore('auth', () => {
         throw new Error(data.message || 'Error al iniciar sesión')
       }
 
-      // Guardar tokens y usuario en state
+      // Guardar tokens y usuario en state (incluir role)
       accessToken.value = data.tokens.access
       refreshToken.value = data.tokens.refresh
-      user.value = data.user
+      user.value = {
+        ...data.user,
+        role: data.user.role || 'applicant'  // Asegurar que siempre haya un role
+      }
 
       // Guardar en localStorage
       localStorage.setItem('access_token', data.tokens.access)
       localStorage.setItem('refresh_token', data.tokens.refresh)
-      localStorage.setItem('auth_user', JSON.stringify(data.user))
+      localStorage.setItem('auth_user', JSON.stringify(user.value))
 
       return { success: true }
 
@@ -131,9 +134,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Registro de nuevo usuario
+   * Registro de nuevo usuario con rol
    */
-  const register = async (name, email, password) => {
+  const register = async (name, email, password, role = 'applicant') => {
     isLoading.value = true
     error.value = null
 
@@ -141,7 +144,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ name, email, password, role })
       })
 
       const data = await response.json()
@@ -150,15 +153,18 @@ export const useAuthStore = defineStore('auth', () => {
         throw new Error(data.message || 'Error al registrarse')
       }
 
-      // Guardar tokens y usuario en state
+      // Guardar tokens y usuario en state (incluir role)
       accessToken.value = data.tokens.access
       refreshToken.value = data.tokens.refresh
-      user.value = data.user
+      user.value = {
+        ...data.user,
+        role: data.user.role || 'applicant'  // Asegurar que siempre haya un role
+      }
 
       // Guardar en localStorage
       localStorage.setItem('access_token', data.tokens.access)
       localStorage.setItem('refresh_token', data.tokens.refresh)
-      localStorage.setItem('auth_user', JSON.stringify(data.user))
+      localStorage.setItem('auth_user', JSON.stringify(user.value))
 
       return { success: true }
 

@@ -141,6 +141,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Custom User Model
+AUTH_USER_MODEL = 'auth_api.CustomUser'
+
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',

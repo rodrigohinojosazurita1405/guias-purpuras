@@ -53,6 +53,10 @@ app.use(router)
 app.use(createVuestic({ config: vuesticConfig }))
 
 // ==========================================
+// REGISTRAR COMPONENTES GLOBALES
+// ==========================================
+
+// ==========================================
 // INICIALIZAR AUTH STORE (SOLO UNA VEZ AL INICIO)
 // ==========================================
 const authStore = useAuthStore(pinia)

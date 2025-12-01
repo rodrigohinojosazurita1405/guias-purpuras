@@ -3,12 +3,12 @@ API Views para Autenticación
 """
 import json
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from auth_api.models import CustomUser
 
 
 @require_http_methods(["POST"])
@@ -22,7 +22,8 @@ def register(request):
     {
         "email": "user@example.com",
         "password": "password123",
-        "name": "John Doe"
+        "name": "John Doe",
+        "role": "applicant" o "company"
     }
     """
     try:
@@ -32,6 +33,7 @@ def register(request):
         email = data.get('email', '').strip()
         password = data.get('password', '').strip()
         name = data.get('name', '').strip()
+        role = data.get('role', 'applicant').strip()  # Por defecto postulante
 
         if not email:
             return JsonResponse({
@@ -51,20 +53,29 @@ def register(request):
                 'message': 'Nombre es requerido'
             }, status=400)
 
+        # Validar que el role sea válido
+        valid_roles = ['applicant', 'company']
+        if role not in valid_roles:
+            return JsonResponse({
+                'success': False,
+                'message': f'Rol inválido. Debe ser: {", ".join(valid_roles)}'
+            }, status=400)
+
         # Verificar si el usuario ya existe
-        if User.objects.filter(username=email).exists():
+        if CustomUser.objects.filter(username=email).exists():
             return JsonResponse({
                 'success': False,
                 'message': 'Este email ya está registrado'
             }, status=400)
 
-        # Crear usuario
-        user = User.objects.create_user(
+        # Crear usuario con CustomUser
+        user = CustomUser.objects.create_user(
             username=email,
             email=email,
             password=password,
             first_name=name.split()[0] if ' ' in name else name,
-            last_name=' '.join(name.split()[1:]) if ' ' in name else ''
+            last_name=' '.join(name.split()[1:]) if ' ' in name else '',
+            role=role  # Asignar el role del usuario
         )
 
         # Generar tokens
@@ -76,7 +87,8 @@ def register(request):
             'user': {
                 'id': user.id,
                 'email': user.email,
-                'name': user.get_full_name() or user.username
+                'name': user.get_full_name() or user.username,
+                'role': user.role
             },
             'tokens': {
                 'access': str(refresh.access_token),
@@ -141,7 +153,8 @@ def login(request):
             'user': {
                 'id': user.id,
                 'email': user.email,
-                'name': user.get_full_name() or user.username
+                'name': user.get_full_name() or user.username,
+                'role': user.role
             },
             'tokens': {
                 'access': str(refresh.access_token),
@@ -359,7 +372,7 @@ def forgot_password(request):
 
         # Verificar si el usuario existe
         try:
-            user = User.objects.get(email=email)
+            user = CustomUser.objects.get(email=email)
             # En una aplicación real, aquí se enviaría un email con un link de reseteo
             # Por ahora, simplemente confirmamos que el email existe
             return JsonResponse({

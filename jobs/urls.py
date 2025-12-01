@@ -42,4 +42,15 @@ urlpatterns = [
 
     # Actualizar estado de una aplicación
     path('jobs/<str:job_id>/applications/<str:application_id>', views.update_application_status, name='update_application_status'),
+
+    # ========== ENDPOINTS PARA ÓRDENES DE PLANES ==========
+    path('orders/me', views.get_user_orders, name='get_user_orders'),
+    path('orders/<int:order_id>/', views.get_order_detail, name='get_order_detail'),
+    path('orders/<int:order_id>/resend-invoice', views.resend_invoice, name='resend_invoice'),
+
+    # ========== ENDPOINTS PARA USUARIOS BLOQUEADOS ==========
+    path('blocked-users/me', views.get_blocked_users, name='get_blocked_users'),
+    path('blocked-users/block', views.block_user, name='block_user'),
+    path('blocked-users/<int:block_id>/', views.unblock_user, name='unblock_user'),
+    path('blocked-users/check/<int:user_id>/', views.check_if_blocked, name='check_if_blocked'),
 ]

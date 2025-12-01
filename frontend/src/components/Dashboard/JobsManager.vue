@@ -599,7 +599,7 @@ const activateJob = async () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #9f7aea, #8b5cf6);
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: white;
   border-radius: 8px;
   text-decoration: none;
@@ -634,7 +634,7 @@ const activateJob = async () => {
 }
 
 .search-box:focus-within {
-  border-color: #9f7aea;
+  border-color: #7c3aed, #6d28d9;
   box-shadow: 0 0 0 3px rgba(159, 122, 234, 0.1);
 }
 
@@ -774,7 +774,7 @@ const activateJob = async () => {
   flex-shrink: 0;
   width: 16px;
   height: 16px;
-  color: #9f7aea;
+  color:  #7c3aed, #6d28d9;
 }
 
 .stat-text {
@@ -819,7 +819,7 @@ const activateJob = async () => {
 }
 
 .plan-purpura {
-  background: linear-gradient(135deg, #9F7AEA, #A78BFA);
+  background: linear-gradient(135deg,  #7c3aed, #6d28d9);
 }
 
 .plan-impulso {

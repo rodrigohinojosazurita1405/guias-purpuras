@@ -1,0 +1,540 @@
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
+Exception: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+Traceback (most recent call last):
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\auth_api\decorators.py", line 47, in wrapper
+    user = User.objects.get(id=user_id)
+           ^^^^^^^^^^^^
+  File "D:\Proyectos Django\GuiasPurpuras_V1.0\env\Lib\site-packages\django\db\models\manager.py", line 196, in __get__
+    raise AttributeError(
+    ...<5 lines>...
+    )
+AttributeError: Manager isn't available; 'auth.User' has been swapped for 'auth_api.CustomUser'
+
+---
