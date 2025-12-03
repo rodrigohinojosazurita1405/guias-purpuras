@@ -48,105 +48,86 @@ class Job(models.Model):
         default='presencial',
         verbose_name="Modalidad de trabajo"
     )
-    expiryDate = models.DateField(verbose_name="Fecha de vencimiento")
 
-    # Compensación
+    # Salario
     salaryType = models.CharField(
         max_length=20,
         choices=[
-            ('range', 'Rango salarial'),
-            ('fixed', 'Salario fijo'),
-            ('negotiable', 'A convenir'),
-            ('hidden', 'No mostrar')
+            ('range', 'Rango'),
+            ('fixed', 'Fijo'),
+            ('negotiable', 'A convenir')
         ],
-        default='range',
+        default='negotiable',
         verbose_name="Tipo de salario"
     )
-    salaryMin = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    salaryMax = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    salaryFixed = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    salaryMin = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Salario mínimo")
+    salaryMax = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Salario máximo")
+    salaryFixed = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Salario fijo")
+
+    # Otros detalles
     benefits = models.TextField(blank=True, verbose_name="Beneficios adicionales")
-
-    # Vacantes
     vacancies = models.IntegerField(default=1, verbose_name="Número de vacantes")
+    expiryDate = models.DateField(verbose_name="Fecha de vencimiento")
 
-    # Contacto
-    email = models.EmailField(verbose_name="Email de contacto")
-    whatsapp = models.CharField(max_length=20, blank=True, verbose_name="WhatsApp")
-    website = models.URLField(blank=True, verbose_name="Sitio web")
-    applicationInstructions = models.TextField(blank=True, verbose_name="Instrucciones de aplicación")
-
-    # Tipo de aplicación
-    applicationType = models.CharField(
-        max_length=20,
-        choices=[
-            ('internal', 'Interna'),
-            ('external', 'Externa'),
-            ('both', 'Ambas')
-        ],
-        default='internal',
-        verbose_name="Tipo de aplicación"
-    )
-    externalApplicationUrl = models.URLField(blank=True, verbose_name="URL de aplicación externa")
-
-    # Plan
-    selectedPlan = models.CharField(
-        max_length=20,
-        choices=[
-            ('escencial', 'Plan Escencial (35 Bs)'),
-            ('purpura', 'Plan Púrpura (79 Bs)'),
-            ('impulso', 'Plan Impulso Pro (169 Bs)')
-        ],
-        default='escencial',
-        verbose_name="Plan seleccionado"
-    )
-
-    # Datos del plan capturados en el momento de publicación
-    # (para que cambios futuros en Admin no afecten trabajos anteriores)
-    planLabel = models.CharField(
-        max_length=100,
-        blank=True,
-        verbose_name="Etiqueta del plan (capturada al publicar)"
-    )
-    planPrice = models.CharField(
-        max_length=50,
-        blank=True,
-        verbose_name="Precio del plan (capturado al publicar)"
-    )
-    planDuration = models.IntegerField(
-        null=True,
-        blank=True,
-        verbose_name="Duración del plan en días (capturada al publicar)"
-    )
-
-    # Screening questions (JSON)
-    screeningQuestions = models.JSONField(default=list, blank=True, verbose_name="Preguntas de filtrado")
-
-    # Estadísticas
-    views = models.IntegerField(default=0, verbose_name="Vistas")
-    applications = models.IntegerField(default=0, verbose_name="Aplicaciones")
-
-    # Timestamps
+    # Fechas
     createdAt = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de creación")
-    updatedAt = models.DateTimeField(auto_now=True, verbose_name="Fecha de actualización")
+    updatedAt = models.DateTimeField(auto_now=True, verbose_name="Última actualización")
+    publishDate = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de publicación")
 
-    # Status
+    # Estado
     status = models.CharField(
         max_length=20,
         choices=[
-            ('pending', 'Pendiente de Verificación'),
-            ('active', 'Activa'),
-            ('closed', 'Cerrada'),
+            ('pending', 'Pendiente'),
+            ('active', 'Activo'),
+            ('paused', 'Pausado'),
+            ('closed', 'Cerrado'),
             ('draft', 'Borrador')
         ],
         default='pending',
         verbose_name="Estado"
     )
 
-    # Información de Facturación (Opcional)
-    billingBusinessName = models.CharField(max_length=200, blank=True, null=True, verbose_name="Razón Social")
-    billingNIT = models.CharField(max_length=20, blank=True, null=True, verbose_name="NIT")
-    billingInvoiceEmail = models.EmailField(blank=True, null=True, verbose_name="Email para factura")
+    # Email del publicador
+    email = models.EmailField(verbose_name="Email del publicador")
+
+    # Estadísticas
+    views = models.IntegerField(default=0, verbose_name="Número de vistas")
+    applications = models.IntegerField(default=0, verbose_name="Número de aplicaciones")
+
+    # FASE 6: Sistema de Aplicaciones
+    applicationType = models.CharField(
+        max_length=20,
+        choices=[
+            ('internal', 'Interna (en Guías Púrpuras)'),
+            ('external', 'Externa (URL propia)'),
+            ('both', 'Ambas')
+        ],
+        default='internal',
+        verbose_name="Tipo de aplicación"
+    )
+    externalApplicationUrl = models.URLField(
+        max_length=500,
+        blank=True,
+        verbose_name="URL externa de aplicación"
+    )
+    screeningQuestions = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Preguntas de filtrado"
+    )
+
+    # FASE 7: Sistema de Pagos y Planes
+    selectedPlan = models.CharField(
+        max_length=50,
+        choices=[
+            ('estandar', 'Estándar'),
+            ('purpura', 'Púrpura'),
+            ('impulso', 'Impulso Pro')
+        ],
+        default='estandar',
+        verbose_name="Plan seleccionado"
+    )
 
     # Información de Verificación de Pago (FASE 7.1)
     proofOfPayment = models.ImageField(
@@ -197,11 +178,13 @@ class Job(models.Model):
     def save(self, *args, **kwargs):
         """
         Sincronizar estado con verificación de pago automáticamente
-        Si el pago está verificado y el estado es 'pending', cambiar a 'active'
+        Si el pago es verificado, el trabajo pasa a 'active'
         """
-        # Si el pago está verificado y el estado sigue como pending, activar automáticamente
+        # Si el pago se acaba de verificar
         if self.paymentVerified and self.status == 'pending':
+            from django.utils import timezone
             self.status = 'active'
+            self.publishDate = timezone.now()
 
         super().save(*args, **kwargs)
 
@@ -209,276 +192,125 @@ class Job(models.Model):
         return f"{self.title} - {self.companyName}"
 
 
-
-class Application(models.Model):
-    """Modelo para aplicaciones de candidatos a trabajos"""
-
-    # ID único
-    id = models.CharField(max_length=8, primary_key=True, default=generate_job_id)
-
+class PlanOrder(models.Model):
+    """
+    Modelo para órdenes de planes
+    Almacena la información de facturación y el plan contratado
+    """
     # Relación con el trabajo
-    job = models.ForeignKey(
+    job = models.OneToOneField(
         Job,
         on_delete=models.CASCADE,
-        related_name='job_applications',
-        verbose_name="Trabajo"
-    )
-
-    # Información del candidato
-    applicantName = models.CharField(max_length=200, verbose_name="Nombre del candidato")
-    applicantEmail = models.EmailField(verbose_name="Email del candidato")
-    applicantPhone = models.CharField(max_length=20, blank=True, verbose_name="Teléfono")
-    applicantWhatsapp = models.CharField(max_length=20, blank=True, verbose_name="WhatsApp")
-
-    # Respuestas a preguntas de filtrado
-    screeningAnswers = models.JSONField(default=dict, blank=True, verbose_name="Respuestas a preguntas")
-
-    # Estado de la aplicación
-    status = models.CharField(
-        max_length=20,
-        choices=[
-            ('received', 'Recibida'),
-            ('reviewing', 'En revisión'),
-            ('shortlisted', 'Preseleccionada'),
-            ('rejected', 'Rechazada'),
-            ('accepted', 'Aceptada'),
-            ('withdrawn', 'Retirada')
-        ],
-        default='received',
-        verbose_name="Estado"
-    )
-
-    # Notas del reclutador
-    recruiterNotes = models.TextField(blank=True, verbose_name="Notas del reclutador")
-
-    # Timestamps
-    createdAt = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de aplicación")
-    updatedAt = models.DateTimeField(auto_now=True, verbose_name="Última actualización")
-
-    class Meta:
-        verbose_name = "Aplicación"
-        verbose_name_plural = "Aplicaciones"
-        ordering = ['-createdAt']
-        unique_together = ('job', 'applicantEmail')
-
-    def __str__(self):
-        return f"{self.applicantName} - {self.job.title}"
-
-
-class JobAuditLog(models.Model):
-    """Modelo para auditoría de cambios en ofertas de trabajo"""
-
-    ACTION_CHOICES = [
-        ('created', 'Creado'),
-        ('updated', 'Actualizado'),
-        ('activated', 'Activado'),
-        ('deactivated', 'Desactivado'),
-        ('duplicated', 'Duplicado'),
-        ('deleted', 'Eliminado'),
-        ('payment_verified', 'Pago verificado'),
-        ('payment_rejected', 'Pago rechazado'),
-    ]
-
-    # ID único
-    id = models.CharField(max_length=8, primary_key=True, default=generate_job_id)
-
-    # Relación con el trabajo
-    job = models.ForeignKey(
-        Job,
-        on_delete=models.SET_NULL,
+        related_name='plan_order',
+        verbose_name="Trabajo asociado",
         null=True,
-        blank=True,
-        related_name='audit_logs',
-        verbose_name="Trabajo"
+        blank=True
     )
 
-    # Información del evento
-    action = models.CharField(
-        max_length=20,
-        choices=ACTION_CHOICES,
-        verbose_name="Acción"
-    )
-
-    # Email del usuario que realizó la acción
-    userEmail = models.EmailField(verbose_name="Email del usuario", blank=True)
-
-    # Campos modificados (para updated)
-    changedFields = models.JSONField(
-        default=dict,
-        blank=True,
-        verbose_name="Campos modificados",
-        help_text="JSON con before/after de los campos que cambieron"
-    )
-
-    # Notas/Razón del cambio
-    notes = models.TextField(blank=True, verbose_name="Notas")
-
-    # IP del cliente (para rastrear)
-    clientIP = models.GenericIPAddressField(blank=True, null=True, verbose_name="IP del cliente")
-
-    # Timestamp
-    timestamp = models.DateTimeField(auto_now_add=True, verbose_name="Fecha y hora")
-
-    class Meta:
-        verbose_name = "Auditoría de Trabajo"
-        verbose_name_plural = "Auditorías de Trabajos"
-        ordering = ['-timestamp']
-        indexes = [
-            models.Index(fields=['job', '-timestamp']),
-            models.Index(fields=['userEmail', '-timestamp']),
-            models.Index(fields=['action']),
-        ]
-
-    def __str__(self):
-        return f"{self.job.title} - {self.get_action_display()} - {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
-
-
-# ========== MODELOS PARA GESTIÓN DE ÓRDENES Y USUARIOS BLOQUEADOS ==========
-
-class PlanOrder(models.Model):
-    """Modelo para registrar las compras de planes por parte de empresas"""
-
-    STATUS_CHOICES = [
-        ('PENDING', 'Pendiente de Pago'),
-        ('PAID', 'Pagado'),
-        ('INVOICE_SENT', 'Factura Enviada'),
-        ('COMPLETED', 'Completado'),
-    ]
-
-    # Relación con usuario (empresa que compra)
+    # Información del usuario que solicita el plan
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='plan_orders',
-        verbose_name='Empresa'
+        verbose_name="Usuario"
     )
 
-    # Relación con el plan comprado
-    plan = models.ForeignKey(
-        'plans.Plan',
-        on_delete=models.PROTECT,
-        related_name='orders',
-        verbose_name='Plan'
-    )
-
-    # Información de factura
-    invoice_number = models.CharField(
-        max_length=100,
-        unique=True,
-        verbose_name='Número de Orden'
-    )
-
-    nit = models.CharField(
-        max_length=20,
-        verbose_name='NIT',
-        help_text='Número de Identificación Tributaria'
-    )
-
+    # Datos de facturación
     razon_social = models.CharField(
-        max_length=255,
-        verbose_name='Razón Social'
+        max_length=200,
+        verbose_name="Razón Social"
     )
-
+    nit = models.CharField(
+        max_length=50,
+        verbose_name="NIT"
+    )
     ci = models.CharField(
         max_length=20,
-        verbose_name='CI',
-        help_text='Cédula de Identidad del representante'
+        blank=True,
+        verbose_name="CI"
     )
-
     ci_complement = models.CharField(
         max_length=5,
         blank=True,
-        verbose_name='Complemento CI',
-        help_text='Complemento de la Cédula de Identidad (opcional)'
+        verbose_name="Complemento CI"
     )
 
-    # Información de pago
-    amount_paid = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        verbose_name='Monto Pagado'
+    # Datos de contacto
+    email = models.EmailField(
+        verbose_name="Email para factura",
+        default='noreply@guiaspurpuras.com'
     )
-
-    payment_proof = models.ImageField(
-        upload_to='payment_proofs/',
-        verbose_name='Comprobante de Pago',
-        blank=True,
-        null=True
-    )
-
-    # Fechas y estado
-    order_date = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Fecha de Orden'
-    )
-
-    electronic_invoice_sent_date = models.DateTimeField(
-        blank=True,
-        null=True,
-        verbose_name='Fecha de Envío de Factura Electrónica'
-    )
-
-    electronic_invoice_email = models.EmailField(
-        blank=True,
-        verbose_name='Email para Factura Electrónica'
-    )
-
-    electronic_invoice_whatsapp = models.CharField(
+    whatsapp = models.CharField(
         max_length=20,
         blank=True,
-        verbose_name='WhatsApp para Factura Electrónica',
-        help_text='Número de teléfono para envío por WhatsApp'
+        verbose_name="WhatsApp"
+    )
+
+    # Plan contratado
+    selected_plan = models.CharField(
+        max_length=50,
+        choices=[
+            ('estandar', 'Estándar'),
+            ('purpura', 'Púrpura'),
+            ('impulso', 'Impulso Pro')
+        ],
+        verbose_name="Plan seleccionado",
+        default='estandar'
+    )
+    plan_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Precio del plan",
+        default=0.00
     )
 
     # Estado de la orden
     status = models.CharField(
         max_length=20,
-        choices=STATUS_CHOICES,
-        default='PENDING',
-        verbose_name='Estado'
+        choices=[
+            ('processing', 'En Proceso'),
+            ('completed', 'Completado')
+        ],
+        default='processing',
+        verbose_name="Estado"
     )
 
-    # Datos adicionales de la empresa en JSON
-    company_data = models.JSONField(
-        default=dict,
-        blank=True,
-        verbose_name='Datos de la Empresa',
-        help_text='Datos del SummaryCard al momento de la compra'
+    # Fechas
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha de creación"
     )
-
-    # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Última actualización"
+    )
 
     class Meta:
         verbose_name = 'Orden de Plan'
         verbose_name_plural = 'Órdenes de Planes'
-        ordering = ['-order_date']
+        ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['user', '-order_date']),
+            models.Index(fields=['-created_at']),
+            models.Index(fields=['user']),
             models.Index(fields=['status']),
-            models.Index(fields=['invoice_number']),
         ]
 
     def __str__(self):
-        return f"{self.razon_social} - {self.plan.label} - {self.invoice_number}"
+        return f"Orden {self.id} - {self.razon_social} - {self.selected_plan}"
 
 
 class BlockedUser(models.Model):
-    """Modelo para registrar usuarios bloqueados por empresas"""
-
-    REASON_CHOICES = [
-        ('SPAM', 'Spam'),
-        ('UNQUALIFIED', 'No Calificado'),
-        ('OTHER', 'Otro'),
-    ]
-
-    # Empresa que bloquea
+    """
+    Modelo para usuarios bloqueados por empresas
+    Permite a las empresas bloquear candidatos específicos
+    """
+    # Empresa que realiza el bloqueo
     company = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='blocked_users',
-        verbose_name='Empresa que Bloquea'
+        related_name='users_blocked_by_me',
+        limit_choices_to={'role': 'company'},
+        verbose_name="Empresa"
     )
 
     # Usuario bloqueado
@@ -486,37 +318,30 @@ class BlockedUser(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='blocked_by_companies',
-        verbose_name='Usuario Bloqueado'
+        limit_choices_to={'role': 'applicant'},
+        verbose_name="Usuario bloqueado"
     )
 
     # Razón del bloqueo
     reason = models.CharField(
-        max_length=20,
-        choices=REASON_CHOICES,
-        verbose_name='Razón del Bloqueo'
+        max_length=50,
+        choices=[
+            ('spam', 'Spam'),
+            ('inappropriate', 'Comportamiento inapropiado'),
+            ('unqualified', 'No calificado repetidamente'),
+            ('other', 'Otra razón')
+        ],
+        verbose_name="Razón"
     )
-
-    reason_notes = models.TextField(
+    notes = models.TextField(
         blank=True,
-        verbose_name='Notas Adicionales'
+        verbose_name="Notas adicionales"
     )
 
-    # Información de bloqueo
+    # Fecha del bloqueo
     blocked_at = models.DateTimeField(
         auto_now_add=True,
-        verbose_name='Fecha de Bloqueo'
-    )
-
-    blocked_until = models.DateTimeField(
-        blank=True,
-        null=True,
-        verbose_name='Bloqueado Hasta',
-        help_text='Dejar en blanco para bloqueo permanente'
-    )
-
-    is_permanent = models.BooleanField(
-        default=True,
-        verbose_name='¿Es Permanente?'
+        verbose_name="Bloqueado el"
     )
 
     class Meta:
@@ -531,3 +356,193 @@ class BlockedUser(models.Model):
 
     def __str__(self):
         return f"{self.company.email} bloqueó a {self.blocked_user.email} - {self.get_reason_display()}"
+
+
+# ============================================================
+# NUEVOS MODELOS DINÁMICOS PARA CRUD
+# ============================================================
+
+class JobCategory(models.Model):
+    """
+    Categorías de trabajo dinámicas
+    Permite gestionar categorías desde Django Admin
+    """
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name="Nombre de la categoría"
+    )
+    slug = models.SlugField(
+        max_length=100,
+        unique=True,
+        blank=True,
+        verbose_name="Slug (auto-generado)"
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name="Descripción"
+    )
+    icon = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Nombre del ícono (Material Icons)",
+        verbose_name="Ícono"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Activa"
+    )
+    order = models.IntegerField(
+        default=0,
+        verbose_name="Orden de visualización"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha de creación"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Última actualización"
+    )
+
+    class Meta:
+        verbose_name = "Categoría de Trabajo"
+        verbose_name_plural = "Categorías de Trabajo"
+        ordering = ['order', 'name']
+        indexes = [
+            models.Index(fields=['slug']),
+            models.Index(fields=['is_active', 'order']),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+class ContractType(models.Model):
+    """
+    Tipos de contrato dinámicos
+    Permite gestionar tipos de contrato desde Django Admin
+    """
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name="Nombre del tipo de contrato"
+    )
+    slug = models.SlugField(
+        max_length=100,
+        unique=True,
+        blank=True,
+        verbose_name="Slug (auto-generado)"
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name="Descripción"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Activo"
+    )
+    order = models.IntegerField(
+        default=0,
+        verbose_name="Orden de visualización"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha de creación"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Última actualización"
+    )
+
+    class Meta:
+        verbose_name = "Tipo de Contrato"
+        verbose_name_plural = "Tipos de Contrato"
+        ordering = ['order', 'name']
+        indexes = [
+            models.Index(fields=['slug']),
+            models.Index(fields=['is_active', 'order']),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+class City(models.Model):
+    """
+    Ciudades/Departamentos dinámicos
+    Permite gestionar ciudades desde Django Admin
+    """
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name="Nombre de la ciudad"
+    )
+    slug = models.SlugField(
+        max_length=100,
+        unique=True,
+        blank=True,
+        verbose_name="Slug (auto-generado)"
+    )
+    department = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Departamento"
+    )
+    region = models.CharField(
+        max_length=50,
+        blank=True,
+        choices=[
+            ('altiplano', 'Altiplano'),
+            ('valles', 'Valles'),
+            ('llanos', 'Llanos'),
+        ],
+        verbose_name="Región"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Activa"
+    )
+    order = models.IntegerField(
+        default=0,
+        verbose_name="Orden de visualización"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha de creación"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Última actualización"
+    )
+
+    class Meta:
+        verbose_name = "Ciudad"
+        verbose_name_plural = "Ciudades"
+        ordering = ['order', 'name']
+        indexes = [
+            models.Index(fields=['slug']),
+            models.Index(fields=['is_active', 'order']),
+            models.Index(fields=['region']),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.department})" if self.department else self.name

@@ -1,8 +1,13 @@
 <!-- frontend/src/components/Profile/Dashboard.vue -->
 <template>
   <div class="dashboard-container">
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle" @click="sidebarOpen = !sidebarOpen">
+      <va-icon :name="sidebarOpen ? 'close' : 'menu'" size="large" />
+    </button>
+
     <!-- Sidebar Navigation -->
-    <div class="dashboard-sidebar">
+    <div class="dashboard-sidebar" :class="{ 'mobile-open': sidebarOpen }">
       <div class="sidebar-header">
         <h2>Panel de Control</h2>
       </div>
@@ -235,6 +240,7 @@ const { init: notify } = useToast()
 const activeSection = ref('home')
 const showChangePassword = ref(false)
 const showMenu = ref(false)
+const sidebarOpen = ref(false)
 
 // ========== LIFECYCLE ==========
 onMounted(() => {
@@ -243,6 +249,7 @@ onMounted(() => {
 
 watch(() => route.path, () => {
   updateActiveSection()
+  sidebarOpen.value = false // Cerrar sidebar al cambiar de ruta
 })
 
 // ========== METHODS ==========
@@ -595,24 +602,67 @@ const handleLogout = () => {
   background: #FEE2E2;
 }
 
+/* ========== MOBILE MENU TOGGLE ========== */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1001;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4);
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle:hover {
+  background: #6d28d9;
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+}
+
+.mobile-menu-toggle:active {
+  transform: scale(0.95);
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .dashboard-container {
     flex-direction: column;
   }
 
   .dashboard-sidebar {
-    width: 100%;
-    max-height: 400px;
-    border-right: none;
-    border-bottom: 1px solid var(--color-gray-medium);
-    position: relative;
-    top: 0;
-    height: auto;
+    position: fixed;
+    top: 70px;
+    left: -100%;
+    width: 280px;
+    height: calc(100vh - 70px);
+    background: #F9FAFB;
+    border-right: 1px solid #E5E7EB;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+  }
+
+  .dashboard-sidebar.mobile-open {
+    left: 0;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   }
 
   .dashboard-content {
     padding: 1rem;
+    width: 100%;
   }
 
   .menu-item {
@@ -621,20 +671,65 @@ const handleLogout = () => {
   }
 
   .dashboard-navbar {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
   }
 
   .navbar-actions {
     width: 100%;
-    flex-direction: column;
+    flex-direction: row;
+    gap: 0.5rem;
+    justify-content: space-between;
   }
 
   .navbar-btn {
+    flex: 1;
+    padding: 0.625rem;
+    font-size: 0.75rem;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .navbar-btn span {
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .navbar-btn :deep(.va-icon) {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .navbar-menu {
+    width: 100%;
+  }
+
+  .dropdown-wrapper {
+    width: 100%;
+  }
+
+  .navbar-btn-config {
     width: 100%;
     justify-content: center;
+    flex-direction: row !important; /* Mantener horizontal en móvil */
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-btn-config span {
+    font-size: 0.9rem !important; /* Texto normal para el botón Cuenta */
+  }
+
+  .dropdown-content {
+    left: 0;
+    right: 0;
+    width: 100%;
+    min-width: auto;
   }
 }
 </style>

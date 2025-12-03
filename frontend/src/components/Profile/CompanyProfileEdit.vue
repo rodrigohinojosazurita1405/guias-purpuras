@@ -831,24 +831,24 @@ const clearBannerPreview = async () => {
 
 .logo-container {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 168px;
+  height: 168px;
   background: white;
-  border-radius: 50%;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: visible;
-  border: 4px solid #7c3aed;
+  border: 4px solid white;
 }
 
 .logo-image {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
+  border-radius: 4px;
+  object-fit: contain;
   animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   transition: transform 0.3s ease;
 }
@@ -860,7 +860,7 @@ const clearBannerPreview = async () => {
 .logo-placeholder {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  border-radius: 4px;
   background: linear-gradient(135deg, #f5f5f5, #e8e8e8);
   display: flex;
   align-items: center;

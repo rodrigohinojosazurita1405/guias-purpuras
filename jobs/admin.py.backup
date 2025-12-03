@@ -73,7 +73,7 @@ class JobAdmin(admin.ModelAdmin):
             'fields': ('vacancies', 'applications', 'expiryDate')
         }),
         ('Contacto', {
-            'fields': ('email',)
+            'fields': ('email', 'whatsapp', 'website', 'applicationInstructions')
         }),
         ('Tipo de Aplicación', {
             'fields': ('applicationType', 'externalApplicationUrl', 'screeningQuestions')
@@ -402,408 +402,419 @@ class JobAdmin(admin.ModelAdmin):
     delete_jobs_with_audit.short_description = '🗑️ Eliminar ofertas (con auditoría)'
 
 
-# @admin.register(Application)
-# class ApplicationAdmin(admin.ModelAdmin):
-#     """Admin personalizado para gestionar aplicaciones de candidatos"""
-# 
-#     list_display = (
-#         'candidate_name_display',
-#         'job_title_link',
-#         'candidate_email',
-#         'status_badge',
-#         'application_date',
-#         'screening_answers_preview'
-#     )
-# 
-#     list_filter = (
-#         'status',
-#         'createdAt',
-#         'job__city',
-#     )
-# 
-#     search_fields = (
-#         'applicantName',
-#         'applicantEmail',
-#         'job__title',
-#         'id'
-#     )
-# 
-#     readonly_fields = (
-#         'id',
-#         'job',
-#         'createdAt',
-#         'updatedAt',
-#         'screening_answers_display',
-#         'candidate_contact_display'
-#     )
-# 
-#     actions = [
-#         'mark_as_reviewing',
-#         'mark_as_shortlisted',
-#         'mark_as_rejected',
-#         'mark_as_accepted'
-#     ]
-# 
-#     fieldsets = (
-#         ('Información del Candidato', {
-#             'fields': ('id', 'applicantName', 'applicantEmail', 'applicantPhone', 'applicantWhatsapp', 'candidate_contact_display')
-#         }),
-#         ('Oferta de Trabajo', {
-#             'fields': ('job',)
-#         }),
-#         ('Respuestas de Screening', {
-#             'fields': ('screening_answers_display',),
-#             'classes': ('wide',)
-#         }),
-#         ('Evaluación', {
-#             'fields': ('status', 'recruiterNotes')
-#         }),
-#         ('Timestamps', {
-#             'fields': ('createdAt', 'updatedAt'),
-#             'classes': ('collapse',)
-#         }),
-#     )
-# 
-#     # ========== MÉTODOS DE DISPLAY ==========
-# 
-#     def candidate_name_display(self, obj):
-#         """Muestra el nombre del candidato"""
-#         return obj.applicantName
-#     candidate_name_display.short_description = 'Candidato'
-# 
-#     def job_title_link(self, obj):
-#         """Link al trabajo con título"""
-#         url = reverse('admin:jobs_job_change', args=[obj.job.id])
-#         return format_html(
-#             '<a href="{}">{}</a>',
-#             url,
-#             obj.job.title[:40]
-#         )
-#     job_title_link.short_description = 'Oferta'
-# 
-#     def candidate_email(self, obj):
-#         """Email del candidato"""
-#         return obj.applicantEmail
-#     candidate_email.short_description = 'Email'
-# 
-#     def status_badge(self, obj):
-#         """Badge con estado de la aplicación con colores sobrios"""
-#         status_colors = {
-#             'received': '#3B82F6',        # Azul
-#             'reviewing': '#F59E0B',       # Naranja
-#             'shortlisted': '#10B981',     # Verde
-#             'rejected': '#DC2626',        # Rojo
-#             'accepted': '#059669',        # Verde oscuro
-#             'withdrawn': '#6B7280'        # Gris
-#         }
-#         labels = {
-#             'received': 'RECIBIDA',
-#             'reviewing': 'EN REVISIÓN',
-#             'shortlisted': 'PRESELECCIONADA',
-#             'rejected': 'RECHAZADA',
-#             'accepted': 'ACEPTADA',
-#             'withdrawn': 'RETIRADA'
-#         }
-#         color = status_colors.get(obj.status, '#6B7280')
-#         label = labels.get(obj.status, obj.status.upper())
-# 
-#         return format_html(
-#             '<span style="background-color: {}; color: white; padding: 6px 14px; '
-#             'border-radius: 20px; font-weight: bold; font-size: 12px; '
-#             'display: inline-block;">{}</span>',
-#             color, label
-#         )
-#     status_badge.short_description = 'Estado'
-# 
-#     def application_date(self, obj):
-#         """Fecha de aplicación"""
-#         return obj.createdAt.strftime('%d/%m/%Y %H:%M')
-#     application_date.short_description = 'Fecha'
-# 
-#     def screening_answers_preview(self, obj):
-#         """Preview de respuestas de screening"""
-#         if not obj.screeningAnswers:
-#             return 'Sin respuestas'
-# 
-#         count = len(obj.screeningAnswers)
-#         return f'{count} respuestas'
-#     screening_answers_preview.short_description = 'Respuestas'
-# 
-#     def screening_answers_display(self, obj):
-#         """Muestra todas las respuestas de screening de forma legible"""
-#         if not obj.screeningAnswers:
-#             return 'Sin respuestas de screening'
-# 
-#         result = 'Respuestas de Screening:\n'
-#         for idx, (key, answer) in enumerate(obj.screeningAnswers.items()):
-#             result += f'\nPregunta {int(key) + 1}:\n'
-# 
-#             # Obtener la pregunta original del job
-#             job = obj.job
-#             if job.screeningQuestions and int(key) < len(job.screeningQuestions):
-#                 question = job.screeningQuestions[int(key)]
-#                 result += f'{question.get("text", "Pregunta no disponible")}\n'
-# 
-#             result += f'Respuesta: {answer}\n'
-# 
-#         return result
-#     screening_answers_display.short_description = 'Respuestas de Screening'
-# 
-#     def candidate_contact_display(self, obj):
-#         """Muestra información de contacto del candidato con estilos"""
-#         html_content = (
-#             '<div style="background-color: #F3F4F6; padding: 12px; border-radius: 8px; '
-#             'font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto; font-size: 13px;">'
-#         )
-# 
-#         # Email
-#         if obj.applicantEmail:
-#             html_content += (
-#                 '<p style="margin: 0 0 8px 0; display: flex; align-items: center;">'
-#                 '<span style="color: #1F2937; font-weight: 600; margin-right: 8px;">✉️</span>'
-#                 f'<span style="color: #374151;">{obj.applicantEmail}</span>'
-#                 '</p>'
-#             )
-# 
-#         # Teléfono
-#         if obj.applicantPhone:
-#             html_content += (
-#                 '<p style="margin: 0 0 8px 0; display: flex; align-items: center;">'
-#                 '<span style="color: #1F2937; font-weight: 600; margin-right: 8px;">☎️</span>'
-#                 f'<span style="color: #374151;">{obj.applicantPhone}</span>'
-#                 '</p>'
-#             )
-# 
-#         # WhatsApp
-#         if obj.applicantWhatsapp:
-#             html_content += (
-#                 '<p style="margin: 0; display: flex; align-items: center;">'
-#                 '<span style="color: #1F2937; font-weight: 600; margin-right: 8px;">💬</span>'
-#                 f'<span style="color: #374151;">{obj.applicantWhatsapp}</span>'
-#                 '</p>'
-#             )
-# 
-#         html_content += '</div>'
-#         return format_html(html_content)
-#     candidate_contact_display.short_description = 'Información de Contacto'
-# 
-#     # ========== ACCIONES PERSONALIZADAS ==========
-# 
-#     def mark_as_reviewing(self, request, queryset):
-#         """Cambiar estado a EN REVISIÓN"""
-#         updated = queryset.update(status='reviewing')
-#         self.message_user(request, f'{updated} aplicaciones marcadas como EN REVISIÓN')
-#     mark_as_reviewing.short_description = 'Marcar como EN REVISIÓN'
-# 
-#     def mark_as_shortlisted(self, request, queryset):
-#         """Cambiar estado a PRESELECCIONADA"""
-#         updated = queryset.update(status='shortlisted')
-#         self.message_user(request, f'{updated} aplicaciones PRESELECCIONADAS')
-#     mark_as_shortlisted.short_description = 'Marcar como PRESELECCIONADA'
-# 
-#     def mark_as_rejected(self, request, queryset):
-#         """Cambiar estado a RECHAZADA"""
-#         updated = queryset.update(status='rejected')
-#         self.message_user(request, f'{updated} aplicaciones RECHAZADAS')
-#     mark_as_rejected.short_description = 'Marcar como RECHAZADA'
-# 
-#     def mark_as_accepted(self, request, queryset):
-#         """Cambiar estado a ACEPTADA"""
-#         updated = queryset.update(status='accepted')
-#         self.message_user(request, f'{updated} aplicaciones ACEPTADAS')
-#     mark_as_accepted.short_description = 'Marcar como ACEPTADA'
-# 
-# 
-# @admin.register(JobAuditLog)
-# class JobAuditLogAdmin(admin.ModelAdmin):
-#     """Admin para auditoría de cambios en trabajos"""
-# 
-#     list_display = (
-#         'timestamp_display',
-#         'job_link',
-#         'action_badge',
-#         'user_display',
-#         'client_ip_display'
-#     )
-# 
-#     list_filter = (
-#         'action',
-#         'timestamp',
-#         'userEmail',
-#     )
-# 
-#     search_fields = (
-#         'job__title',
-#         'job__id',
-#         'userEmail',
-#         'clientIP',
-#         'notes'
-#     )
-# 
-#     readonly_fields = (
-#         'id',
-#         'job',
-#         'timestamp',
-#         'changed_fields_display',
-#         'user_email_display',
-#         'action_display'
-#     )
-# 
-#     fieldsets = (
-#         ('Información del Evento', {
-#             'fields': ('id', 'job', 'action_display', 'timestamp')
-#         }),
-#         ('Usuario y IP', {
-#             'fields': ('user_email_display', 'clientIP')
-#         }),
-#         ('Cambios Realizados', {
-#             'fields': ('changed_fields_display',),
-#             'classes': ('wide',)
-#         }),
-#         ('Notas', {
-#             'fields': ('notes',),
-#             'classes': ('wide',)
-#         }),
-#     )
-# 
-#     def timestamp_display(self, obj):
-#         """Muestra la fecha y hora formateada"""
-#         return obj.timestamp.strftime('%d/%m/%Y %H:%M:%S')
-#     timestamp_display.short_description = 'Fecha y Hora'
-# 
-#     def job_link(self, obj):
-#         """Link al trabajo"""
-#         # Si el trabajo fue eliminado, job será None
-#         if obj.job is None:
-#             return format_html(
-#                 '<span style="color: #999; font-style: italic;">[Trabajo Eliminado]</span>'
-#             )
-# 
-#         url = reverse('admin:jobs_job_change', args=[obj.job.id])
-#         return format_html(
-#             '<a href="{}">{}</a>',
-#             url,
-#             obj.job.title[:40]
-#         )
-#     job_link.short_description = 'Trabajo'
-# 
-#     def action_badge(self, obj):
-#         """Badge con el tipo de acción"""
-#         action_colors = {
-#             'created': '#10B981',        # Verde
-#             'updated': '#3B82F6',        # Azul
-#             'activated': '#059669',      # Verde oscuro
-#             'deactivated': '#DC2626',    # Rojo
-#             'duplicated': '#F59E0B',     # Naranja
-#             'deleted': '#7C2D12',        # Marrón
-#             'payment_verified': '#10B981', # Verde
-#             'payment_rejected': '#DC2626',  # Rojo
-#         }
-#         color = action_colors.get(obj.action, '#6B7280')
-# 
-#         return format_html(
-#             '<span style="background-color: {}; color: white; padding: 6px 14px; '
-#             'border-radius: 20px; font-weight: bold; font-size: 12px; '
-#             'display: inline-block;">{}</span>',
-#             color, obj.get_action_display()
-#         )
-#     action_badge.short_description = 'Acción'
-# 
-#     def user_display(self, obj):
-#         """Muestra el email del usuario"""
-#         return obj.userEmail or 'Sistema'
-#     user_display.short_description = 'Usuario'
-# 
-#     def client_ip_display(self, obj):
-#         """Muestra la IP del cliente"""
-#         return obj.clientIP or 'N/A'
-#     client_ip_display.short_description = 'IP Cliente'
-# 
-#     def user_email_display(self, obj):
-#         """Display del email del usuario"""
-#         return obj.userEmail or 'No registrado'
-#     user_email_display.short_description = 'Email del Usuario'
-# 
-#     def action_display(self, obj):
-#         """Display amigable de la acción"""
-#         return obj.get_action_display()
-#     action_display.short_description = 'Tipo de Acción'
-# 
-#     def changed_fields_display(self, obj):
-#         """Muestra los cambios realizados de forma legible"""
-#         if not obj.changedFields:
-#             return 'Sin cambios específicos'
-# 
-#         html_content = '<div style="background-color: #F3F4F6; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 13px;">'
-# 
-#         for field, changes in obj.changedFields.items():
-#             if isinstance(changes, dict) and 'before' in changes and 'after' in changes:
-#                 before = changes['before']
-#                 after = changes['after']
-#                 html_content += f'<div style="margin-bottom: 10px; padding: 8px; background-color: white; border-radius: 4px; border-left: 3px solid #3B82F6;">'
-#                 html_content += f'<strong style="color: #1F2937;">{field}:</strong><br>'
-#                 html_content += f'<span style="color: #7C3AED;">❌ Antes:</span> <code style="background: #F9FAFB; padding: 2px 4px; border-radius: 3px; color: #1F2937;">{before}</code><br>'
-#                 html_content += f'<span style="color: #059669;">✅ Después:</span> <code style="background: #F9FAFB; padding: 2px 4px; border-radius: 3px; color: #1F2937;">{after}</code>'
-#                 html_content += '</div>'
-# 
-#         html_content += '</div>'
-#         return format_html(html_content)
-#     changed_fields_display.short_description = 'Campos Modificados'
-# 
-#     # No permitir editar registros de auditoría
-#     def has_add_permission(self, request):
-#         return False
-# 
-#     def has_delete_permission(self, request, obj=None):
-#         return False
-# 
-#     def has_change_permission(self, request, obj=None):
-#         return False
-# 
-# 
+@admin.register(Application)
+class ApplicationAdmin(admin.ModelAdmin):
+    """Admin personalizado para gestionar aplicaciones de candidatos"""
+
+    list_display = (
+        'candidate_name_display',
+        'job_title_link',
+        'candidate_email',
+        'status_badge',
+        'application_date',
+        'screening_answers_preview'
+    )
+
+    list_filter = (
+        'status',
+        'createdAt',
+        'job__city',
+    )
+
+    search_fields = (
+        'applicantName',
+        'applicantEmail',
+        'job__title',
+        'id'
+    )
+
+    readonly_fields = (
+        'id',
+        'job',
+        'createdAt',
+        'updatedAt',
+        'screening_answers_display',
+        'candidate_contact_display'
+    )
+
+    actions = [
+        'mark_as_reviewing',
+        'mark_as_shortlisted',
+        'mark_as_rejected',
+        'mark_as_accepted'
+    ]
+
+    fieldsets = (
+        ('Información del Candidato', {
+            'fields': ('id', 'applicantName', 'applicantEmail', 'applicantPhone', 'applicantWhatsapp', 'candidate_contact_display')
+        }),
+        ('Oferta de Trabajo', {
+            'fields': ('job',)
+        }),
+        ('Respuestas de Screening', {
+            'fields': ('screening_answers_display',),
+            'classes': ('wide',)
+        }),
+        ('Evaluación', {
+            'fields': ('status', 'recruiterNotes')
+        }),
+        ('Timestamps', {
+            'fields': ('createdAt', 'updatedAt'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    # ========== MÉTODOS DE DISPLAY ==========
+
+    def candidate_name_display(self, obj):
+        """Muestra el nombre del candidato"""
+        return obj.applicantName
+    candidate_name_display.short_description = 'Candidato'
+
+    def job_title_link(self, obj):
+        """Link al trabajo con título"""
+        url = reverse('admin:jobs_job_change', args=[obj.job.id])
+        return format_html(
+            '<a href="{}">{}</a>',
+            url,
+            obj.job.title[:40]
+        )
+    job_title_link.short_description = 'Oferta'
+
+    def candidate_email(self, obj):
+        """Email del candidato"""
+        return obj.applicantEmail
+    candidate_email.short_description = 'Email'
+
+    def status_badge(self, obj):
+        """Badge con estado de la aplicación con colores sobrios"""
+        status_colors = {
+            'received': '#3B82F6',        # Azul
+            'reviewing': '#F59E0B',       # Naranja
+            'shortlisted': '#10B981',     # Verde
+            'rejected': '#DC2626',        # Rojo
+            'accepted': '#059669',        # Verde oscuro
+            'withdrawn': '#6B7280'        # Gris
+        }
+        labels = {
+            'received': 'RECIBIDA',
+            'reviewing': 'EN REVISIÓN',
+            'shortlisted': 'PRESELECCIONADA',
+            'rejected': 'RECHAZADA',
+            'accepted': 'ACEPTADA',
+            'withdrawn': 'RETIRADA'
+        }
+        color = status_colors.get(obj.status, '#6B7280')
+        label = labels.get(obj.status, obj.status.upper())
+
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 6px 14px; '
+            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            'display: inline-block;">{}</span>',
+            color, label
+        )
+    status_badge.short_description = 'Estado'
+
+    def application_date(self, obj):
+        """Fecha de aplicación"""
+        return obj.createdAt.strftime('%d/%m/%Y %H:%M')
+    application_date.short_description = 'Fecha'
+
+    def screening_answers_preview(self, obj):
+        """Preview de respuestas de screening"""
+        if not obj.screeningAnswers:
+            return 'Sin respuestas'
+
+        count = len(obj.screeningAnswers)
+        return f'{count} respuestas'
+    screening_answers_preview.short_description = 'Respuestas'
+
+    def screening_answers_display(self, obj):
+        """Muestra todas las respuestas de screening de forma legible"""
+        if not obj.screeningAnswers:
+            return 'Sin respuestas de screening'
+
+        result = 'Respuestas de Screening:\n'
+        for idx, (key, answer) in enumerate(obj.screeningAnswers.items()):
+            result += f'\nPregunta {int(key) + 1}:\n'
+
+            # Obtener la pregunta original del job
+            job = obj.job
+            if job.screeningQuestions and int(key) < len(job.screeningQuestions):
+                question = job.screeningQuestions[int(key)]
+                result += f'{question.get("text", "Pregunta no disponible")}\n'
+
+            result += f'Respuesta: {answer}\n'
+
+        return result
+    screening_answers_display.short_description = 'Respuestas de Screening'
+
+    def candidate_contact_display(self, obj):
+        """Muestra información de contacto del candidato con estilos"""
+        html_content = (
+            '<div style="background-color: #F3F4F6; padding: 12px; border-radius: 8px; '
+            'font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto; font-size: 13px;">'
+        )
+
+        # Email
+        if obj.applicantEmail:
+            html_content += (
+                '<p style="margin: 0 0 8px 0; display: flex; align-items: center;">'
+                '<span style="color: #1F2937; font-weight: 600; margin-right: 8px;">✉️</span>'
+                f'<span style="color: #374151;">{obj.applicantEmail}</span>'
+                '</p>'
+            )
+
+        # Teléfono
+        if obj.applicantPhone:
+            html_content += (
+                '<p style="margin: 0 0 8px 0; display: flex; align-items: center;">'
+                '<span style="color: #1F2937; font-weight: 600; margin-right: 8px;">☎️</span>'
+                f'<span style="color: #374151;">{obj.applicantPhone}</span>'
+                '</p>'
+            )
+
+        # WhatsApp
+        if obj.applicantWhatsapp:
+            html_content += (
+                '<p style="margin: 0; display: flex; align-items: center;">'
+                '<span style="color: #1F2937; font-weight: 600; margin-right: 8px;">💬</span>'
+                f'<span style="color: #374151;">{obj.applicantWhatsapp}</span>'
+                '</p>'
+            )
+
+        html_content += '</div>'
+        return format_html(html_content)
+    candidate_contact_display.short_description = 'Información de Contacto'
+
+    # ========== ACCIONES PERSONALIZADAS ==========
+
+    def mark_as_reviewing(self, request, queryset):
+        """Cambiar estado a EN REVISIÓN"""
+        updated = queryset.update(status='reviewing')
+        self.message_user(request, f'{updated} aplicaciones marcadas como EN REVISIÓN')
+    mark_as_reviewing.short_description = 'Marcar como EN REVISIÓN'
+
+    def mark_as_shortlisted(self, request, queryset):
+        """Cambiar estado a PRESELECCIONADA"""
+        updated = queryset.update(status='shortlisted')
+        self.message_user(request, f'{updated} aplicaciones PRESELECCIONADAS')
+    mark_as_shortlisted.short_description = 'Marcar como PRESELECCIONADA'
+
+    def mark_as_rejected(self, request, queryset):
+        """Cambiar estado a RECHAZADA"""
+        updated = queryset.update(status='rejected')
+        self.message_user(request, f'{updated} aplicaciones RECHAZADAS')
+    mark_as_rejected.short_description = 'Marcar como RECHAZADA'
+
+    def mark_as_accepted(self, request, queryset):
+        """Cambiar estado a ACEPTADA"""
+        updated = queryset.update(status='accepted')
+        self.message_user(request, f'{updated} aplicaciones ACEPTADAS')
+    mark_as_accepted.short_description = 'Marcar como ACEPTADA'
+
+
+@admin.register(JobAuditLog)
+class JobAuditLogAdmin(admin.ModelAdmin):
+    """Admin para auditoría de cambios en trabajos"""
+
+    list_display = (
+        'timestamp_display',
+        'job_link',
+        'action_badge',
+        'user_display',
+        'client_ip_display'
+    )
+
+    list_filter = (
+        'action',
+        'timestamp',
+        'userEmail',
+    )
+
+    search_fields = (
+        'job__title',
+        'job__id',
+        'userEmail',
+        'clientIP',
+        'notes'
+    )
+
+    readonly_fields = (
+        'id',
+        'job',
+        'timestamp',
+        'changed_fields_display',
+        'user_email_display',
+        'action_display'
+    )
+
+    fieldsets = (
+        ('Información del Evento', {
+            'fields': ('id', 'job', 'action_display', 'timestamp')
+        }),
+        ('Usuario y IP', {
+            'fields': ('user_email_display', 'clientIP')
+        }),
+        ('Cambios Realizados', {
+            'fields': ('changed_fields_display',),
+            'classes': ('wide',)
+        }),
+        ('Notas', {
+            'fields': ('notes',),
+            'classes': ('wide',)
+        }),
+    )
+
+    def timestamp_display(self, obj):
+        """Muestra la fecha y hora formateada"""
+        return obj.timestamp.strftime('%d/%m/%Y %H:%M:%S')
+    timestamp_display.short_description = 'Fecha y Hora'
+
+    def job_link(self, obj):
+        """Link al trabajo"""
+        # Si el trabajo fue eliminado, job será None
+        if obj.job is None:
+            return format_html(
+                '<span style="color: #999; font-style: italic;">[Trabajo Eliminado]</span>'
+            )
+
+        url = reverse('admin:jobs_job_change', args=[obj.job.id])
+        return format_html(
+            '<a href="{}">{}</a>',
+            url,
+            obj.job.title[:40]
+        )
+    job_link.short_description = 'Trabajo'
+
+    def action_badge(self, obj):
+        """Badge con el tipo de acción"""
+        action_colors = {
+            'created': '#10B981',        # Verde
+            'updated': '#3B82F6',        # Azul
+            'activated': '#059669',      # Verde oscuro
+            'deactivated': '#DC2626',    # Rojo
+            'duplicated': '#F59E0B',     # Naranja
+            'deleted': '#7C2D12',        # Marrón
+            'payment_verified': '#10B981', # Verde
+            'payment_rejected': '#DC2626',  # Rojo
+        }
+        color = action_colors.get(obj.action, '#6B7280')
+
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 6px 14px; '
+            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            'display: inline-block;">{}</span>',
+            color, obj.get_action_display()
+        )
+    action_badge.short_description = 'Acción'
+
+    def user_display(self, obj):
+        """Muestra el email del usuario"""
+        return obj.userEmail or 'Sistema'
+    user_display.short_description = 'Usuario'
+
+    def client_ip_display(self, obj):
+        """Muestra la IP del cliente"""
+        return obj.clientIP or 'N/A'
+    client_ip_display.short_description = 'IP Cliente'
+
+    def user_email_display(self, obj):
+        """Display del email del usuario"""
+        return obj.userEmail or 'No registrado'
+    user_email_display.short_description = 'Email del Usuario'
+
+    def action_display(self, obj):
+        """Display amigable de la acción"""
+        return obj.get_action_display()
+    action_display.short_description = 'Tipo de Acción'
+
+    def changed_fields_display(self, obj):
+        """Muestra los cambios realizados de forma legible"""
+        if not obj.changedFields:
+            return 'Sin cambios específicos'
+
+        html_content = '<div style="background-color: #F3F4F6; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 13px;">'
+
+        for field, changes in obj.changedFields.items():
+            if isinstance(changes, dict) and 'before' in changes and 'after' in changes:
+                before = changes['before']
+                after = changes['after']
+                html_content += f'<div style="margin-bottom: 10px; padding: 8px; background-color: white; border-radius: 4px; border-left: 3px solid #3B82F6;">'
+                html_content += f'<strong style="color: #1F2937;">{field}:</strong><br>'
+                html_content += f'<span style="color: #7C3AED;">❌ Antes:</span> <code style="background: #F9FAFB; padding: 2px 4px; border-radius: 3px; color: #1F2937;">{before}</code><br>'
+                html_content += f'<span style="color: #059669;">✅ Después:</span> <code style="background: #F9FAFB; padding: 2px 4px; border-radius: 3px; color: #1F2937;">{after}</code>'
+                html_content += '</div>'
+
+        html_content += '</div>'
+        return format_html(html_content)
+    changed_fields_display.short_description = 'Campos Modificados'
+
+    # No permitir editar registros de auditoría
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(PlanOrder)
 class PlanOrderAdmin(admin.ModelAdmin):
     """Admin para gestionar órdenes de planes"""
 
     list_display = (
-        'order_id_display',
+        'invoice_number_display',
         'razon_social_display',
-        'plan_display',
+        'plan_link',
         'amount_display',
         'status_badge',
         'order_date_display',
-        'user_email'
+        'invoice_sent_status'
     )
 
     list_filter = (
         'status',
-        'created_at',
-        'selected_plan',
+        'order_date',
+        'plan__name',
+        'electronic_invoice_sent_date',
     )
 
     search_fields = (
+        'invoice_number',
         'razon_social',
         'nit',
         'ci',
         'user__email',
-        'email',
+        'plan__label'
     )
 
     readonly_fields = (
         'id',
+        'order_date',
         'created_at',
         'updated_at',
+        'company_data_display',
     )
 
     fieldsets = (
         ('Información General', {
-            'fields': ('id', 'user', 'job', 'selected_plan', 'plan_price', 'status')
+            'fields': ('id', 'user', 'plan', 'order_date')
         }),
         ('Datos de Factura', {
-            'fields': ('razon_social', 'nit', 'ci', 'ci_complement')
+            'fields': ('invoice_number', 'razon_social', 'nit', 'ci', 'ci_complement')
         }),
-        ('Contacto', {
-            'fields': ('email', 'whatsapp')
+        ('Información de Pago', {
+            'fields': ('amount_paid', 'payment_proof', 'status')
+        }),
+        ('Factura Electrónica', {
+            'fields': ('electronic_invoice_email', 'electronic_invoice_whatsapp', 'electronic_invoice_sent_date')
+        }),
+        ('Datos de la Empresa', {
+            'fields': ('company_data_display',),
+            'classes': ('wide',)
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -811,41 +822,55 @@ class PlanOrderAdmin(admin.ModelAdmin):
         }),
     )
 
-    def order_id_display(self, obj):
-        """Muestra el ID de orden"""
-        return f"#{obj.id}"
-    order_id_display.short_description = 'N.º Orden'
+    def save_model(self, request, obj, form, change):
+        """Automáticamente actualiza electronic_invoice_sent_date cuando el estado cambia a INVOICE_SENT"""
+        if change:  # Solo en edición, no en creación
+            # Verificar si el estado cambió a INVOICE_SENT
+            if obj.status == 'INVOICE_SENT' and not obj.electronic_invoice_sent_date:
+                from django.utils import timezone
+                obj.electronic_invoice_sent_date = timezone.now()
+
+        super().save_model(request, obj, form, change)
+
+    def invoice_number_display(self, obj):
+        """Muestra el número de orden"""
+        return f"#{obj.invoice_number}"
+    invoice_number_display.short_description = 'N.º Orden'
 
     def razon_social_display(self, obj):
         """Muestra la razón social de la empresa"""
         return obj.razon_social
     razon_social_display.short_description = 'Razón Social'
 
-    def plan_display(self, obj):
-        """Muestra el plan seleccionado"""
-        return obj.selected_plan.capitalize()
-    plan_display.short_description = 'Plan'
+    def plan_link(self, obj):
+        """Link al plan"""
+        return obj.plan.label
+    plan_link.short_description = 'Plan'
 
     def amount_display(self, obj):
-        """Muestra el precio del plan formateado"""
+        """Muestra el monto pagado formateado"""
         return format_html(
             '<span style="color: #7C3AED; font-weight: bold;">Bs {}</span>',
-            f'{obj.plan_price:.2f}'
+            f'{obj.amount_paid:.2f}'
         )
     amount_display.short_description = 'Monto'
 
     def status_badge(self, obj):
         """Badge del estado de la orden"""
         status_colors = {
-            'processing': '#F59E0B',
-            'completed': '#10B981',
+            'PENDING': '#F59E0B',
+            'PAID': '#3B82F6',
+            'INVOICE_SENT': '#8B5CF6',
+            'COMPLETED': '#10B981',
         }
         status_labels = {
-            'processing': 'En Proceso',
-            'completed': 'Completado',
+            'PENDING': 'Pendiente',
+            'PAID': 'Pagado',
+            'INVOICE_SENT': 'Factura Enviada',
+            'COMPLETED': 'Completado',
         }
         color = status_colors.get(obj.status, '#6B7280')
-        label = status_labels.get(obj.status, obj.get_status_display())
+        label = status_labels.get(obj.status, obj.status)
 
         return format_html(
             '<span style="background-color: {}; color: white; padding: 6px 14px; '
@@ -857,13 +882,62 @@ class PlanOrderAdmin(admin.ModelAdmin):
 
     def order_date_display(self, obj):
         """Muestra la fecha de la orden"""
-        return obj.created_at.strftime('%d/%m/%Y %H:%M')
+        return obj.order_date.strftime('%d/%m/%Y %H:%M')
     order_date_display.short_description = 'Fecha'
 
-    def user_email(self, obj):
-        """Muestra el email del usuario"""
-        return obj.user.email
-    user_email.short_description = 'Usuario'
+    def invoice_sent_status(self, obj):
+        """Indica si la factura fue enviada"""
+        if obj.electronic_invoice_sent_date:
+            return format_html(
+                '<span style="color: #10B981; font-weight: bold;">✓ Enviada</span>'
+            )
+        return format_html(
+            '<span style="color: #999; font-weight: bold;">⏳ Pendiente</span>'
+        )
+    invoice_sent_status.short_description = 'Factura'
+
+    def company_data_display(self, obj):
+        """Muestra los datos de la empresa de forma estructurada"""
+        if not obj.company_data:
+            return format_html('<p style="color: #9CA3AF;">Sin datos adicionales</p>')
+
+        data = obj.company_data
+        requires_invoice = data.get('requires_invoice', False)
+
+        # Badge para requires_invoice
+        invoice_badge = ''
+        if requires_invoice:
+            invoice_badge = '<span style="background: #7C3AED; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold;">📄 CON FACTURA</span>'
+        else:
+            invoice_badge = '<span style="background: #9CA3AF; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold;">ℹ️ SIN FACTURA</span>'
+
+        html_parts = [
+            '<div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border: 1px solid #E5E7EB;">',
+            f'<div style="margin-bottom: 12px;">{invoice_badge}</div>',
+            '<table style="width: 100%; border-collapse: collapse;">',
+        ]
+
+        # Campos a mostrar
+        fields = [
+            ('ID del Anuncio', data.get('job_id', '-')),
+            ('Título del Anuncio', data.get('job_title', '-')),
+            ('Nombre de Empresa', data.get('company_name', '-')),
+            ('Plan', data.get('plan_label', '-')),
+            ('Duración (días)', data.get('plan_duration', '-')),
+        ]
+
+        for label, value in fields:
+            html_parts.append(
+                f'<tr>'
+                f'<td style="padding: 6px 8px; font-weight: 600; color: #374151; width: 40%;">{label}:</td>'
+                f'<td style="padding: 6px 8px; color: #6B7280;">{value}</td>'
+                f'</tr>'
+            )
+
+        html_parts.append('</table></div>')
+
+        return format_html(''.join(html_parts))
+    company_data_display.short_description = 'Datos del Anuncio'
 
 
 @admin.register(BlockedUser)
@@ -881,6 +955,7 @@ class BlockedUserAdmin(admin.ModelAdmin):
     list_filter = (
         'reason',
         'blocked_at',
+        'is_permanent',
     )
 
     search_fields = (
@@ -999,160 +1074,3 @@ class BlockedUserAdmin(admin.ModelAdmin):
         html_content += '</div>'
         return format_html(html_content)
     blocked_user_info_display.short_description = 'Información del Usuario'
-
-
-# ============================================================
-# ADMIN PARA MODELOS DINAMICOS (CRUD)
-# ============================================================
-
-@admin.register(JobCategory)
-class JobCategoryAdmin(admin.ModelAdmin):
-    """Admin para gestionar categorias de trabajo dinamicamente"""
-    
-    list_display = ('name', 'slug', 'icon', 'order', 'is_active_badge', 'jobs_count', 'created_at')
-    list_filter = ('is_active', 'created_at')
-    search_fields = ('name', 'description', 'slug')
-    list_editable = ('order', )
-    ordering = ('order', 'name')
-    
-    fieldsets = (
-        ('Informacion Basica', {
-            'fields': ('name', 'slug', 'description', 'icon')
-        }),
-        ('Configuracion', {
-            'fields': ('is_active', 'order')
-        }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
-    
-    readonly_fields = ('created_at', 'updated_at')
-    
-    def is_active_badge(self, obj):
-        if obj.is_active:
-            return format_html(
-                '<span style="background-color: #10B981; color: white; padding: 4px 12px; '
-                'border-radius: 12px; font-weight: bold; font-size: 11px;">ACTIVA</span>'
-            )
-        return format_html(
-            '<span style="background-color: #DC2626; color: white; padding: 4px 12px; '
-            'border-radius: 12px; font-weight: bold; font-size: 11px;">INACTIVA</span>'
-        )
-    is_active_badge.short_description = 'Estado'
-    
-    def jobs_count(self, obj):
-        from .models import Job
-        count = Job.objects.filter(jobCategory=obj.name).count()
-        return f"{count} trabajos"
-    jobs_count.short_description = 'Trabajos Asociados'
-
-
-@admin.register(ContractType)
-class ContractTypeAdmin(admin.ModelAdmin):
-    """Admin para gestionar tipos de contrato dinamicamente"""
-    
-    list_display = ('name', 'slug', 'order', 'is_active_badge', 'jobs_count', 'created_at')
-    list_filter = ('is_active', 'created_at')
-    search_fields = ('name', 'description', 'slug')
-    list_editable = ('order', )
-    ordering = ('order', 'name')
-    
-    fieldsets = (
-        ('Informacion Basica', {
-            'fields': ('name', 'slug', 'description')
-        }),
-        ('Configuracion', {
-            'fields': ('is_active', 'order')
-        }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
-    
-    readonly_fields = ('created_at', 'updated_at')
-    
-    def is_active_badge(self, obj):
-        if obj.is_active:
-            return format_html(
-                '<span style="background-color: #10B981; color: white; padding: 4px 12px; '
-                'border-radius: 12px; font-weight: bold; font-size: 11px;">ACTIVO</span>'
-            )
-        return format_html(
-            '<span style="background-color: #DC2626; color: white; padding: 4px 12px; '
-            'border-radius: 12px; font-weight: bold; font-size: 11px;">INACTIVO</span>'
-        )
-    is_active_badge.short_description = 'Estado'
-    
-    def jobs_count(self, obj):
-        from .models import Job
-        count = Job.objects.filter(contractType=obj.name).count()
-        return f"{count} trabajos"
-    jobs_count.short_description = 'Trabajos Asociados'
-
-
-@admin.register(City)
-class CityAdmin(admin.ModelAdmin):
-    """Admin para gestionar ciudades dinamicamente"""
-    
-    list_display = ('name', 'department', 'region_badge', 'order', 'is_active_badge', 'jobs_count', 'created_at')
-    list_filter = ('is_active', 'region', 'created_at')
-    search_fields = ('name', 'department', 'slug')
-    list_editable = ('order', )
-    ordering = ('order', 'name')
-    
-    fieldsets = (
-        ('Informacion Basica', {
-            'fields': ('name', 'slug', 'department', 'region')
-        }),
-        ('Configuracion', {
-            'fields': ('is_active', 'order')
-        }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
-    
-    readonly_fields = ('created_at', 'updated_at')
-    
-    def region_badge(self, obj):
-        colors = {
-            'altiplano': '#3B82F6',  # Azul
-            'valles': '#10B981',      # Verde
-            'llanos': '#F59E0B',      # Naranja
-        }
-        labels = {
-            'altiplano': 'ALTIPLANO',
-            'valles': 'VALLES',
-            'llanos': 'LLANOS',
-        }
-        color = colors.get(obj.region, '#6B7280')
-        label = labels.get(obj.region, obj.region.upper() if obj.region else 'N/A')
-        
-        return format_html(
-            '<span style="background-color: {}; color: white; padding: 4px 12px; '
-            'border-radius: 12px; font-weight: bold; font-size: 11px;">{}</span>',
-            color, label
-        )
-    region_badge.short_description = 'Region'
-    
-    def is_active_badge(self, obj):
-        if obj.is_active:
-            return format_html(
-                '<span style="background-color: #10B981; color: white; padding: 4px 12px; '
-                'border-radius: 12px; font-weight: bold; font-size: 11px;">ACTIVA</span>'
-            )
-        return format_html(
-            '<span style="background-color: #DC2626; color: white; padding: 4px 12px; '
-            'border-radius: 12px; font-weight: bold; font-size: 11px;">INACTIVA</span>'
-        )
-    is_active_badge.short_description = 'Estado'
-    
-    def jobs_count(self, obj):
-        from .models import Job
-        count = Job.objects.filter(city=obj.name).count()
-        return f"{count} trabajos"
-    jobs_count.short_description = 'Trabajos Asociados'

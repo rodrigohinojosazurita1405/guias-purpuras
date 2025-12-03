@@ -154,7 +154,7 @@
           <va-icon name="info" size="small" />
           <p>
             <strong>Factura no solicitada</strong><br>
-            Esta compra no requiere emisión de factura electrónica según el SIN Bolivia.
+            No se requirió emisión de factura electrónica por el usuario.
           </p>
         </div>
 
@@ -619,7 +619,8 @@ const handleViewOrder = (orderId) => {
   border-color: #7c3aed;
 }
 
-.order-card.status-COMPLETED {
+.order-card.status-COMPLETED,
+.order-card.status-completed {
   border-left: 4px solid #10b981;
 }
 
@@ -631,7 +632,8 @@ const handleViewOrder = (orderId) => {
   border-left: 4px solid #8b5cf6;
 }
 
-.order-card.status-PENDING {
+.order-card.status-PENDING,
+.order-card.status-processing {
   border-left: 4px solid #f59e0b;
 }
 
@@ -673,7 +675,8 @@ const handleViewOrder = (orderId) => {
   justify-content: center;
 }
 
-.status-badge.status-PENDING {
+.status-badge.status-PENDING,
+.status-badge.status-processing {
   background: #fef3c7;
   color: #92400e;
 }
@@ -688,9 +691,12 @@ const handleViewOrder = (orderId) => {
   color: #6d28d9;
 }
 
-.status-badge.status-COMPLETED {
-  background: #d1fae5;
+.status-badge.status-COMPLETED,
+.status-badge.status-completed {
+  background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
   color: #065f46;
+  border: 2px solid #10b981;
+  font-weight: 700;
 }
 
 /* ========== ORDER DETAILS ========== */

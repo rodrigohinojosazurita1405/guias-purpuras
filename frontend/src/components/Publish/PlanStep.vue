@@ -248,8 +248,8 @@ const loadPlans = async () => {
     plans.value = [
       {
         id: 1,
-        name: 'escencial',
-        label: 'Escencial',
+        name: 'estandar',
+        label: 'Estándar',
         price: 35,
         currency: 'Bs',
         durationDays: 15,

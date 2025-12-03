@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'jobs',
     'profiles',
     'plans',
+    'audit',  # Sistema de auditoría
+    'reports',  # Sistema de reportes
 
     # Django default apps
     'django.contrib.admin',

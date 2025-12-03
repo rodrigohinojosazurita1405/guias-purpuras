@@ -479,30 +479,14 @@ const initializeFormData = (modelValue) => ({
 // ========== DATA LOCAL ==========
 const localFormData = ref(initializeFormData(props.modelValue))
 
-// ========== OPCIONES DE FORMULARIO ==========
+// ========== OPCIONES DE FORMULARIO (DINAMICAS) ==========
 const categoryOptions = ref([])
+const contractTypeOptions = ref([])
+const cityOptions = ref([])
+
 const loadingCategories = ref(true)
-
-const contractTypeOptions = [
-  { text: 'Tiempo Completo', value: 'Tiempo Completo' },
-  { text: 'Medio Tiempo', value: 'Medio Tiempo' },
-  { text: 'Por Proyecto', value: 'Por Proyecto' },
-  { text: 'Temporal', value: 'Temporal' },
-  { text: 'Pasantía', value: 'Pasantía' },
-  { text: 'Freelance', value: 'Freelance' }
-]
-
-const cityOptions = [
-  { text: 'Cochabamba', value: 'Cochabamba' },
-  { text: 'La Paz', value: 'La Paz' },
-  { text: 'Santa Cruz', value: 'Santa Cruz' },
-  { text: 'Sucre', value: 'Sucre' },
-  { text: 'Tarija', value: 'Tarija' },
-  { text: 'Potosí', value: 'Potosí' },
-  { text: 'Oruro', value: 'Oruro' },
-  { text: 'Beni', value: 'Beni' },
-  { text: 'Pando', value: 'Pando' }
-]
+const loadingContractTypes = ref(true)
+const loadingCities = ref(true)
 
 // ========== WATCH PARA SINCRONIZACIÓN ==========
 // Watch para cambios internos del formulario - emite actualizaciones al parent
@@ -549,15 +533,16 @@ const updateVacancies = (value) => {
   }
 }
 
-// ========== CARGAR CATEGORÍAS DEL API ==========
+// ========== CARGAR DATOS DINÁMICOS DEL API ==========
 const loadJobCategories = async () => {
   try {
     loadingCategories.value = true
-    const response = await fetch('http://localhost:8000/api/jobs/categories')
+    const response = await fetch('http://localhost:8000/api/jobs/categories-dynamic')
     const data = await response.json()
 
     if (data.success && data.categories) {
       categoryOptions.value = data.categories
+      console.log(`✅ ${data.count} categorías cargadas dinámicamente`)
     } else {
       console.error('Error loading categories:', data.message)
     }
@@ -568,8 +553,51 @@ const loadJobCategories = async () => {
   }
 }
 
+const loadContractTypes = async () => {
+  try {
+    loadingContractTypes.value = true
+    const response = await fetch('http://localhost:8000/api/jobs/contract-types')
+    const data = await response.json()
+
+    if (data.success && data.contractTypes) {
+      contractTypeOptions.value = data.contractTypes
+      console.log(`✅ ${data.count} tipos de contrato cargados dinámicamente`)
+    } else {
+      console.error('Error loading contract types:', data.message)
+    }
+  } catch (error) {
+    console.error('Error fetching contract types:', error)
+  } finally {
+    loadingContractTypes.value = false
+  }
+}
+
+const loadCities = async () => {
+  try {
+    loadingCities.value = true
+    const response = await fetch('http://localhost:8000/api/jobs/cities')
+    const data = await response.json()
+
+    if (data.success && data.cities) {
+      cityOptions.value = data.cities
+      console.log(`✅ ${data.count} ciudades cargadas dinámicamente`)
+    } else {
+      console.error('Error loading cities:', data.message)
+    }
+  } catch (error) {
+    console.error('Error fetching cities:', error)
+  } finally {
+    loadingCities.value = false
+  }
+}
+
 onMounted(() => {
-  loadJobCategories()
+  // Cargar todos los datos dinámicos en paralelo
+  Promise.all([
+    loadJobCategories(),
+    loadContractTypes(),
+    loadCities()
+  ])
 })
 
 // ========== NAVEGACIÓN ==========

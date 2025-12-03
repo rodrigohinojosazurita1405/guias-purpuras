@@ -8,15 +8,7 @@ import { ref, computed } from 'vue'
 // Estado global reactivo de planes (compartido entre todos los componentes)
 const plansCache = ref({
   estandar: {
-    name: 'Estandar',
-    price: 35,
-    currency: 'Bs.',
-    duration: '15 días',
-    qrCode: '/qr-codes/qr-estandar.png',
-    description: 'Plan básico para publicaciones simples'
-  },
-  escencial: {
-    name: 'Escencial',
+    name: 'Estándar',
     price: 35,
     currency: 'Bs.',
     duration: '15 días',
@@ -34,7 +26,7 @@ const plansCache = ref({
   },
   impulso: {
     name: 'Impulso Pro',
-    price: 169,
+    price: 149,
     currency: 'Bs.',
     duration: '30 días',
     qrCode: '/qr-codes/qr-impulso.png',
@@ -72,7 +64,6 @@ export function usePlansConfig() {
         // Actualizar cache con datos del backend
         const qrCodeMap = {
           'estandar': '/qr-codes/qr-estandar.png',
-          'escencial': '/qr-codes/qr-estandar.png',
           'púrpura': '/qr-codes/qr-purpura.png',
           'purpura': '/qr-codes/qr-purpura.png',
           'impulso pro': '/qr-codes/qr-impulso.png',

@@ -15,7 +15,7 @@
       <h1>Administrador Anuncios</h1>
       <router-link to="/publicar" class="publish-btn-new">
         <va-icon name="add_circle" />
-        Publicar Nuevo
+        Publicar Nuevo Anuncio
       </router-link>
     </div>
 
@@ -71,15 +71,15 @@
         <!-- Card Stats -->
         <div class="job-stats">
           <div class="stat-item">
-            <va-icon name="visibility" />
+            <va-icon name="visibility" color="#6366F1" />
             <span class="stat-text">{{ job.views }}</span>
           </div>
           <div class="stat-item">
-            <va-icon name="people" />
+            <va-icon name="people" color="#8B5CF6" />
             <span class="stat-text">{{ job.applications }}</span>
           </div>
           <div class="stat-item plan-stat">
-            <va-icon name="card_giftcard" />
+            <va-icon name="card_giftcard" color="#7c3aed" />
             <span class="stat-text plan-badge" :class="getPlanCssClass(job.selectedPlan)">
               {{ formatPlanName(job.selectedPlan, job.planLabel, job.planPrice) }}
             </span>
@@ -87,34 +87,37 @@
 
           <!-- Payment Verification Status -->
           <div class="stat-item">
-            <va-icon :name="job.paymentVerified ? 'check_circle' : 'pending'" />
+            <va-icon
+              :name="job.paymentVerified ? 'check_circle' : 'pending'"
+              :color="job.paymentVerified ? '#10b981' : '#f59e0b'"
+            />
             <span
               class="stat-text payment-status"
               :class="job.paymentVerified ? 'verified' : 'pending'"
             >
-              {{ job.paymentVerified ? '✓ Anuncio Aprobado' : '⏳ Pendiente verificación' }}
+              {{ job.paymentVerified ? 'Anuncio Aprobado' : 'Pendiente verificación' }}
             </span>
           </div>
 
           <!-- Public Visibility Indicator -->
           <div class="stat-item" v-if="job.status !== 'active'">
-            <va-icon name="visibility_off" />
+            <va-icon name="visibility_off" color="#dc2626" />
             <span class="stat-text visibility-warning">No visible públicamente</span>
           </div>
 
           <div class="stat-divider">|</div>
           <div class="stat-item">
-            <va-icon name="schedule" />
+            <va-icon name="schedule" color="#64748B" />
             <span class="stat-label">Publicado:</span>
             <span class="stat-text stat-date">{{ formatExactDateTime(job.createdAt) }}</span>
           </div>
           <div class="stat-item">
-            <va-icon name="event_note" />
+            <va-icon name="event_note" color="#64748B" />
             <span class="stat-label">Vence:</span>
             <span class="stat-text stat-date">{{ formatExpiryDate(job.expiryDate) }}</span>
           </div>
           <div class="stat-item">
-            <va-icon name="timer" />
+            <va-icon name="timer" color="#F59E0B" />
             <span class="stat-label">Restan:</span>
             <span class="stat-text">{{ calculateDaysRemaining(job.expiryDate) }} días</span>
           </div>
@@ -258,10 +261,10 @@
 
       <template #footer>
         <div class="modal-footer">
-          <va-button color="secondary" @click="closeEditModal" size="medium">
+          <va-button color="secondary" @click="closeEditModal">
             Cancelar
           </va-button>
-          <va-button @click="saveEditedJob" size="medium" class="save-btn">
+          <va-button @click="saveEditedJob" class="save-btn">
             <va-icon name="save" size="small" />
             Guardar Cambios
           </va-button>
@@ -399,6 +402,7 @@ const loadJobs = async () => {
         id: job.id,
         title: job.title,
         companyName: job.companyName,
+        companyLogo: job.companyLogo || null,
         status: job.status,
         paymentVerified: job.paymentVerified || false,
         views: job.views || 0,
@@ -537,7 +541,9 @@ const viewJob = async (job) => {
     // Usar los datos completos del endpoint get_job
     selectedJob.value = data.job
     showDetailModal.value = true
-    console.log('Detalles completos del trabajo cargados:', job.id)
+    console.log('✅ Detalles completos del trabajo cargados:', data.job)
+    console.log('📷 Logo de empresa recibido:', data.job.companyLogo)
+    console.log('🏢 Nombre de empresa:', data.job.companyName)
   } catch (err) {
     console.error('Error cargando detalles del trabajo:', err)
     notify({
@@ -1062,7 +1068,24 @@ const activateJob = async () => {
   flex-shrink: 0;
   width: 16px;
   height: 16px;
-  color:  #7c3aed, #6d28d9;
+  color: #9CA3AF;
+}
+
+/* Colorear íconos según contexto */
+.stat-item:has(.payment-status.verified) svg {
+  color: #10b981 !important;
+}
+
+.stat-item:has(.payment-status.pending) svg {
+  color: #f59e0b !important;
+}
+
+.stat-item:has(.visibility-warning) svg {
+  color: #dc2626 !important;
+}
+
+.stat-item:has(.plan-badge) svg {
+  color: #7c3aed !important;
 }
 
 .stat-label {
@@ -1241,7 +1264,7 @@ const activateJob = async () => {
 
 /* Botón Editar - Verde azulado */
 .action-btn.edit {
-  background: #10B981;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
   color: white;
 }
 
@@ -1251,7 +1274,7 @@ const activateJob = async () => {
 
 /* Botón Eliminar - Rojo elegante */
 .action-btn.delete {
-  background: #EF4444;
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
   color: white;
 }
 
@@ -1452,10 +1475,18 @@ const activateJob = async () => {
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
+  gap: 0.875rem;
   padding-top: 1.5rem;
   border-top: 1px solid #E5E7EB;
   margin-top: 0.5rem;
+}
+
+.modal-footer .va-button {
+  padding: 0.625rem 1.25rem !important;
+  border-radius: 10px !important;
+  font-weight: 600;
+  font-size: 0.75rem;
+  transition: all 0.3s ease;
 }
 
 .save-btn {
@@ -1464,16 +1495,12 @@ const activateJob = async () => {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-weight: 600;
-  padding: 0.6rem 1.5rem !important;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
 }
 
 .save-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
 }
 
 /* ========== RESPONSIVE ========== */
@@ -1490,6 +1517,17 @@ const activateJob = async () => {
 
   .manager-header h1 {
     font-size: 1.5rem;
+  }
+
+  .publish-btn-new {
+    display: none; /* Ocultar en móvil para evitar duplicación con navbar */
+  }
+
+  .empty-action-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.875rem 1rem;
+    font-size: 0.9rem;
   }
 
   .filter-bar {

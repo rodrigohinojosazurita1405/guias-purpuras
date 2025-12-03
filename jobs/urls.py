@@ -16,6 +16,11 @@ urlpatterns = [
     # Job Categories Endpoint (DEBE estar antes del patrón genérico)
     path('jobs/categories', views.get_job_categories, name='get_job_categories'),
 
+    # Endpoints dinámicos (DEBEN estar antes de los patrones genéricos)
+    path('jobs/contract-types/', views.get_contract_types, name='get_contract_types'),
+    path('jobs/cities/', views.get_cities, name='get_cities'),
+    path('jobs/categories-dynamic/', views.get_job_categories_dynamic, name='get_job_categories_dynamic'),
+
     # Listar trabajos
     path('jobs/', views.list_jobs, name='list_jobs'),
 

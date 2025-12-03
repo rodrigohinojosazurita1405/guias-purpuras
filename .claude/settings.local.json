@@ -15,7 +15,14 @@
       "Bash(dir:*)",
       "Bash(npm run dev:*)",
       "Bash(timeout /t 3 /nobreak)",
-      "Bash(del \"frontend\\src\\nul\")"
+      "Bash(del \"frontend\\src\\nul\")",
+      "Bash(del check_company_profiles.py)",
+      "Bash(del link_jobs_to_profiles.py)",
+      "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\populate_dynamic_data.py\")",
+      "Bash(curl:*)",
+      "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\fix_old_orders.py\")",
+      "Bash(findstr:*)",
+      "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\fix_jobs_company_profile.py\")"
     ],
     "deny": [],
     "ask": []

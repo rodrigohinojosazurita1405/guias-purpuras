@@ -34,24 +34,35 @@
 
         <!-- Payment Verification Status -->
         <div
-          v-if="!job.paymentVerified"
+          v-if="job.paymentVerified && job.status === 'active'"
+          class="payment-alert success"
+        >
+          <va-icon name="check_circle" />
+          <div class="alert-content">
+            <strong>Pago Verificado y Activo</strong>
+            <p>Este anuncio está visible públicamente en el sitio.</p>
+          </div>
+        </div>
+
+        <div
+          v-else-if="job.paymentVerified && job.status !== 'active'"
+          class="payment-alert info"
+        >
+          <va-icon name="visibility_off" />
+          <div class="alert-content">
+            <strong>Pago Verificado - Anuncio Inactivo</strong>
+            <p>El pago fue verificado, pero el anuncio está desactivado. Puedes activarlo desde el panel de gestión.</p>
+          </div>
+        </div>
+
+        <div
+          v-else
           class="payment-alert warning"
         >
           <va-icon name="info" />
           <div class="alert-content">
             <strong>Pendiente de Verificación</strong>
             <p>Este anuncio no está visible públicamente hasta que se verifique el pago. El administrador debe aprobar el comprobante de pago para que se publique.</p>
-          </div>
-        </div>
-
-        <div
-          v-else
-          class="payment-alert success"
-        >
-          <va-icon name="check_circle" />
-          <div class="alert-content">
-            <strong>Pago Verificado</strong>
-            <p>Este anuncio está visible públicamente en el sitio.</p>
           </div>
         </div>
 
@@ -66,6 +77,14 @@
             <div class="info-item">
               <span class="label">Ciudad:</span>
               <span class="value">{{ job.city }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Salario:</span>
+              <span class="value">{{ job.salary || 'No declarado' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Categoría:</span>
+              <span class="value">{{ job.jobCategory || 'No especificado' }}</span>
             </div>
             <div class="info-item">
               <span class="label">Tipo de Contrato:</span>
@@ -87,12 +106,36 @@
               <p class="value description">{{ job.description || 'Sin descripción' }}</p>
             </div>
             <div class="info-item">
-              <span class="label">Salario:</span>
-              <span class="value">{{ job.salary || 'No declarado' }}</span>
+              <span class="label">Tipo de Aplicación:</span>
+              <span class="value">
+                <template v-if="job.applicationType === 'internal'">
+                  Interna (en Guías Púrpuras)
+                </template>
+                <template v-else-if="job.applicationType === 'external'">
+                  Externa
+                </template>
+                <template v-else-if="job.applicationType === 'both'">
+                  Ambas
+                </template>
+                <template v-else>
+                  No especificado
+                </template>
+              </span>
             </div>
-            <div class="info-item">
-              <span class="label">Categoría:</span>
-              <span class="value">{{ job.jobCategory || 'No especificado' }}</span>
+            <div v-if="['external', 'both'].includes(job.applicationType)" class="info-item full-width">
+              <span class="label">URL Externa de Aplicación:</span>
+              <span class="value"><a :href="job.externalApplicationUrl" target="_blank" rel="noopener noreferrer">{{ job.externalApplicationUrl }}</a></span>
+            </div>
+            <div class="info-item full-width">
+              <span class="label">Preguntas de Filtrado:</span>
+              <div class="value">
+                <template v-if="job.screeningQuestions && Array.isArray(job.screeningQuestions) && job.screeningQuestions.filter(q => q && q.trim()).length > 0">
+                  <ul class="screening-questions">
+                    <li v-for="(question, index) in job.screeningQuestions.filter(q => q && q.trim())" :key="index">{{ question }}</li>
+                  </ul>
+                </template>
+                <span v-else class="no-data">No se realizaron preguntas de filtrado para este anuncio</span>
+              </div>
             </div>
           </div>
         </div>
@@ -166,17 +209,10 @@
               </div>
             </div>
             <div class="stat">
-              <va-icon name="calendar_today" />
-              <div>
-                <span class="stat-value">{{ formatDate(job.createdAt) }}</span>
-                <span class="stat-label">Publicado</span>
-              </div>
-            </div>
-            <div class="stat">
               <va-icon name="access_time" />
               <div>
                 <span class="stat-value">{{ formatExactDateTime(job.createdAt) }}</span>
-                <span class="stat-label">Fecha y Hora Exacta</span>
+                <span class="stat-label">Fecha de Publicación</span>
               </div>
             </div>
             <div class="stat">
@@ -193,22 +229,6 @@
       <!-- Footer -->
       <div class="modal-footer">
         <button class="btn btn-secondary" @click="close">Cerrar</button>
-        <button
-          v-if="job.status === 'active'"
-          class="btn btn-danger"
-          @click="$emit('deactivate-job')"
-        >
-          <va-icon name="visibility_off" />
-          Desactivar Anuncio
-        </button>
-        <button
-          v-else
-          class="btn btn-success"
-          @click="$emit('activate-job')"
-        >
-          <va-icon name="visibility" />
-          Activar Anuncio
-        </button>
       </div>
     </div>
   </div>
@@ -232,18 +252,6 @@ const emit = defineEmits(['close', 'deactivate-job', 'activate-job'])
 
 const close = () => {
   emit('close')
-}
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  const today = new Date()
-  const diff = today - date
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
-  if (days === 0) return 'Hoy'
-  if (days === 1) return 'Ayer'
-  if (days < 7) return `Hace ${days} días`
-  return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 const formatExactDateTime = (dateString) => {
@@ -357,6 +365,19 @@ const formatExactDateTime = (dateString) => {
   margin-top: 2px;
 }
 
+.payment-alert.info {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+  color: #1e3a8a;
+}
+
+.payment-alert.info i {
+  color: #3b82f6;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 .payment-alert .alert-content {
   flex: 1;
 }
@@ -389,8 +410,10 @@ const formatExactDateTime = (dateString) => {
 .company-logo {
   width: 100px;
   height: 100px;
-  border-radius: 12px;
-  object-fit: cover;
+  border-radius: 8px;
+  object-fit: contain;
+  background: white;
+  padding: 4px;
   border: 3px solid white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   flex-shrink: 0;
@@ -499,6 +522,25 @@ const formatExactDateTime = (dateString) => {
   text-decoration: underline;
 }
 
+.screening-questions {
+  margin: 0;
+  padding-left: 1.5rem;
+  list-style: decimal;
+}
+
+.screening-questions li {
+  color: #4B5563;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+  font-weight: 400;
+}
+
+.no-data {
+  color: #9CA3AF;
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -556,12 +598,12 @@ const formatExactDateTime = (dateString) => {
 }
 
 .btn-secondary {
-  background: #E5E7EB;
-  color: #374151;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #ffffff;
 }
 
 .btn-secondary:hover {
-  background: #D1D5DB;
+   background: linear-gradient(135deg, #7c3aed 0%);
 }
 
 .btn-danger {

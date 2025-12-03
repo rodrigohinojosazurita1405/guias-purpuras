@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.db import models
-from .models import Job, Application, JobAuditLog
+from .models import Job
 from auth_api.decorators import token_required
 
 
@@ -209,14 +209,19 @@ def publish_job(request):
         # ========== CREAR JOB ==========
         try:
             # Obtener el CompanyProfile del usuario autenticado
+            # Buscar por email del usuario (la forma más directa y confiable)
             company_profile = None
             if request.user and request.user.is_authenticated:
                 try:
-                    from profiles.models import UserProfile
-                    user_profile = request.user.userprofile
-                    # Obtener el primer CompanyProfile del usuario (si existe)
-                    company_profile = user_profile.company_profiles.first()
-                except (UserProfile.DoesNotExist, AttributeError):
+                    from profiles.models import CompanyProfile
+                    # Buscar CompanyProfile por email del usuario autenticado
+                    company_profile = CompanyProfile.objects.filter(email=request.user.email).first()
+                    if company_profile:
+                        print(f'[PUBLISH] CompanyProfile encontrado: {company_profile.companyName} (logo: {bool(company_profile.logo)})')
+                    else:
+                        print(f'[PUBLISH] No se encontró CompanyProfile para email: {request.user.email}')
+                except Exception as e:
+                    print(f'[PUBLISH] Error al buscar CompanyProfile: {e}')
                     company_profile = None
 
             # Capturar datos del plan en el momento de publicación
@@ -251,16 +256,9 @@ def publish_job(request):
                 benefits=(data.get('benefits') or '').strip(),
                 vacancies=int(data.get('vacancies', 1)),
                 email=email,
-                whatsapp=(data.get('whatsapp') or '').strip(),
-                website=(data.get('website') or '').strip(),
-                applicationInstructions=(data.get('applicationInstructions') or '').strip(),
                 applicationType=app_type,
                 externalApplicationUrl=(data.get('externalApplicationUrl') or '').strip(),
                 selectedPlan=plan,
-                # Datos del plan capturados en el momento de publicación
-                planLabel=plan_label,
-                planPrice=plan_price,
-                planDuration=plan_duration,
                 screeningQuestions=data.get('screeningQuestions', []),
                 proofOfPayment=proof_of_payment,  # FASE 7.1: Comprobante de pago obligatorio
             )
@@ -277,11 +275,11 @@ def publish_job(request):
                 requires_invoice = bool(billing_data_raw)
 
                 # Valores por defecto (vacíos si no requiere factura)
-                razon_social = ''
-                nit = ''
+                razon_social = 'Sin razón social'
+                nit = '0'
                 ci = ''
                 ci_complement = ''
-                invoice_email = ''
+                invoice_email = email  # Usar el email del publicador por defecto
                 whatsapp_invoice = ''
 
                 # Si el usuario proporcionó datos de facturación, extraerlos
@@ -294,11 +292,11 @@ def publish_job(request):
                             billing_data = billing_data_raw
 
                         # Extraer campos de facturación
-                        razon_social = (billing_data.get('businessName') or '').strip()
-                        nit = (billing_data.get('nit') or '').strip()
+                        razon_social = (billing_data.get('businessName') or 'Sin razón social').strip()
+                        nit = (billing_data.get('nit') or '0').strip()
                         ci = (billing_data.get('ci') or '').strip()
                         ci_complement = (billing_data.get('ciComplement') or '').strip()
-                        invoice_email = (billing_data.get('invoiceEmail') or '').strip()
+                        invoice_email = (billing_data.get('invoiceEmail') or email).strip()
                         whatsapp_invoice = (billing_data.get('whatsapp') or '').strip()
 
                         print(f'[INFO] [PUBLISH_JOB] Usuario requiere factura: {razon_social} (NIT: {nit}, CI: {ci}, Complemento: {ci_complement})')
@@ -310,35 +308,22 @@ def publish_job(request):
                 else:
                     print(f'[INFO] [PUBLISH_JOB] Usuario NO requiere factura')
 
-                # Generar número de orden único
-                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-                invoice_number = f'GP-{request.user.id}-{timestamp}'
-
                 # Crear PlanOrder SIEMPRE (con o sin factura)
                 plan_order = PlanOrder.objects.create(
                     user=request.user,
-                    plan=plan_obj,
-                    invoice_number=invoice_number,
+                    job=job,
                     razon_social=razon_social,
                     nit=nit,
                     ci=ci,
                     ci_complement=ci_complement,
-                    amount_paid=plan_obj.price,
-                    status='PENDING',  # Inicia como pendiente, admin lo verifica
-                    electronic_invoice_email=invoice_email,
-                    electronic_invoice_whatsapp=whatsapp_invoice,
-                    payment_proof=proof_of_payment,
-                    company_data={
-                        'job_id': job.id,
-                        'job_title': job.title,
-                        'company_name': job.companyName,
-                        'plan_label': plan_label,
-                        'plan_duration': plan_duration,
-                        'requires_invoice': requires_invoice  # ← CLAVE: indica si requiere factura
-                    }
+                    email=invoice_email,
+                    whatsapp=whatsapp_invoice,
+                    selected_plan=plan,
+                    plan_price=plan_obj.price,
+                    status='processing',  # Inicia como "En Proceso", admin lo cambia a "completed"
                 )
 
-                print(f'[OK] [PUBLISH_JOB] PlanOrder creada: ID={plan_order.id}, Orden={invoice_number}, Requiere factura={requires_invoice}')
+                print(f'[OK] [PUBLISH_JOB] PlanOrder creada: ID={plan_order.id}, Plan={plan}, Precio={plan_obj.price}, Requiere factura={requires_invoice}')
 
             except Exception as order_error:
                 print(f'[ERROR] [PUBLISH_JOB] Error al crear PlanOrder: {str(order_error)}')
@@ -385,7 +370,7 @@ def get_job(request, job_id):
     Endpoint para obtener detalles completos de una oferta de trabajo
     GET /api/jobs/<job_id>/
     Devuelve TODOS los campos necesarios para JobDetailView
-    Solo muestra si está activa Y el pago está verificado
+    Solo muestra si está activa Y el pago está verificado (excepto para el dueño)
     """
     try:
         job = Job.objects.get(id=job_id)
@@ -397,8 +382,11 @@ def get_job(request, job_id):
                 'message': 'Esta oferta ha sido eliminada'
             }, status=404)
 
-        # Verificar que el pago esté verificado
-        if not job.paymentVerified:
+        # Permitir al dueño ver su propio anuncio (incluso si no está verificado)
+        is_owner = request.user.is_authenticated and request.user.email == job.email
+
+        # Verificar que el pago esté verificado (excepto para el dueño)
+        if not job.paymentVerified and not is_owner:
             return JsonResponse({
                 'success': False,
                 'message': 'Esta oferta no está disponible. El pago aún no ha sido verificado.'
@@ -449,9 +437,6 @@ def get_job(request, job_id):
 
                 # Contacto
                 'email': job.email,
-                'whatsapp': job.whatsapp,
-                'website': job.website,
-                'applicationInstructions': job.applicationInstructions,
 
                 # Aplicación
                 'applicationType': job.applicationType,
@@ -460,6 +445,7 @@ def get_job(request, job_id):
 
                 # Plan
                 'selectedPlan': job.selectedPlan,
+                'paymentVerified': job.paymentVerified,
 
                 # Estadísticas
                 'views': job.views,
@@ -892,15 +878,9 @@ def get_user_statistics(request):
             print(f'📊 [STATS]   - Job {job.id}: {job.title[:30]} | status={job.status} | verified={job.paymentVerified} | deleted={job.isDeleted}')
         print(f'📊 [STATS] ========================================\n')
 
-        # Contar aplicaciones
-        totalApplications = Application.objects.filter(
-            job__in=user_jobs
-        ).count()
-
-        newApplications = Application.objects.filter(
-            job__in=user_jobs,
-            status='received'
-        ).count()
+        # Contar aplicaciones (usando campo applications del Job)
+        totalApplications = sum(job.applications for job in user_jobs)
+        newApplications = 0  # TODO: Implementar cuando se tenga modelo Application
 
         # Contar vistas
         totalViews = sum(job.views for job in user_jobs)
@@ -1020,6 +1000,8 @@ def get_user_published_jobs(request):
         }, status=400)
 
     try:
+        from plans.models import Plan
+
         jobs = Job.objects.filter(email=email).order_by('-createdAt')
 
         # Convertir a lista con fechas como strings
@@ -1028,10 +1010,36 @@ def get_user_published_jobs(request):
             # Determinar si el trabajo es visible públicamente
             is_publicly_visible = job.status == 'active' and job.paymentVerified and not job.isDeleted
 
+            # Obtener logo del perfil de empresa si existe
+            company_logo = None
+            if job.companyProfile and job.companyProfile.logo:
+                logo_url = job.companyProfile.logo.url
+                # Si la URL es relativa, hacerla absoluta
+                if not logo_url.startswith(('http://', 'https://')):
+                    company_logo = request.build_absolute_uri(logo_url)
+                else:
+                    company_logo = logo_url
+
+            # Obtener información del plan desde la base de datos
+            plan_label = None
+            plan_price = None
+            plan_duration = None
+
+            if job.selectedPlan:
+                try:
+                    plan = Plan.objects.filter(name=job.selectedPlan).first()
+                    if plan:
+                        plan_label = plan.label
+                        plan_price = f"{plan.price} {plan.currency}"
+                        plan_duration = f"{plan.duration_days} días"
+                except Exception as e:
+                    print(f'Warning: Could not load plan info for {job.selectedPlan}: {e}')
+
             job_dict = {
                 'id': str(job.id),
                 'title': str(job.title),
                 'companyName': str(job.companyName),
+                'companyLogo': company_logo,
                 'status': str(job.status),
                 'paymentVerified': bool(job.paymentVerified),
                 'isPubliclyVisible': is_publicly_visible,
@@ -1040,10 +1048,9 @@ def get_user_published_jobs(request):
                 'createdAt': str(job.createdAt.isoformat()) if job.createdAt else None,
                 'expiryDate': str(job.expiryDate.isoformat()) if job.expiryDate else None,
                 'selectedPlan': str(job.selectedPlan) if job.selectedPlan else None,
-                # Datos del plan capturados en el momento de publicación
-                'planLabel': str(job.planLabel) if job.planLabel else None,
-                'planPrice': str(job.planPrice) if job.planPrice else None,
-                'planDuration': int(job.planDuration) if job.planDuration else None,
+                'planLabel': plan_label,
+                'planPrice': plan_price,
+                'planDuration': plan_duration,
                 'city': str(job.city) if job.city else '',
                 'modality': str(job.modality) if job.modality else ''
             }
@@ -1153,20 +1160,8 @@ def get_user_activities(request):
             })
             activity_id += 1
 
-        # Aplicaciones recibidas recientemente
-        recent_apps = Application.objects.filter(
-            job__email=email
-        ).order_by('-createdAt')[:5]
-        for app in recent_apps:
-            activities.append({
-                'id': activity_id,
-                'type': 'application',
-                'title': f'{app.applicantName} aplicó a "{app.job.title}"',
-                'description': f'Nuevo candidato interesado',
-                'date': app.createdAt.isoformat(),
-                'metadata': {'jobId': str(app.job.id), 'applicantName': app.applicantName}
-            })
-            activity_id += 1
+        # TODO: Aplicaciones recibidas recientemente (cuando se implemente modelo Application)
+        # Por ahora, solo mostramos actividades de trabajos publicados
 
         # Ordenar por fecha descendente y limitar a 5
         activities.sort(key=lambda x: x['date'], reverse=True)
@@ -1566,12 +1561,15 @@ def get_job_categories(request):
     }
     """
     try:
-        from .constants import JOB_CATEGORIES
+        from .models import JobCategory
+
+        # Cargar desde base de datos (dinámico)
+        categories_qs = JobCategory.objects.filter(is_active=True).order_by('order', 'name')
 
         # Convertir a formato de opciones
         categories = [
-            {'text': category, 'value': category}
-            for category in JOB_CATEGORIES
+            {'text': cat.name, 'value': cat.name}
+            for cat in categories_qs
         ]
 
         return JsonResponse({
@@ -1624,30 +1622,58 @@ def get_user_orders(request):
         from .models import PlanOrder
 
         # Obtener órdenes del usuario autenticado
-        orders = PlanOrder.objects.filter(user=request.user).select_related('plan')
+        orders = PlanOrder.objects.filter(user=request.user)
 
         # Serializar órdenes
         orders_data = []
         for order in orders:
+            # Obtener logo de la empresa desde el job asociado
+            company_logo = None
+            job_title = None
+            company_name = None
+
+            if order.job:
+                job_title = order.job.title
+                company_name = order.job.companyName
+
+                if order.job.companyProfile and order.job.companyProfile.logo:
+                    logo_url = order.job.companyProfile.logo.url
+                    # Si la URL es relativa, hacerla absoluta
+                    if not logo_url.startswith(('http://', 'https://')):
+                        company_logo = request.build_absolute_uri(logo_url)
+                    else:
+                        company_logo = logo_url
+
             orders_data.append({
                 'id': order.id,
-                'invoiceNumber': order.invoice_number,
-                'planLabel': order.plan.label,
+                'invoiceNumber': f'ORD-{order.id}',  # Número de orden basado en ID
+                'planLabel': order.selected_plan.capitalize(),
                 'razonSocial': order.razon_social,
                 'nit': order.nit,
                 'ci': order.ci,
                 'ciComplement': order.ci_complement,
-                'amountPaid': float(order.amount_paid),
+                'email': order.email,
+                'electronicInvoiceEmail': order.email,  # Email para factura
+                'whatsapp': order.whatsapp,
+                'electronicInvoiceWhatsapp': order.whatsapp,  # WhatsApp para factura
+                'amountPaid': float(order.plan_price),
                 'status': order.status,
                 'statusDisplay': order.get_status_display(),
-                'orderDate': order.order_date.isoformat(),
-                'electronicInvoiceSentDate': order.electronic_invoice_sent_date.isoformat() if order.electronic_invoice_sent_date else None,
-                'electronicInvoiceEmail': order.electronic_invoice_email,
-                'electronicInvoiceWhatsapp': order.electronic_invoice_whatsapp,
-                'paymentProof': order.payment_proof.url if order.payment_proof else None,
-                'companyData': order.company_data,  # Incluye requires_invoice y otros datos
+                'orderDate': order.created_at.isoformat(),
+                'electronicInvoiceSentDate': order.updated_at.isoformat() if order.status == 'completed' else None,
                 'createdAt': order.created_at.isoformat(),
-                'updatedAt': order.updated_at.isoformat()
+                'updatedAt': order.updated_at.isoformat(),
+                'companyData': {
+                    'requires_invoice': bool(
+                        order.razon_social and
+                        order.razon_social.lower() not in ['sin razon social', 'sin razón social', '0', 'no', 'n/a', ''] and
+                        order.nit and
+                        order.nit not in ['0', '00', 'no', 'n/a', '']
+                    ),
+                    'job_title': job_title,
+                    'company_name': company_name,
+                    'company_logo': company_logo
+                }
             })
 
         return JsonResponse({
@@ -1688,24 +1714,27 @@ def get_order_detail(request, order_id):
 
         order_data = {
             'id': order.id,
-            'invoiceNumber': order.invoice_number,
-            'planLabel': order.plan.label,
-            'planName': order.plan.name,
+            'invoiceNumber': f'ORD-{order.id}',
+            'planLabel': order.selected_plan.capitalize(),
+            'planName': order.selected_plan,
             'razonSocial': order.razon_social,
             'nit': order.nit,
             'ci': order.ci,
             'ciComplement': order.ci_complement,
-            'amountPaid': float(order.amount_paid),
+            'email': order.email,
+            'electronicInvoiceEmail': order.email,
+            'whatsapp': order.whatsapp,
+            'electronicInvoiceWhatsapp': order.whatsapp,
+            'amountPaid': float(order.plan_price),
             'status': order.status,
             'statusDisplay': order.get_status_display(),
-            'orderDate': order.order_date.isoformat(),
-            'electronicInvoiceSentDate': order.electronic_invoice_sent_date.isoformat() if order.electronic_invoice_sent_date else None,
-            'electronicInvoiceEmail': order.electronic_invoice_email,
-            'electronicInvoiceWhatsapp': order.electronic_invoice_whatsapp,
-            'paymentProof': order.payment_proof.url if order.payment_proof else None,
-            'companyData': order.company_data,
+            'orderDate': order.created_at.isoformat(),
+            'electronicInvoiceSentDate': order.updated_at.isoformat() if order.status == 'completed' else None,
             'createdAt': order.created_at.isoformat(),
-            'updatedAt': order.updated_at.isoformat()
+            'updatedAt': order.updated_at.isoformat(),
+            'companyData': {
+                'requires_invoice': bool(order.razon_social and order.razon_social != 'Sin razon social')
+            }
         }
 
         return JsonResponse({
@@ -2091,4 +2120,110 @@ def check_if_blocked(request, user_id):
         return JsonResponse({
             'success': False,
             'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+# ============================================================
+# ENDPOINTS API PARA MODELOS DINAMICOS (CRUD)
+# ============================================================
+
+@require_http_methods(["GET"])
+@csrf_exempt
+def get_contract_types(request):
+    """
+    Endpoint para obtener tipos de contrato dinamicos
+    GET /api/jobs/contract-types
+    """
+    try:
+        from .models import ContractType
+        
+        contract_types = ContractType.objects.filter(is_active=True).order_by('order', 'name')
+        
+        data = [
+            {
+                'text': ct.name,
+                'value': ct.name,
+                'slug': ct.slug
+            }
+            for ct in contract_types
+        ]
+        
+        return JsonResponse({
+            'success': True,
+            'contractTypes': data,
+            'count': len(data)
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al cargar tipos de contrato: {str(e)}'
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+@csrf_exempt
+def get_cities(request):
+    """
+    Endpoint para obtener ciudades dinamicas
+    GET /api/jobs/cities
+    """
+    try:
+        from .models import City
+        
+        cities = City.objects.filter(is_active=True).order_by('order', 'name')
+        
+        data = [
+            {
+                'text': city.name,
+                'value': city.name,
+                'slug': city.slug,
+                'department': city.department,
+                'region': city.region
+            }
+            for city in cities
+        ]
+        
+        return JsonResponse({
+            'success': True,
+            'cities': data,
+            'count': len(data)
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al cargar ciudades: {str(e)}'
+        }, status=500)
+
+
+@require_http_methods(["GET"])
+@csrf_exempt
+def get_job_categories_dynamic(request):
+    """
+    Endpoint para obtener categorias de trabajo dinamicas
+    GET /api/jobs/categories-dynamic
+    """
+    try:
+        from .models import JobCategory
+        
+        categories = JobCategory.objects.filter(is_active=True).order_by('order', 'name')
+        
+        data = [
+            {
+                'text': cat.name,
+                'value': cat.name,
+                'slug': cat.slug,
+                'icon': cat.icon
+            }
+            for cat in categories
+        ]
+        
+        return JsonResponse({
+            'success': True,
+            'categories': data,
+            'count': len(data)
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al cargar categorias: {str(e)}'
         }, status=500)
