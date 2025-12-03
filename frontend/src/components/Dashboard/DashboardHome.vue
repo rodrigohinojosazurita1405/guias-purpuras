@@ -142,7 +142,7 @@
         </button>
         <button class="action-btn" @click="goToSection('profile')">
           <va-icon name="person" />
-          <span>Mi Perfil</span>
+          <span>Perfil Empresa</span>
         </button>
       </div>
     </div>
@@ -308,25 +308,26 @@ const initializeDashboard = async () => {
 
     // Cargar estadísticas
     await dashboardStats.loadStats()
+    console.log('📊 [DashboardHome] Stats después de loadStats:', JSON.parse(JSON.stringify(dashboardStats.stats.value)))
     // Copiar datos a nuestra variable local reactiva
-    stats.value = { ...dashboardStats.stats }
+    stats.value = { ...dashboardStats.stats.value }
 
-    // Cargar actividades
-    await dashboardActivities.loadActivities(5)
-    // Copiar datos a nuestra variable local reactiva
-    activities.value = [...dashboardActivities.activities]
-  } catch (err) {
-    console.error('Error inicializando dashboard:', err)
-    // Si falla, al menos mostrar dummy data
-    stats.value = {
-      totalPublished: 3,
-      activeListings: 2,
-      totalApplications: 12,
-      newApplications: 3,
-      totalViews: 124,
-      profileComplete: true,
-      profilePercentage: 85
+    // Cargar actividades (con manejo seguro)
+    try {
+      await dashboardActivities.loadActivities(5)
+      // Copiar datos de forma segura
+      if (Array.isArray(dashboardActivities.activities)) {
+        activities.value = [...dashboardActivities.activities]
+      } else {
+        activities.value = []
+      }
+    } catch (actErr) {
+      console.warn('⚠️ [Dashboard] Error cargando actividades (no crítico):', actErr)
+      activities.value = []
     }
+  } catch (err) {
+    console.error('❌ [Dashboard] Error crítico inicializando dashboard:', err)
+    // No establecer dummy data aquí, dejar que stats mantenga sus valores por defecto
   }
 }
 
@@ -343,17 +344,27 @@ const setCurrentDate = () => {
 
 const goToSection = (section) => {
   const routes = {
-    jobs: '/dashboard/jobs-manager',
+    jobs_manager: '/dashboard/jobs-manager',
     candidates: '/dashboard/candidates',
-    profile: '/dashboard/profile'
+    profile: '/dashboard/profile',
+    applications: '/dashboard/applications',
+    cv: '/dashboard/cv'
   }
   if (routes[section]) {
     router.push(routes[section])
+  } else {
+    console.warn(`Ruta no encontrada para sección: ${section}`)
   }
 }
 
 const goToPublish = () => {
-  router.push('/publicar')
+  // Para empresa: ir a publicar anuncio
+  // Para postulante: ir a buscar trabajos (GuideView)
+  if (authStore.user?.role === 'company') {
+    router.push('/publicar')
+  } else {
+    router.push('/guideview')
+  }
 }
 </script>
 

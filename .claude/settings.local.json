@@ -6,7 +6,16 @@
       "Bash(git reset:*)",
       "Bash(git commit:*)",
       "Bash(python manage.py shell:*)",
-      "Bash(python manage.py:*)"
+      "Bash(python manage.py:*)",
+      "Bash(python update_plans.py:*)",
+      "Bash(del update_plans.py)",
+      "Bash(python update_plan_visibility.py:*)",
+      "Bash(del update_plan_visibility.py)",
+      "Bash(python:*)",
+      "Bash(dir:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout /t 3 /nobreak)",
+      "Bash(del \"frontend\\src\\nul\")"
     ],
     "deny": [],
     "ask": []

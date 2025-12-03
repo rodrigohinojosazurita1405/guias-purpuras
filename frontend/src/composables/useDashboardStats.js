@@ -64,19 +64,26 @@ export function useDashboardStats() {
           params.append('guide_type', guideType)
         }
 
+        console.log('📊 [DashboardStats] Cargando estadísticas para:', email)
+        console.log('📊 [DashboardStats] URL:', `/api/user/stats?${params.toString()}`)
+
         const response = await fetch(
-          `http://localhost:8000/api/user/stats?${params.toString()}`,
+          `/api/user/stats?${params.toString()}`,
           {
             headers: {
               'Authorization': `Bearer ${accessToken}`,
               'Content-Type': 'application/json'
             },
-            signal: AbortSignal.timeout(5000) // 5 segundo timeout
+            signal: AbortSignal.timeout(10000) // 10 segundos timeout
           }
         )
 
+        console.log('📊 [DashboardStats] Response status:', response.status)
+
         if (response.ok) {
           const data = await response.json()
+          console.log('📊 [DashboardStats] Data recibida:', data)
+
           if (data.success && data.statistics) {
             // Mapear datos del backend a nuestro formato genérico
             stats.value = {
@@ -88,11 +95,15 @@ export function useDashboardStats() {
               profileComplete: data.statistics.profileComplete || false,
               profilePercentage: data.statistics.profilePercentage || (data.statistics.profileComplete ? 100 : 0)
             }
+            console.log('✅ [DashboardStats] Estadísticas actualizadas:', JSON.parse(JSON.stringify(stats.value)))
             return
           }
+        } else {
+          const errorData = await response.json()
+          console.error('❌ [DashboardStats] Error del servidor:', errorData)
         }
       } catch (fetchErr) {
-        console.log('Endpoint de estadísticas no disponible, usando datos dummy:', fetchErr.message)
+        console.error('❌ [DashboardStats] Error en fetch:', fetchErr.message, fetchErr)
       }
 
       // OPCIÓN A: Si falla la API, usar estadísticas dummy realistas

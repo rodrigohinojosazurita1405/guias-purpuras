@@ -164,7 +164,7 @@
         />
       </div>
 
-      <!-- Email Empresa -->
+      <!-- Email Empresa (Auto-capturado, no editable) -->
       <div class="form-group">
         <label class="form-label">Email de la Empresa *</label>
         <va-input
@@ -172,8 +172,22 @@
           type="email"
           placeholder="contact@company.com"
           class="form-input"
+          disabled
           required
         />
+        <p class="field-hint">Este email está vinculado a tu cuenta y no puede ser modificado</p>
+      </div>
+
+      <!-- Email de Contacto Público (EDITABLE) -->
+      <div class="form-group">
+        <label class="form-label">Email de Contacto Público</label>
+        <va-input
+          v-model="formData.contactEmail"
+          type="email"
+          placeholder="contacto@empresa.com"
+          class="form-input"
+        />
+        <p class="field-hint">Este email será visible para los candidatos que deseen contactarte</p>
       </div>
 
       <!-- Teléfono -->
@@ -303,6 +317,7 @@ const bannerPreviewUrl = ref(null)
 const formData = ref({
   companyName: '',
   email: '',
+  contactEmail: '',
   phone: '',
   website: '',
   location: '',
@@ -364,6 +379,7 @@ const loadCompanyProfile = async () => {
       formData.value = {
         companyName: result.company.companyName,
         email: result.company.email,
+        contactEmail: result.company.contactEmail || '',
         phone: result.company.phone || '',
         website: result.company.website || '',
         location: result.company.location || '',
@@ -412,6 +428,7 @@ const handleSaveCompany = async () => {
     const dataToSend = {
       companyName: formData.value.companyName,
       email: formData.value.email,
+      contactEmail: formData.value.contactEmail || '',
       phone: formData.value.phone || '',
       website: formData.value.website || '',
       location: formData.value.location || '',
@@ -688,6 +705,13 @@ const clearBannerPreview = async () => {
   font-weight: 600;
   color: #333;
   font-size: 0.95rem;
+}
+
+.field-hint {
+  font-size: 0.8rem;
+  color: #6B7280;
+  font-style: italic;
+  margin-top: 0.25rem;
 }
 
 .form-input,

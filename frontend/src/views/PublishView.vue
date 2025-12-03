@@ -345,7 +345,17 @@ const handleSubmit = async () => {
       // Para screeningQuestions (es array), convertir a JSON
       else if (key === 'screeningQuestions' && Array.isArray(value)) {
         formData.append(key, JSON.stringify(value))
-      } else if (value != null && value !== '') {
+      }
+      // Para billingData (es objeto), convertir a JSON
+      else if (key === 'billingData' && value && typeof value === 'object') {
+        formData.append(key, JSON.stringify(value))
+        console.log('📋 billingData enviado:', value)
+      }
+      // Para booleanos, convertir explícitamente a string 'true' o 'false'
+      else if (typeof value === 'boolean') {
+        formData.append(key, value.toString())
+      }
+      else if (value != null && value !== '') {
         formData.append(key, value)
       }
     })

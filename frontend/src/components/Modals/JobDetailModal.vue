@@ -32,6 +32,29 @@
           </div>
         </div>
 
+        <!-- Payment Verification Status -->
+        <div
+          v-if="!job.paymentVerified"
+          class="payment-alert warning"
+        >
+          <va-icon name="info" />
+          <div class="alert-content">
+            <strong>Pendiente de Verificación</strong>
+            <p>Este anuncio no está visible públicamente hasta que se verifique el pago. El administrador debe aprobar el comprobante de pago para que se publique.</p>
+          </div>
+        </div>
+
+        <div
+          v-else
+          class="payment-alert success"
+        >
+          <va-icon name="check_circle" />
+          <div class="alert-content">
+            <strong>Pago Verificado</strong>
+            <p>Este anuncio está visible públicamente en el sitio.</p>
+          </div>
+        </div>
+
         <!-- Company Info -->
         <div class="info-section">
           <h3>Información de la Empresa</h3>
@@ -295,6 +318,60 @@ const formatExactDateTime = (dateString) => {
   flex: 1;
   overflow-y: auto;
   padding: 2rem;
+}
+
+/* ========== PAYMENT ALERT ========== */
+.payment-alert {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border-left: 4px solid;
+  align-items: flex-start;
+}
+
+.payment-alert.warning {
+  background-color: #fffbeb;
+  border-color: #f59e0b;
+  color: #78350f;
+}
+
+.payment-alert.warning i {
+  color: #f59e0b;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.payment-alert.success {
+  background-color: #ecfdf5;
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.payment-alert.success i {
+  color: #10b981;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.payment-alert .alert-content {
+  flex: 1;
+}
+
+.payment-alert strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.payment-alert p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
 .company-header {

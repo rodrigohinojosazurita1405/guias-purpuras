@@ -7,33 +7,13 @@
       <p class="section-subtitle">Historial de compras de planes y gestión de facturas</p>
     </div>
 
-    <!-- Stats Bar -->
-    <div class="stats-bar">
-      <div class="stat-item">
-        <div class="stat-value">{{ ordersStore.orderCount }}</div>
-        <div class="stat-label">Órdenes Totales</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value">{{ ordersStore.totalPaid.toFixed(2) }}</div>
-        <div class="stat-label">Total Pagado (Bs)</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value">{{ ordersStore.ordersByStatus.PAID.length }}</div>
-        <div class="stat-label">Órdenes Pagadas</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value">{{ ordersStore.ordersByStatus.INVOICE_SENT.length }}</div>
-        <div class="stat-label">Facturas Enviadas</div>
-      </div>
-    </div>
-
     <!-- Filter Bar -->
     <div class="filter-bar">
       <div class="search-box">
         <va-icon name="search" />
         <va-input
           v-model="searchQuery"
-          placeholder="Buscar por razón social, NIT o número de factura..."
+          placeholder="Buscar por razón social, NIT, CI, plan, email, WhatsApp..."
           type="text"
           clearable
           class="search-input"
@@ -44,6 +24,8 @@
         <va-select
           v-model="filterStatus"
           :options="statusOptions"
+          text-by="text"
+          value-by="value"
           placeholder="Filtrar por estado"
           clearable
           class="filter-select"
@@ -52,6 +34,8 @@
         <va-select
           v-model="sortBy"
           :options="sortOptions"
+          text-by="text"
+          value-by="value"
           placeholder="Ordenar por"
           class="filter-select"
         />
@@ -75,12 +59,26 @@
         <!-- Card Header with Status Badge -->
         <div class="card-header">
           <div class="order-info">
-            <h3 class="order-title">{{ order.razonSocial }}</h3>
-            <p class="order-number">Factura: #{{ order.invoiceNumber }}</p>
+            <h3 class="order-title">
+              {{ getOrderTitle(order) }}
+            </h3>
+            <p class="order-number">Orden: #{{ order.invoiceNumber }}</p>
           </div>
-          <div class="status-badge" :class="'status-' + order.status">
-            <va-icon :name="getStatusIcon(order.status)" size="small" />
-            <span>{{ order.statusDisplay }}</span>
+          <div class="header-badges">
+            <!-- Badge: Requiere Factura -->
+            <div v-if="requiresInvoice(order)" class="invoice-badge with-invoice">
+              <va-icon name="receipt" size="small" />
+              <span>Con Factura</span>
+            </div>
+            <div v-else class="invoice-badge no-invoice">
+              <va-icon name="info" size="small" />
+              <span>Sin Factura</span>
+            </div>
+            <!-- Badge: Estado -->
+            <div class="status-badge" :class="'status-' + order.status">
+              <va-icon :name="getStatusIcon(order.status)" size="small" />
+              <span>{{ order.statusDisplay }}</span>
+            </div>
           </div>
         </div>
 
@@ -91,14 +89,6 @@
             <span class="detail-value">{{ order.planLabel }}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">NIT</span>
-            <span class="detail-value">{{ order.nit }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">CI</span>
-            <span class="detail-value">{{ order.ci }}</span>
-          </div>
-          <div class="detail-item">
             <span class="detail-label">Monto Pagado</span>
             <span class="detail-value amount">{{ order.amountPaid }} Bs</span>
           </div>
@@ -106,18 +96,66 @@
             <span class="detail-label">Fecha de Orden</span>
             <span class="detail-value">{{ formatDate(order.orderDate) }}</span>
           </div>
-          <div class="detail-item">
-            <span class="detail-label">Correo Electrónico</span>
-            <span class="detail-value">{{ order.electronicInvoiceEmail || 'No especificado' }}</span>
+
+          <!-- SOLO SI REQUIERE FACTURA: Mostrar datos fiscales -->
+          <template v-if="requiresInvoice(order)">
+            <div class="detail-item">
+              <span class="detail-label">Razón Social</span>
+              <span class="detail-value">{{ order.razonSocial || 'No especificado' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">NIT</span>
+              <span class="detail-value">{{ order.nit || 'No especificado' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">CI</span>
+              <span class="detail-value">
+                {{ order.ci || 'No especificado' }}
+                <span v-if="order.ciComplement" class="ci-complement">- {{ order.ciComplement }}</span>
+              </span>
+            </div>
+          </template>
+        </div>
+
+        <!-- Información de Factura -->
+        <div v-if="requiresInvoice(order)" class="invoice-section">
+          <div class="invoice-section-header">
+            <va-icon name="receipt_long" size="small" />
+            <h4>Información de Factura Electrónica (SIN Bolivia)</h4>
+          </div>
+
+          <div class="invoice-delivery-info">
+            <div v-if="order.electronicInvoiceEmail" class="delivery-method">
+              <va-icon name="email" size="small" color="info" />
+              <span class="method-label">Email:</span>
+              <span class="method-value">{{ order.electronicInvoiceEmail }}</span>
+            </div>
+
+            <div v-if="order.electronicInvoiceWhatsapp" class="delivery-method">
+              <va-icon name="whatsapp" size="small" color="success" />
+              <span class="method-label">WhatsApp:</span>
+              <span class="method-value">{{ order.electronicInvoiceWhatsapp }}</span>
+            </div>
+          </div>
+
+          <!-- Estado de envío de factura -->
+          <div v-if="order.electronicInvoiceSentDate" class="invoice-sent-status success">
+            <va-icon name="check_circle" size="small" />
+            <span>Factura enviada {{ getInvoiceDeliveryMethod(order) }}: {{ formatDate(order.electronicInvoiceSentDate) }}</span>
+          </div>
+          <div v-else class="invoice-sent-status pending">
+            <va-icon name="schedule" size="small" />
+            <span>Factura pendiente de envío {{ getInvoiceDeliveryMethod(order) }}</span>
           </div>
         </div>
 
-        <!-- Invoice Status Info -->
-        <div v-if="order.electronicInvoiceSentDate" class="invoice-info">
-          <va-icon name="check_circle" size="small" color="success" />
-          <span class="invoice-text">
-            Factura enviada: {{ formatDate(order.electronicInvoiceSentDate) }}
-          </span>
+        <!-- Si NO requiere factura: Mensaje informativo -->
+        <div v-else class="no-invoice-message">
+          <va-icon name="info" size="small" />
+          <p>
+            <strong>Factura no solicitada</strong><br>
+            Esta compra no requiere emisión de factura electrónica según el SIN Bolivia.
+          </p>
         </div>
 
         <!-- Card Actions -->
@@ -127,45 +165,15 @@
             Ver Detalle
           </button>
 
-          <button
-            v-if="order.paymentProof"
-            class="action-btn-gradient"
-            @click="handleDownloadProof(order.id)"
-          >
-            <va-icon name="download" size="small" />
-            Descargar Comprobante
-          </button>
-
-          <button
-            v-if="order.status !== 'COMPLETED'"
-            class="action-btn-secondary"
-            @click="handleResendInvoice(order.id, 'email')"
-          >
-            <va-icon name="email" size="small" />
-            Reenviar Email
-          </button>
-
-          <button
-            v-if="order.electronicInvoiceWhatsapp && order.status !== 'COMPLETED'"
-            class="action-btn-secondary"
-            @click="handleResendInvoice(order.id, 'whatsapp')"
-          >
-            <va-icon name="chat" size="small" />
-            Reenviar WhatsApp
-          </button>
         </div>
       </div>
     </div>
 
     <!-- Empty State -->
     <div v-else class="empty-state">
-      <va-icon name="shopping_cart" size="4rem" color="purple" />
-      <h3>No tienes órdenes de planes</h3>
-      <p>Adquiere un plan para comenzar a publicar ofertas de trabajo</p>
-      <button class="explore-btn" @click="$router.push('/planes')">
-        <va-icon name="storefront" />
-        Ver Planes Disponibles
-      </button>
+      <va-icon name="receipt_long" size="4rem" color="purple" />
+      <h3>No tienes órdenes registradas</h3>
+      <p>Tus compras de planes aparecerán aquí</p>
     </div>
 
     <!-- Pagination (if needed in future) -->
@@ -181,6 +189,7 @@
       v-model="showDetailModal"
       size="large"
       title="Detalle de Orden"
+      :hide-default-actions="true"
       @close="showDetailModal = false"
     >
       <div v-if="selectedOrder" class="order-detail-modal">
@@ -188,7 +197,7 @@
           <h4>Información de la Orden</h4>
           <div class="detail-grid">
             <div>
-              <strong>Número de Factura:</strong><br>{{ selectedOrder.invoiceNumber }}
+              <strong>Número de Orden:</strong><br>{{ selectedOrder.invoiceNumber }}
             </div>
             <div>
               <strong>Estado:</strong><br>
@@ -239,14 +248,12 @@
       </div>
 
       <template #footer>
-        <va-button preset="plain" @click="showDetailModal = false">Cerrar</va-button>
-        <va-button
-          v-if="selectedOrder && selectedOrder.status !== 'COMPLETED'"
-          @click="handleResendInvoice(selectedOrder.id, 'email')"
-        >
-          <va-icon name="email" size="small" />
-          Reenviar Factura
-        </va-button>
+        <div class="modal-footer-actions">
+          <button class="close-modal-btn" @click="showDetailModal = false">
+            <va-icon name="close" size="small" />
+            Cerrar
+          </button>
+        </div>
       </template>
     </va-modal>
   </div>
@@ -281,9 +288,7 @@ const showDetailModal = ref(false)
 const selectedOrder = ref(null)
 
 const statusOptions = [
-  { text: 'Pendiente de Pago', value: 'PENDING' },
-  { text: 'Pagado', value: 'PAID' },
-  { text: 'Factura Enviada', value: 'INVOICE_SENT' },
+  { text: 'En Proceso', value: 'PENDING' },
   { text: 'Completado', value: 'COMPLETED' }
 ]
 
@@ -303,19 +308,43 @@ onMounted(() => {
 const filteredOrders = computed(() => {
   let filtered = ordersStore.orders
 
-  // Filter by status
+  // Filter by status - Agrupando estados para simplificar
   if (filterStatus.value) {
-    filtered = filtered.filter(order => order.status === filterStatus.value)
+    if (filterStatus.value === 'PENDING') {
+      // "En Proceso" incluye PENDING y PAID
+      filtered = filtered.filter(order => order.status === 'PENDING' || order.status === 'PAID')
+    } else if (filterStatus.value === 'COMPLETED') {
+      // "Completado" incluye INVOICE_SENT y COMPLETED
+      filtered = filtered.filter(order => order.status === 'INVOICE_SENT' || order.status === 'COMPLETED')
+    } else {
+      filtered = filtered.filter(order => order.status === filterStatus.value)
+    }
   }
 
-  // Filter by search query
+  // Filter by search query - Búsqueda mejorada
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(order =>
-      order.razonSocial.toLowerCase().includes(query) ||
-      order.nit.toLowerCase().includes(query) ||
-      order.invoiceNumber.toLowerCase().includes(query)
-    )
+    filtered = filtered.filter(order => {
+      // Búsqueda en campos principales
+      const matchesBasic =
+        (order.razonSocial && order.razonSocial.toLowerCase().includes(query)) ||
+        (order.nit && order.nit.toLowerCase().includes(query)) ||
+        (order.ci && order.ci.toLowerCase().includes(query)) ||
+        (order.invoiceNumber && order.invoiceNumber.toLowerCase().includes(query)) ||
+        (order.planLabel && order.planLabel.toLowerCase().includes(query))
+
+      // Búsqueda en datos de contacto para factura
+      const matchesContact =
+        (order.electronicInvoiceEmail && order.electronicInvoiceEmail.toLowerCase().includes(query)) ||
+        (order.electronicInvoiceWhatsapp && order.electronicInvoiceWhatsapp.toLowerCase().includes(query))
+
+      // Búsqueda en datos de la empresa (del anuncio)
+      const matchesCompanyData =
+        (order.companyData?.company_name && order.companyData.company_name.toLowerCase().includes(query)) ||
+        (order.companyData?.job_title && order.companyData.job_title.toLowerCase().includes(query))
+
+      return matchesBasic || matchesContact || matchesCompanyData
+    })
   }
 
   // Sort
@@ -379,9 +408,9 @@ const loadOrders = async () => {
 
 const getStatusLabel = (status) => {
   const labels = {
-    'PENDING': 'Pendiente de Pago',
-    'PAID': 'Pagado',
-    'INVOICE_SENT': 'Factura Enviada',
+    'PENDING': 'En Proceso',
+    'PAID': 'En Proceso',
+    'INVOICE_SENT': 'Completado',
     'COMPLETED': 'Completado'
   }
   return labels[status] || status
@@ -389,9 +418,9 @@ const getStatusLabel = (status) => {
 
 const getStatusIcon = (status) => {
   const icons = {
-    'PENDING': 'schedule',
-    'PAID': 'check_circle',
-    'INVOICE_SENT': 'done_all',
+    'PENDING': 'pending',
+    'PAID': 'pending',
+    'INVOICE_SENT': 'check_circle',
     'COMPLETED': 'check_circle'
   }
   return icons[status] || 'info'
@@ -399,7 +428,7 @@ const getStatusIcon = (status) => {
 
 const getStatusColor = (status) => {
   const colors = {
-    'PENDING': 'warning',
+    'PENDING': 'info',
     'PAID': 'info',
     'INVOICE_SENT': 'success',
     'COMPLETED': 'success'
@@ -410,20 +439,56 @@ const getStatusColor = (status) => {
 const formatDate = (dateString) => {
   try {
     const date = new Date(dateString)
-    const now = new Date()
-    const diff = now - date
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
 
-    if (days === 0) return 'Hoy'
-    if (days === 1) return 'Ayer'
-    if (days < 7) return `Hace ${days} días`
-    if (days < 30) return `Hace ${Math.floor(days / 7)} semanas`
-    if (days < 365) return `Hace ${Math.floor(days / 30)} meses`
+    // Formato completo: "2 de diciembre de 2024 a las 20:18"
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }
 
-    return date.toLocaleDateString('es-ES')
+    return date.toLocaleDateString('es-ES', options)
   } catch (err) {
     return 'Fecha inválida'
   }
+}
+
+// Verificar si la orden requiere factura
+const requiresInvoice = (order) => {
+  return order.companyData?.requires_invoice === true
+}
+
+// Obtener título de la orden
+const getOrderTitle = (order) => {
+  // Si requiere factura, mostrar razón social
+  if (requiresInvoice(order) && order.razonSocial) {
+    return order.razonSocial
+  }
+  // Si no, mostrar el nombre del anuncio o plan
+  if (order.companyData?.job_title) {
+    return order.companyData.job_title
+  }
+  if (order.companyData?.company_name) {
+    return order.companyData.company_name
+  }
+  return `Compra de Plan ${order.planLabel}`
+}
+
+// Obtener método de envío de factura
+const getInvoiceDeliveryMethod = (order) => {
+  const hasEmail = !!order.electronicInvoiceEmail
+  const hasWhatsApp = !!order.electronicInvoiceWhatsapp
+
+  if (hasEmail && hasWhatsApp) {
+    return 'por Email y WhatsApp'
+  } else if (hasEmail) {
+    return 'por Email'
+  } else if (hasWhatsApp) {
+    return 'por WhatsApp'
+  }
+  return ''
 }
 
 const handleViewOrder = (orderId) => {
@@ -434,39 +499,6 @@ const handleViewOrder = (orderId) => {
   }
 }
 
-const handleDownloadProof = (orderId) => {
-  ordersStore.downloadInvoice(orderId, authStore.accessToken)
-  notify({
-    message: '✅ Descargando comprobante...',
-    color: 'success',
-    duration: 2000
-  })
-}
-
-const handleResendInvoice = async (orderId, method = 'email') => {
-  try {
-    const success = await ordersStore.resendInvoice(orderId, method, authStore.accessToken)
-    if (success) {
-      notify({
-        message: `✅ Factura reenviada por ${method}`,
-        color: 'success',
-        duration: 3000
-      })
-    } else {
-      notify({
-        message: `Error: ${ordersStore.error || 'No se pudo reenviar'}`,
-        color: 'danger',
-        duration: 3000
-      })
-    }
-  } catch (err) {
-    notify({
-      message: `Error: ${err.message}`,
-      color: 'danger',
-      duration: 5000
-    })
-  }
-}
 </script>
 
 <style scoped>
@@ -874,5 +906,184 @@ const handleResendInvoice = async (orderId, method = 'email') => {
   .status-badge {
     width: 100%;
   }
+
+  .header-badges {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .invoice-badge {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ========== NUEVOS ESTILOS PARA FACTURA ==========  */
+
+.header-badges {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.invoice-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.invoice-badge.with-invoice {
+  background: linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%);
+  color: #6D28D9;
+  border: 2px solid #C4B5FD;
+}
+
+.invoice-badge.no-invoice {
+  background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+  color: #6B7280;
+  border: 2px solid #D1D5DB;
+}
+
+.ci-complement {
+  color: #7C3AED;
+  font-weight: 600;
+}
+
+/* Sección de Factura */
+.invoice-section {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%);
+  border-radius: 12px;
+  border: 2px solid #E9D5FF;
+}
+
+.invoice-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.invoice-section-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #6D28D9;
+  font-weight: 700;
+}
+
+.invoice-delivery-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.delivery-method {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.method-label {
+  font-weight: 600;
+  color: #6B7280;
+}
+
+.method-value {
+  color: #1F2937;
+  font-weight: 500;
+}
+
+.invoice-sent-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.invoice-sent-status.success {
+  background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+  color: #065F46;
+  border: 2px solid #6EE7B7;
+}
+
+.invoice-sent-status.pending {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  color: #92400E;
+  border: 2px solid #FCD34D;
+}
+
+/* Mensaje sin factura */
+.no-invoice-message {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+  border-radius: 12px;
+  border: 2px solid #E5E7EB;
+  border-left: 4px solid #9CA3AF;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.no-invoice-message p {
+  margin: 0;
+  color: #4B5563;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.no-invoice-message strong {
+  color: #1F2937;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+/* Modal Footer */
+.modal-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  width: 100%;
+}
+
+.close-modal-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(124, 58, 237, 0.2);
+}
+
+.close-modal-btn:hover {
+  background: linear-gradient(135deg, #6D28D9 0%, #5B21B6 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(124, 58, 237, 0.3);
+}
+
+.close-modal-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
 }
 </style>

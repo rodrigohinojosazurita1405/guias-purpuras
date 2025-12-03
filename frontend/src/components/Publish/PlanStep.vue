@@ -26,7 +26,7 @@
           @click="selectPlan(plan.name)"
           class="plan-card"
           :class="{
-            selected: selectedPlan === plan.name,
+            selected: selectedPlan === plan.name.toLowerCase(),
             featured: plan.order === 2
           }"
         >
@@ -43,29 +43,37 @@
 
           <!-- Badges (Dinámicos desde Django y características) -->
           <div class="plan-badges">
-            <span v-if="plan.badgeLabel" class="badge" :class="getBadgeClass(plan)">
-              {{ plan.badgeLabel }}
+            <!-- Badge Normal -->
+            <span v-if="plan.features.visibilityType === 'normal'" class="badge badge-normal">
+              Normal
             </span>
-            <span
-              v-if="plan.features.highlightedResults"
-              class="badge badge-urgent"
-            >
+            <!-- Badge Destacado -->
+            <span v-else-if="plan.features.visibilityType === 'destacado'" class="badge badge-destacado">
+              Destacado
+            </span>
+            <!-- Badge Patrocinado -->
+            <span v-else-if="plan.features.visibilityType === 'patrocinado'" class="badge badge-patrocinado">
+              Patrocinado
+            </span>
+            <!-- Badge urgente solo para planes con highlightedResults -->
+            <span v-if="plan.features.highlightedResults" class="badge badge-urgent">
               Urgente
             </span>
           </div>
 
           <ul class="plan-features">
             <li>{{ plan.features.maxAnnouncements }} Aviso{{ plan.features.maxAnnouncements > 1 ? 's' : '' }}</li>
-            <li v-if="plan.features.featured">Visibilidad Destacada</li>
-            <li v-else>Visibilidad Normal</li>
+            <li v-if="plan.features.visibilityType === 'normal'">Visibilidad Normal</li>
+            <li v-else-if="plan.features.visibilityType === 'destacado'">Visibilidad Destacada</li>
+            <li v-else-if="plan.features.visibilityType === 'patrocinado'">Visibilidad Patrocinada</li>
           </ul>
 
           <button
             @click.stop="selectPlan(plan.name)"
             class="plan-select-btn"
-            :class="{ active: selectedPlan === plan.name }"
+            :class="{ active: selectedPlan === plan.name.toLowerCase() }"
           >
-            {{ selectedPlan === plan.name ? 'Seleccionado' : 'Seleccionar' }}
+            {{ selectedPlan === plan.name.toLowerCase() ? 'Seleccionado' : 'Seleccionar' }}
           </button>
         </div>
       </div>
@@ -125,20 +133,22 @@
                   class="row-data"
                   :class="{ 'featured': plan.order === 2 }"
                 >
-                  {{ plan.features.featured ? (plan.order === 3 ? `Patrocinado (${plan.features.featuredDays} días)` : `Destacado (${plan.features.featuredDays} días)`) : 'Normal' }}
+                  <span v-if="plan.features.visibilityType === 'normal'">Normal</span>
+                  <span v-else-if="plan.features.visibilityType === 'destacado'">Destacado ({{ plan.features.featuredDays }} días)</span>
+                  <span v-else-if="plan.features.visibilityType === 'patrocinado'">Patrocinado ({{ plan.features.featuredDays }} días) Mayor preferencia</span>
                 </td>
               </tr>
 
-              <!-- Sustitución de Aviso -->
+              <!-- Gestión de Postulantes -->
               <tr class="table-row">
-                <td class="row-feature">Sustitución de Aviso (Si cubres la vacante antes)</td>
+                <td class="row-feature">Gestión de postulantes</td>
                 <td
                   v-for="plan in plans"
-                  :key="`substitution-${plan.id}`"
+                  :key="`management-${plan.id}`"
                   class="row-data"
                   :class="{ 'featured': plan.order === 2 }"
                 >
-                  {{ plan.features.announcementSubstitutions === 0 ? 'No incluido' : (plan.features.announcementSubstitutions === 1 ? '1 cambio permitido' : `1 cambio por aviso (${plan.features.announcementSubstitutions} total)`) }}
+                  {{ plan.features.applicantManagementText || (plan.features.applicantManagement ? 'Si incluye' : 'No incluye') }}
                 </td>
               </tr>
 
@@ -152,24 +162,24 @@
                   :class="{ 'featured': plan.order === 2 }"
                 >
                   <span v-if="plan.features.socialMedia">
-                    {{ plan.features.socialMedia.facebook }} post FB/IG<br>
-                    <span v-if="plan.features.socialMedia.linkedin > 0">+ {{ plan.features.socialMedia.linkedin }} LinkedIn<br></span>
-                    <span v-if="plan.features.socialMedia.tiktok > 0">+ {{ plan.features.socialMedia.tiktok }} TikTok</span>
+                    {{ plan.features.socialMedia.facebook }} repost en Facebook/IG<br>
+                    <span v-if="plan.features.socialMedia.linkedin > 0">+ {{ plan.features.socialMedia.linkedin }}LinkedIn<br></span>
+                    <span v-if="plan.features.socialMedia.tiktok > 0">+ {{ plan.features.socialMedia.tiktok }} Tick Tock</span>
                   </span>
-                  <span v-else>1 post en Facebook/IG</span>
+                  <span v-else>1 repost en Facebook/IG</span>
                 </td>
               </tr>
 
-              <!-- Etiqueta Urgente -->
+              <!-- Tipo de Etiqueta -->
               <tr class="table-row">
-                <td class="row-feature">Etiqueta "Urgente"</td>
+                <td class="row-feature">Tipo de Etiqueta</td>
                 <td
                   v-for="plan in plans"
-                  :key="`urgent-${plan.id}`"
+                  :key="`tag-type-${plan.id}`"
                   class="row-data"
                   :class="{ 'featured': plan.order === 2 }"
                 >
-                  {{ plan.features.highlightedResults ? 'Sí' : 'No' }}
+                  {{ getTagTypeLabel(plan) }}
                 </td>
               </tr>
             </tbody>
@@ -238,30 +248,72 @@ const loadPlans = async () => {
     plans.value = [
       {
         id: 1,
-        name: 'estandar',
-        label: 'Estandar (35 Bs)',
+        name: 'escencial',
+        label: 'Escencial',
         price: 35,
         currency: 'Bs',
         durationDays: 15,
-        features: { maxAnnouncements: 1 }
+        order: 1,
+        features: {
+          maxAnnouncements: 1,
+          visibilityType: 'normal',
+          featuredDays: 0,
+          highlightedResults: false,
+          announcementSubstitutions: 0,
+          socialMedia: {
+            facebook: 1,
+            linkedin: 0,
+            tiktok: 0
+          },
+          applicantManagement: true,
+          applicantManagementText: 'Si incluye'
+        }
       },
       {
         id: 2,
         name: 'purpura',
-        label: 'Púrpura (79 Bs)',
+        label: 'Púrpura',
         price: 79,
         currency: 'Bs',
         durationDays: 30,
-        features: { maxAnnouncements: 1 }
+        order: 2,
+        features: {
+          maxAnnouncements: 1,
+          visibilityType: 'destacado',
+          featuredDays: 6,
+          highlightedResults: true,
+          announcementSubstitutions: 0,
+          socialMedia: {
+            facebook: 1,
+            linkedin: 1,
+            tiktok: 0
+          },
+          applicantManagement: true,
+          applicantManagementText: 'Si incluye'
+        }
       },
       {
         id: 3,
         name: 'impulso',
-        label: 'Impulso Pro (169 Bs)',
-        price: 169,
+        label: 'Impulso Pro',
+        price: 149,
         currency: 'Bs',
         durationDays: 30,
-        features: { maxAnnouncements: 3 }
+        order: 3,
+        features: {
+          maxAnnouncements: 1,
+          visibilityType: 'patrocinado',
+          featuredDays: 10,
+          highlightedResults: true,
+          announcementSubstitutions: 0,
+          socialMedia: {
+            facebook: 1,
+            linkedin: 1,
+            tiktok: 1
+          },
+          applicantManagement: true,
+          applicantManagementText: 'Si incluye'
+        }
       }
     ]
   } finally {
@@ -270,8 +322,10 @@ const loadPlans = async () => {
 }
 
 const selectPlan = (planName) => {
-  selectedPlan.value = planName
-  emit('update:modelValue', planName)
+  // Normalizar a minúsculas para compatibilidad con backend
+  const normalizedPlanName = planName.toLowerCase()
+  selectedPlan.value = normalizedPlanName
+  emit('update:modelValue', normalizedPlanName)
 }
 
 const validate = () => {
@@ -290,6 +344,22 @@ const getBadgeClass = (plan) => {
   if (plan.order === 2) return 'badge-featured'   // Segundo plan (Destacado/Recomendado)
   if (plan.order === 3) return 'badge-sponsored'  // Tercer plan (Patrocinado)
   return 'badge-basic'                            // Por defecto
+}
+
+// Determinar el label del tipo de etiqueta según el plan
+const getTagTypeLabel = (plan) => {
+  if (plan.features.visibilityType === 'normal') return 'Normal'
+  if (plan.features.visibilityType === 'patrocinado') return 'Patrocinado/Urgente'
+  if (plan.features.visibilityType === 'destacado') return 'Destacado/Urgente'
+  return 'Normal'
+}
+
+// Determinar la clase CSS del tipo de etiqueta
+const getTagTypeClass = (plan) => {
+  if (plan.features.visibilityType === 'normal') return 'badge-tag-normal'
+  if (plan.features.visibilityType === 'destacado') return 'badge-tag-highlighted'
+  if (plan.features.visibilityType === 'patrocinado') return 'badge-tag-sponsored'
+  return 'badge-tag-normal'
 }
 
 watch(() => props.modelValue, (newValue) => {
@@ -484,6 +554,30 @@ defineExpose({
 }
 
 .badge-sponsored {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.badge-normal {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: white;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.badge-destacado {
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  color: white;
+  border: 1px solid rgba(124, 58, 237, 0.5);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+.badge-patrocinado {
   background: linear-gradient(135deg, #10B981 0%, #059669 100%);
   color: white;
   border: 1px solid rgba(16, 185, 129, 0.5);

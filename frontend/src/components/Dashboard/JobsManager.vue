@@ -1,6 +1,7 @@
 <!-- frontend/src/components/Dashboard/JobsManager.vue -->
 <template>
-  <div class="jobs-manager">
+  <div class="jobs-manager-wrapper">
+    <div class="jobs-manager">
     <!-- Job Detail Modal -->
     <JobDetailModal
       :visible="showDetailModal"
@@ -33,6 +34,7 @@
       <div class="filter-controls">
         <select v-model="filterStatus" class="filter-select">
           <option value="">Todos los estados</option>
+          <option value="pending">Pendientes</option>
           <option value="active">Activos</option>
           <option value="closed">Cerrados</option>
           <option value="draft">Borradores</option>
@@ -79,46 +81,79 @@
           <div class="stat-item plan-stat">
             <va-icon name="card_giftcard" />
             <span class="stat-text plan-badge" :class="getPlanCssClass(job.selectedPlan)">
-              {{ formatPlanName(job.selectedPlan, job.planLabel) }}
+              {{ formatPlanName(job.selectedPlan, job.planLabel, job.planPrice) }}
             </span>
           </div>
+
+          <!-- Payment Verification Status -->
+          <div class="stat-item">
+            <va-icon :name="job.paymentVerified ? 'check_circle' : 'pending'" />
+            <span
+              class="stat-text payment-status"
+              :class="job.paymentVerified ? 'verified' : 'pending'"
+            >
+              {{ job.paymentVerified ? '✓ Anuncio Aprobado' : '⏳ Pendiente verificación' }}
+            </span>
+          </div>
+
+          <!-- Public Visibility Indicator -->
+          <div class="stat-item" v-if="job.status !== 'active'">
+            <va-icon name="visibility_off" />
+            <span class="stat-text visibility-warning">No visible públicamente</span>
+          </div>
+
           <div class="stat-divider">|</div>
           <div class="stat-item">
             <va-icon name="schedule" />
+            <span class="stat-label">Publicado:</span>
             <span class="stat-text stat-date">{{ formatExactDateTime(job.createdAt) }}</span>
           </div>
           <div class="stat-item">
             <va-icon name="event_note" />
+            <span class="stat-label">Vence:</span>
             <span class="stat-text stat-date">{{ formatExpiryDate(job.expiryDate) }}</span>
           </div>
           <div class="stat-item">
             <va-icon name="timer" />
-            <span class="stat-text">{{ calculateDaysRemaining(job.expiryDate) }}d</span>
+            <span class="stat-label">Restan:</span>
+            <span class="stat-text">{{ calculateDaysRemaining(job.expiryDate) }} días</span>
           </div>
         </div>
 
         <!-- Card Actions -->
         <div class="job-actions">
-          <button class="action-btn view" title="Ver detalles" @click="viewJob(job)">
-            <va-icon name="visibility" />
-            Ver
-          </button>
-          <button class="action-btn edit" title="Editar" @click="editJob(job)">
-            <va-icon name="edit" />
-            Editar
-          </button>
-          <button
-            class="action-btn"
-            :class="job.status === 'active' ? 'close' : 'reopen'"
-            @click="toggleJobStatus(job)"
-          >
-            <va-icon :name="job.status === 'active' ? 'visibility_off' : 'visibility' " />
-            {{ job.status === 'active' ? 'Desactivar' : 'Activar' }}
-          </button>
-          <button class="action-btn delete" title="Eliminar" @click="deleteJob(job)">
-            <va-icon name="delete" />
-            Eliminar
-          </button>
+          <!-- Toggle Switch Activar/Desactivar -->
+          <div class="toggle-container">
+            <label class="toggle-label" :class="{ 'disabled': !job.paymentVerified && job.status !== 'active' }">
+              <input
+                type="checkbox"
+                :checked="job.status === 'active'"
+                @change="toggleJobStatus(job)"
+                :disabled="!job.paymentVerified && job.status !== 'active'"
+                class="toggle-input"
+              />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text">
+                {{ job.status === 'active' ? 'Activo' : 'Inactivo' }}
+              </span>
+            </label>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="action-buttons">
+            <button class="action-btn view" title="Ver detalles" @click="viewJob(job)">
+              <va-icon name="visibility" size="small" />
+              <span class="btn-text">Ver</span>
+            </button>
+            <button class="action-btn edit" title="Editar anuncio" @click="editJob(job)">
+              <va-icon name="edit" size="small" />
+              <span class="btn-text">Editar</span>
+            </button>
+            <button class="action-btn delete" title="Eliminar anuncio" @click="deleteJob(job)">
+              <va-icon name="delete" size="small" />
+              <span class="btn-text">Eliminar</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -133,6 +168,106 @@
         Publicar Trabajo
       </router-link>
     </div>
+  </div>
+
+    <!-- Modal de Edición -->
+    <va-modal
+      v-model="showEditModal"
+      size="large"
+      :close-button="false"
+      hide-default-actions
+    >
+      <template #header>
+        <div class="modal-header-content">
+          <h2 class="modal-title">Editar Anuncio</h2>
+          <p class="modal-subtitle">Actualiza los detalles de tu oferta de trabajo</p>
+        </div>
+      </template>
+
+      <div class="edit-form">
+        <div class="form-group">
+          <label class="form-label">Título del Puesto *</label>
+          <va-input
+            v-model="editFormData.title"
+            placeholder="Ej: Desarrollador Full Stack"
+          />
+          <span class="field-hint">Nombre del cargo que estás ofreciendo</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Ciudad *</label>
+            <va-input
+              v-model="editFormData.city"
+              placeholder="Ej: Santa Cruz"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Número de Vacantes</label>
+            <va-input
+              v-model.number="editFormData.vacancies"
+              type="number"
+              :min="1"
+              placeholder="1"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tipo de Contrato *</label>
+          <va-select
+            v-model="editFormData.contractType"
+            :options="['Tiempo Completo', 'Medio Tiempo', 'Por Proyecto', 'Freelance', 'Temporal', 'Indefinido']"
+            placeholder="Selecciona el tipo de contrato"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Descripción del Trabajo *</label>
+          <va-textarea
+            v-model="editFormData.description"
+            placeholder="Describe las responsabilidades, requisitos y detalles del puesto..."
+            :min-rows="6"
+            autosize
+            class="description-field"
+          />
+          <span class="field-hint">Detalla las funciones del cargo y lo que buscas en un candidato</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Beneficios Adicionales</label>
+          <va-textarea
+            v-model="editFormData.benefits"
+            placeholder="Aguinaldo, bono de producción, seguro médico, horario flexible, trabajo remoto..."
+            :min-rows="3"
+            autosize
+            class="benefits-field"
+          />
+          <span class="field-hint">Beneficios que hagan más atractivo tu anuncio</span>
+        </div>
+
+        <div class="info-box">
+          <va-icon name="info" size="small" color="#F59E0B" />
+          <div class="info-text">
+            <strong>Datos protegidos</strong>
+            <p>El salario, plan contratado y método de pago no pueden editarse. Contacta a soporte si necesitas modificarlos.</p>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="modal-footer">
+          <va-button color="secondary" @click="closeEditModal" size="medium">
+            Cancelar
+          </va-button>
+          <va-button @click="saveEditedJob" size="medium" class="save-btn">
+            <va-icon name="save" size="small" />
+            Guardar Cambios
+          </va-button>
+        </div>
+      </template>
+    </va-modal>
   </div>
 </template>
 
@@ -163,7 +298,16 @@ const searchQuery = ref('')
 const filterStatus = ref('')
 const sortBy = ref('recent')
 const showDetailModal = ref(false)
+const showEditModal = ref(false)
 const selectedJob = ref(null)
+const editFormData = ref({
+  title: '',
+  city: '',
+  vacancies: 1,
+  contractType: '',
+  description: '',
+  benefits: ''
+})
 
 // ========== COMPUTED ==========
 const filteredJobs = computed(() => {
@@ -256,6 +400,7 @@ const loadJobs = async () => {
         title: job.title,
         companyName: job.companyName,
         status: job.status,
+        paymentVerified: job.paymentVerified || false,
         views: job.views || 0,
         applications: job.applications || 0,
         createdAt: new Date(job.createdAt).toISOString(),
@@ -285,6 +430,7 @@ const loadJobs = async () => {
 
 const statusLabel = (status) => {
   const labels = {
+    pending: '⏳ Pendiente',
     active: '✓ Activo',
     closed: '✕ Cerrado',
     draft: '✎ Borrador'
@@ -338,18 +484,32 @@ const calculateDaysRemaining = (expiryDateString) => {
   return days
 }
 
-const formatPlanName = (planKey, planLabel) => {
-  // Usar el planLabel capturado en el momento de publicación si está disponible
-  if (planLabel) return planLabel
+const formatPlanName = (planKey, planLabel, planPrice) => {
+  // Determinar el nombre del plan
+  let name = planLabel
 
-  if (!planKey) return 'Sin plan'
-  const planNames = {
-    'estandar': 'Estándar',
-    'escencial': 'Estándar',  // Soporte para nombre antiguo
-    'purpura': 'Púrpura',
-    'impulso': 'Impulso Pro'
+  if (!name) {
+    if (!planKey) return 'Sin plan'
+    const planNames = {
+      'estandar': 'Estandar',
+      'escencial': 'Estandar',  // Soporte para nombre antiguo
+      'purpura': 'Púrpura',
+      'impulso': 'Impulso Pro'
+    }
+    name = planNames[planKey.toLowerCase()] || planKey
   }
-  return planNames[planKey.toLowerCase()] || planKey
+
+  // Si el planLabel ya incluye el precio (contiene paréntesis), no agregar
+  if (name && name.includes('(') && name.includes(')')) {
+    return name
+  }
+
+  // Agregar precio si está disponible y no está ya en el nombre
+  if (planPrice) {
+    return `${name} (${planPrice})`
+  }
+
+  return name
 }
 
 const getPlanCssClass = (planKey) => {
@@ -387,26 +547,60 @@ const viewJob = async (job) => {
   }
 }
 
-const editJob = (job) => {
-  notify({
-    message: `Abriendo editor para "${job.title}"...`,
-    color: 'info'
-  })
-  // Navegar a vista de edición con ID del trabajo
-  router.push({
-    name: 'PublishJob',
-    query: { jobId: job.id }
-  })
+const editJob = async (job) => {
+  try {
+    // Cargar datos completos del job
+    const response = await fetch(`/api/jobs/${job.id}`, {
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`
+      }
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al cargar anuncio')
+    }
+
+    // Llenar formulario con campos editables
+    selectedJob.value = job
+    editFormData.value = {
+      title: data.job.title || '',
+      city: data.job.city || '',
+      vacancies: data.job.vacancies || 1,
+      contractType: data.job.contractType || '',
+      description: data.job.description || '',
+      benefits: data.job.benefits || ''
+    }
+
+    // Abrir modal
+    showEditModal.value = true
+  } catch (err) {
+    console.error('Error loading job for edit:', err)
+    notify({
+      message: `Error: ${err.message}`,
+      color: 'danger',
+      duration: 4000,
+      position: 'top-right'
+    })
+  }
 }
 
 const toggleJobStatus = async (job) => {
   try {
     const newStatus = job.status === 'active' ? 'closed' : 'active'
-    const action = newStatus === 'active' ? 'Activando' : 'Desactivando'
-    notify({
-      message: `${action} anuncio...`,
-      color: 'info'
-    })
+
+    // VALIDACIÓN: No permitir activar si el pago no está verificado
+    if (newStatus === 'active' && !job.paymentVerified) {
+      notify({
+        message: 'No puedes activar este anuncio. El pago aún no ha sido verificado por el administrador.',
+        color: 'warning',
+        duration: 4500,
+        position: 'top-right',
+        closeable: true
+      })
+      return
+    }
 
     const response = await fetch(`/api/jobs/${job.id}/update`, {
       method: 'PATCH',
@@ -424,16 +618,25 @@ const toggleJobStatus = async (job) => {
     }
 
     job.status = newStatus
-    const result = newStatus === 'active' ? 'Anuncio activado' : 'Anuncio desactivado'
+
+    // Notificación sutil
+    const message = newStatus === 'active' ? 'Anuncio activado' : 'Anuncio desactivado'
+
     notify({
-      message: `✓ ${result} exitosamente`,
-      color: 'success'
+      message: message,
+      color: newStatus === 'active' ? 'success' : 'info',
+      duration: 2000,
+      position: 'top-right',
+      closeable: true
     })
   } catch (err) {
     console.error('Error updating job status:', err)
     notify({
       message: `Error: ${err.message}`,
-      color: 'danger'
+      color: 'danger',
+      duration: 4000,
+      position: 'top-right',
+      closeable: true
     })
   }
 }
@@ -442,11 +645,6 @@ const deleteJob = async (job) => {
   if (!confirm(`¿Está seguro de que desea eliminar "${job.title}"?`)) return
 
   try {
-    notify({
-      message: 'Eliminando trabajo...',
-      color: 'info'
-    })
-
     const response = await fetch(`/api/jobs/${job.id}/delete`, {
       method: 'DELETE',
       headers: {
@@ -462,16 +660,89 @@ const deleteJob = async (job) => {
     }
 
     jobs.value = jobs.value.filter(j => j.id !== job.id)
+
     notify({
-      message: '✓ Trabajo eliminado exitosamente',
-      color: 'success'
+      message: 'Anuncio eliminado',
+      color: 'success',
+      duration: 2000,
+      position: 'top-right',
+      closeable: true
     })
   } catch (err) {
     console.error('Error deleting job:', err)
     notify({
       message: `Error: ${err.message}`,
-      color: 'danger'
+      color: 'danger',
+      duration: 4000,
+      position: 'top-right',
+      closeable: true
     })
+  }
+}
+
+const saveEditedJob = async () => {
+  if (!selectedJob.value) return
+
+  try {
+    const response = await fetch(`/api/jobs/${selectedJob.value.id}/update`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(editFormData.value)
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al actualizar anuncio')
+    }
+
+    // Actualizar campos editados en la lista
+    const index = jobs.value.findIndex(j => j.id === selectedJob.value.id)
+    if (index !== -1) {
+      jobs.value[index].title = editFormData.value.title
+      jobs.value[index].city = editFormData.value.city
+      jobs.value[index].vacancies = editFormData.value.vacancies
+      jobs.value[index].contractType = editFormData.value.contractType
+      jobs.value[index].description = editFormData.value.description
+      jobs.value[index].benefits = editFormData.value.benefits
+    }
+
+    // Cerrar modal
+    showEditModal.value = false
+    selectedJob.value = null
+
+    notify({
+      message: 'Anuncio actualizado',
+      color: 'success',
+      duration: 2000,
+      position: 'top-right',
+      closeable: true
+    })
+  } catch (err) {
+    console.error('Error updating job:', err)
+    notify({
+      message: `Error: ${err.message}`,
+      color: 'danger',
+      duration: 4000,
+      position: 'top-right',
+      closeable: true
+    })
+  }
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+  selectedJob.value = null
+  editFormData.value = {
+    title: '',
+    city: '',
+    vacancies: 1,
+    contractType: '',
+    description: '',
+    benefits: ''
   }
 }
 
@@ -524,6 +795,18 @@ const deactivateJob = async () => {
 
 const activateJob = async () => {
   if (!selectedJob.value) return
+
+  // VALIDACIÓN: No permitir activar si el pago no está verificado
+  if (!selectedJob.value.paymentVerified) {
+    notify({
+      message: 'No puedes activar este anuncio. El pago aún no ha sido verificado por el administrador.',
+      color: 'warning',
+      duration: 4500,
+      position: 'top-right',
+      closeable: true
+    })
+    return
+  }
 
   try {
     notify({
@@ -735,6 +1018,11 @@ const activateJob = async () => {
   white-space: nowrap;
 }
 
+.job-badge.pending {
+  background: #fff3e0;
+  color: #e65100;
+}
+
 .job-badge.active {
   background: #e8f5e9;
   color: #2e7d32;
@@ -777,14 +1065,22 @@ const activateJob = async () => {
   color:  #7c3aed, #6d28d9;
 }
 
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6B7280;
+  margin-right: 0.25rem;
+}
+
 .stat-text {
   font-weight: 500;
   color: #1a1a1a;
 }
 
 .stat-date {
-  font-size: 0.75rem;
-  color: #999;
+  font-size: 0.8rem;
+  color: #374151;
+  font-weight: 500;
 }
 
 .plan-stat {
@@ -829,74 +1125,187 @@ const activateJob = async () => {
 /* ========== JOB ACTIONS ========== */
 .job-actions {
   display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+/* ========== TOGGLE SWITCH ========== */
+.toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-input {
+  display: none;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 40px;
+  height: 20px;
+  background-color: #D1D5DB;
+  border-radius: 20px;
+  transition: background-color 0.3s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-input:checked + .toggle-slider {
+  background-color: #10B981;
+}
+
+.toggle-input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.toggle-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6B7280;
+  min-width: 60px;
+}
+
+.toggle-input:checked ~ .toggle-text {
+  color: #10B981;
+}
+
+/* ========== ACTION BUTTONS ========== */
+.action-buttons {
+  display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  margin-left: auto;
 }
 
 .action-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.85rem;
-  border: 1px solid #9f7aea;
-  border-radius: 6px;
-  background: white;
-  color: #8b5cf6;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: all 0.2s;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .action-btn:hover {
-  border-color: #9f7aea;
-  background: #faf5ff;
-  color: #7c3aed;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+.action-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Botón Ver - Azul elegante */
+.action-btn.view {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+}
+
+.action-btn.view:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+}
+
+/* Botón Editar - Verde azulado */
 .action-btn.edit {
-  color: #1976d2;
-  border-color: #bbdefb;
+  background: #10B981;
+  color: white;
 }
 
 .action-btn.edit:hover {
-  background: #e3f2fd;
+  background: #059669;
 }
 
-.action-btn.duplicate {
-  color: #f57c00;
-  border-color: #ffe0b2;
-}
-
-.action-btn.duplicate:hover {
-  background: #fff3e0;
-}
-
-.action-btn.close {
-  color: #d32f2f;
-  border-color: #ffcdd2;
-}
-
-.action-btn.close:hover {
-  background: #ffebee;
-}
-
-.action-btn.reopen {
-  color: #388e3c;
-  border-color: #c8e6c9;
-}
-
-.action-btn.reopen:hover {
-  background: #e8f5e9;
-}
-
+/* Botón Eliminar - Rojo elegante */
 .action-btn.delete {
-  color: #d32f2f;
-  border-color: #ffcdd2;
+  background: #EF4444;
+  color: white;
 }
 
 .action-btn.delete:hover {
-  background: #ffebee;
+  background: #DC2626;
+}
+
+/* Estilos para botones antiguos (por si acaso) */
+.action-btn.duplicate {
+  background: #F59E0B;
+  color: white;
+}
+
+.action-btn.duplicate:hover {
+  background: #D97706;
+}
+
+.action-btn.close {
+  background: #EF4444;
+  color: white;
+}
+
+.action-btn.close:hover {
+  background: #DC2626;
+}
+
+.action-btn.reopen {
+  background: #10B981;
+  color: white;
+}
+
+.action-btn.reopen:hover {
+  background: #059669;
+}
+
+/* ========== PAYMENT STATUS ========== */
+.payment-status {
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.payment-status.verified {
+  color: #10b981;
+}
+
+.payment-status.pending {
+  color: #f59e0b;
+}
+
+.visibility-warning {
+  color: #dc2626 !important;
+  font-weight: 600;
 }
 
 /* ========== EMPTY STATE ========== */
@@ -935,6 +1344,136 @@ const activateJob = async () => {
 .empty-action-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+/* ========== EDIT MODAL ========== */
+.modal-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.modal-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6B7280;
+  font-weight: 400;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem 0;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.edit-form::-webkit-scrollbar {
+  width: 8px;
+}
+
+.edit-form::-webkit-scrollbar-track {
+  background: #F3F4F6;
+  border-radius: 10px;
+}
+
+.edit-form::-webkit-scrollbar-thumb {
+  background: #9f7aea;
+  border-radius: 10px;
+}
+
+.edit-form::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1F2937;
+  margin-bottom: 0.25rem;
+}
+
+.field-hint {
+  font-size: 0.8rem;
+  color: #6B7280;
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+.description-field,
+.benefits-field {
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.info-box {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.info-text {
+  flex: 1;
+}
+
+.info-text strong {
+  display: block;
+  color: #92400E;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.info-text p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #B45309;
+  line-height: 1.5;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #E5E7EB;
+  margin-top: 0.5rem;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #10B981, #059669) !important;
+  color: white !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem !important;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
 }
 
 /* ========== RESPONSIVE ========== */
@@ -989,6 +1528,36 @@ const activateJob = async () => {
   .action-btn {
     padding: 0.4rem 0.7rem;
     font-size: 0.8rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-title {
+    font-size: 1.25rem;
+  }
+
+  .modal-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .edit-form {
+    max-height: 50vh;
+  }
+
+  .info-box {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .modal-footer .va-button {
+    width: 100%;
   }
 }
 </style>

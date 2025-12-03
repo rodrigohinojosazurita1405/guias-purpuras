@@ -831,26 +831,19 @@
               </div>
             </section>
 
-            <!-- ===== SECCIÓN PAGO Y COMPROBANTE (ACORDEÓN) ===== -->
+            <!-- ===== SECCIÓN PAGO Y COMPROBANTE (SIEMPRE VISIBLE) ===== -->
             <section class="content-block payment-section">
-              <div class="payment-accordion">
-                <!-- Header del Acordeón -->
-                <div @click="togglePaymentAccordion" class="accordion-header">
+              <div class="payment-accordion always-open">
+                <!-- Header (sin interacción) -->
+                <div class="accordion-header static-header">
                   <div class="accordion-title">
                     <va-icon name="payment" size="small" />
                     <span>Información y método de pago de su anuncio</span>
-                    <span class="accordion-hint">• Haz clic para desplegar</span>
                   </div>
-                  <va-icon
-                    :name="paymentAccordionOpen ? 'expand_less' : 'expand_more'"
-                    size="small"
-                    class="accordion-icon"
-                  />
                 </div>
 
-                <!-- Contenido del Acordeón -->
-                <transition name="slide-accordion">
-                  <div v-if="paymentAccordionOpen" class="accordion-content">
+                <!-- Contenido SIEMPRE visible -->
+                <div class="accordion-content">
                     <!-- Resumen compacto -->
                     <div class="payment-summary">
                       <div class="summary-item">
@@ -954,77 +947,156 @@
                         </p>
                       </div>
                     </div>
-                  </div>
-                </transition>
-              </div>
-            </section>
 
-            <!-- ===== INFORMACIÓN DE FACTURACIÓN (ACORDEÓN) ===== -->
-            <section class="content-block billing-section">
-              <div class="billing-accordion">
-                <!-- Header del Acordeón -->
-                <div @click="toggleBillingAccordion" class="accordion-header">
-                  <div class="accordion-title">
-                    <va-icon name="receipt" size="small" />
-                    <span>Información de Facturación (Opcional)</span>
-                    <span class="accordion-hint">• Haz clic para desplegar</span>
-                  </div>
-                  <va-icon
-                    :name="billingAccordionOpen ? 'expand_less' : 'expand_more'"
-                    size="small"
-                    class="accordion-icon"
-                  />
-                </div>
+                    <!-- ===== SEPARADOR ===== -->
+                    <div class="billing-separator">
+                      <div class="separator-line"></div>
+                      <div class="separator-text">
+                        <va-icon name="receipt" size="small" />
+                        Información de Facturación
+                      </div>
+                      <div class="separator-line"></div>
+                    </div>
 
-                <!-- Contenido del Acordeón -->
-                <transition name="slide-accordion">
-                  <div v-if="billingAccordionOpen" class="accordion-content">
-                    <div class="billing-form-group">
-                      <!-- Razón Social -->
-                      <div class="billing-field">
-                        <label class="billing-label">Razón Social de su Empresa</label>
+                    <!-- ===== CHECKBOX "SOY CONTRIBUYENTE" ===== -->
+                    <div class="contributor-checkbox-container">
+                      <label class="contributor-checkbox">
+                        <input
+                          type="checkbox"
+                          v-model="isContributor"
+                          class="checkbox-input"
+                        />
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-label">
+                          <va-icon name="account_balance" size="small" />
+                          Soy contribuyente (Requiero factura)
+                        </span>
+                      </label>
+                      <p class="checkbox-hint">
+                        Marca esta opción si necesitas factura para tu compra
+                      </p>
+                    </div>
+
+                    <!-- ===== FORMULARIO DE FACTURACIÓN (Habilitado solo si es contribuyente) ===== -->
+                    <div v-if="isContributor" class="billing-form-group">
+                      <!-- Fila 1: Razón Social (span completo) -->
+                      <div class="billing-field full-width">
+                        <label class="billing-label">Razón Social / Nombre Completo</label>
                         <input
                           v-model="billingData.businessName"
                           type="text"
-                          placeholder="Nombre de tu empresa"
+                          placeholder="Nombre de tu empresa o tu nombre completo"
                           class="billing-input"
                         />
                       </div>
 
-                      <!-- NIT -->
+                      <!-- Fila 2: NIT y CI -->
                       <div class="billing-field">
-                        <label class="billing-label">NIT</label>
+                        <label class="billing-label">NIT (opcional si tiene CI)</label>
                         <input
                           v-model="billingData.nit"
                           type="text"
-                          placeholder="Tu número de NIT"
+                          placeholder="Número de NIT"
                           class="billing-input"
                         />
                       </div>
 
-                      <!-- Email para Factura -->
                       <div class="billing-field">
-                        <label class="billing-label">Email para Factura Digital</label>
+                        <label class="billing-label">N.º C.I. (Cédula de Identidad)</label>
+                        <input
+                          v-model="billingData.ci"
+                          type="text"
+                          placeholder="Número de Cédula de Identidad"
+                          class="billing-input"
+                        />
+                      </div>
+
+                      <!-- Fila 3: Complemento CI (span completo) -->
+                      <div class="billing-field full-width">
+                        <label class="billing-label">Complemento C.I. (opcional)</label>
+                        <input
+                          v-model="billingData.ciComplement"
+                          type="text"
+                          placeholder="Ej: 1A, 2B"
+                          class="billing-input"
+                          maxlength="3"
+                        />
+                      </div>
+
+                      <!-- Fila 4: MÉTODO DE ENVÍO DE FACTURA -->
+                      <div class="billing-field full-width delivery-method-section">
+                        <label class="billing-label delivery-method-title">
+                          <va-icon name="send" size="small" />
+                          ¿Cómo deseas recibir tu factura electrónica?
+                        </label>
+                        <p class="delivery-method-hint">Selecciona al menos un método de envío</p>
+
+                        <div class="delivery-checkboxes">
+                          <!-- Checkbox: Email -->
+                          <label class="delivery-checkbox">
+                            <input
+                              type="checkbox"
+                              v-model="sendByEmail"
+                              class="checkbox-input"
+                            />
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label">
+                              <va-icon name="email" size="small" />
+                              Por Email
+                            </span>
+                          </label>
+
+                          <!-- Checkbox: WhatsApp -->
+                          <label class="delivery-checkbox">
+                            <input
+                              type="checkbox"
+                              v-model="sendByWhatsApp"
+                              class="checkbox-input"
+                            />
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label">
+                              <va-icon name="whatsapp" size="small" />
+                              Por WhatsApp
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- Fila 5: Email (solo si sendByEmail está marcado) -->
+                      <div v-if="sendByEmail" class="billing-field full-width">
+                        <label class="billing-label required-field">Email para Factura Electrónica</label>
                         <input
                           v-model="billingData.invoiceEmail"
                           type="email"
-                          placeholder="correo@empresa.com"
+                          placeholder="correo@ejemplo.com"
                           class="billing-input"
+                          required
+                        />
+                      </div>
+
+                      <!-- Fila 6: WhatsApp (solo si sendByWhatsApp está marcado) -->
+                      <div v-if="sendByWhatsApp" class="billing-field full-width">
+                        <label class="billing-label required-field">Celular / WhatsApp</label>
+                        <input
+                          v-model="billingData.whatsapp"
+                          type="tel"
+                          placeholder="+591 7XXXXXXX"
+                          class="billing-input"
+                          required
                         />
                       </div>
                     </div>
 
-                    <!-- Aviso de responsabilidad -->
+                    <!-- Aviso de responsabilidad (fuera del grid) -->
                     <div class="billing-alert">
                       <va-icon name="warning" size="small" color="warning" />
                       <div class="alert-content">
-                        <strong>Importante:</strong> Guías Púrpuras Bolivia no se hará responsable por errores en los datos de facturación ingresados por el usuario (Razón Social, NIT, Email).
-                        Verifica que todos los datos sean correctos antes de publicar, ya que estos se utilizarán para la emisión de facturas, usted tiene un plazo de 24 horas para enviar esos datos.
-                        Los errores en estos campos son responsabilidad del usuario.
+                        <strong>Importante:</strong> Guías Púrpuras Bolivia no se hará responsable por errores en los datos de facturación ingresados por el usuario (Razón Social, NIT/CI, Complemento, Email, Celular).
+                        Verifica que todos los datos sean correctos antes de publicar, ya que estos se utilizarán para la emisión de facturas electrónicas según el SIN. Tienes un plazo de 24 horas para enviar estos datos.
+                        Los errores en estos campos son responsabilidad del usuario  no de la empresa.
                       </div>
                     </div>
                   </div>
-                </transition>
               </div>
             </section>
           </div>
@@ -1085,12 +1157,16 @@ const publishStore = usePublishStore()
 const isMobile = ref(window.innerWidth <= 480)
 const proofFileInput = ref(null)
 const proofOfPaymentPreview = ref(null)
-const paymentAccordionOpen = ref(true) // Abierto por defecto
-const billingAccordionOpen = ref(false) // Cerrado por defecto
+const isContributor = ref(false) // Estado del checkbox "Soy contribuyente"
+const sendByEmail = ref(false) // Checkbox: Enviar factura por Email
+const sendByWhatsApp = ref(false) // Checkbox: Enviar factura por WhatsApp
 const billingData = ref({
   businessName: '',
   nit: '',
-  invoiceEmail: ''
+  ci: '',
+  ciComplement: '',
+  invoiceEmail: '',
+  whatsapp: ''
 })
 const paymentReference = computed(() => {
   if (!props.jobData?.selectedPlan) return ''
@@ -1216,31 +1292,28 @@ const getQuestionTypeLabel = (type) => {
   return labels[type] || type
 }
 
-const getJobPlanName = (plan) => {
-  const plans = {
-    estandar: 'Plan Estandar',
-    purpura: 'Plan Púrpura',
-    impulso: 'Plan Impulso Pro'
-  }
-  return plans[plan] || plan
+const getJobPlanName = (planKey) => {
+  const normalizedKey = planKey?.toLowerCase()
+  const planInfo = PAYMENT_CONFIG.getPlanInfo(normalizedKey)
+  return planInfo ? `Plan ${planInfo.name}` : planKey
 }
 
 const getJobPlanIcon = (plan) => {
   const icons = {
     estandar: 'check_circle',
+    escencial: 'check_circle',
     purpura: 'star',
     impulso: 'workspace_premium'
   }
-  return icons[plan] || 'check_circle'
+  const normalizedKey = plan?.toLowerCase()
+  return icons[normalizedKey] || 'check_circle'
 }
 
-const getJobPlanDescription = (plan) => {
-  const descriptions = {
-    estandar: 'Plan Estandar - 35 Bs. Tu oferta de trabajo estará visible por 15 días.',
-    purpura: 'Plan Púrpura - 79 Bs. Tu oferta será destacada con mayor visibilidad por 30 días.',
-    impulso: 'Plan Impulso Pro - 169 Bs. Tu oferta tendrá máxima visibilidad y aparecerá primero por 30 días.'
-  }
-  return descriptions[plan] || ''
+const getJobPlanDescription = (planKey) => {
+  const normalizedKey = planKey?.toLowerCase()
+  const planInfo = PAYMENT_CONFIG.getPlanInfo(normalizedKey)
+  if (!planInfo) return ''
+  return `Plan ${planInfo.name} - ${planInfo.price} ${planInfo.currency} Tu oferta de trabajo estará visible por ${planInfo.duration}.`
 }
 
 // Obtener badges del plan seleccionado
@@ -1341,15 +1414,49 @@ const copyToClipboard = (text) => {
   })
 }
 
-// Toggle del acordeón de pagos
-const togglePaymentAccordion = () => {
-  paymentAccordionOpen.value = !paymentAccordionOpen.value
-}
+// Sincronizar billingData con publishStore cuando cambie
+watch(billingData, (newBillingData) => {
+  if (isContributor.value) {
+    publishStore.setJobData({
+      billingData: { ...newBillingData }
+    })
+    console.log('📋 Datos de facturación actualizados:', newBillingData)
+  }
+}, { deep: true })
 
-// Toggle del acordeón de facturación
-const toggleBillingAccordion = () => {
-  billingAccordionOpen.value = !billingAccordionOpen.value
-}
+// Limpiar datos de facturación cuando se desmarca "Soy contribuyente"
+// Y sincronizar cuando se marca
+watch(isContributor, (newValue) => {
+  if (!newValue) {
+    // Limpiar todos los campos de facturación
+    billingData.value = {
+      businessName: '',
+      nit: '',
+      ci: '',
+      ciComplement: '',
+      invoiceEmail: '',
+      whatsapp: ''
+    }
+    // Limpiar checkboxes de método de envío
+    sendByEmail.value = false
+    sendByWhatsApp.value = false
+    // Limpiar en la store también
+    publishStore.setJobData({
+      billingData: null
+    })
+    console.log('🗑️ Datos de facturación limpiados (no es contribuyente)')
+  } else {
+    // Cuando se marca el checkbox, sincronizar datos actuales (aunque estén vacíos)
+    publishStore.setJobData({
+      billingData: { ...billingData.value }
+    })
+    console.log('✅ Checkbox marcado - billingData sincronizado:', billingData.value)
+  }
+})
+
+// NO limpiar los campos cuando se desmarcan los checkboxes
+// Solo controlar la visibilidad - los valores se mantienen para referencia
+// El backend solo usará los valores si sendByEmail/sendByWhatsApp están marcados
 
 // ==========================================
 // MAPA PREVIEW
@@ -1419,7 +1526,10 @@ const createMap = () => {
 }
 
 // Inicializar mapa cuando el componente se monta
-onMounted(() => {
+onMounted(async () => {
+  // Cargar planes desde backend para sincronizar con Django Admin
+  await PAYMENT_CONFIG.loadPlansFromBackend()
+
   if (props.formData.coordinates) {
     initMap()
   }
@@ -2437,6 +2547,11 @@ watch(() => props.formData.coordinates, (newCoords) => {
   box-shadow: 0 2px 8px rgba(124, 58, 237, 0.05);
 }
 
+/* Acordeón siempre abierto */
+.payment-accordion.always-open .accordion-content {
+  display: block !important;
+}
+
 .accordion-header {
   display: flex;
   justify-content: space-between;
@@ -2446,6 +2561,16 @@ watch(() => props.formData.coordinates, (newCoords) => {
   user-select: none;
   transition: all 0.2s ease;
   border-bottom: 1px solid #E2E8F0;
+}
+
+/* Header estático (sin hover, sin cursor) */
+.accordion-header.static-header {
+  cursor: default;
+  background: linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%);
+}
+
+.accordion-header.static-header:hover {
+  background: linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%);
 }
 
 .accordion-header:hover {
@@ -3509,10 +3634,121 @@ watch(() => props.formData.coordinates, (newCoords) => {
   background: white;
 }
 
-.billing-form-group {
+/* Separador de facturación */
+.billing-separator {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 1rem;
+  margin: 2rem 0 1.5rem 0;
+  padding: 0 0.5rem;
+}
+
+.separator-line {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #E9D5FF, transparent);
+}
+
+.separator-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #7C3AED;
+  white-space: nowrap;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%);
+  border-radius: 20px;
+  border: 2px solid #DDD6FE;
+}
+
+.separator-text :deep(.va-icon) {
+  color: #7C3AED;
+  font-size: 1.1rem;
+}
+
+/* Checkbox "Soy contribuyente" */
+.contributor-checkbox-container {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+  border-radius: 12px;
+  border: 2px solid #E5E7EB;
+}
+
+.contributor-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkbox-custom {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #7C3AED;
+  border-radius: 6px;
+  background: white;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.checkbox-input:checked + .checkbox-custom {
+  background: #7C3AED;
+  border-color: #7C3AED;
+}
+
+.checkbox-input:checked + .checkbox-custom::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.checkbox-custom:hover {
+  border-color: #6D28D9;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #374151;
+}
+
+.checkbox-label :deep(.va-icon) {
+  color: #7C3AED;
+  font-size: 1.2rem;
+}
+
+.checkbox-hint {
+  margin: 0.5rem 0 0 2.5rem;
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.billing-form-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem 1.5rem;
   margin-bottom: 1rem;
 }
 
@@ -3522,10 +3758,31 @@ watch(() => props.formData.coordinates, (newCoords) => {
   gap: 0.5rem;
 }
 
+.billing-field.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Responsive: 1 columna en móvil */
+@media (max-width: 768px) {
+  .billing-form-group {
+    grid-template-columns: 1fr;
+  }
+
+  .billing-field.full-width {
+    grid-column: 1;
+  }
+}
+
 .billing-label {
   font-weight: 600;
   color: var(--color-purple-dark);
   font-size: 0.95rem;
+}
+
+.billing-label.required-field::after {
+  content: ' *';
+  color: #EF4444;
+  font-weight: 700;
 }
 
 .billing-input {
@@ -3548,11 +3805,98 @@ watch(() => props.formData.coordinates, (newCoords) => {
   color: #999;
 }
 
+/* Sección de método de envío */
+.delivery-method-section {
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+  border-radius: 12px;
+  border: 2px solid #C7D2FE;
+  margin: 1rem 0;
+}
+
+.delivery-method-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1E40AF;
+  margin-bottom: 0.5rem;
+}
+
+.delivery-method-title :deep(.va-icon) {
+  color: #4F46E5;
+  font-size: 1.2rem;
+}
+
+.delivery-method-hint {
+  font-size: 0.85rem;
+  color: #6366F1;
+  margin: 0 0 1rem 0;
+  font-weight: 500;
+}
+
+.delivery-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 480px) {
+  .delivery-checkboxes {
+    grid-template-columns: 1fr;
+  }
+}
+
+.delivery-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: white;
+  border: 2px solid #C7D2FE;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+.delivery-checkbox:hover {
+  border-color: #818CF8;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
+  transform: translateY(-2px);
+}
+
+.delivery-checkbox .checkbox-input:checked + .checkbox-custom {
+  background: #4F46E5;
+  border-color: #4F46E5;
+}
+
+.delivery-checkbox .checkbox-custom {
+  border-color: #818CF8;
+}
+
+.delivery-checkbox .checkbox-custom:hover {
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.delivery-checkbox .checkbox-label {
+  color: #1E3A8A;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.delivery-checkbox .checkbox-label :deep(.va-icon) {
+  color: #4F46E5;
+  font-size: 1.1rem;
+}
+
 .billing-alert {
   display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
   background: linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%);
   border-radius: 8px;
   border: 2px solid #E9D5FF;
@@ -3561,20 +3905,21 @@ watch(() => props.formData.coordinates, (newCoords) => {
 }
 
 .billing-alert :deep(.va-icon) {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   flex-shrink: 0;
   color: #7C3AED;
 }
 
 .alert-content {
   flex: 1;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #5B21B6;
-  line-height: 1.6;
+  line-height: 1.5;
+  font-weight: 400;
 }
 
 .alert-content strong {
   color: #7C3AED;
-  font-weight: 700;
+  font-weight: 600;
 }
 </style>

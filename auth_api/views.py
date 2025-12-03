@@ -78,6 +78,28 @@ def register(request):
             role=role  # Asignar el role del usuario
         )
 
+        # Si el usuario es una empresa, crear automáticamente su perfil de empresa
+        if role == 'company':
+            from profiles.models import CompanyProfile, UserProfile
+
+            # Crear perfil de usuario (owner) si no existe
+            user_profile, created = UserProfile.objects.get_or_create(
+                email=email,
+                defaults={
+                    'fullName': name,
+                }
+            )
+
+            # Crear perfil de empresa vacío
+            CompanyProfile.objects.create(
+                owner=user_profile,
+                companyName=name,  # Usar el nombre del registro como nombre inicial
+                email=email,
+                location='',  # Se completará después
+                category='jobs'  # Por defecto, puede cambiarse después
+            )
+            print(f'✓ Perfil de empresa creado automáticamente para {email}')
+
         # Generar tokens
         refresh = RefreshToken.for_user(user)
 

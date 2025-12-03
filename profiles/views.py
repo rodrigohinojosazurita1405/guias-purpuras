@@ -353,6 +353,7 @@ def create_company_profile(request):
             companyName=company_name,
             description=request.POST.get('description', ''),
             email=email,
+            contactEmail=request.POST.get('contactEmail', ''),
             phone=request.POST.get('phone', ''),
             website=request.POST.get('website', ''),
             location=request.POST.get('address', ''),
@@ -396,6 +397,7 @@ def create_company_profile(request):
                 'companyName': company_profile.companyName,
                 'description': company_profile.description,
                 'email': company_profile.email,
+                'contactEmail': company_profile.contactEmail,
                 'phone': company_profile.phone,
                 'website': company_profile.website,
                 'location': company_profile.location,
@@ -447,6 +449,7 @@ def get_company_profile(request, company_id):
                 'companyName': company_profile.companyName,
                 'description': company_profile.description,
                 'email': company_profile.email,
+                'contactEmail': company_profile.contactEmail,
                 'phone': company_profile.phone,
                 'website': company_profile.website,
                 'location': company_profile.location,
@@ -532,6 +535,10 @@ def update_company_profile(request, company_id):
             company_profile.email = data_dict.get('email')
             print(f'[UPDATE] email: {company_profile.email}')
 
+        if 'contactEmail' in data_dict:
+            company_profile.contactEmail = data_dict.get('contactEmail', '')
+            print(f'[UPDATE] contactEmail: {company_profile.contactEmail}')
+
         if data_dict.get('phone'):
             company_profile.phone = data_dict.get('phone')
             print(f'[UPDATE] phone: {company_profile.phone}')
@@ -602,6 +609,7 @@ def update_company_profile(request, company_id):
                 'companyName': company_profile.companyName,
                 'description': company_profile.description,
                 'email': company_profile.email,
+                'contactEmail': company_profile.contactEmail,
                 'phone': company_profile.phone,
                 'website': company_profile.website,
                 'location': company_profile.location,
@@ -648,6 +656,7 @@ def list_user_companies(request, user_id):
                 'companyName': company.companyName,
                 'description': company.description,
                 'email': company.email,
+                'contactEmail': company.contactEmail,
                 'phone': company.phone,
                 'website': company.website,
                 'location': company.location,
@@ -866,6 +875,7 @@ def get_or_create_my_company(request):
                 'companyName': company.companyName,
                 'description': company.description,
                 'email': company.email,
+                'contactEmail': company.contactEmail,
                 'phone': company.phone,
                 'website': company.website,
                 'location': company.location,

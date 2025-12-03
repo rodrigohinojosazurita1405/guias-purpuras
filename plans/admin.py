@@ -60,7 +60,7 @@ class PlanAdmin(admin.ModelAdmin):
         ('📊 Características del Plan', {
             'fields': (
                 'max_announcements',
-                'is_featured',
+                'visibility_type',
                 'featured_days',
                 'has_highlighted_results',
                 'announcement_substitutions',
@@ -76,6 +76,14 @@ class PlanAdmin(admin.ModelAdmin):
             ),
             'classes': ('wide',),
             'description': 'Configura cuántos posts se permiten en cada red social.'
+        }),
+        ('👥 Gestión de Postulantes', {
+            'fields': (
+                'applicant_management',
+                'applicant_management_text',
+            ),
+            'classes': ('wide',),
+            'description': 'Configura si el plan incluye gestión de postulantes y personaliza el texto a mostrar en la tabla de comparación.'
         }),
         ('🔍 Vista Previa (Solo Lectura)', {
             'fields': (

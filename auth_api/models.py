@@ -32,6 +32,11 @@ class CustomUser(AbstractUser):
         ordering = ['-created_at']
 
     def __str__(self):
+        if self.is_superuser:
+            full_name = f"{self.first_name} {self.last_name}".strip()
+            if full_name:
+                return full_name
+            return self.username
         return f"{self.email} ({self.get_role_display()})"
 
     def is_applicant(self):
@@ -41,3 +46,14 @@ class CustomUser(AbstractUser):
     def is_company(self):
         """Verifica si el usuario es empresa"""
         return self.role == 'company'
+
+
+class AdminUser(CustomUser):
+    """
+    Proxy model para mostrar administradores del sistema en una sección separada del admin
+    Permite mostrar la misma tabla de CustomUser en dos secciones diferentes
+    """
+    class Meta:
+        proxy = True
+        verbose_name = 'Administrador del Sistema'
+        verbose_name_plural = 'Administradores del Sistema'

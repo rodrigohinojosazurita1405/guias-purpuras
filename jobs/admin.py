@@ -55,7 +55,8 @@ class JobAdmin(admin.ModelAdmin):
         'mark_as_active',
         'mark_as_closed',
         'verify_payment_action',
-        'reject_payment_action'
+        'reject_payment_action',
+        'delete_jobs_with_audit'
     ]
 
     fieldsets = (
@@ -115,11 +116,13 @@ class JobAdmin(admin.ModelAdmin):
     def status_badge(self, obj):
         """Badge de estado con colores sobrios"""
         status_colors = {
+            'pending': '#F59E0B',    # Naranja - Pendiente
             'active': '#059669',     # Verde sobrio
             'closed': '#DC2626',     # Rojo sobrio
             'draft': '#6B7280'       # Gris sobrio
         }
         status_labels = {
+            'pending': 'PENDIENTE',
             'active': 'ACTIVA',
             'closed': 'CERRADA',
             'draft': 'BORRADOR'
@@ -318,7 +321,12 @@ class JobAdmin(admin.ModelAdmin):
             status_label = '⏳ PENDIENTE'
             status_color = '#F59E0B'
 
-        verified_by = obj.paymentVerifiedBy.username if obj.paymentVerifiedBy else 'Sin verificar'
+        # Mostrar nombre completo del admin, si no tiene nombre mostrar username
+        if obj.paymentVerifiedBy:
+            full_name = f"{obj.paymentVerifiedBy.first_name} {obj.paymentVerifiedBy.last_name}".strip()
+            verified_by = full_name if full_name else obj.paymentVerifiedBy.username
+        else:
+            verified_by = 'Sin verificar'
         date_str = obj.paymentVerificationDate.strftime("%d/%m/%Y %H:%M") if obj.paymentVerificationDate else 'N/A'
         notes = obj.paymentVerificationNotes or '(Sin notas)'
 
@@ -352,15 +360,16 @@ class JobAdmin(admin.ModelAdmin):
     mark_as_closed.short_description = 'Marcar como CERRADA'
 
     def verify_payment_action(self, request, queryset):
-        """Acción: Verificar pago"""
+        """Acción: Verificar pago y activar anuncio automáticamente"""
         updated = queryset.update(
             paymentVerified=True,
             paymentVerifiedBy=request.user,
-            paymentVerificationDate=datetime.now()
+            paymentVerificationDate=datetime.now(),
+            status='active'  # Activar anuncio automáticamente al verificar pago
         )
         from django.contrib.admin import messages as admin_messages
-        self.message_user(request, f'✓ {updated} pago(s) VERIFICADO(s) exitosamente', admin_messages.SUCCESS)
-    verify_payment_action.short_description = '✓ VERIFICAR pagos seleccionados'
+        self.message_user(request, f'✓ {updated} pago(s) VERIFICADO(s) y anuncio(s) ACTIVADO(s) exitosamente', admin_messages.SUCCESS)
+    verify_payment_action.short_description = '✓ VERIFICAR pagos y ACTIVAR anuncios'
 
     def reject_payment_action(self, request, queryset):
         """Acción: Rechazar pago"""
@@ -372,6 +381,25 @@ class JobAdmin(admin.ModelAdmin):
         from django.contrib.admin import messages as admin_messages
         self.message_user(request, f'✗ {updated} pago(s) RECHAZADO(s)', admin_messages.WARNING)
     reject_payment_action.short_description = '✗ RECHAZAR pagos seleccionados'
+
+    def delete_jobs_with_audit(self, request, queryset):
+        """Acción: Eliminar ofertas de trabajo con registro de auditoría"""
+        count = queryset.count()
+
+        for job in queryset:
+            # Crear log de auditoría antes de eliminar
+            JobAuditLog.objects.create(
+                job=job,
+                action='deleted',
+                userEmail=request.user.email,
+                notes=f'Oferta de trabajo eliminada desde panel de administración por {request.user.email}'
+            )
+            # Eliminar la oferta
+            job.delete()
+
+        from django.contrib.admin import messages as admin_messages
+        self.message_user(request, f'✓ {count} oferta(s) de trabajo ELIMINADA(s) con registro de auditoría', admin_messages.SUCCESS)
+    delete_jobs_with_audit.short_description = '🗑️ Eliminar ofertas (con auditoría)'
 
 
 @admin.register(Application)
@@ -645,6 +673,12 @@ class JobAuditLogAdmin(admin.ModelAdmin):
 
     def job_link(self, obj):
         """Link al trabajo"""
+        # Si el trabajo fue eliminado, job será None
+        if obj.job is None:
+            return format_html(
+                '<span style="color: #999; font-style: italic;">[Trabajo Eliminado]</span>'
+            )
+
         url = reverse('admin:jobs_job_change', args=[obj.job.id])
         return format_html(
             '<a href="{}">{}</a>',
@@ -770,7 +804,7 @@ class PlanOrderAdmin(admin.ModelAdmin):
             'fields': ('id', 'user', 'plan', 'order_date')
         }),
         ('Datos de Factura', {
-            'fields': ('invoice_number', 'razon_social', 'nit', 'ci')
+            'fields': ('invoice_number', 'razon_social', 'nit', 'ci', 'ci_complement')
         }),
         ('Información de Pago', {
             'fields': ('amount_paid', 'payment_proof', 'status')
@@ -788,10 +822,20 @@ class PlanOrderAdmin(admin.ModelAdmin):
         }),
     )
 
+    def save_model(self, request, obj, form, change):
+        """Automáticamente actualiza electronic_invoice_sent_date cuando el estado cambia a INVOICE_SENT"""
+        if change:  # Solo en edición, no en creación
+            # Verificar si el estado cambió a INVOICE_SENT
+            if obj.status == 'INVOICE_SENT' and not obj.electronic_invoice_sent_date:
+                from django.utils import timezone
+                obj.electronic_invoice_sent_date = timezone.now()
+
+        super().save_model(request, obj, form, change)
+
     def invoice_number_display(self, obj):
-        """Muestra el número de factura"""
+        """Muestra el número de orden"""
         return f"#{obj.invoice_number}"
-    invoice_number_display.short_description = 'Factura'
+    invoice_number_display.short_description = 'N.º Orden'
 
     def razon_social_display(self, obj):
         """Muestra la razón social de la empresa"""
@@ -853,15 +897,47 @@ class PlanOrderAdmin(admin.ModelAdmin):
     invoice_sent_status.short_description = 'Factura'
 
     def company_data_display(self, obj):
-        """Muestra los datos de la empresa en JSON"""
+        """Muestra los datos de la empresa de forma estructurada"""
         if not obj.company_data:
-            return 'Sin datos'
-        return format_html(
-            '<pre style="background-color: #F3F4F6; padding: 12px; border-radius: 6px; '
-            'overflow: auto; max-height: 300px;">{}</pre>',
-            json.dumps(obj.company_data, ensure_ascii=False, indent=2)
-        )
-    company_data_display.short_description = 'Datos de la Empresa'
+            return format_html('<p style="color: #9CA3AF;">Sin datos adicionales</p>')
+
+        data = obj.company_data
+        requires_invoice = data.get('requires_invoice', False)
+
+        # Badge para requires_invoice
+        invoice_badge = ''
+        if requires_invoice:
+            invoice_badge = '<span style="background: #7C3AED; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold;">📄 CON FACTURA</span>'
+        else:
+            invoice_badge = '<span style="background: #9CA3AF; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold;">ℹ️ SIN FACTURA</span>'
+
+        html_parts = [
+            '<div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; border: 1px solid #E5E7EB;">',
+            f'<div style="margin-bottom: 12px;">{invoice_badge}</div>',
+            '<table style="width: 100%; border-collapse: collapse;">',
+        ]
+
+        # Campos a mostrar
+        fields = [
+            ('ID del Anuncio', data.get('job_id', '-')),
+            ('Título del Anuncio', data.get('job_title', '-')),
+            ('Nombre de Empresa', data.get('company_name', '-')),
+            ('Plan', data.get('plan_label', '-')),
+            ('Duración (días)', data.get('plan_duration', '-')),
+        ]
+
+        for label, value in fields:
+            html_parts.append(
+                f'<tr>'
+                f'<td style="padding: 6px 8px; font-weight: 600; color: #374151; width: 40%;">{label}:</td>'
+                f'<td style="padding: 6px 8px; color: #6B7280;">{value}</td>'
+                f'</tr>'
+            )
+
+        html_parts.append('</table></div>')
+
+        return format_html(''.join(html_parts))
+    company_data_display.short_description = 'Datos del Anuncio'
 
 
 @admin.register(BlockedUser)

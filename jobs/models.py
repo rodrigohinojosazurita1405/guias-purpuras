@@ -134,11 +134,12 @@ class Job(models.Model):
     status = models.CharField(
         max_length=20,
         choices=[
+            ('pending', 'Pendiente de Verificación'),
             ('active', 'Activa'),
             ('closed', 'Cerrada'),
             ('draft', 'Borrador')
         ],
-        default='active',
+        default='pending',
         verbose_name="Estado"
     )
 
@@ -163,6 +164,7 @@ class Job(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        limit_choices_to={'is_superuser': True},
         related_name='verified_jobs',
         verbose_name="Verificado por"
     )
@@ -192,8 +194,20 @@ class Job(models.Model):
         verbose_name_plural = "Ofertas de Trabajo"
         ordering = ['-createdAt']
 
+    def save(self, *args, **kwargs):
+        """
+        Sincronizar estado con verificación de pago automáticamente
+        Si el pago está verificado y el estado es 'pending', cambiar a 'active'
+        """
+        # Si el pago está verificado y el estado sigue como pending, activar automáticamente
+        if self.paymentVerified and self.status == 'pending':
+            self.status = 'active'
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.title} - {self.companyName}"
+
 
 
 class Application(models.Model):
@@ -271,7 +285,9 @@ class JobAuditLog(models.Model):
     # Relación con el trabajo
     job = models.ForeignKey(
         Job,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name='audit_logs',
         verbose_name="Trabajo"
     )
@@ -349,7 +365,7 @@ class PlanOrder(models.Model):
     invoice_number = models.CharField(
         max_length=100,
         unique=True,
-        verbose_name='Número de Factura'
+        verbose_name='Número de Orden'
     )
 
     nit = models.CharField(
@@ -367,6 +383,13 @@ class PlanOrder(models.Model):
         max_length=20,
         verbose_name='CI',
         help_text='Cédula de Identidad del representante'
+    )
+
+    ci_complement = models.CharField(
+        max_length=5,
+        blank=True,
+        verbose_name='Complemento CI',
+        help_text='Complemento de la Cédula de Identidad (opcional)'
     )
 
     # Información de pago

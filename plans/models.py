@@ -56,14 +56,22 @@ class Plan(models.Model):
         help_text="Número máximo de anuncios que puede publicar"
     )
 
-    is_featured = models.BooleanField(
-        default=False,
-        help_text="¿Anuncio destacado/patrocinado?"
+    VISIBILITY_CHOICES = [
+        ('normal', 'Normal'),
+        ('destacado', 'Destacado'),
+        ('patrocinado', 'Patrocinado'),
+    ]
+
+    visibility_type = models.CharField(
+        max_length=20,
+        choices=VISIBILITY_CHOICES,
+        default='normal',
+        help_text="Tipo de visibilidad del anuncio en la plataforma"
     )
 
     featured_days = models.IntegerField(
         default=0,
-        help_text="Días que permanecerá destacado (0 = sin duración)"
+        help_text="Días que permanecerá destacado/patrocinado (0 = sin duración específica)"
     )
 
     has_highlighted_results = models.BooleanField(
@@ -90,6 +98,19 @@ class Plan(models.Model):
     tiktok_posts = models.IntegerField(
         default=0,
         help_text="Posts en TikTok permitidos"
+    )
+
+    # Gestión de Postulantes
+    applicant_management = models.BooleanField(
+        default=True,
+        help_text="¿Incluye gestión de postulantes?"
+    )
+
+    applicant_management_text = models.CharField(
+        max_length=200,
+        default="Si incluye",
+        blank=True,
+        help_text="Texto a mostrar en tabla de comparación (ej: 'Si incluye', 'Hasta 50 candidatos')"
     )
 
     # Características del plan (JSON - se genera automáticamente)
@@ -127,7 +148,7 @@ class Plan(models.Model):
         """Auto-generar features JSON desde campos separados"""
         self.features = {
             'maxAnnouncements': self.max_announcements,
-            'featured': self.is_featured,
+            'visibilityType': self.visibility_type,
             'featuredDays': self.featured_days,
             'highlightedResults': self.has_highlighted_results,
             'announcementSubstitutions': self.announcement_substitutions,
@@ -135,7 +156,9 @@ class Plan(models.Model):
                 'facebook': self.facebook_posts,
                 'linkedin': self.linkedin_posts,
                 'tiktok': self.tiktok_posts,
-            }
+            },
+            'applicantManagement': self.applicant_management,
+            'applicantManagementText': self.applicant_management_text,
         }
         super().save(*args, **kwargs)
 

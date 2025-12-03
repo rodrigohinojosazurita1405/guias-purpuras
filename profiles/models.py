@@ -79,6 +79,7 @@ class CompanyProfile(models.Model):
 
     # Contacto
     email = models.EmailField(verbose_name="Email Empresa")
+    contactEmail = models.EmailField(blank=True, verbose_name="Email de Contacto Público")
     phone = models.CharField(max_length=20, blank=True, verbose_name="Teléfono")
     website = models.URLField(blank=True, verbose_name="Sitio Web")
 
