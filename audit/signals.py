@@ -3,10 +3,15 @@ Señales automáticas para auditar cambios en modelos
 Se conectan automáticamente cuando la app se inicia
 """
 
-from django.db.models.signals import post_save, pre_delete, post_delete
+from django.db.models.signals import post_save, pre_save, pre_delete, post_delete
 from django.dispatch import receiver
 from django.contrib.contenttypes.models import ContentType
 from .models import AuditLog
+from .middleware import get_current_request, get_current_user
+import threading
+
+# Thread-local storage para almacenar estado anterior de modelos
+_audit_state = threading.local()
 
 
 def get_model_changes(instance, created=False):
@@ -23,11 +28,23 @@ def get_model_changes(instance, created=False):
     if created:
         return {}
 
-    # Obtener instancia anterior de la base de datos
-    model_class = instance.__class__
-    try:
-        old_instance = model_class.objects.get(pk=instance.pk)
-    except model_class.DoesNotExist:
+    # Intentar obtener estado anterior del thread-local
+    old_instance = None
+    model_name = instance.__class__.__name__.lower()
+    state_key = f'{model_name}_old_state'
+
+    print(f"[AUDIT DEBUG] Buscando estado anterior: model={model_name}, key={state_key}, pk={instance.pk}")
+    print(f"[AUDIT DEBUG] hasattr={hasattr(_audit_state, state_key)}")
+    if hasattr(_audit_state, state_key):
+        print(f"[AUDIT DEBUG] Estado keys: {getattr(_audit_state, state_key, {}).keys()}")
+
+    if hasattr(_audit_state, state_key) and instance.pk in getattr(_audit_state, state_key, {}):
+        old_instance = _audit_state.__dict__[state_key][instance.pk]
+        print(f"[AUDIT DEBUG] Estado anterior encontrado!")
+        # NO limpiar aquí - se limpiará al final del signal
+
+    if not old_instance:
+        print(f"[AUDIT DEBUG] No hay estado anterior, retornando vacío")
         return {}
 
     changes = {}
@@ -61,62 +78,123 @@ def get_model_changes(instance, created=False):
 
 # ========== AUDITAR JOBS ==========
 
+@receiver(pre_save, sender='jobs.Job')
+def job_pre_save(sender, instance, **kwargs):
+    """Capturar estado anterior del Job antes de guardar"""
+    if instance.pk:
+        try:
+            old_instance = sender.objects.get(pk=instance.pk)
+            # Guardar estado anterior en thread-local
+            if not hasattr(_audit_state, 'job_old_state'):
+                _audit_state.job_old_state = {}
+            _audit_state.job_old_state[instance.pk] = old_instance
+        except sender.DoesNotExist:
+            pass
+
+
 @receiver(post_save, sender='jobs.Job')
 def audit_job_save(sender, instance, created, **kwargs):
     """Auditar cuando se crea o actualiza un Job"""
     from jobs.models import Job
 
+    print(f"[AUDIT] Signal post_save ejecutado para Job: {instance.title}, created={created}")
+
+    # Obtener cambios UNA SOLA VEZ para evitar limpiar el estado
+    changes = get_model_changes(instance, created)
+
     # No auditar si no hay cambios reales
-    if not created and not get_model_changes(instance, created):
+    if not created and not changes:
+        print(f"[AUDIT] No hay cambios, saltando auditoría")
         return
 
-    action = 'create' if created else 'update'
-    changes = get_model_changes(instance, created)
+    # Detectar si es una eliminación lógica (soft delete)
+    is_soft_delete = 'isDeleted' in changes and changes['isDeleted']['new'] == 'True'
+
+    # Determinar acción
+    if created:
+        action = 'create'
+    elif is_soft_delete:
+        action = 'soft_delete'  # Acción especial para eliminación lógica
+    else:
+        action = 'update'
 
     # Determinar severidad
     severity = 'info'
     if action == 'create':
         severity = 'info'
+    elif action == 'soft_delete':
+        severity = 'critical'  # Eliminación es crítica
     elif 'status' in changes and changes['status']['new'] == 'closed':
         severity = 'warning'
-    elif 'isDeleted' in changes and changes['isDeleted']['new'] == 'True':
-        severity = 'warning'
 
-    # Obtener usuario del thread local si está disponible
-    # (esto se puede mejorar con middleware)
-    user = getattr(instance, '_audit_user', None)
+    # Obtener usuario y request del middleware
+    user = get_current_user()
+    request = get_current_request()
 
-    description = f"Job '{instance.title}' fue {'creado' if created else 'actualizado'}"
+    print(f"[AUDIT] Usuario: {user}, Request: {request}")
+    print(f"[AUDIT] Cambios: {changes}")
+    print(f"[AUDIT] Acción detectada: {action}")
 
-    if user:
-        AuditLog.log_action(
+    # Descripción según acción
+    if created:
+        description = f"Job '{instance.title}' fue creado"
+    elif is_soft_delete:
+        description = f"Job '{instance.title}' fue eliminado (soft delete)"
+    else:
+        description = f"Job '{instance.title}' fue actualizado"
+
+    try:
+        # Auditar incluso sin usuario (puede ser acción del sistema)
+        log = AuditLog.log_action(
             user=user,
             obj=instance,
             action=action,
             changes=changes,
             description=description,
             severity=severity,
-            request=getattr(instance, '_audit_request', None)
+            request=request
         )
+        print(f"[AUDIT] Log creado exitosamente: {log.id}")
+    except Exception as e:
+        print(f"[AUDIT ERROR] Error al crear log: {e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        # Limpiar el estado anterior después de auditar
+        if hasattr(_audit_state, 'job_old_state') and instance.pk in _audit_state.job_old_state:
+            del _audit_state.job_old_state[instance.pk]
+            print(f"[AUDIT] Estado anterior limpiado para Job {instance.pk}")
 
 
 @receiver(pre_delete, sender='jobs.Job')
 def audit_job_delete(sender, instance, **kwargs):
     """Auditar cuando se elimina un Job"""
-    user = getattr(instance, '_audit_user', None)
+    # Obtener usuario y request del middleware
+    user = get_current_user()
+    request = get_current_request()
+
+    print(f"[AUDIT] Signal pre_delete ejecutado para Job: {instance.title}")
+    print(f"[AUDIT] Usuario: {user}")
+    print(f"[AUDIT] Request: {request}")
 
     description = f"Job '{instance.title}' fue eliminado permanentemente"
 
-    if user:
-        AuditLog.log_action(
+    try:
+        # Auditar incluso sin usuario (puede ser acción del sistema)
+        log = AuditLog.log_action(
             user=user,
             obj=instance,
             action='delete',
             changes={},
             description=description,
             severity='critical',
-            request=getattr(instance, '_audit_request', None)
+            request=request
         )
+        print(f"[AUDIT] Log creado exitosamente: {log.id}")
+    except Exception as e:
+        print(f"[AUDIT ERROR] Error al crear log: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 # ========== AUDITAR PLANORDERS ==========

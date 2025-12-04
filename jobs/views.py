@@ -279,7 +279,7 @@ def publish_job(request):
                 nit = '0'
                 ci = ''
                 ci_complement = ''
-                invoice_email = email  # Usar el email del publicador por defecto
+                invoice_email = ''  # Vacío por defecto, solo se llena si el usuario lo especifica
                 whatsapp_invoice = ''
 
                 # Si el usuario proporcionó datos de facturación, extraerlos
@@ -296,7 +296,8 @@ def publish_job(request):
                         nit = (billing_data.get('nit') or '0').strip()
                         ci = (billing_data.get('ci') or '').strip()
                         ci_complement = (billing_data.get('ciComplement') or '').strip()
-                        invoice_email = (billing_data.get('invoiceEmail') or email).strip()
+                        # Solo guardar el email si el usuario lo proporcionó explícitamente
+                        invoice_email = (billing_data.get('invoiceEmail') or '').strip()
                         whatsapp_invoice = (billing_data.get('whatsapp') or '').strip()
 
                         print(f'[INFO] [PUBLISH_JOB] Usuario requiere factura: {razon_social} (NIT: {nit}, CI: {ci}, Complemento: {ci_complement})')
@@ -494,39 +495,8 @@ def calculate_days_ago(date_obj):
     return days
 
 
-def create_audit_log(job, action, userEmail='', changedFields=None, notes='', request=None):
-    """
-    Crea un registro de auditoría para cambios en trabajos
-
-    Args:
-        job: Instancia del modelo Job
-        action: Tipo de acción (created, updated, activated, deactivated, etc.)
-        userEmail: Email del usuario que realizó la acción
-        changedFields: Dict con campos modificados {field: {before: old_value, after: new_value}}
-        notes: Notas adicionales
-        request: HttpRequest para extraer IP del cliente
-    """
-    try:
-        clientIP = None
-        if request:
-            # Intentar obtener IP real del cliente (detrás de proxies)
-            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-            if x_forwarded_for:
-                clientIP = x_forwarded_for.split(',')[0].strip()
-            else:
-                clientIP = request.META.get('REMOTE_ADDR')
-
-        JobAuditLog.objects.create(
-            job=job,
-            action=action,
-            userEmail=userEmail,
-            changedFields=changedFields or {},
-            notes=notes,
-            clientIP=clientIP
-        )
-        print(f'[AUDIT] {action.upper()}: Job={job.id}, User={userEmail}')
-    except Exception as e:
-        print(f'[ERROR] Error creando audit log: {str(e)}')
+# NOTA: create_audit_log eliminada - ahora se usa el sistema de auditoría automático con signals
+# Ver audit/signals.py para el sistema de auditoría completo
 
 
 @require_http_methods(["GET"])
@@ -1002,7 +972,8 @@ def get_user_published_jobs(request):
     try:
         from plans.models import Plan
 
-        jobs = Job.objects.filter(email=email).order_by('-createdAt')
+        # Excluir trabajos eliminados
+        jobs = Job.objects.filter(email=email, isDeleted=False).order_by('-createdAt')
 
         # Convertir a lista con fechas como strings
         jobs_list = []
@@ -1348,17 +1319,7 @@ def update_job(request, job_id):
 
         job.save()
 
-        # Crear log de auditoría si hubo cambios
-        if changedFields:
-            action = 'activated' if data.get('status') == 'active' else 'deactivated' if data.get('status') == 'closed' else 'updated'
-            userEmail = request.user.email if request.user else 'anonymous'
-            create_audit_log(
-                job=job,
-                action=action,
-                userEmail=userEmail,
-                changedFields=changedFields,
-                request=request
-            )
+        # Auditoría automática manejada por signals (audit/signals.py)
 
         return JsonResponse({
             'success': True,
@@ -1420,15 +1381,7 @@ def delete_job(request, job_id):
         job.deletedAt = datetime.now(timezone.utc)
         job.save()
 
-        # Crear log de auditoría
-        userEmail = request.user.email if request.user else 'anonymous'
-        create_audit_log(
-            job=job,
-            action='deleted',
-            userEmail=userEmail,
-            notes=f'Trabajo marcado como eliminado: "{job_title}"',
-            request=request
-        )
+        # Auditoría automática manejada por signals (audit/signals.py)
 
         return JsonResponse({
             'success': True,
@@ -1501,24 +1454,7 @@ def duplicate_job(request, job_id):
             status='draft'  # Nueva copia siempre comienza en draft
         )
 
-        # Crear log de auditoría para el trabajo duplicado
-        userEmail = request.user.email if request.user else 'anonymous'
-        create_audit_log(
-            job=new_job,
-            action='created',
-            userEmail=userEmail,
-            notes=f'Duplicado desde trabajo: {job.id}',
-            request=request
-        )
-
-        # Crear log de auditoría para el trabajo original
-        create_audit_log(
-            job=job,
-            action='duplicated',
-            userEmail=userEmail,
-            notes=f'Se creó duplicado con ID: {new_job.id}',
-            request=request
-        )
+        # Auditoría automática manejada por signals (audit/signals.py)
 
         print(f'[OK] Trabajo duplicado: ID original={job.id}, ID nuevo={new_job.id}')
 

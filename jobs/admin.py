@@ -26,6 +26,7 @@ class JobAdmin(admin.ModelAdmin):
 
     # Filtros avanzados
     list_filter = (
+        'isDeleted',
         'status',
         'paymentVerified',
         'city',
@@ -100,6 +101,17 @@ class JobAdmin(admin.ModelAdmin):
         if db_field.name == 'paymentVerifiedBy':
             kwargs['queryset'] = CustomUser.objects.filter(is_superuser=True)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_queryset(self, request):
+        """
+        Por defecto, mostrar solo trabajos NO eliminados
+        El admin puede usar el filtro para ver los eliminados
+        """
+        qs = super().get_queryset(request)
+        # Si no hay filtro específico de isDeleted, mostrar solo no eliminados
+        if 'isDeleted__exact' not in request.GET:
+            return qs.filter(isDeleted=False)
+        return qs
 
     # ========== MÉTODOS DE DISPLAY PARA LA LISTA ==========
 

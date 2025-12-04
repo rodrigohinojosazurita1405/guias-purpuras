@@ -1,45 +1,65 @@
 <!-- frontend/src/components/Guide/JobCard.vue -->
 <template>
-  <div class="job-card" @click="goToDetail">
+  <div
+    class="job-card"
+    :class="cardPlanClass"
+    @click="goToDetail"
+  >
     <!-- Contenedor principal -->
     <div class="card-body">
       <!-- Badges encima del contenido -->
       <div class="badges-row">
+        <!-- Badge Confidencial (si aplica) -->
         <div v-if="listing.confidential" class="badge-confidential">
           <va-icon name="visibility_off" size="small" />
           Confidencial
         </div>
 
-        <div v-else-if="listing.plan === 'destacado' || listing.plan === 'premium'" class="badge-destacado">
-          <va-icon name="star" size="small" />
-          {{ listing.plan === 'premium' ? 'Premium' : 'Destacado' }}
+        <!-- Badges del plan (siempre se muestran si pagó por un plan premium) -->
+        <!-- Plan Impulso - Patrocinado + Urgente -->
+        <div v-if="listing.plan === 'impulso'" class="badge-patrocinado">
+          Patrocinado
         </div>
+        <div v-if="listing.plan === 'impulso'" class="badge-urgente">
+          Urgente
+        </div>
+
+        <!-- Plan Púrpura - Destacado + Urgente -->
+        <div v-if="listing.plan === 'purpura'" class="badge-destacado">
+          Destacado
+        </div>
+        <div v-if="listing.plan === 'purpura'" class="badge-urgente">
+          Urgente
+        </div>
+
+        <!-- Plan Estándar (sin badge especial, solo se muestra en el borde) -->
       </div>
 
       <!-- Logo cuadrado + Título clickeable -->
       <div class="header-section">
         <div class="logo-square">
-          <img 
-            v-if="!listing.confidential && listing.companyLogo" 
-            :src="listing.companyLogo" 
+          <img
+            v-if="!listing.confidential && listing.companyLogo"
+            :src="getCompanyLogoUrl"
             :alt="listing.companyName"
+            @error="handleImageError"
           />
-          <va-icon 
+          <va-icon
             v-else
-            :name="listing.confidential ? 'visibility_off' : 'business'" 
-            size="2rem" 
-            color="#999" 
+            :name="listing.confidential ? 'visibility_off' : 'business'"
+            size="2rem"
+            color="#999"
           />
         </div>
-        
+
         <div class="header-text">
           <h3 class="job-title">{{ listing.title }}</h3>
           <p class="company-name">
-            <va-icon 
-              v-if="listing.verified && !listing.confidential" 
-              name="verified" 
-              size="small" 
-              color="#10B981" 
+            <va-icon
+              v-if="listing.verified && !listing.confidential"
+              name="verified"
+              size="small"
+              color="#10B981"
             />
             {{ getCompanyDisplayName }}
           </p>
@@ -85,7 +105,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
@@ -96,6 +116,7 @@ const props = defineProps({
 })
 
 const router = useRouter()
+const imageError = ref(false)
 
 /**
  * Nombre de la empresa a mostrar
@@ -108,6 +129,40 @@ const getCompanyDisplayName = computed(() => {
     return 'Importante Empresa'
   }
   return props.listing.companyName || 'Empresa'
+})
+
+/**
+ * URL completa del logo de la empresa
+ */
+const getCompanyLogoUrl = computed(() => {
+  if (!props.listing.companyLogo || imageError.value) return null
+
+  // Si ya es una URL completa, retornarla
+  if (props.listing.companyLogo.startsWith('http')) {
+    return props.listing.companyLogo
+  }
+
+  // Construir URL completa con el dominio del backend
+  const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+  return `${baseURL}${props.listing.companyLogo}`
+})
+
+/**
+ * Manejar error de carga de imagen
+ */
+const handleImageError = () => {
+  imageError.value = true
+}
+
+/**
+ * Clase CSS según el plan del anuncio
+ */
+const cardPlanClass = computed(() => {
+  const plan = props.listing.plan?.toLowerCase()
+  if (plan === 'impulso') return 'plan-impulso'
+  if (plan === 'purpura') return 'plan-purpura'
+  if (plan === 'estandar') return 'plan-estandar'
+  return ''
 })
 
 /**
@@ -193,8 +248,8 @@ const goToDetail = () => {
 }
 
 .badge-destacado {
-  background: linear-gradient(135deg, #FDC500, #FFA500);
-  color: #5C0099;
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  color: white;
   padding: 0.375rem 0.875rem;
   border-radius: 20px;
   font-size: 0.875rem;
@@ -202,7 +257,44 @@ const goToDetail = () => {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  box-shadow: 0 2px 8px rgba(253, 197, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+.badge-patrocinado {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.badge-urgente {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  color: white;
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Animación de pulso para plan Impulso */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.6);
+  }
 }
 
 /* ========== HEADER SECTION ========== */
@@ -301,6 +393,43 @@ const goToDetail = () => {
   font-size: 0.875rem;
   color: #9CA3AF;
   font-weight: 500;
+}
+
+/* ========== ESTILOS POR PLAN ========== */
+
+/* Plan Impulso - Banner patrocinado con borde verde destacado */
+.job-card.plan-impulso {
+  border: 3px solid #10B981;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, white 100%);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2), 0 0 0 1px rgba(220, 38, 38, 0.1);
+}
+
+.job-card.plan-impulso:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.3), 0 0 0 2px rgba(220, 38, 38, 0.2);
+  border-color: #059669;
+}
+
+/* Plan Púrpura - Borde morado con badge destacado */
+.job-card.plan-purpura {
+  border: 3px solid #7C3AED;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, white 100%);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+}
+
+.job-card.plan-purpura:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 28px rgba(124, 58, 237, 0.25);
+  border-color: #6D28D9;
+}
+
+/* Plan Estándar - Vista normal sin bordes especiales */
+.job-card.plan-estandar {
+  border: 1px solid #E5E7EB;
+}
+
+.job-card.plan-estandar:hover {
+  border-color: #D1D5DB;
 }
 
 /* ========== RESPONSIVE ========== */

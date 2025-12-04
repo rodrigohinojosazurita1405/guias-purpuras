@@ -65,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'audit.middleware.AuditMiddleware',  # Middleware de auditoría
 ]
 
 ROOT_URLCONF = 'core.urls'

@@ -1036,26 +1036,28 @@ const handleViewOrder = (orderId) => {
 .no-invoice-message {
   margin-top: 1.5rem;
   padding: 1.25rem;
-  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+  background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
   border-radius: 12px;
-  border: 2px solid #E5E7EB;
-  border-left: 4px solid #9CA3AF;
+  border: 2px solid #93C5FD;
+  border-left: 4px solid #3B82F6;
   display: flex;
   align-items: flex-start;
   gap: 1rem;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 }
 
 .no-invoice-message p {
   margin: 0;
-  color: #4B5563;
+  color: #1E40AF;
   font-size: 0.9rem;
   line-height: 1.6;
 }
 
 .no-invoice-message strong {
-  color: #1F2937;
+  color: #1E3A8A;
   display: block;
   margin-bottom: 0.25rem;
+  font-size: 1rem;
 }
 
 /* Modal Footer */

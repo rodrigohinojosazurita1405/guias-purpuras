@@ -159,13 +159,17 @@ class AuditLogAdmin(admin.ModelAdmin):
             'critical': '&#10071;',  # ❗
         }
 
+        # No mostrar emoji para soft_delete
+        icon = '' if obj.action == 'soft_delete' else mark_safe(icons.get(obj.severity, ''))
+
         return format_html(
             '<span style="background: {}; color: {}; padding: 4px 10px; border-radius: 16px; font-size: 0.8rem; font-weight: 600; border: 2px solid {};">'
-            '{} {}</span>',
+            '{}{}{}</span>',
             bg_color,
             border_color,
             border_color,
-            mark_safe(icons.get(obj.severity, '')),
+            icon,
+            ' ' if icon else '',
             obj.get_severity_display()
         )
     severity_badge.short_description = 'Severidad'

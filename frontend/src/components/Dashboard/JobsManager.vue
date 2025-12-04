@@ -265,7 +265,6 @@
             Cancelar
           </va-button>
           <va-button @click="saveEditedJob" class="save-btn">
-            <va-icon name="save" size="small" />
             Guardar Cambios
           </va-button>
         </div>

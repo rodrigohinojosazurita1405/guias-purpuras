@@ -19,14 +19,26 @@
 
         <!-- Content -->
         <div v-else>
-          <!-- Breadcrumb -->
-          <nav class="breadcrumb">
-            <router-link to="/">Inicio</router-link>
-            <span class="separator">/</span>
-            <router-link to="/guias/trabajos">Trabajos</router-link>
-            <span class="separator">/</span>
-            <span class="current">{{ job.title }}</span>
-          </nav>
+          <!-- Header con Breadcrumb y Botón Volver -->
+          <div class="detail-header">
+            <nav class="breadcrumb">
+              <router-link to="/">Inicio</router-link>
+              <span class="separator">/</span>
+              <router-link to="/guias/trabajos">Trabajos</router-link>
+              <span class="separator">/</span>
+              <span class="current">{{ job.title }}</span>
+            </nav>
+
+            <!-- Botón Volver -->
+            <va-button
+              preset="secondary"
+              icon="arrow_back"
+              @click="goBack"
+              class="btn-back-header"
+            >
+              Volver
+            </va-button>
+          </div>
 
         <!-- Header Card -->
         <div class="job-header">
@@ -407,6 +419,13 @@ onMounted(() => {
 })
 
 // ========== METHODS ==========
+/**
+ * Navegar hacia atrás manteniendo el modo de vista
+ */
+const goBack = () => {
+  router.back()
+}
+
 const loadJobDetail = async () => {
   try {
     loading.value = true
@@ -590,13 +609,22 @@ const denunciarEmpleo = () => {
   padding: 0 1.5rem;
 }
 
+/* ========== Detail Header ========== */
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
 /* ========== Breadcrumb ========== */
 .breadcrumb {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 2rem;
   font-size: 0.9rem;
+  flex: 1;
 }
 
 .breadcrumb a {
@@ -617,6 +645,11 @@ const denunciarEmpleo = () => {
 .breadcrumb .current {
   color: #666;
   font-weight: 500;
+}
+
+/* ========== Botón Volver ========== */
+.btn-back-header {
+  flex-shrink: 0;
 }
 
 /* ========== Job Header ========== */
@@ -991,6 +1024,20 @@ const denunciarEmpleo = () => {
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
+  .detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .breadcrumb {
+    font-size: 0.85rem;
+  }
+
+  .btn-back-header {
+    width: 100%;
+  }
+
   .job-header {
     padding: 1.5rem;
   }

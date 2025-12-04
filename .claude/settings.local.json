@@ -22,7 +22,8 @@
       "Bash(curl:*)",
       "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\fix_old_orders.py\")",
       "Bash(findstr:*)",
-      "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\fix_jobs_company_profile.py\")"
+      "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\fix_jobs_company_profile.py\")",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

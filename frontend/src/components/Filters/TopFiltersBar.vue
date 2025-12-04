@@ -1,22 +1,69 @@
 <!-- frontend/src/components/Filters/TopFiltersBar.vue -->
 <template>
   <div class="top-filters-bar">
-    <div class="filters-container">
-      <!-- Filtro de Especialidad/Tipo -->
-      <div class="filter-group">
+    <div class="filters-container" :class="{ 'trabajos-grid': category === 'trabajos' }">
+      <!-- Para trabajos: Categoría + Tipo de Empleo -->
+      <template v-if="category === 'trabajos'">
+        <!-- Filtro de Categoría (jobCategory) -->
+        <div class="filter-group">
+          <label class="filter-label">
+            <va-icon name="category" size="small" />
+            Categoría
+          </label>
+          <select
+            v-model="localFilters.category"
+            class="filter-select"
+            @change="emitFilters"
+          >
+            <option value="">Todas las categorías</option>
+            <option
+              v-for="cat in categories"
+              :key="cat"
+              :value="cat"
+            >
+              {{ cat }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Filtro de Tipo de Empleo (contractType) -->
+        <div class="filter-group">
+          <label class="filter-label">
+            <va-icon name="work" size="small" />
+            Tipo de empleo
+          </label>
+          <select
+            v-model="localFilters.contractType"
+            class="filter-select"
+            @change="emitFilters"
+          >
+            <option value="">Todos los tipos</option>
+            <option
+              v-for="ct in contractTypes"
+              :key="ct"
+              :value="ct"
+            >
+              {{ ct }}
+            </option>
+          </select>
+        </div>
+      </template>
+
+      <!-- Para otras categorías: Subcategoría única -->
+      <div v-else class="filter-group">
         <label class="filter-label">
           <va-icon :name="filterConfig.icon" size="small" />
           {{ filterConfig.label }}
         </label>
-        <select 
-          v-model="localFilters.subcategory" 
+        <select
+          v-model="localFilters.subcategory"
           class="filter-select"
           @change="emitFilters"
         >
           <option value="">{{ filterConfig.placeholder }}</option>
-          <option 
-            v-for="option in subcategories" 
-            :key="option" 
+          <option
+            v-for="option in subcategories"
+            :key="option"
             :value="option"
           >
             {{ option }}
@@ -30,15 +77,15 @@
           <va-icon name="place" size="small" />
           Ciudad
         </label>
-        <select 
-          v-model="localFilters.city" 
+        <select
+          v-model="localFilters.city"
           class="filter-select"
           @change="emitFilters"
         >
           <option value="">Todas las ciudades</option>
-          <option 
-            v-for="city in cities" 
-            :key="city" 
+          <option
+            v-for="city in cities"
+            :key="city"
             :value="city"
           >
             {{ city }}
@@ -78,19 +125,31 @@ const props = defineProps({
     type: String,
     required: true
   },
-  
-  // Subcategorías disponibles
+
+  // Subcategorías disponibles (para profesionales, gastronomía, etc.)
   subcategories: {
     type: Array,
     default: () => []
   },
-  
+
+  // Categorías de trabajo (jobCategory - solo para trabajos)
+  categories: {
+    type: Array,
+    default: () => []
+  },
+
+  // Tipos de contrato (contractType - solo para trabajos)
+  contractTypes: {
+    type: Array,
+    default: () => []
+  },
+
   // Ciudades disponibles
   cities: {
     type: Array,
     default: () => ['La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Tarija', 'Chuquisaca', 'Beni', 'Pando']
   },
-  
+
   // Número de resultados
   resultsCount: {
     type: Number,
@@ -102,6 +161,8 @@ const props = defineProps({
     type: Object,
     default: () => ({
       subcategory: '',
+      category: '',
+      contractType: '',
       city: '',
       search: ''
     })
@@ -113,6 +174,8 @@ const emit = defineEmits(['update:modelValue', 'filter-change'])
 // Estado local de filtros
 const localFilters = ref({
   subcategory: props.modelValue.subcategory || '',
+  category: props.modelValue.category || '',
+  contractType: props.modelValue.contractType || '',
   city: props.modelValue.city || '',
   search: props.modelValue.search || ''
 })
@@ -181,6 +244,8 @@ const emitFilters = () => {
 const clearFilters = () => {
   localFilters.value = {
     subcategory: '',
+    category: '',
+    contractType: '',
     city: '',
     search: ''
   }
@@ -194,8 +259,10 @@ defineExpose({
 
 // ✅ WATCH PARA LIMPIAR FILTROS AL CAMBIAR DE CATEGORÍA
 watch(() => props.category, () => {
-  // Solo limpiar subcategory y search, mantener ciudad
+  // Limpiar todos los filtros excepto ciudad
   localFilters.value.subcategory = ''
+  localFilters.value.category = ''
+  localFilters.value.contractType = ''
   localFilters.value.search = ''
   emitFilters()
 })
@@ -220,6 +287,11 @@ watch(() => props.modelValue, (newValue) => {
   grid-template-columns: 1fr 1fr 2fr;
   gap: 1.5rem;
   margin-bottom: 1rem;
+}
+
+/* Grid de 4 columnas para trabajos (categoría + tipo de empleo + ciudad + búsqueda) */
+.filters-container.trabajos-grid {
+  grid-template-columns: 1fr 1fr 1fr 2fr;
 }
 
 .filter-group {
@@ -282,6 +354,17 @@ watch(() => props.modelValue, (newValue) => {
 }
 
 /* Responsive */
+@media (max-width: 1200px) {
+  /* En tablets: Grid de trabajos pasa a 2x2 */
+  .filters-container.trabajos-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filters-container.trabajos-grid .search-group {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 1024px) {
   .filters-container {
     grid-template-columns: 1fr 1fr;
@@ -294,12 +377,26 @@ watch(() => props.modelValue, (newValue) => {
 
 @media (max-width: 768px) {
   .top-filters-bar {
-    padding: 1.25rem;
+    padding: 1rem;
+    position: relative;
+    z-index: 10;
   }
 
-  .filters-container {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  /* En móvil: Ocultar todos los selects, solo mostrar búsqueda */
+  .filters-container,
+  .filters-container.trabajos-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* Ocultar filtros de selects en móvil (se manejan en sidebar) */
+  .filter-group:not(.search-group) {
+    display: none;
+  }
+
+  .search-group {
+    grid-column: auto;
   }
 
   .filter-select,
@@ -309,7 +406,8 @@ watch(() => props.modelValue, (newValue) => {
   }
 
   .results-counter {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    padding-top: 0.5rem;
   }
 }
 

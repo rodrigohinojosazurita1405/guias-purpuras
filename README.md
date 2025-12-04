@@ -27,4 +27,4 @@ npm run dev
 
 ## 👨‍💻 Autor
 
-Tu Nombre - Cochabamba, Bolivia
+RodrigoHinojosaZ - Cochabamba, Bolivia

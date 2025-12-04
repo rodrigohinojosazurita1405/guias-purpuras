@@ -28,11 +28,18 @@
     <section class="guide-content">
       <div class="content-container">
        
-        <!-- Sidebar de Filtros (Desktop) -->
-        <FiltersSidebar 
+        <!-- Sidebar de Filtros (Desktop y Mobile con overlay) -->
+        <FiltersSidebar
+          :show-mobile="showMobileFilters"
+          :category="category"
+          :categories="jobCategories"
+          :contract-types="contractTypes"
           :subcategories="currentGuide.subcategories"
           :cities="cities"
+          :subcategory-label="currentGuide.subcategoryLabel || 'Subcategoría'"
+          :subcategory-placeholder="currentGuide.subcategoryPlaceholder || 'Todas'"
           @filter-change="handleFilterChange"
+          @close="showMobileFilters = false"
         />
         
         <!-- Área de Listados -->
@@ -42,13 +49,15 @@
           <TopFiltersBar
             :category="category"
             :subcategories="currentGuide.subcategories"
+            :categories="jobCategories"
+            :contract-types="contractTypes"
             :cities="cities"
             :results-count="filteredListings.length"
             v-model="topFilters"
             @filter-change="handleTopFilterChange"
           />
 
-          <!-- Header con Sort -->
+          <!-- Header con Sort y Toggle de Vista -->
           <div class="listings-header">
             <div class="header-info">
               <h2>{{ guideName }}</h2>
@@ -58,19 +67,52 @@
                 <span>Mostrando resultados cerca de {{ searchStore.displayCity }}</span>
               </div>
             </div>
-            <select v-model="sortBy" class="sort-select" @change="sortListings">
-              <option value="recent">Más Recientes</option>
-              <option value="rating">Mejor Calificados</option>
-              <option value="featured">Destacados</option>
-              <option value="name">Nombre (A-Z)</option>
-            </select>
+
+            <div class="header-controls">
+              <!-- Toggle de vista Grid/Lista -->
+              <div class="view-toggle">
+                <button
+                  class="toggle-btn"
+                  :class="{ active: viewMode === 'grid' }"
+                  @click="viewMode = 'grid'"
+                  title="Vista en cuadrícula"
+                >
+                  <va-icon name="grid_view" size="small" />
+                </button>
+                <button
+                  class="toggle-btn"
+                  :class="{ active: viewMode === 'list' }"
+                  @click="viewMode = 'list'"
+                  title="Vista en lista"
+                >
+                  <va-icon name="view_list" size="small" />
+                </button>
+              </div>
+
+              <!-- Sort select -->
+              <select v-model="sortBy" class="sort-select" @change="sortListings">
+                <option value="recent">Más Recientes</option>
+                <option value="rating">Mejor Calificados</option>
+                <option value="featured">Destacados</option>
+                <option value="name">Nombre (A-Z)</option>
+              </select>
+            </div>
           </div>
 
-          <!-- Grid con Cards - SOLO TRABAJOS -->
-          <div class="listings-grid">
+          <!-- Vista Grid con Cards -->
+          <div v-if="viewMode === 'grid'" class="listings-grid">
             <JobCard
               v-for="listing in paginatedListings"
               :key="listing.id"
+              :listing="listing"
+            />
+          </div>
+
+          <!-- Vista Lista -->
+          <div v-else class="listings-list">
+            <JobListItem
+              v-for="listing in paginatedListings"
+              :key="`list-${listing.id}`"
               :listing="listing"
             />
           </div>
@@ -131,6 +173,7 @@ import MainLayout from '@/components/Layout/MainLayout.vue'
 import TopFiltersBar from '@/components/Filters/TopFiltersBar.vue'
 import FiltersSidebar from '@/components/Filters/FiltersSidebar.vue'
 import JobCard from '@/components/Cards/JobCard.vue'
+import JobListItem from '@/components/Cards/JobListItem.vue'
 import ListingCard from '@/components/Cards/ListingCard.vue'
 import { useSearchStore } from '@/stores/useSearchStore'
 import { mockBusinesses } from '@/data/mockBusinesses.js'
@@ -142,9 +185,10 @@ export default {
     TopFiltersBar,
     FiltersSidebar,
     JobCard,
+    JobListItem,
     ListingCard
   },
-  
+
   props: {
     category: {
       type: String,
@@ -152,30 +196,45 @@ export default {
       validator: (value) => ['profesionales', 'gastronomia', 'trabajos', 'negocios', 'servicios'].includes(value)
     }
   },
-  
+
   setup() {
     const searchStore = useSearchStore()
     return { searchStore }
   },
-  
+
   data() {
     return {
       showMobileFilters: false,
-      sortBy: 'recent',
+      viewMode: localStorage.getItem('guideViewMode') || 'grid', // 'grid' o 'list' - persistido en localStorage
+      sortBy: 'featured',  // Ordenar por plan por defecto (Impulso > Púrpura > Estándar)
       loading: false,
 
       // Filtros superiores (ahora sincronizados con el store)
       topFilters: {
         subcategory: '',
+        category: '',
+        contractType: '',
         city: '',
         search: ''
+      },
+
+      // Filtros del sidebar
+      sidebarFilters: {
+        publishDate: '',
+        salaryMin: null,
+        salaryMax: null,
+        experienceYears: '',
+        verifiedOnly: false
       },
 
       // Paginación
       currentPage: 1,
       itemsPerPage: 9,
-      
-      cities: ['La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Tarija', 'Chuquisaca', 'Beni', 'Pando'],
+
+      // Datos dinámicos desde BD
+      cities: [],
+      jobCategories: [],
+      contractTypes: [],
       
       categoryConfig: {
         negocios: {
@@ -192,7 +251,7 @@ export default {
         },
         trabajos: {
           name: 'Ofertas de Trabajo en Bolivia',
-          subcategories: ['Tiempo Completo', 'Medio Tiempo', 'Freelance', 'Remoto', 'Pasantías']
+          subcategories: [] // Se cargan dinámicamente desde BD
         },
         servicios: {
           name: 'Servicios en Bolivia',
@@ -219,15 +278,28 @@ export default {
     filteredListings() {
       let results = [...this.allListings]
 
-      // Filtrar por subcategoría
-      if (this.topFilters.subcategory) {
+      // Filtrar por categoría (trabajos)
+      if (this.category === 'trabajos' && this.topFilters.category) {
+        results = results.filter(listing =>
+          listing.jobCategory === this.topFilters.category
+        )
+      }
+
+      // Filtrar por tipo de contrato (trabajos)
+      if (this.category === 'trabajos' && this.topFilters.contractType) {
+        results = results.filter(listing =>
+          listing.contractType === this.topFilters.contractType
+        )
+      }
+
+      // Filtrar por subcategoría (otros)
+      if (this.category !== 'trabajos' && this.topFilters.subcategory) {
         results = results.filter(listing => {
           if (this.category === 'negocios') {
             return listing.category === this.topFilters.subcategory
           }
           return listing.subcategory === this.topFilters.subcategory ||
-                 listing.professionalTitle?.includes(this.topFilters.subcategory) ||
-                 listing.contractType === this.topFilters.subcategory
+                 listing.professionalTitle?.includes(this.topFilters.subcategory)
         })
       }
 
@@ -251,8 +323,8 @@ export default {
           const subcategory = listing.subcategory?.toLowerCase() || ''
           const specialties = listing.specialties?.join(' ').toLowerCase() || ''
           const tags = listing.tags?.join(' ').toLowerCase() || ''
-          
-          return title.includes(searchLower) || 
+
+          return title.includes(searchLower) ||
                  name.includes(searchLower) ||
                  description.includes(searchLower) ||
                  professionalTitle.includes(searchLower) ||
@@ -262,6 +334,78 @@ export default {
                  specialties.includes(searchLower) ||
                  tags.includes(searchLower)
         })
+      }
+
+      // Filtrar por fecha de publicación
+      if (this.sidebarFilters.publishDate) {
+        results = results.filter(listing => {
+          const daysAgo = listing.publishedDaysAgo || 0
+
+          switch (this.sidebarFilters.publishDate) {
+            case '24h':
+              return daysAgo <= 1
+            case '7d':
+              return daysAgo <= 7
+            case '30d':
+              return daysAgo <= 30
+            default:
+              return true
+          }
+        })
+      }
+
+      // Filtrar por rango salarial
+      if (this.sidebarFilters.salaryMin !== null || this.sidebarFilters.salaryMax !== null) {
+        results = results.filter(listing => {
+          // Extraer el salario numérico del string (ej: "Bs 5,000 - 8,000")
+          if (!listing.salary || listing.salary === 'A convenir') return true
+
+          const salaryMatch = listing.salary.match(/[\d,]+/g)
+          if (!salaryMatch) return true
+
+          // Obtener el salario mínimo y máximo del anuncio
+          const listingSalaries = salaryMatch.map(s => parseFloat(s.replace(/,/g, '')))
+          const listingMin = Math.min(...listingSalaries)
+          const listingMax = Math.max(...listingSalaries)
+
+          // Filtrar según los valores ingresados
+          let matches = true
+          if (this.sidebarFilters.salaryMin !== null) {
+            matches = matches && listingMax >= this.sidebarFilters.salaryMin
+          }
+          if (this.sidebarFilters.salaryMax !== null) {
+            matches = matches && listingMin <= this.sidebarFilters.salaryMax
+          }
+
+          return matches
+        })
+      }
+
+      // Filtrar por años de experiencia
+      if (this.sidebarFilters.experienceYears) {
+        results = results.filter(listing => {
+          // Este filtro se puede implementar cuando tengamos el campo en el backend
+          // Por ahora lo dejamos como placeholder
+          const experience = listing.yearsExperience || listing.experienceYears || 0
+
+          switch (this.sidebarFilters.experienceYears) {
+            case '0-1':
+              return experience <= 1
+            case '1-3':
+              return experience > 1 && experience <= 3
+            case '3-5':
+              return experience > 3 && experience <= 5
+            case '5+':
+              return experience > 5
+            default:
+              return true
+          }
+        })
+      }
+
+      // Filtrar por verificados
+      if (this.sidebarFilters.verifiedOnly) {
+        results = results.filter(listing => listing.verified === true)
       }
 
       return results
@@ -275,14 +419,39 @@ export default {
           return listings.sort((a, b) => (b.rating || 0) - (a.rating || 0))
         case 'featured':
           return listings.sort((a, b) => {
+            // Configuración de días de anclaje según plan
+            const featuredDaysConfig = {
+              impulso: 10,  // Anclado 10 días
+              purpura: 6,   // Anclado 6 días
+              estandar: 0   // Sin anclaje
+            }
+
             const getPriority = (item) => {
               const plan = item.plan?.toLowerCase()
-              if (plan === 'top') return 3
-              if (plan === 'destacado') return 2  
-              if (plan === 'premium') return 1
-              return 0
+              const daysAgo = item.publishedDaysAgo || 0
+              const featuredDays = featuredDaysConfig[plan] || 0
+
+              // Si el anuncio está dentro del período de anclaje, tiene prioridad alta
+              const isAnchored = daysAgo < featuredDays
+
+              if (plan === 'impulso' && isAnchored) return 6  // Impulso anclado - máxima prioridad
+              if (plan === 'purpura' && isAnchored) return 5  // Púrpura anclado - segunda prioridad
+              if (plan === 'impulso') return 4                // Impulso después de anclaje - con badges
+              if (plan === 'purpura') return 3                // Púrpura después de anclaje - con badges
+              if (plan === 'estandar') return 2               // Estándar - sin badges
+              return 1
             }
-            return getPriority(b) - getPriority(a)
+
+            const priorityDiff = getPriority(b) - getPriority(a)
+
+            // Si tienen la misma prioridad, ordenar por fecha (más reciente primero)
+            if (priorityDiff === 0) {
+              const dateA = new Date(a.createdAt || a.publishDate || '2024-01-01')
+              const dateB = new Date(b.createdAt || b.publishDate || '2024-01-01')
+              return dateB - dateA
+            }
+
+            return priorityDiff
           })
         case 'name':
           return listings.sort((a, b) => {
@@ -354,13 +523,40 @@ export default {
     },
 
     handleFilterChange(filters) {
-      if (filters.subcategories?.length > 0) {
-        this.topFilters.subcategory = filters.subcategories[0]
+      // Filtros principales (desde sidebar en móvil)
+      if (filters.category !== undefined) {
+        this.topFilters.category = filters.category
       }
-      if (filters.city) {
+      if (filters.contractType !== undefined) {
+        this.topFilters.contractType = filters.contractType
+      }
+      if (filters.subcategory !== undefined) {
+        this.topFilters.subcategory = filters.subcategory
+      }
+      if (filters.city !== undefined) {
         this.topFilters.city = filters.city
       }
+
+      // Filtros secundarios del sidebar
+      if (filters.publishDate !== undefined) {
+        this.sidebarFilters.publishDate = filters.publishDate
+      }
+      if (filters.salaryMin !== undefined) {
+        this.sidebarFilters.salaryMin = filters.salaryMin
+      }
+      if (filters.salaryMax !== undefined) {
+        this.sidebarFilters.salaryMax = filters.salaryMax
+      }
+      if (filters.experienceYears !== undefined) {
+        this.sidebarFilters.experienceYears = filters.experienceYears
+      }
+      if (filters.verifiedOnly !== undefined) {
+        this.sidebarFilters.verifiedOnly = filters.verifiedOnly
+      }
+
       this.currentPage = 1
+      // Cerrar sidebar móvil después de aplicar filtros
+      this.showMobileFilters = false
     },
 
     handleTopFilterChange(filters) {
@@ -374,9 +570,13 @@ export default {
         city: '',
         search: ''
       }
+      this.sidebarFilters = {
+        publishDate: '',
+        verifiedOnly: false
+      }
       this.searchStore.clearAllFilters()
       this.currentPage = 1
-      
+
       // ✅ LIMPIAR QUERY PARAMS DE LA URL
       this.$router.replace({
         path: this.$route.path,
@@ -426,6 +626,42 @@ export default {
         this.allListings = [] // Mostrar lista vacía si hay error
       } finally {
         this.loading = false
+      }
+    },
+
+    /**
+     * Cargar datos dinámicos desde la BD
+     */
+    async loadDynamicData() {
+      try {
+        const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+
+        // Cargar ciudades
+        const citiesResponse = await fetch(`${baseURL}/api/jobs/cities`)
+        const citiesData = await citiesResponse.json()
+        if (citiesData.success && citiesData.cities) {
+          this.cities = citiesData.cities.map(c => c.text)
+        }
+
+        // Cargar categorías de trabajo (jobCategory)
+        const categoriesResponse = await fetch(`${baseURL}/api/jobs/categories-dynamic`)
+        const categoriesData = await categoriesResponse.json()
+        if (categoriesData.success && categoriesData.categories) {
+          this.jobCategories = categoriesData.categories.map(c => c.text)
+        }
+
+        // Cargar tipos de contrato (contractType)
+        const contractTypesResponse = await fetch(`${baseURL}/api/jobs/contract-types`)
+        const contractTypesData = await contractTypesResponse.json()
+        if (contractTypesData.success && contractTypesData.contractTypes) {
+          this.contractTypes = contractTypesData.contractTypes.map(c => c.text)
+        }
+      } catch (error) {
+        console.error('Error cargando datos dinámicos:', error)
+        // Fallback a valores por defecto
+        this.cities = ['La Paz', 'Cochabamba', 'Santa Cruz', 'Oruro', 'Potosí', 'Tarija', 'Chuquisaca', 'Beni', 'Pando']
+        this.jobCategories = []
+        this.contractTypes = []
       }
     },
 
@@ -592,7 +828,9 @@ export default {
     }
   },
 
-  mounted() {
+  async mounted() {
+    // Cargar datos dinámicos desde BD
+    await this.loadDynamicData()
     this.loadMockData()
     // 🆕 Sincronizar con store al montar
     this.syncWithStore()
@@ -606,13 +844,20 @@ export default {
       },
       immediate: false
     },
-    
+
     // 🆕 Observar cambios en la ruta
     '$route.query': {
       handler() {
         this.syncWithStore()
       },
       deep: true
+    },
+
+    // 💾 Guardar preferencia de vista en localStorage
+    viewMode: {
+      handler(newValue) {
+        localStorage.setItem('guideViewMode', newValue)
+      }
     }
   }
 }
@@ -624,6 +869,8 @@ export default {
   background: var(--color-gray-50);
   border-bottom: 1px solid var(--color-gray-200);
   padding: 1rem 0;
+  position: relative;
+  z-index: 5;
 }
 
 .breadcrumb-container {
@@ -713,6 +960,48 @@ export default {
   color: var(--color-purple);
 }
 
+/* Header controls (toggle + sort) */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Toggle de vista Grid/Lista */
+.view-toggle {
+  display: flex;
+  background: white;
+  border: 2px solid var(--color-gray-200);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.toggle-btn {
+  padding: 0.625rem 0.875rem;
+  background: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #6B7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-btn:hover {
+  background: #F9FAFB;
+  color: var(--color-purple);
+}
+
+.toggle-btn.active {
+  background: var(--color-purple);
+  color: white;
+}
+
+.toggle-btn:not(:last-child) {
+  border-right: 1px solid var(--color-gray-200);
+}
+
 .sort-select {
   padding: 0.875rem 1rem;
   border: 2px solid var(--color-gray-200);
@@ -736,6 +1025,14 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Vista Lista */
+.listings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
@@ -793,9 +1090,14 @@ export default {
     grid-template-columns: 1fr;
     padding: 0 2rem;
   }
-  
+
   .mobile-btn {
     display: flex;
+  }
+
+  /* Ocultar el FiltersSidebar del flujo del grid en tablet/móvil pero permitir overlay */
+  .content-container > .filters-wrapper .filters-sidebar:not(.mobile-open) {
+    display: none;
   }
 
   .listings-grid {
@@ -817,6 +1119,20 @@ export default {
   .listings-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .header-controls {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .view-toggle {
+    width: 100%;
+  }
+
+  .toggle-btn {
+    flex: 1;
   }
 
   .sort-select {

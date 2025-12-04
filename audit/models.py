@@ -58,7 +58,7 @@ class AuditLog(models.Model):
         ('create', 'Creado'),
         ('update', 'Actualizado'),
         ('delete', 'Eliminado'),
-        ('soft_delete', 'Eliminado (Lógico)'),
+        ('soft_delete', 'Eliminado'),
         ('restore', 'Restaurado'),
         ('pause', 'Pausado'),
         ('activate', 'Activado'),
