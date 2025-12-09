@@ -9,149 +9,91 @@
 -->
 <template>
   <MainLayout>
-    
-    <!-- ========== Breadcrumb ========== -->
-    <section class="breadcrumb-section">
-      <div class="breadcrumb-container">
-        <div class="breadcrumb">
-          <router-link to="/">Inicio</router-link>
-          <VaIcon name="chevron_right" size="small" />
-          <span class="current">{{ guideName }}</span>
-        </div>
-        <VaButton preset="plain" icon="tune" class="mobile-btn" @click="showMobileFilters = true">
-          Filtros
-        </VaButton>
-      </div>
-    </section>
+
+    <!-- ========== BARRA DE BÚSQUEDA Y FILTROS SUPERIOR (STICKY) ========== -->
+    <TopSearchBar
+      :category="category"
+      :categories="jobCategories"
+      :contract-types="contractTypes"
+      :cities="cities"
+      :results-count="filteredListings.length"
+      :location-info="{
+        detected: searchStore.userDetectedCity,
+        method: searchStore.locationMethod,
+        displayCity: searchStore.displayCity
+      }"
+      @filter-change="handleTopFilterChange"
+      @search-click="scrollToResults"
+    />
 
     <!-- ========== Contenido Principal ========== -->
     <section class="guide-content">
-      <div class="content-container">
-       
-        <!-- Sidebar de Filtros (Desktop y Mobile con overlay) -->
-        <FiltersSidebar
-          :show-mobile="showMobileFilters"
-          :category="category"
-          :categories="jobCategories"
-          :contract-types="contractTypes"
-          :subcategories="currentGuide.subcategories"
-          :cities="cities"
-          :subcategory-label="currentGuide.subcategoryLabel || 'Subcategoría'"
-          :subcategory-placeholder="currentGuide.subcategoryPlaceholder || 'Todas'"
-          @filter-change="handleFilterChange"
-          @close="showMobileFilters = false"
-        />
-        
-        <!-- Área de Listados -->
-        <div class="listings-area">
-          
-          <!-- ========== FILTROS SUPERIORES ========== -->
-          <TopFiltersBar
-            :category="category"
-            :subcategories="currentGuide.subcategories"
-            :categories="jobCategories"
-            :contract-types="contractTypes"
-            :cities="cities"
-            :results-count="filteredListings.length"
-            v-model="topFilters"
-            @filter-change="handleTopFilterChange"
-          />
+      <div class="content-container full-width">
 
-          <!-- Header con Sort y Toggle de Vista -->
-          <div class="listings-header">
-            <div class="header-info">
-              <h2>{{ guideName }}</h2>
-              <!-- Badge de ciudad detectada -->
-              <div v-if="searchStore.userDetectedCity && searchStore.locationMethod !== 'manual'" class="location-detected-badge">
-                <va-icon name="my_location" size="small" />
-                <span>Mostrando resultados cerca de {{ searchStore.displayCity }}</span>
-              </div>
+        <!-- SPLIT VIEW: Lista Compacta + Panel de Detalles -->
+        <div class="split-view" :class="{ 'has-selection': selectedJob }" v-if="category === 'trabajos'">
+          <!-- Columna Izquierda: Lista Compacta -->
+          <div class="jobs-list-column">
+            <!-- Estado vacío -->
+            <div v-if="filteredListings.length === 0" class="empty-state-compact">
+              <va-icon name="search_off" size="3rem" color="#CCC" />
+              <h3>No se encontraron resultados</h3>
+              <p>Intenta ajustar los filtros de búsqueda</p>
             </div>
 
-            <div class="header-controls">
-              <!-- Toggle de vista Grid/Lista -->
-              <div class="view-toggle">
-                <button
-                  class="toggle-btn"
-                  :class="{ active: viewMode === 'grid' }"
-                  @click="viewMode = 'grid'"
-                  title="Vista en cuadrícula"
-                >
-                  <va-icon name="grid_view" size="small" />
-                </button>
-                <button
-                  class="toggle-btn"
-                  :class="{ active: viewMode === 'list' }"
-                  @click="viewMode = 'list'"
-                  title="Vista en lista"
-                >
-                  <va-icon name="view_list" size="small" />
-                </button>
-              </div>
-
-              <!-- Sort select -->
-              <select v-model="sortBy" class="sort-select" @change="sortListings">
-                <option value="recent">Más Recientes</option>
-                <option value="rating">Mejor Calificados</option>
-                <option value="featured">Destacados</option>
-                <option value="name">Nombre (A-Z)</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Vista Grid con Cards -->
-          <div v-if="viewMode === 'grid'" class="listings-grid">
-            <JobCard
+            <!-- Lista de trabajos compactos -->
+            <JobListCompact
               v-for="listing in paginatedListings"
               :key="listing.id"
               :listing="listing"
+              :is-selected="selectedJob && selectedJob.id === listing.id"
+              @select="selectJob"
             />
+
+            <!-- Indicador de carga para scroll infinito -->
+            <div v-if="isLoadingMore" class="loading-more">
+              <div class="spinner"></div>
+              <span>Cargando más resultados...</span>
+            </div>
+
+            <!-- Mensaje de fin de resultados -->
+            <div v-else-if="!hasMoreItems && filteredListings.length > 0" class="no-more-results">
+              <va-icon name="check_circle" size="small" />
+              <span>Has visto todos los resultados</span>
+            </div>
           </div>
 
-          <!-- Vista Lista -->
-          <div v-else class="listings-list">
-            <JobListItem
-              v-for="listing in paginatedListings"
-              :key="`list-${listing.id}`"
-              :listing="listing"
+          <!-- Columna Derecha: Panel de Detalles -->
+          <div class="detail-column" :class="{ 'has-selection': selectedJob }">
+            <!-- Overlay oscuro para móvil -->
+            <div
+              v-if="selectedJob"
+              class="modal-overlay"
+              @click="closeJobDetail"
+            ></div>
+
+            <!-- Panel solo visible si hay trabajo seleccionado -->
+            <JobDetailPanel
+              v-if="selectedJob"
+              :listing="selectedJob"
+              @close="closeJobDetail"
             />
           </div>
+        </div>
+
+        <!-- VISTA GRID (Para otras categorías o móvil) -->
+        <div v-else class="listings-grid">
+          <JobCard
+            v-for="listing in paginatedListings"
+            :key="listing.id"
+            :listing="listing"
+          />
 
           <!-- Estado vacío -->
           <div v-if="filteredListings.length === 0" class="empty-state">
             <va-icon name="search_off" size="4rem" color="#CCC" />
             <h3>No se encontraron resultados</h3>
-            <p v-if="topFilters.city">
-              No hay anuncios en <strong>{{ searchStore.displayCity }}</strong> que coincidan con tu búsqueda
-            </p>
-            <p v-else>Intenta ajustar los filtros de búsqueda</p>
-            <va-button @click="clearAllFilters" color="purple">
-              Limpiar filtros
-            </va-button>
-          </div>
-
-          <!-- Paginación -->
-          <div v-if="filteredListings.length > 0" class="pagination">
-            <VaButton 
-              preset="plain" 
-              icon="chevron_left" 
-              :disabled="currentPage === 1"
-              @click="previousPage"
-            />
-            <VaButton 
-              v-for="page in totalPages" 
-              :key="page"
-              :class="['page-btn', { active: page === currentPage }]"
-              @click="goToPage(page)"
-            >
-              {{ page }}
-            </VaButton>
-            <VaButton 
-              preset="plain" 
-              icon="chevron_right" 
-              :disabled="currentPage === totalPages"
-              @click="nextPage"
-            />
+            <p>Intenta ajustar los filtros de búsqueda</p>
           </div>
         </div>
 
@@ -168,12 +110,11 @@
  * ═══════════════════════════════════════════════════════════
  */
 
-import { watch } from 'vue'
 import MainLayout from '@/components/Layout/MainLayout.vue'
-import TopFiltersBar from '@/components/Filters/TopFiltersBar.vue'
-import FiltersSidebar from '@/components/Filters/FiltersSidebar.vue'
+import TopSearchBar from '@/components/Filters/TopSearchBar.vue'
 import JobCard from '@/components/Cards/JobCard.vue'
-import JobListItem from '@/components/Cards/JobListItem.vue'
+import JobListCompact from '@/views/Detail/JobListCompact.vue'
+import JobDetailPanel from '@/views/Detail/JobDetailPanel.vue'
 import ListingCard from '@/components/Cards/ListingCard.vue'
 import { useSearchStore } from '@/stores/useSearchStore'
 import { mockBusinesses } from '@/data/mockBusinesses.js'
@@ -182,10 +123,10 @@ export default {
   name: 'GuideView',
   components: {
     MainLayout,
-    TopFiltersBar,
-    FiltersSidebar,
+    TopSearchBar,
     JobCard,
-    JobListItem,
+    JobListCompact,
+    JobDetailPanel,
     ListingCard
   },
 
@@ -227,9 +168,13 @@ export default {
         verifiedOnly: false
       },
 
-      // Paginación
-      currentPage: 1,
-      itemsPerPage: 9,
+      // Scroll infinito
+      displayedItems: 20, // Número inicial de items a mostrar
+      itemsPerLoad: 15, // Items a cargar cada vez
+      isLoadingMore: false,
+
+      // Split View - Trabajo seleccionado
+      selectedJob: null,
 
       // Datos dinámicos desde BD
       cities: [],
@@ -303,11 +248,13 @@ export default {
         })
       }
 
-      // Filtrar por ciudad
+      // Filtrar por ciudad (normalizar comparación)
       if (this.topFilters.city) {
-        results = results.filter(listing => 
-          listing.city === this.topFilters.city
-        )
+        const filterCity = this.normalizeCityName(this.topFilters.city)
+        results = results.filter(listing => {
+          const listingCity = this.normalizeCityName(listing.city)
+          return listingCity === filterCity
+        })
       }
 
       // Filtrar por búsqueda
@@ -408,6 +355,21 @@ export default {
         results = results.filter(listing => listing.verified === true)
       }
 
+      // Filtrar por modalidad (remoto, híbrido, presencial)
+      if (this.topFilters.modality) {
+        results = results.filter(listing =>
+          listing.modality === this.topFilters.modality
+        )
+      }
+
+      // Filtrar por educación
+      if (this.sidebarFilters.education) {
+        results = results.filter(listing => {
+          const educationLevel = listing.education || listing.educationRequired || ''
+          return educationLevel.toLowerCase().includes(this.sidebarFilters.education.toLowerCase())
+        })
+      }
+
       return results
     },
 
@@ -470,13 +432,13 @@ export default {
     },
 
     paginatedListings() {
-      const start = (this.currentPage - 1) * this.itemsPerPage
-      const end = start + this.itemsPerPage
-      return this.sortedListings.slice(start, end)
+      // Usar scroll infinito: mostrar solo los primeros displayedItems
+      return this.sortedListings.slice(0, this.displayedItems)
     },
 
-    totalPages() {
-      return Math.ceil(this.filteredListings.length / this.itemsPerPage)
+    hasMoreItems() {
+      // Verificar si hay más items para cargar
+      return this.displayedItems < this.sortedListings.length
     }
   },
 
@@ -560,8 +522,54 @@ export default {
     },
 
     handleTopFilterChange(filters) {
-      this.topFilters = { ...this.topFilters, ...filters }
-      this.currentPage = 1
+      // Actualizar filtros principales
+      this.topFilters = {
+        search: filters.search || '',
+        city: filters.city || '',
+        category: filters.category || '',
+        contractType: filters.contractType || '',
+        subcategory: filters.subcategory || '',
+        modality: filters.modality || ''
+      }
+
+      // Actualizar filtros del sidebar (salario, fecha, educación)
+      this.sidebarFilters = {
+        publishDate: filters.publishDate || '',
+        salaryMin: filters.salaryMin || null,
+        salaryMax: filters.salaryMax || null,
+        experienceYears: filters.experienceYears || '',
+        verifiedOnly: filters.verifiedOnly || false,
+        education: filters.education || ''
+      }
+
+      // Resetear scroll infinito
+      this.resetDisplayedItems()
+    },
+
+    scrollToResults() {
+      // Scroll suave hasta la sección de resultados
+      const resultsSection = document.querySelector('.results-header')
+      if (resultsSection) {
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    },
+
+    selectJob(job) {
+      // Seleccionar trabajo para mostrar en el panel de detalles
+      this.selectedJob = job
+
+      // En móvil, prevenir scroll del body
+      if (window.innerWidth < 1024) {
+        document.body.style.overflow = 'hidden'
+      }
+    },
+
+    closeJobDetail() {
+      // Cerrar el panel de detalles en móvil
+      if (window.innerWidth < 1024) {
+        this.selectedJob = null
+        document.body.style.overflow = ''
+      }
     },
 
     clearAllFilters() {
@@ -592,20 +600,63 @@ export default {
       this.$router.push(`/anuncio/${listing.id}`)
     },
 
-    previousPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--
+    loadMoreItems() {
+      if (this.isLoadingMore || !this.hasMoreItems) return
+
+      this.isLoadingMore = true
+
+      // Simular delay de carga (puedes quitar esto si quieres)
+      setTimeout(() => {
+        this.displayedItems += this.itemsPerLoad
+        this.isLoadingMore = false
+      }, 300)
+    },
+
+    handleScroll() {
+      // Detectar cuando el usuario está cerca del final de la página
+      const scrollPosition = window.innerHeight + window.scrollY
+      const bottomPosition = document.documentElement.scrollHeight - 500 // 500px antes del final
+
+      if (scrollPosition >= bottomPosition && this.hasMoreItems && !this.isLoadingMore) {
+        this.loadMoreItems()
       }
     },
 
-    nextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++
-      }
+    resetDisplayedItems() {
+      // Resetear al cambiar filtros
+      this.displayedItems = this.itemsPerLoad
     },
 
-    goToPage(page) {
-      this.currentPage = page
+    /**
+     * Normalizar nombre de ciudad para comparación
+     */
+    normalizeCityName(cityName) {
+      if (!cityName) return ''
+
+      const citySlugMap = {
+        'cochabamba': 'cochabamba',
+        'la paz': 'la-paz',
+        'la-paz': 'la-paz',
+        'santa cruz': 'santa-cruz',
+        'santa-cruz': 'santa-cruz',
+        'oruro': 'oruro',
+        'potosí': 'potosi',
+        'potosi': 'potosi',
+        'tarija': 'tarija',
+        'chuquisaca': 'chuquisaca',
+        'chuquisaca (sucre)': 'chuquisaca',
+        'sucre': 'chuquisaca',
+        'beni': 'beni',
+        'pando': 'pando'
+      }
+
+      const normalized = cityName
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Quitar acentos
+        .trim()
+
+      return citySlugMap[normalized] || normalized
     },
 
     /**
@@ -614,15 +665,27 @@ export default {
     async loadJobsFromAPI() {
       try {
         this.loading = true
-        const response = await fetch('/api/jobs/')
-        if (!response.ok) throw new Error('Error al cargar trabajos')
+        const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+        const response = await fetch(`${baseURL}/api/jobs/`)
+
+        console.log('[GuideView] Cargando trabajos desde:', `${baseURL}/api/jobs/`)
+
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`)
+        }
 
         const data = await response.json()
+        console.log('[GuideView] Datos recibidos:', data)
+
         if (data.success && data.jobs) {
           this.allListings = data.jobs
+          console.log('[GuideView] Trabajos cargados:', this.allListings.length)
+        } else {
+          console.warn('[GuideView] No se encontraron trabajos en la respuesta')
+          this.allListings = []
         }
       } catch (error) {
-        console.error('Error cargando trabajos desde API:', error)
+        console.error('[GuideView] Error cargando trabajos desde API:', error)
         this.allListings = [] // Mostrar lista vacía si hay error
       } finally {
         this.loading = false
@@ -834,6 +897,15 @@ export default {
     this.loadMockData()
     // 🆕 Sincronizar con store al montar
     this.syncWithStore()
+    // NO seleccionar automáticamente - dejar que el usuario haga clic
+    // Esto permite que la lista ocupe todo el ancho inicialmente
+    // Agregar listener de scroll para scroll infinito
+    window.addEventListener('scroll', this.handleScroll)
+  },
+
+  beforeUnmount() {
+    // Limpiar listener de scroll
+    window.removeEventListener('scroll', this.handleScroll)
   },
 
   watch: {
@@ -841,8 +913,25 @@ export default {
       handler() {
         this.loadMockData()
         this.syncWithStore()
+        // Limpiar selección al cambiar de categoría
+        this.selectedJob = null
       },
       immediate: false
+    },
+
+    // Actualizar selección cuando cambien los filtros
+    filteredListings: {
+      handler(newListings) {
+        if (this.category === 'trabajos' && newListings.length > 0) {
+          // Si el trabajo seleccionado ya no está en la lista, limpiar selección
+          const stillExists = newListings.some(job => job.id === this.selectedJob?.id)
+          if (!stillExists) {
+            this.selectedJob = null
+          }
+        } else if (newListings.length === 0) {
+          this.selectedJob = null
+        }
+      }
     },
 
     // 🆕 Observar cambios en la ruta
@@ -914,15 +1003,230 @@ export default {
 }
 
 .content-container {
-  padding: 0 3rem;
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
 }
 
-/* ========== Listings Area ========== */
-.listings-area {
-  width: 100%;
+.content-container.full-width {
+  display: block; /* Sin grid, full width */
+}
+
+/* ========== SPLIT VIEW ========== */
+.split-view {
+  display: grid;
+  gap: 1.5rem;
+  min-height: 600px;
+  transition: grid-template-columns 0.3s ease;
+}
+
+/* Sin selección: Lista ocupa casi todo el ancho */
+.split-view:not(.has-selection) {
+  grid-template-columns: 1fr 0;
+}
+
+/* Con selección: Vista dividida normal */
+.split-view.has-selection {
+  grid-template-columns: 40% 60%;
+}
+
+/* Columna Izquierda - Lista Compacta */
+.jobs-list-column {
+  display: flex;
+  flex-direction: column;
+  padding-right: 0.5rem;
+  max-width: 100%;
+}
+
+/* Columna Derecha - Panel de Detalles */
+.detail-column {
+  position: sticky;
+  top: 1rem;
+  align-self: flex-start;
+  overflow: hidden;
+  transition: opacity 0.3s ease;
+  max-height: calc(100vh - 2rem);
+}
+
+/* Ocultar panel cuando no hay selección */
+.split-view:not(.has-selection) .detail-column {
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+}
+
+/* Mostrar panel cuando hay selección */
+.split-view.has-selection .detail-column {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Overlay oscuro para modal móvil */
+.modal-overlay {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 1024px) {
+  .modal-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+    animation: fadeIn 0.3s ease-out;
+  }
+}
+
+/* Estado Vacío Compacto */
+.empty-state-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  background: white;
+  border-radius: 12px;
+  border: 2px dashed #E5E7EB;
+}
+
+.empty-state-compact h3 {
+  font-size: 1.125rem;
+  color: #6B7280;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.empty-state-compact p {
+  color: #9CA3AF;
+  font-size: 0.9rem;
+}
+
+/* Indicador de Carga - Scroll Infinito */
+.loading-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+.loading-more span {
+  font-size: 0.9rem;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #E5E7EB;
+  border-top-color: #7C3AED;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Mensaje de fin de resultados */
+.no-more-results {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  background: #F9FAFB;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #059669;
+  font-weight: 500;
+}
+
+/* Placeholder - Selecciona un trabajo */
+.select-job-placeholder {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 4rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  position: sticky;
+  top: 180px;
+}
+
+.select-job-placeholder h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.select-job-placeholder p {
+  color: #6B7280;
+  font-size: 0.95rem;
+  max-width: 300px;
+  line-height: 1.5;
+}
+
+/* Ocultar placeholder en móvil */
+@media (max-width: 1024px) {
+  .select-job-placeholder {
+    display: none;
+  }
+
+  /* Split view se convierte en lista completa en móvil */
+  .split-view {
+    display: block;
+  }
+
+  .jobs-list-column {
+    width: 100%;
+    padding-right: 0;
+  }
+
+  .detail-column {
+    display: none; /* Ocultar por defecto en móvil */
+  }
+
+  /* Cuando hay trabajo seleccionado, mostrar como modal */
+  .detail-column.has-selection {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ========== Vista Grid (Fallback) ========== */
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem 0;
 }
 
 .listings-header {

@@ -5,7 +5,7 @@ FASE 1: Wizard de Publicación              ✅ 100% COMPLETADA
 FASE 1.1: Preguntas de Filtrado            ✅ 100% COMPLETADA
 FASE 1.2: Formulario Aplicación Candidato  ✅ 100% COMPLETADA
 FASE 2: Flujo de Publicación Completo      ✅ 100% COMPLETADA
-FASE 3: Búsqueda y Filtrado GuideView      ⏳ 0% PENDIENTE
+FASE 3: Búsqueda y Filtrado GuideView      ✅ 100% COMPLETADA
 FASE 3.6: Autenticación Real               ✅ 100% COMPLETADA
 FASE 4: Perfiles de Usuario                ✅ 100% COMPLETADA
 FASE 5: Perfiles de Empresa                ✅ 100% COMPLETADA
@@ -22,8 +22,8 @@ FASE 8: Sistema de Auditoría               ✅ 100% COMPLETADA
 FASE 9: Sistema de Reportes Diarios        ✅ 100% COMPLETADA
 FASE 10: CRUD dinámico de categorías       ✅ 100% COMPLETADA
 FASE 11: Admin Django mejorado             ✅ 85% (Falta Jazzmin)
-FASE 12: Dashboard multi-rol               ⏳ 0% PENDIENTE
-FASE 13: Multi-guía (gastronomía, etc)     ⏳ 0% PENDIENTE
+FASE 12: Dashboard multi-rol               ⏳ 0% PENDIENTE postulantes custom
+
 
 ---
 
@@ -156,21 +156,21 @@ FASE 13: Multi-guía (gastronomía, etc)     ⏳ 0% PENDIENTE
 - Filtrado y búsqueda de candidatos
 - Estados: nueva, en revisión, descartada, preseleccionada
 
-### 2. **FASE 3: Búsqueda y Filtrado en GuideView** (ALTA PRIORIDAD)
-- Destacar anuncios según plan:
-  - Impulso: Banner destacado superior
-  - Púrpura: Badge especial "Destacado" + borde morado
-  - Estándar: Vista normal
-- Filtros avanzados:
-  - Por categoría, ciudad, tipo de contrato
-  - Rango salarial
-  - Fecha de publicación
-  - Experiencia requerida
-- Paginación con scroll infinito
-- Anuncios similares/relacionados
-- Guardado de búsquedas favoritas
+### ✅ FASE 3: GuideView - Vista Split Mejorada (100% COMPLETADA) - Diciembre 2024
+**Componentes:** `GuideView.vue`, `JobListCompact.vue`, `JobDetailPanel.vue`
+- ✅ Split view con lista compacta + panel de detalles
+- ✅ Lista ancha sin selección, se reduce al hacer clic (40% lista / 60% panel)
+- ✅ Panel sticky con tabs: "Oferta Laboral" | "Perfil de Empresa"
+- ✅ Logo de empresa en panel junto al título
+- ✅ Badges con gradientes (Patrocinado, Destacado, Urgente)
+- ✅ Sistema de tabs sin modales
+- ✅ Alineación perfecta de tabs con primer card
+- ✅ Modal responsive en móvil con overlay
+- ✅ Botón X grande y visible
+- ✅ Timezone correcto Bolivia (La Paz) para fechas
+- ✅ Transición suave entre estados
 
-### 3. **Completar Sistema de Mensajes** (Backend)
+### 2. **Completar Sistema de Mensajes** (Backend)
 - Modelo `Notification` en Django
 - Endpoints API: /api/notifications/, /api/notifications/mark-read/
 - Generación automática de notificaciones:
@@ -181,7 +181,7 @@ FASE 13: Multi-guía (gastronomía, etc)     ⏳ 0% PENDIENTE
 - Sistema de chat interno (futuro)
 - WebSockets o polling para actualizaciones en tiempo real
 
-### 4. **Integrar Jazzmin en Admin Django**
+### 3. **Integrar Jazzmin en Admin Django**
 - Instalar y configurar django-jazzmin
 - Menús anidados por secciones
 - Dashboard con widgets de métricas
@@ -199,15 +199,16 @@ FASE 13: Multi-guía (gastronomía, etc)     ⏳ 0% PENDIENTE
 - ~~Planes actualizados en PlanStep con archivo planesupdate.png~~
 - ~~Dashboard Postulante → menú limitado (Perfil, CV máx 2, Postulaciones, Favoritos, Mensajes, Historial)~~
 - ~~Dashboard Empresa → menú con Perfil Empresa, Mis anuncios, Solicitudes recibidas, Candidatos guardados, Mensajes, Mis órdenes/facturas, Bloqueos~~
-- ~~Publicar anuncio → solo usuarios registrados con perfil completo + foto/logo obligatorio~~
+- Publicar anuncio → solo usuarios registrados con perfil completo por lo menos el 80% 
 - ~~JobsManager.vue → botones estilizados, switch activar/desactivar anuncio, edición en modal~~
 - ~~CustomUser con roles → candidate vs company, perfiles vinculados~~
 - ~~Sistema de órdenes de planes con facturación~~
 - ~~Validación de pagos con switch bloqueado hasta aprobación admin~~
-- ~~Gestión de usuarios bloqueados por empresas~~
+- Gestión de usuarios bloqueados por empresas falta funcionalidad
 - ~~CRUD dinámico de categorías y subcategorías (JobCategory, ContractType, City)~~
-- ~~Sistema de auditoría completo para rastrear todas las acciones~~
-- ~~Sistema de reportes diarios con métricas de usuarios, trabajos, planes e ingresos~~
+- Sistema de auditoría completo para rastrear todas las acciones(errores: el sitema a menudo confunde las acciones ejemplo estoy
+logeado como empresa pero al registrarse algun evento editar o eliminar detecta como postulante error critico corregir)
+- Sistema de reportes diarios con métricas de usuarios, trabajos, planes e ingresos falta funcionalidad
 - ~~Admin Django mejorado con badges de colores y filtros avanzados~~
 - ~~Badge verde gradiente para órdenes completadas~~
 - ~~Mensaje estilizado para facturas no solicitadas~~
@@ -221,4 +222,4 @@ FASE 13: Multi-guía (gastronomía, etc)     ⏳ 0% PENDIENTE
 - **GuideView mejorado** - Destacar anuncios según plan, filtros avanzados, paginación
 - **JobDetailView** - Mejor UI, guardar/compartir anuncios, mostrar similares
 - **Backend de notificaciones** - Crear modelo Notification y endpoints API
-- **Admin Django con Jazzmin** - Menús anidados, dashboard con gráficos
+- **Admin Django con Jazzmin** - Menús anidados sobre Jobs, es el menu principal sidebarizquiero dropdawn, dashboard con gráficos

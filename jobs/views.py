@@ -384,7 +384,11 @@ def get_job(request, job_id):
             }, status=404)
 
         # Permitir al dueño ver su propio anuncio (incluso si no está verificado)
-        is_owner = request.user.is_authenticated and request.user.email == job.email
+        is_owner = (
+            request.user.is_authenticated and
+            hasattr(request.user, 'email') and
+            request.user.email == job.email
+        )
 
         # Verificar que el pago esté verificado (excepto para el dueño)
         if not job.paymentVerified and not is_owner:
@@ -467,6 +471,10 @@ def get_job(request, job_id):
         }, status=404)
 
     except Exception as e:
+        import traceback
+        print(f'[ERROR] get_job exception: {str(e)}')
+        print(f'[ERROR] Traceback:')
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'message': f'Error: {str(e)}'
@@ -486,12 +494,19 @@ def format_salary(job):
 
 
 def calculate_days_ago(date_obj):
-    """Calcula cuántos días han pasado desde una fecha"""
-    from datetime import datetime, timezone
-    now = datetime.now(timezone.utc)
-    if date_obj.tzinfo is None:
-        date_obj = date_obj.replace(tzinfo=timezone.utc)
-    days = (now - date_obj).days
+    """Calcula cuántos días han pasado desde una fecha usando la zona horaria local (Bolivia)"""
+    from django.utils import timezone
+
+    # Convertir a hora local (La Paz - America/La_Paz según settings)
+    now_local = timezone.localtime()
+    date_local = timezone.localtime(date_obj)
+
+    # Obtener solo la fecha (sin hora) para calcular días completos
+    now_date = now_local.date()
+    created_date = date_local.date()
+
+    # Calcular diferencia en días
+    days = (now_date - created_date).days
     return days
 
 
@@ -534,11 +549,46 @@ def list_jobs(request):
             )
 
         jobs_list = []
-        for job in jobs.order_by('-createdAt')[:50]:  # Limitar a 50 resultados
+        for job in jobs.order_by('-createdAt')[:200]:  # Limitar a 200 resultados
             # Obtener logo del perfil de empresa si existe
             company_logo = None
-            if job.companyProfile and job.companyProfile.logo:
-                company_logo = job.companyProfile.logo.url
+            company_profile = None
+
+            if job.companyProfile:
+                # Logo
+                if job.companyProfile.logo:
+                    logo_url = job.companyProfile.logo.url
+                    if logo_url and not logo_url.startswith('http'):
+                        company_logo = request.build_absolute_uri(logo_url)
+                    else:
+                        company_logo = logo_url
+
+                # Banner
+                company_banner = None
+                if job.companyProfile.banner:
+                    banner_url = job.companyProfile.banner.url
+                    if banner_url and not banner_url.startswith('http'):
+                        company_banner = request.build_absolute_uri(banner_url)
+                    else:
+                        company_banner = banner_url
+
+                # Perfil completo de la empresa (TODOS los campos)
+                company_profile = {
+                    'id': job.companyProfile.id,
+                    'companyName': job.companyProfile.companyName,
+                    'description': job.companyProfile.description if job.companyProfile.description else None,
+                    'website': job.companyProfile.website if job.companyProfile.website else None,
+                    'phone': job.companyProfile.phone if job.companyProfile.phone else None,
+                    'email': job.companyProfile.email if job.companyProfile.email else None,
+                    'contactEmail': job.companyProfile.contactEmail if job.companyProfile.contactEmail else None,
+                    'location': job.companyProfile.location if job.companyProfile.location else None,
+                    'city': job.companyProfile.city if job.companyProfile.city else None,
+                    'category': job.companyProfile.get_category_display() if job.companyProfile.category else None,
+                    'verified': job.companyProfile.verified,
+                    'logo': company_logo,
+                    'banner': company_banner,
+                    'createdAt': job.companyProfile.createdAt.isoformat() if job.companyProfile.createdAt else None,
+                }
 
             jobs_list.append({
                 'id': job.id,
@@ -546,16 +596,33 @@ def list_jobs(request):
                 'companyName': job.companyName if not job.companyAnonymous else 'Empresa Confidencial',
                 'companyAnonymous': job.companyAnonymous,
                 'companyLogo': company_logo,
+                'companyProfile': company_profile,  # Agregar perfil completo de empresa
                 'city': job.city,
+                'municipality': job.municipality if job.municipality else None,
                 'contractType': job.contractType,
-                'modality': job.modality.capitalize() if hasattr(job, 'modality') else 'Presencial',
+                'modality': job.modality.capitalize() if job.modality else 'Presencial',
                 'jobCategory': job.jobCategory,
+                'subcategory': job.subcategory if job.subcategory else None,
                 'salary': format_salary(job),
+                'salaryMin': float(job.salaryMin) if job.salaryMin else None,
+                'salaryMax': float(job.salaryMax) if job.salaryMax else None,
+                'salaryFixed': float(job.salaryFixed) if job.salaryFixed else None,
+                'salaryType': job.salaryType,
                 'plan': job.selectedPlan,
-                'verified': False,  # Por ahora, puede agregarse al modelo si se necesita
+                'planType': job.selectedPlan,  # Agregar planType para compatibilidad con frontend
+                'urgent': job.selectedPlan in ['purpura', 'impulso'],  # Planes con highlightedResults
+                'verified': job.companyProfile.verified if job.companyProfile else False,
                 'confidential': job.companyAnonymous,
                 'views': job.views,
                 'applications': job.applications,
+                'description': job.description,
+                'requirements': job.screeningQuestions if job.screeningQuestions else None,
+                'benefits': job.benefits if job.benefits else None,
+                'schedule': None,  # Campo futuro
+                'vacancies': job.vacancies,
+                'expiryDate': job.expiryDate.isoformat() if job.expiryDate else None,
+                'applicationType': job.applicationType,
+                'externalApplicationUrl': job.externalApplicationUrl if job.externalApplicationUrl else None,
                 'createdAt': job.createdAt.isoformat(),
                 'publishedDaysAgo': calculate_days_ago(job.createdAt),
             })
@@ -1291,6 +1358,14 @@ def update_job(request, job_id):
     try:
         job = Job.objects.get(id=job_id)
 
+        # VALIDACIÓN CRÍTICA: Solo el dueño del trabajo puede actualizarlo
+        if job.email != request.user.email:
+            print(f'[SECURITY] Usuario {request.user.email} intentó actualizar Job de {job.email}')
+            return JsonResponse({
+                'success': False,
+                'message': 'No tienes permiso para actualizar este trabajo'
+            }, status=403)
+
         # Parsear datos del request
         data = json.loads(request.body) if request.body else {}
 
@@ -1372,6 +1447,15 @@ def delete_job(request, job_id):
     """
     try:
         job = Job.objects.get(id=job_id)
+
+        # VALIDACIÓN CRÍTICA: Solo el dueño del trabajo puede eliminarlo
+        if job.email != request.user.email:
+            print(f'[SECURITY] Usuario {request.user.email} intentó eliminar Job de {job.email}')
+            return JsonResponse({
+                'success': False,
+                'message': 'No tienes permiso para eliminar este trabajo'
+            }, status=403)
+
         job_id_for_response = job.id
         job_title = job.title
 

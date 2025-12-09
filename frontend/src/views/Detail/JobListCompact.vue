@@ -1,0 +1,342 @@
+<!--
+  ═══════════════════════════════════════════════════════════
+  JobListCompact.vue - Card Compacto para Lista Lateral
+  ═══════════════════════════════════════════════════════════
+
+  Diseño inspirado en OCC - Vista compacta para lista izquierda
+  Muestra información esencial del trabajo en formato condensado
+-->
+<template>
+  <div
+    class="job-list-compact"
+    :class="{ 'selected': isSelected }"
+    @click="$emit('select', listing)"
+  >
+    <!-- Borde izquierdo indicador (cuando está seleccionado) -->
+    <div class="selection-indicator"></div>
+
+    <!-- Logo de Empresa GRANDE (lado izquierdo) -->
+    <div v-if="listing.companyLogo" class="company-logo-large">
+      <img :src="listing.companyLogo" :alt="listing.companyName" />
+    </div>
+    <div v-else class="company-logo-placeholder">
+      <va-icon name="business" size="large" />
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="job-content">
+      <!-- Header: Fecha + Badges -->
+      <div class="job-header">
+        <span class="publish-date">{{ publishDate }}</span>
+        <div class="badges">
+          <span v-if="listing.planType === 'impulso'" class="badge impulso">Patrocinado</span>
+          <span v-else-if="listing.planType === 'purpura'" class="badge purpura">Destacado</span>
+          <span v-if="listing.urgent" class="badge urgent">Urgente</span>
+        </div>
+      </div>
+
+      <!-- Título del Puesto -->
+      <h3 class="job-title">{{ listing.title }}</h3>
+
+      <!-- Salario -->
+      <div class="job-salary">
+        <va-icon name="payments" size="small" />
+        <span>{{ formattedSalary }}</span>
+      </div>
+
+      <!-- Empresa + Verificación -->
+      <div class="job-company">
+        <span class="company-name">{{ listing.companyName }}</span>
+        <va-icon
+          v-if="listing.verified"
+          name="verified"
+          size="small"
+          class="verified-icon"
+          title="Empresa verificada"
+        />
+      </div>
+
+      <!-- Ciudad -->
+      <div class="job-location">
+        <va-icon name="place" size="small" />
+        <span>{{ listing.city }}</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'JobListCompact',
+
+  props: {
+    listing: {
+      type: Object,
+      required: true
+    },
+    isSelected: {
+      type: Boolean,
+      default: false
+    }
+  },
+
+  emits: ['select'],
+
+  computed: {
+    publishDate() {
+      const days = this.listing.publishedDaysAgo || 0
+      if (days === 0) return 'Hoy'
+      if (days === 1) return 'Ayer'
+      if (days < 7) return `${days}d`
+      if (days < 30) return `${Math.floor(days / 7)}sem`
+      return `${Math.floor(days / 30)}m`
+    },
+
+    formattedSalary() {
+      if (!this.listing.salary || this.listing.salary === 'A convenir') {
+        return 'A convenir'
+      }
+
+      // Si ya viene formateado desde el backend
+      if (this.listing.salaryMin && this.listing.salaryMax) {
+        return `Bs ${this.formatNumber(this.listing.salaryMin)} - ${this.formatNumber(this.listing.salaryMax)}`
+      }
+
+      return this.listing.salary
+    }
+  },
+
+  methods: {
+    formatNumber(num) {
+      return new Intl.NumberFormat('es-BO').format(num)
+    }
+  }
+}
+</script>
+
+<style scoped>
+.job-list-compact {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 0.75rem;
+}
+
+.job-list-compact:hover {
+  background: #F9FAFB;
+  border-color: #7C3AED;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
+}
+
+.job-list-compact.selected {
+  background: #F5F3FF;
+  border-color: #7C3AED;
+  border-width: 2px;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+}
+
+/* Indicador de selección (barra izquierda) */
+.selection-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: transparent;
+  border-radius: 8px 0 0 8px;
+  transition: background 0.2s;
+}
+
+.job-list-compact.selected .selection-indicator {
+  background: #7C3AED;
+}
+
+/* Contenido */
+.job-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+
+.publish-date {
+  font-size: 0.75rem;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.badges {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 0.7rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge.impulso {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.badge.purpura {
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  color: white;
+  border: 1px solid rgba(124, 58, 237, 0.5);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+.badge.urgent {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  color: white;
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.job-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.3;
+}
+
+.job-salary {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #059669;
+  margin-bottom: 0.375rem;
+}
+
+.job-company {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 0.25rem;
+}
+
+.company-name {
+  font-size: 0.85rem;
+  color: #374151;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.verified-icon {
+  color: #3B82F6;
+  flex-shrink: 0;
+}
+
+.job-location {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8rem;
+  color: #6B7280;
+}
+
+/* Logo de Empresa GRANDE */
+.company-logo-large,
+.company-logo-placeholder {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #E5E7EB;
+  background: white;
+  margin-right: 1rem;
+}
+
+.company-logo-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 0.5rem;
+}
+
+.company-logo-placeholder {
+  background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+  color: #9CA3AF;
+  border: 2px dashed #D1D5DB;
+}
+
+.job-list-compact.selected .company-logo-large,
+.job-list-compact.selected .company-logo-placeholder {
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .job-list-compact {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .job-title {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .company-logo-large,
+  .company-logo-placeholder {
+    width: 56px;
+    height: 56px;
+    margin-right: 0.5rem;
+  }
+
+  .job-salary {
+    font-size: 0.8rem;
+  }
+
+  .company-name {
+    font-size: 0.8rem;
+  }
+
+  .job-location {
+    font-size: 0.75rem;
+  }
+
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+  }
+
+  .publish-date {
+    font-size: 0.7rem;
+  }
+}
+</style>
