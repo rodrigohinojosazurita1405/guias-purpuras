@@ -1040,12 +1040,14 @@ export default {
 
 /* Columna Derecha - Panel de Detalles */
 .detail-column {
-  position: sticky;
-  top: 1rem;
-  align-self: flex-start;
+  position: fixed;
+  top: 80px;
+  right: 2rem;
+  bottom: 2rem;
+  width: calc(60% - 4rem);
   overflow: hidden;
   transition: opacity 0.3s ease;
-  max-height: calc(100vh - 2rem);
+  z-index: 10;
 }
 
 /* Ocultar panel cuando no hay selección */

@@ -9,7 +9,10 @@
     <!-- Hero con Búsqueda y Geolocalización -->
     <HeroSection />
 
-    <!-- 4 Guías Principales (Cards Flotantes) -->
+    <!-- Categorías Populares -->
+    <PopularCategories />
+
+    <!-- Anuncios Destacados -->
     <GuidesSection />
 
     <!-- Testimonios -->
@@ -23,19 +26,21 @@
 <script>
 /**
  * HomeView Component
- * 
+ *
  * Componentes hijos:
  * - MainLayout: Layout principal (TopBar + Navbar + Footer)
- * - HeroSection: Hero con búsqueda y geolocalización automática
- * - GuidesSection: 4 cards flotantes de categorías principales
- * - TestimonialsSection: Testimonios de usuarios
- * - CTABanner: Llamado a la acción final
- * 
+ * - HeroSection: Hero rediseñado funcional con búsqueda protagonista
+ * - PopularCategories: Categorías principales con íconos
+ * - GuidesSection: Anuncios destacados (estilo OLX)
+ * - TestimonialsSection: Testimonios simplificados
+ * - CTABanner: CTA minimalista
+ *
  * ✅ Geolocalización: Implementada en HeroSection via useSearchStore
  */
 
 import MainLayout from '@/components/Layout/MainLayout.vue'
 import HeroSection from '@/components/Home/HeroSection.vue'
+import PopularCategories from '@/components/Home/PopularCategories.vue'
 import GuidesSection from '@/components/Home/GuidesSection.vue'
 import TestimonialsSection from '@/components/Home/TestimonialsSection.vue'
 import CTABanner from '@/components/Home/CTABanner.vue'
@@ -45,6 +50,7 @@ export default {
   components: {
     MainLayout,
     HeroSection,
+    PopularCategories,
     GuidesSection,
     TestimonialsSection,
     CTABanner

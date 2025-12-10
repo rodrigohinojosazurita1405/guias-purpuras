@@ -328,7 +328,7 @@ export default {
 
     applyToJob() {
       if (this.listing.applicationType === 'internal') {
-        this.$router.push(`/trabajos/${this.listing.id}/postular`)
+        this.$router.push(`/guias/trabajos/${this.listing.id}/aplicar`)
       } else if (this.listing.applicationType === 'external') {
         window.open(this.listing.externalApplicationUrl, '_blank')
       } else if (this.listing.applicationType === 'email') {
@@ -372,10 +372,10 @@ export default {
   background: white;
   border-radius: 8px;
   padding: 0 2rem 2rem 2rem; /* Sin padding superior para alinear tabs */
-  overflow-y: auto;
-  position: sticky;
-  top: 180px;
-  max-height: calc(100vh - 200px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* Scrollbar */
@@ -762,6 +762,10 @@ export default {
   margin-top: 0;
   margin-bottom: 0;
   padding-top: 1.5rem; /* Pequeño padding para no quedar al ras del borde */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .tabs-header {
@@ -769,6 +773,7 @@ export default {
   gap: 0.5rem;
   border-bottom: 2px solid #E5E7EB;
   margin-bottom: 1.5rem;
+  flex-shrink: 0;
 }
 
 .tab-button {
@@ -800,6 +805,23 @@ export default {
 
 .tab-content {
   animation: fadeIn 0.3s ease-out;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Scrollbar para tab-content */
+.tab-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+  background: #F3F4F6;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
 }
 
 @keyframes fadeIn {
