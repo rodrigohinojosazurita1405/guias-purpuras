@@ -280,8 +280,8 @@ onMounted(async () => {
   // 🎯 CARGAR TIPOS DE CONTRATO DESDE BACKEND
   await fetchContractTypes()
 
-  // 🎯 DETECTAR UBICACIÓN AUTOMÁTICAMENTE AL CARGAR
-  await searchStore.detectUserLocation()
+  // 🎯 NO DETECTAR UBICACIÓN EN HOME - El usuario verá todos los anuncios de Bolivia
+  // La geolocalización se maneja en GuideView con el switch toggle
 
   // Iniciar rotación de background
   startBackgroundRotation()
