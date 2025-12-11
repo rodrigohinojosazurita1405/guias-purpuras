@@ -241,6 +241,19 @@
 
         <!-- Ubicación y Contador de Resultados -->
         <div class="results-info-inline">
+          <!-- Switch de Geolocalización -->
+          <div class="location-toggle-wrapper">
+            <label class="location-switch">
+              <input
+                type="checkbox"
+                v-model="useGeolocation"
+                @change="handleLocationToggle"
+                class="switch-checkbox"
+              />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
           <div class="location-display">
             <p class="location-prefix">Mostrando anuncios para:</p>
             <va-icon
@@ -248,9 +261,9 @@
               :class="['location-icon', { spinning: searchStore.isLoadingLocation }]"
               size="small"
             />
-            <span class="location-text">{{ searchStore.displayCity }}</span>
+            <span class="location-text">{{ useGeolocation ? searchStore.displayCity : 'Todo Bolivia' }}</span>
             <button
-              v-if="!searchStore.isLoadingLocation"
+              v-if="!searchStore.isLoadingLocation && useGeolocation"
               @click="openLocationModal"
               class="change-btn"
               title="Cambiar ubicación"
@@ -400,7 +413,9 @@ export default {
       canScrollRight: false,
       // Modal de ubicación
       showLocationModal: false,
-      selectedCityOption: null
+      selectedCityOption: null,
+      // Switch de geolocalización
+      useGeolocation: true // Activado por defecto
     }
   },
 
@@ -583,10 +598,48 @@ export default {
       // Actualizar filtros locales y emitir cambios
       this.localFilters.city = this.selectedCityOption.value
       this.emitFilters()
+    },
+
+    // Toggle de geolocalización
+    handleLocationToggle() {
+      // Guardar preferencia en localStorage
+      localStorage.setItem('useGeolocation', this.useGeolocation)
+
+      if (this.useGeolocation) {
+        // Activar: usar ciudad detectada
+        this.localFilters.city = this.searchStore.selectedCity
+        this.notify({
+          message: `📍 Ubicación activada: ${this.searchStore.displayCity}`,
+          color: 'success',
+          duration: 2500
+        })
+      } else {
+        // Desactivar: mostrar todo Bolivia
+        this.localFilters.city = ''
+        this.notify({
+          message: '🌎 Mostrando anuncios de todo Bolivia',
+          color: 'info',
+          duration: 2500
+        })
+      }
+
+      // Emitir cambios
+      this.emitFilters()
     }
   },
 
   mounted() {
+    // Cargar preferencia de geolocalización desde localStorage
+    const savedPreference = localStorage.getItem('useGeolocation')
+    if (savedPreference !== null) {
+      this.useGeolocation = savedPreference === 'true'
+    }
+
+    // Si la geolocalización está activada, aplicar el filtro de ciudad
+    if (this.useGeolocation && this.searchStore.selectedCity) {
+      this.localFilters.city = this.searchStore.selectedCity
+    }
+
     // Cerrar dropdowns al hacer click fuera
     this.closeDropdownListener = (e) => {
       if (!e.target.closest('.filter-dropdown')) {
@@ -909,6 +962,94 @@ export default {
   padding: 0 0.5rem;
 }
 
+/* ========== SWITCH DE GEOLOCALIZACIÓN (ESTILO FACEBOOK) ========== */
+.location-toggle-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.location-switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.switch-checkbox {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 18px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.switch-slider::before {
+  content: '';
+  position: absolute;
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estado ACTIVADO - Verde esmeralda */
+.switch-checkbox:checked + .switch-slider {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.switch-checkbox:checked + .switch-slider::before {
+  transform: translateX(14px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Hover */
+.location-switch:hover .switch-slider {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.location-switch:hover .switch-checkbox:checked + .switch-slider {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.5);
+}
+
+/* Animación de pulso cuando se activa */
+.switch-checkbox:checked + .switch-slider::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  background: rgba(16, 185, 129, 0.3);
+  animation: pulse-green 0.6s ease-out;
+}
+
+@keyframes pulse-green {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
 /* Ubicación - Estilo TopBar */
 .location-display {
   display: flex;
@@ -1199,6 +1340,21 @@ export default {
   .divider {
     font-size: 1rem;
     margin: 0 0.5rem;
+  }
+
+  /* Switch más pequeño en móvil */
+  .location-switch {
+    width: 28px;
+    height: 16px;
+  }
+
+  .switch-slider::before {
+    height: 12px;
+    width: 12px;
+  }
+
+  .switch-checkbox:checked + .switch-slider::before {
+    transform: translateX(12px);
   }
 }
 </style>
