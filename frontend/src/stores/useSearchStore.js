@@ -48,13 +48,15 @@ export const useSearchStore = defineStore('search', () => {
    * Inicializar desde localStorage
    */
   const initFromStorage = () => {
-    const savedCity = localStorage.getItem('selectedCity')
-    const savedContractType = localStorage.getItem('selectedContractType')
-    const savedMethod = localStorage.getItem('locationMethod')
+    // ⚠️ NO cargar ciudad desde localStorage en el store
+    // La geolocalización se maneja solo en GuideView con el switch
+    // Para que el HOME siempre muestre TODO Bolivia
 
-    if (savedCity) selectedCity.value = savedCity
+    const savedContractType = localStorage.getItem('selectedContractType')
     if (savedContractType) selectedContractType.value = savedContractType
-    if (savedMethod) locationMethod.value = savedMethod
+
+    // NO cargar ciudad ni método de ubicación
+    // selectedCity.value permanece vacío = "Todo Bolivia"
   }
 
   /**
@@ -288,10 +290,9 @@ export const useSearchStore = defineStore('search', () => {
   // Inicializar al cargar
   initFromStorage()
 
-  // Detectar ubicación automáticamente si no hay ciudad guardada
-  if (!selectedCity.value) {
-    detectUserLocation()
-  }
+  // ⚠️ NO DETECTAR UBICACIÓN AUTOMÁTICAMENTE
+  // El usuario decide con el switch en GuideView si quiere geolocalización
+  // El HOME siempre muestra TODO Bolivia sin filtros automáticos
 
   return {
     // State
