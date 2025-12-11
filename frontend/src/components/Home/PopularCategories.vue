@@ -35,7 +35,7 @@
                 <va-icon :name="category.icon" size="2rem" />
               </div>
               <h3 class="category-name">{{ category.name }}</h3>
-              <p class="category-count">{{ category.count }} empleos</p>
+              <p class="category-count">Ver oportunidades →</p>
             </div>
           </div>
 
