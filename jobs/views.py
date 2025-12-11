@@ -43,7 +43,7 @@ def publish_job(request):
     - whatsapp (str)
     - website (str)
     - applicationInstructions (str)
-    - applicationType (str: 'internal'|'external'|'both', default: 'internal')
+    - applicationType (str: 'internal'|'external', default: 'internal')
     - externalApplicationUrl (str)
     - screeningQuestions (list)
 
@@ -185,8 +185,8 @@ def publish_job(request):
 
         # Application Type
         app_type = (data.get('applicationType') or 'internal').lower()
-        if app_type not in ['internal', 'external', 'both']:
-            errors['applicationType'] = "Debe ser 'internal', 'external' o 'both'"
+        if app_type not in ['internal', 'external']:
+            errors['applicationType'] = "Debe ser 'internal' o 'external'"
 
         # Salary validation (si es tipo range)
         if salary_type == 'range':
@@ -236,7 +236,7 @@ def publish_job(request):
             else:
                 company_anonymous = bool(company_anonymous_value)
 
-            job = Job.objects.create(
+            job = Job(
                 title=title,
                 companyProfile=company_profile,  # Asignar CompanyProfile si existe
                 companyName=(data.get('companyName') or 'Empresa Confidencial').strip(),
@@ -262,6 +262,12 @@ def publish_job(request):
                 screeningQuestions=data.get('screeningQuestions', []),
                 proofOfPayment=proof_of_payment,  # FASE 7.1: Comprobante de pago obligatorio
             )
+
+            # ⚠️ FIX CRÍTICO: Pasar usuario y request al signal para auditoría correcta
+            job._audit_user = request.user
+            job._audit_request = request
+
+            job.save()
 
             print(f'[OK] [PUBLISH_JOB] Job creado: ID={job.id}, Título="{job.title}", Plan={plan}')
 
@@ -1302,6 +1308,10 @@ def verify_payment(request, job_id):
         # Si el pago fue aprobado, cambiar estado a 'active', si no a 'draft'
         job.status = 'active' if approved else 'draft'
 
+        # ⚠️ FIX CRÍTICO: Pasar usuario y request al signal para auditoría correcta
+        job._audit_user = request.user
+        job._audit_request = request
+
         job.save()
 
         status_text = "Aprobado" if approved else "Rechazado"
@@ -1392,6 +1402,10 @@ def update_job(request, job_id):
                     }
                 setattr(job, field, data[field])
 
+        # ⚠️ FIX CRÍTICO: Pasar usuario y request al signal para auditoría correcta
+        job._audit_user = request.user
+        job._audit_request = request
+
         job.save()
 
         # Auditoría automática manejada por signals (audit/signals.py)
@@ -1463,6 +1477,11 @@ def delete_job(request, job_id):
         from datetime import datetime, timezone
         job.isDeleted = True
         job.deletedAt = datetime.now(timezone.utc)
+
+        # ⚠️ FIX CRÍTICO: Pasar usuario y request al signal para auditoría correcta
+        job._audit_user = request.user
+        job._audit_request = request
+
         job.save()
 
         # Auditoría automática manejada por signals (audit/signals.py)

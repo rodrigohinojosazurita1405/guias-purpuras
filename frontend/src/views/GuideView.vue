@@ -118,6 +118,7 @@ import JobDetailPanel from '@/views/Detail/JobDetailPanel.vue'
 import ListingCard from '@/components/Cards/ListingCard.vue'
 import { useSearchStore } from '@/stores/useSearchStore'
 import { mockBusinesses } from '@/data/mockBusinesses.js'
+import axios from 'axios'
 
 export default {
   name: 'GuideView',
@@ -225,9 +226,19 @@ export default {
 
       // Filtrar por categoría (trabajos)
       if (this.category === 'trabajos' && this.topFilters.category) {
-        results = results.filter(listing =>
-          listing.jobCategory === this.topFilters.category
-        )
+        console.log('🔍 Filtrando por categoría:', this.topFilters.category)
+        console.log('📋 Total listings antes de filtrar:', results.length)
+        console.log('📋 Categorías disponibles:', [...new Set(results.map(l => l.jobCategory))])
+
+        results = results.filter(listing => {
+          const match = listing.jobCategory === this.topFilters.category
+          if (match) {
+            console.log('✅ Match encontrado:', listing.title, '- Category:', listing.jobCategory)
+          }
+          return match
+        })
+
+        console.log('📋 Total listings después de filtrar:', results.length)
       }
 
       // Filtrar por tipo de contrato (trabajos)
@@ -446,24 +457,83 @@ export default {
     /**
      * 🆕 SINCRONIZAR CON STORE AL INICIAR
      */
-    syncWithStore() {
+    async syncWithStore() {
       // Leer query params de la URL
-      const { ciudad, q } = this.$route.query
-      
+      const { ciudad, q, category, contractType } = this.$route.query
+
+      // 🔥 Si hay parámetro 'selected', NO aplicar filtros del store
+      // Esto permite mostrar todos los trabajos cuando se viene desde "Empleos destacados"
+      const hasSelectedParam = this.$route.query.selected
+
       // Si hay query params, usarlos
       if (ciudad) {
         this.topFilters.city = this.normalizeCityName(ciudad)
-      } 
-      // Si no hay query params pero el store tiene ciudad, usarla
-      else if (this.searchStore.selectedCity) {
+      }
+      // Si no hay query params y NO hay selected param, usar el store
+      else if (this.searchStore.selectedCity && !hasSelectedParam) {
         this.topFilters.city = this.normalizeCityName(this.searchStore.selectedCity)
       }
-      
+
       if (q) {
         this.topFilters.search = q
-      } else if (this.searchStore.searchQuery) {
+      } else if (this.searchStore.searchQuery && !hasSelectedParam) {
         this.topFilters.search = this.searchStore.searchQuery
       }
+
+      // 🆕 Si hay categoría en query params, usarla
+      if (category) {
+        console.log('📌 Category slug from URL:', category)
+        const denormalizedCategory = await this.denormalizeCategory(category)
+        console.log('📌 Denormalized category:', denormalizedCategory)
+        this.topFilters.category = denormalizedCategory
+        console.log('📌 topFilters.category set to:', this.topFilters.category)
+      }
+
+      // 🆕 Si hay tipo de contrato en query params, usarlo
+      if (contractType) {
+        console.log('📌 ContractType from URL:', contractType)
+        this.topFilters.contractType = contractType
+        console.log('📌 topFilters.contractType set to:', this.topFilters.contractType)
+      } else if (this.searchStore.selectedContractType && !hasSelectedParam) {
+        this.topFilters.contractType = this.searchStore.selectedContractType
+      }
+    },
+
+    /**
+     * Convertir slug de categoría a nombre completo
+     */
+    async denormalizeCategory(categorySlug) {
+      // El slug viene en formato como "tecnologia-e-informatica"
+      // Necesitamos convertirlo al nombre real que usa el backend
+      try {
+        const response = await axios.get('http://localhost:8000/api/jobs/categories-dynamic/')
+        if (response.data && response.data.categories) {
+          const category = response.data.categories.find(cat => cat.slug === categorySlug)
+          if (category) {
+            console.log('✅ Categoría encontrada en API:', category.text)
+            return category.text // Retornar el nombre completo: "Tecnología e Informática"
+          }
+        }
+      } catch (error) {
+        console.error('Error al obtener categorías:', error)
+      }
+      // Si no encuentra, devolver el slug convertido a título (respetando palabras cortas como "y", "e", "de")
+      const smallWords = ['y', 'e', 'de', 'del', 'la', 'el', 'los', 'las', 'a', 'al']
+      const result = categorySlug.split('-').map((word, index) => {
+        // Primera palabra siempre con mayúscula
+        if (index === 0) {
+          return word.charAt(0).toUpperCase() + word.slice(1)
+        }
+        // Palabras cortas en minúscula (excepto la primera)
+        if (smallWords.includes(word.toLowerCase())) {
+          return word.toLowerCase()
+        }
+        // Resto con mayúscula inicial
+        return word.charAt(0).toUpperCase() + word.slice(1)
+      }).join(' ')
+
+      console.log('⚠️ Usando fallback - Convertido:', categorySlug, '→', result)
+      return result
     },
 
     /**
@@ -728,10 +798,14 @@ export default {
       }
     },
 
-    loadMockData() {
-      if (this.category === 'negocios') {
+    async loadMockData() {
+      if (this.category === 'trabajos') {
+        // Cargar trabajos desde la API
+        await this.loadJobsFromAPI()
+      }
+      else if (this.category === 'negocios') {
         this.allListings = [...mockBusinesses]
-      } 
+      }
       else if (this.category === 'profesionales') {
         this.allListings = [
           {
@@ -894,11 +968,26 @@ export default {
   async mounted() {
     // Cargar datos dinámicos desde BD
     await this.loadDynamicData()
-    this.loadMockData()
+    // 🔥 IMPORTANTE: Esperar a que los trabajos se carguen
+    await this.loadMockData()
     // 🆕 Sincronizar con store al montar
     this.syncWithStore()
-    // NO seleccionar automáticamente - dejar que el usuario haga clic
-    // Esto permite que la lista ocupe todo el ancho inicialmente
+
+    // Verificar si hay un trabajo preseleccionado en la URL (query param 'selected')
+    const selectedId = this.$route.query.selected
+    if (selectedId) {
+      console.log('[GuideView] Buscando trabajo con ID:', selectedId)
+      console.log('[GuideView] Total trabajos cargados:', this.allListings.length)
+      // Buscar el trabajo en la lista y seleccionarlo
+      const job = this.allListings.find(listing => listing.id === parseInt(selectedId))
+      if (job) {
+        console.log('[GuideView] Trabajo encontrado, seleccionando:', job.title)
+        this.selectJob(job)
+      } else {
+        console.warn('[GuideView] No se encontró el trabajo con ID:', selectedId)
+      }
+    }
+
     // Agregar listener de scroll para scroll infinito
     window.addEventListener('scroll', this.handleScroll)
   },
@@ -1040,14 +1129,12 @@ export default {
 
 /* Columna Derecha - Panel de Detalles */
 .detail-column {
-  position: fixed;
-  top: 80px;
-  right: 2rem;
-  bottom: 2rem;
-  width: calc(60% - 4rem);
+  position: sticky;
+  top: 1rem;
+  align-self: flex-start;
   overflow: hidden;
   transition: opacity 0.3s ease;
-  z-index: 10;
+  max-height: calc(100vh - 2rem);
 }
 
 /* Ocultar panel cuando no hay selección */

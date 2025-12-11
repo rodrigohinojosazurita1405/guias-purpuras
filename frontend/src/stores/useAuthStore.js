@@ -340,26 +340,71 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const updateProfile = async (updates) => {
     isLoading.value = true
-    
+
     try {
       // TODO: API call
-      
+
       // MOCK
       await new Promise(resolve => setTimeout(resolve, 800))
-      
+
       user.value = { ...user.value, ...updates }
       localStorage.setItem('auth_user', JSON.stringify(user.value))
-      
+
       return { success: true }
-      
+
     } catch (error) {
       console.error('Update profile error:', error)
-      return { 
-        success: false, 
-        error: 'Error al actualizar perfil.' 
+      return {
+        success: false,
+        error: 'Error al actualizar perfil.'
       }
     } finally {
       isLoading.value = false
+    }
+  }
+
+  /**
+   * Sincronizar foto de perfil desde el backend
+   * Útil para actualizar la foto sin cerrar sesión
+   */
+  const syncProfilePhoto = async () => {
+    if (!user.value) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.value.email,
+          // Nota: No podemos hacer login sin password, así que usaremos un endpoint diferente
+        })
+      })
+
+      // En su lugar, vamos a obtener la foto directamente de los perfiles
+      const profilesModule = await import('./useProfileStore')
+      const profileStore = profilesModule.useProfileStore()
+
+      if (user.value.role === 'company') {
+        const companyModule = await import('./useCompanyStore')
+        const companyStore = companyModule.useCompanyStore()
+        const result = await companyStore.getMyCompany()
+
+        if (result.success && result.company?.logo) {
+          user.value.profilePhoto = result.company.logo
+          localStorage.setItem('auth_user', JSON.stringify(user.value))
+          console.log('✅ Foto de perfil sincronizada (empresa):', user.value.profilePhoto)
+        }
+      } else {
+        const result = await profileStore.getProfileByEmail(user.value.email)
+
+        if (result.success && result.profile?.profilePhoto) {
+          user.value.profilePhoto = result.profile.profilePhoto
+          localStorage.setItem('auth_user', JSON.stringify(user.value))
+          console.log('✅ Foto de perfil sincronizada (postulante):', user.value.profilePhoto)
+        }
+      }
+    } catch (err) {
+      console.error('Error sincronizando foto de perfil:', err)
     }
   }
 
@@ -385,6 +430,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     refreshAccessToken,
     updateProfile,
+    syncProfilePhoto,
     initAuth
   }
 })

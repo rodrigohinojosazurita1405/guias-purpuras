@@ -350,6 +350,33 @@
       </div>
 
     </div>
+
+    <!-- MODAL DE ERRORES DE VALIDACIÓN -->
+    <va-modal
+      v-model="showErrorModal"
+      title="Campos Incompletos"
+      size="medium"
+      ok-text="Entendido"
+      hide-default-actions
+    >
+      <div class="error-modal-content">
+        <div class="error-icon">
+          <va-icon name="error" size="4rem" color="danger" />
+        </div>
+        <h3 class="error-title">Por favor completa los siguientes campos:</h3>
+        <ul class="error-list">
+          <li v-for="(error, index) in validationErrors" :key="index" class="error-item">
+            <va-icon name="arrow_right" size="small" color="danger" />
+            {{ error }}
+          </li>
+        </ul>
+      </div>
+      <template #footer>
+        <va-button @click="showErrorModal = false" color="primary">
+          Entendido
+        </va-button>
+      </template>
+    </va-modal>
   </div>
 </template>
 
@@ -487,6 +514,10 @@ const cityOptions = ref([])
 const loadingCategories = ref(true)
 const loadingContractTypes = ref(true)
 const loadingCities = ref(true)
+
+// ========== MODAL DE ERRORES ==========
+const showErrorModal = ref(false)
+const validationErrors = ref([])
 
 // ========== WATCH PARA SINCRONIZACIÓN ==========
 // Watch para cambios internos del formulario - emite actualizaciones al parent
@@ -665,8 +696,8 @@ const validate = () => {
 
   if (errors.length > 0) {
     console.error('❌ ERRORES DE VALIDACIÓN:', errors)
-    const errorMessage = errors.join('\n• ')
-    alert(`⚠️ Por favor completa los siguientes campos:\n\n• ${errorMessage}`)
+    validationErrors.value = errors
+    showErrorModal.value = true
     return false
   }
 
@@ -1543,10 +1574,85 @@ textarea::placeholder {
   line-height: 1;
 }
 
+/* ========== MODAL DE ERRORES ========== */
+.error-modal-content {
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+
+.error-icon {
+  margin-bottom: 1.5rem;
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.error-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #DC2626;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+}
+
+.error-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.error-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(220, 38, 38, 0.05);
+  border-left: 3px solid #DC2626;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  color: #1F2937;
+  line-height: 1.5;
+  animation: slideInLeft 0.3s ease backwards;
+}
+
+.error-item:nth-child(1) { animation-delay: 0.1s; }
+.error-item:nth-child(2) { animation-delay: 0.2s; }
+.error-item:nth-child(3) { animation-delay: 0.3s; }
+.error-item:nth-child(4) { animation-delay: 0.4s; }
+.error-item:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .information-step-job {
     padding: 1rem;
+  }
+
+  .error-title {
+    font-size: 1.1rem;
+  }
+
+  .error-item {
+    font-size: 0.9rem;
+    padding: 0.6rem 0.8rem;
   }
 
   .step-header {

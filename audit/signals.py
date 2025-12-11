@@ -107,6 +107,22 @@ def audit_job_save(sender, instance, created, **kwargs):
         print(f"[AUDIT] No hay cambios, saltando auditoría")
         return
 
+    # No auditar si solo cambió el campo 'views' (visitas de usuarios anónimos)
+    if not created and changes and list(changes.keys()) == ['views']:
+        print(f"[AUDIT] Solo cambió 'views', saltando auditoría (visita anónima)")
+        # Limpiar el estado anterior
+        if hasattr(_audit_state, 'job_old_state') and instance.pk in _audit_state.job_old_state:
+            del _audit_state.job_old_state[instance.pk]
+        return
+
+    # No auditar si solo cambió 'applications' (incremento automático al aplicar)
+    if not created and changes and list(changes.keys()) == ['applications']:
+        print(f"[AUDIT] Solo cambió 'applications', saltando auditoría (aplicación nueva)")
+        # Limpiar el estado anterior
+        if hasattr(_audit_state, 'job_old_state') and instance.pk in _audit_state.job_old_state:
+            del _audit_state.job_old_state[instance.pk]
+        return
+
     # Detectar si es una eliminación lógica (soft delete)
     is_soft_delete = 'isDeleted' in changes and changes['isDeleted']['new'] == 'True'
 
@@ -127,11 +143,22 @@ def audit_job_save(sender, instance, created, **kwargs):
     elif 'status' in changes and changes['status']['new'] == 'closed':
         severity = 'warning'
 
-    # Obtener usuario y request del middleware
-    user = get_current_user()
-    request = get_current_request()
+    # ⚠️ FIX CRÍTICO: Priorizar usuario del atributo _audit_user (pasado desde el view)
+    # Si no existe, intentar obtenerlo del middleware (pero puede estar desincronizado)
+    user = getattr(instance, '_audit_user', None)
+    request = getattr(instance, '_audit_request', None)
+
+    if not user:
+        user = get_current_user()
+        request = get_current_request()
+        print(f"[AUDIT WARNING] Usuario obtenido del middleware (puede estar desincronizado)")
 
     print(f"[AUDIT] Usuario: {user}, Request: {request}")
+    if user and user.is_authenticated:
+        print(f"[AUDIT] Email del usuario: {user.email}")
+        print(f"[AUDIT] Rol del usuario: {user.role if hasattr(user, 'role') else 'NO TIENE ROL'}")
+    else:
+        print(f"[AUDIT] Usuario no autenticado (AnonymousUser)")
     print(f"[AUDIT] Cambios: {changes}")
     print(f"[AUDIT] Acción detectada: {action}")
 

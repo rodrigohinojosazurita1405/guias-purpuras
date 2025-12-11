@@ -262,10 +262,11 @@
           <span class="results-count">{{ resultsCount }} resultado{{ resultsCount !== 1 ? 's' : '' }}</span>
         </div>
 
-        <!-- Botón Limpiar Filtros -->
+        <!-- Botón Limpiar Filtros - Siempre visible -->
         <button
-          v-if="hasActiveFilters"
           class="clear-filters-btn"
+          :class="{ 'has-filters': hasActiveFilters }"
+          :disabled="!hasActiveFilters"
           @click="clearFilters"
         >
           Limpiar filtros
@@ -904,7 +905,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-left: auto;
+  margin-left: 1rem;
   padding: 0 0.5rem;
 }
 
@@ -1003,25 +1004,40 @@ export default {
 }
 
 .clear-filters-btn {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
   font-weight: 600;
-  cursor: pointer;
+  cursor: not-allowed;
   transition: all 0.2s;
   margin-left: 0.5rem;
   white-space: nowrap;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  opacity: 0.6;
 }
 
-.clear-filters-btn:hover {
+/* Estado activo cuando hay filtros */
+.clear-filters-btn.has-filters {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  opacity: 1;
+}
+
+.clear-filters-btn.has-filters:hover {
   background: rgba(255, 255, 255, 0.25);
   border-color: white;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.clear-filters-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* ========== RESPONSIVE ========== */

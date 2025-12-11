@@ -57,8 +57,8 @@
 
         <!-- Sección con Logo + Título + Empresa -->
         <div class="title-section">
-          <!-- Logo de la empresa -->
-          <div v-if="listing.companyLogo" class="company-logo-box">
+          <!-- Logo de la empresa (NO mostrar si es anónima) -->
+          <div v-if="listing.companyLogo && !listing.companyAnonymous" class="company-logo-box">
             <img :src="listing.companyLogo" :alt="listing.companyName" />
           </div>
           <div v-else class="company-logo-placeholder">
@@ -372,10 +372,8 @@ export default {
   background: white;
   border-radius: 8px;
   padding: 0 2rem 2rem 2rem; /* Sin padding superior para alinear tabs */
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: calc(100vh - 2rem);
 }
 
 /* Scrollbar */
@@ -762,10 +760,6 @@ export default {
   margin-top: 0;
   margin-bottom: 0;
   padding-top: 1.5rem; /* Pequeño padding para no quedar al ras del borde */
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
 }
 
 .tabs-header {
@@ -773,7 +767,6 @@ export default {
   gap: 0.5rem;
   border-bottom: 2px solid #E5E7EB;
   margin-bottom: 1.5rem;
-  flex-shrink: 0;
 }
 
 .tab-button {
@@ -805,23 +798,6 @@ export default {
 
 .tab-content {
   animation: fadeIn 0.3s ease-out;
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-}
-
-/* Scrollbar para tab-content */
-.tab-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.tab-content::-webkit-scrollbar-track {
-  background: #F3F4F6;
-}
-
-.tab-content::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
-  border-radius: 3px;
 }
 
 @keyframes fadeIn {

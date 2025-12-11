@@ -23,7 +23,7 @@
     <!-- PASO 0: Selección Inicial (Tipo de trabajo y Ciudad) -->
     <JobPublishStart
       v-if="publishStore.currentStep === 0"
-      :model-value="{ subcategory: publishStore.jobData.subcategory, city: publishStore.jobData.city }"
+      :model-value="{ contractType: publishStore.jobData.contractType, city: publishStore.jobData.city }"
       @update:formData="handleFormData"
       @proceed-to-wizard="proceedToWizard"
       @cancel="goHome"
@@ -62,6 +62,7 @@
       type="job"
       :job-data="publishStore.jobData"
       :form-data="{}"
+      :is-submitting="isSubmitting"
       @submit="handleSubmit"
       @back="previousStep"
     />
@@ -268,7 +269,7 @@ const handleFormData = (data) => {
 const proceedToWizard = () => {
   console.log('Procediendo al wizard...')
   console.log('Datos guardados:', {
-    subcategory: publishStore.jobData.subcategory,
+    contractType: publishStore.jobData.contractType,
     city: publishStore.jobData.city
   })
   publishStore.setCurrentStep(1)
@@ -547,10 +548,11 @@ const clearDraft = () => {
   right: 20px;
   z-index: 100;
   padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(94, 4, 154, 0.95);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
+  
 }
 
 .clear-draft-btn :deep(.va-button) {

@@ -23,7 +23,16 @@
       "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\fix_old_orders.py\")",
       "Bash(findstr:*)",
       "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\fix_jobs_company_profile.py\")",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(git checkout:*)",
+      "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\frontend\\src\\components\\Filters\\FiltersSidebar.vue\" \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\frontend\\src\\components\\Filters\\TopFiltersBar.vue\")",
+      "Bash(git restore:*)",
+      "Bash(py manage.py shell:*)",
+      "Bash(py manage.py makemigrations jobs)",
+      "Bash(py manage.py migrate jobs)",
+      "Bash(del temp_jobs.json)",
+      "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\frontend\\src\\views\\Detail\\JobDetailView.vue\")",
+      "Bash(del nul)"
     ],
     "deny": [],
     "ask": []

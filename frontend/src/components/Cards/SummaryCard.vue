@@ -2,9 +2,9 @@
   ==========================================
   SUMMARYCARD.VUE - ACTUALIZADO
   ==========================================
-  
+
   Resumen completo del anuncio antes de publicar.
-  Incluye sección especial para mostrar los platos del menú (gastronomía).
+  Enfocado exclusivamente en Trabajos.
 -->
 
 <template>
@@ -115,115 +115,12 @@
             <span class="label">Título:</span>
             <span class="value bold">{{ formData.title }}</span>
           </div>
-          
-          <!-- Campo SERVICES para profesionales -->
-          <div v-if="formData.category === 'profesionales' && formData.services" class="info-row full-width">
-            <span class="label">Descripción de servicios:</span>
-            <p class="value description">{{ formData.services }}</p>
-          </div>
-          
-          <!-- Campo DESCRIPTION para otros -->
-          <div v-else-if="formData.description" class="info-row full-width">
+
+          <!-- Campo DESCRIPTION -->
+          <div v-if="formData.description" class="info-row full-width">
             <span class="label">Descripción:</span>
             <p class="value description">{{ formData.description }}</p>
           </div>
-
-          <!-- Campos específicos de GASTRONOMÍA -->
-          <template v-if="formData.category === 'gastronomia'">
-            <div class="info-row">
-              <span class="label">Rango de precios:</span>
-              <span class="value">{{ formData.priceRange || 'N/A' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Delivery:</span>
-              <span class="value">{{ formData.deliveryAvailable ? '✅ Disponible' : '❌ No disponible' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Horarios:</span>
-              <span class="value">{{ formData.schedule || 'N/A' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Capacidad:</span>
-              <span class="value">{{ formData.capacity ? `${formData.capacity} personas` : 'N/A' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Estacionamiento:</span>
-              <span class="value">{{ formData.parking ? '✅ Disponible' : '❌ No disponible' }}</span>
-            </div>
-            <div v-if="formData.features && formData.features.length > 0" class="info-row full-width">
-              <span class="label">Características:</span>
-              <div class="features-list">
-                <va-chip
-                  v-for="feature in formData.features"
-                  :key="feature"
-                  size="small"
-                  color="success"
-                >
-                  {{ feature }}
-                </va-chip>
-              </div>
-            </div>
-          </template>
-
-          <!-- Campos específicos de PROFESIONALES -->
-          <template v-if="formData.category === 'profesionales'">
-            <div class="info-row">
-              <span class="label">Título profesional:</span>
-              <span class="value">{{ formData.professionalTitle || 'N/A' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Años de experiencia:</span>
-              <span class="value">{{ formData.yearsExperience || 'N/A' }}</span>
-            </div>
-            <div v-if="formData.university" class="info-row">
-              <span class="label">Universidad:</span>
-              <span class="value">{{ formData.university }}</span>
-            </div>
-            <div v-if="formData.specialties && formData.specialties.length > 0" class="info-row full-width">
-              <span class="label">Especialidades:</span>
-              <div class="features-list">
-                <va-chip
-                  v-for="specialty in formData.specialties"
-                  :key="specialty"
-                  size="small"
-                  color="primary"
-                >
-                  {{ specialty }}
-                </va-chip>
-              </div>
-            </div>
-            <div v-if="formData.successCases" class="info-row full-width">
-              <span class="label">Casos de éxito / Logros:</span>
-              <p class="value description">{{ formData.successCases }}</p>
-            </div>
-            <div v-if="formData.whyChooseMe" class="info-row full-width">
-              <span class="label">¿Por qué elegirme?:</span>
-              <p class="value description">{{ formData.whyChooseMe }}</p>
-            </div>
-            <div v-if="formData.languages && formData.languages.length > 0" class="info-row full-width">
-              <span class="label">Idiomas:</span>
-              <div class="features-list">
-                <va-chip
-                  v-for="language in formData.languages"
-                  :key="language"
-                  size="small"
-                  color="success"
-                >
-                  {{ language }}
-                </va-chip>
-              </div>
-            </div>
-            <div class="info-row">
-              <span class="label">Tarifa:</span>
-              <span class="value">
-                {{ formData.priceType === 'desde' && formData.price ? `Desde Bs. ${formData.price}` : 'A consultar' }}
-              </span>
-            </div>
-            <div v-if="formData.schedule" class="info-row">
-              <span class="label">Horario de atención:</span>
-              <span class="value">{{ formData.schedule }}</span>
-            </div>
-          </template>
 
           <!-- Contacto (común para todos) -->
           <div class="info-row">
@@ -273,184 +170,6 @@
             </div>
           </div>
           <p v-else class="empty-message">No se han agregado imágenes</p>
-        </div>
-      </div>
-
-      <!-- GPS / UBICACIÓN (Solo profesionales y gastronomía, NO para jobs) -->
-      <div v-if="type !== 'job' && ['profesionales', 'gastronomia'].includes(formData.category)" class="summary-section">
-        <div class="section-header">
-          <h3 class="section-title">
-            <va-icon name="location_on" size="1.25rem" />
-            Ubicación GPS
-          </h3>
-          <va-button
-            v-if="editable"
-            size="small"
-            preset="plain"
-            @click="$emit('edit-step', formData.category === 'profesionales' ? 2 : 4)"
-          >
-            Editar
-          </va-button>
-        </div>
-        
-        <div class="section-content">
-          <div v-if="formData.coordinates" class="info-row">
-            <span class="label">Coordenadas:</span>
-            <span class="value">{{ formData.coordinates }}</span>
-          </div>
-          <div v-if="formData.gpsAddress" class="info-row full-width">
-            <span class="label">Dirección GPS:</span>
-            <span class="value">{{ formData.gpsAddress }}</span>
-          </div>
-          
-          <!-- Mapa Preview -->
-          <div v-if="formData.coordinates" class="map-preview-container">
-            <div id="map-preview" class="map-preview"></div>
-          </div>
-          
-          <p v-if="!formData.coordinates && !formData.gpsAddress" class="empty-message">
-            <va-icon name="info" color="warning" />
-            No se ha agregado ubicación GPS
-          </p>
-        </div>
-      </div>
-
-      <!-- SEO (Solo profesionales y gastronomía, NO para jobs) -->
-      <div v-if="type !== 'job' && ['profesionales', 'gastronomia'].includes(formData.category) && formData.seoData" class="summary-section">
-        <div class="section-header">
-          <h3 class="section-title">
-            <va-icon name="search" size="1.25rem" />
-            SEO y Visibilidad
-          </h3>
-          <va-button
-            v-if="editable"
-            size="small"
-            preset="plain"
-            @click="$emit('edit-step', formData.category === 'profesionales' ? 3 : 5)"
-          >
-            Editar
-          </va-button>
-        </div>
-        
-        <div class="section-content">
-          <div v-if="formData.seoData.title" class="info-row">
-            <span class="label">Título SEO:</span>
-            <span class="value">{{ formData.seoData.title }}</span>
-          </div>
-          <div v-if="formData.seoData.slug" class="info-row">
-            <span class="label">URL:</span>
-            <span class="value url">guiaspurpuras.com/{{ formData.seoData.slug }}</span>
-          </div>
-          <div v-if="formData.seoData.mainKeyword" class="info-row">
-            <span class="label">Palabra clave:</span>
-            <span class="value">{{ formData.seoData.mainKeyword }}</span>
-          </div>
-          <div v-if="formData.seoData.metaDescription" class="info-row full-width">
-            <span class="label">Meta descripción:</span>
-            <p class="value description">{{ formData.seoData.metaDescription }}</p>
-          </div>
-          <div v-if="formData.seoData.tags && formData.seoData.tags.length > 0" class="info-row full-width">
-            <span class="label">Tags SEO:</span>
-            <div class="features-list">
-              <va-chip
-                v-for="tag in formData.seoData.tags"
-                :key="tag"
-                size="small"
-                color="purple"
-              >
-                {{ tag }}
-              </va-chip>
-            </div>
-          </div>
-          <div v-if="formData.seoData.locationKeywords" class="info-row">
-            <span class="label">Keywords de ubicación:</span>
-            <span class="value">{{ formData.seoData.locationKeywords }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 
-        ==========================================
-        MENÚ / PLATOS (SOLO GASTRONOMÍA)
-        ==========================================
-      -->
-      <div v-if="formData.category === 'gastronomia'" class="summary-section">
-        <div class="section-header">
-          <h3 class="section-title">
-            <va-icon name="restaurant_menu" size="1.25rem" />
-            Menú / Platos
-          </h3>
-          <va-button
-            v-if="editable"
-            size="small"
-            preset="plain"
-            @click="$emit('edit-step', 4)"
-          >
-            Editar
-          </va-button>
-        </div>
-        
-        <div class="section-content">
-          <div v-if="formData.menuItems && formData.menuItems.length > 0">
-            <p class="menu-count">
-              <va-icon name="fastfood" color="purple" />
-              <strong>{{ formData.menuItems.length }}</strong> 
-              {{ formData.menuItems.length === 1 ? 'plato agregado' : 'platos agregados' }}
-            </p>
-            
-            <!-- Grid de platos -->
-            <div class="menu-items-grid">
-              <div
-                v-for="(item, index) in formData.menuItems"
-                :key="index"
-                class="menu-item-preview"
-              >
-                <!-- Imagen del plato -->
-                <div class="menu-item-image">
-                  <img 
-                    v-if="item.image || item.imagePreview" 
-                    :src="item.imagePreview || getImageUrl(item.image)" 
-                    :alt="item.name"
-                  />
-                  <div v-else class="no-image">
-                    <va-icon name="restaurant" size="2rem" color="#CCC" />
-                  </div>
-                  <div v-if="item.featured" class="featured-star">⭐</div>
-                </div>
-
-                <!-- Info del plato -->
-                <div class="menu-item-info">
-                  <h4 class="menu-item-name">{{ item.name }}</h4>
-                  <p class="menu-item-price">Bs. {{ formatPrice(item.price) }}</p>
-                  
-                  <p v-if="item.description" class="menu-item-desc">
-                    {{ item.description }}
-                  </p>
-                  
-                  <div v-if="item.ingredients && item.ingredients.length > 0" class="menu-item-ingredients">
-                    <va-icon name="eco" size="small" color="success" />
-                    <span>{{ formatIngredients(item.ingredients) }}</span>
-                  </div>
-
-                  <div v-if="item.tags && item.tags.length > 0" class="menu-item-tags">
-                    <va-chip
-                      v-for="tag in item.tags"
-                      :key="tag"
-                      size="small"
-                      color="purple"
-                      outline
-                    >
-                      {{ tag }}
-                    </va-chip>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <p v-else class="empty-message">
-            <va-icon name="info" color="warning" />
-            No se han agregado platos al menú
-          </p>
         </div>
       </div>
 
@@ -601,7 +320,7 @@
             v-if="editable"
             size="small"
             preset="plain"
-            @click="$emit('edit-step', formData.category === 'gastronomia' ? 5 : 4)"
+            @click="$emit('edit-step', 4)"
           >
             Editar
           </va-button>
@@ -1105,13 +824,18 @@
 
     <!-- BOTONES DE ACCIÓN (JOBS ONLY) -->
     <div v-if="type === 'job'" class="action-buttons">
-      <button class="btn btn-secondary" @click="$emit('back')">
+      <button class="btn btn-secondary" @click="$emit('back')" :disabled="isSubmitting">
         <va-icon name="arrow_back" size="small" />
         ATRÁS
       </button>
-      <button class="btn btn-primary" @click="$emit('submit')">
-        <va-icon name="publish" size="small" />
-        PUBLICAR OFERTA
+      <button
+        class="btn btn-primary"
+        @click="$emit('submit')"
+        :disabled="isSubmitting"
+      >
+        <va-icon v-if="!isSubmitting" name="publish" size="small" />
+        <va-icon v-else name="hourglass_empty" size="small" class="rotating" />
+        {{ isSubmitting ? 'PUBLICANDO...' : 'PUBLICAR OFERTA' }}
       </button>
     </div>
   </div>
@@ -1141,6 +865,10 @@ const props = defineProps({
   jobData: {
     type: Object,
     default: null
+  },
+  isSubmitting: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -1214,10 +942,7 @@ const formatPublishedDate = (date) => {
 
 const getCategoryName = (category) => {
   const categories = {
-    profesionales: 'Profesionales',
-    gastronomia: 'Gastronomía',
-    trabajos: 'Trabajos',
-    servicios: 'Servicios'
+    trabajos: 'Trabajos'
   }
   return categories[category] || category
 }
@@ -1454,9 +1179,23 @@ watch(isContributor, (newValue) => {
   }
 })
 
-// NO limpiar los campos cuando se desmarcan los checkboxes
-// Solo controlar la visibilidad - los valores se mantienen para referencia
-// El backend solo usará los valores si sendByEmail/sendByWhatsApp están marcados
+// Limpiar invoiceEmail cuando se desmarca el checkbox de Email
+watch(sendByEmail, (newValue) => {
+  if (!newValue) {
+    // Limpiar el campo de email si se desmarca
+    billingData.value.invoiceEmail = ''
+    console.log('✓ Campo invoiceEmail limpiado (checkbox desmarcado)')
+  }
+})
+
+// Limpiar whatsapp cuando se desmarca el checkbox de WhatsApp
+watch(sendByWhatsApp, (newValue) => {
+  if (!newValue) {
+    // Limpiar el campo de whatsapp si se desmarca
+    billingData.value.whatsapp = ''
+    console.log('✓ Campo whatsapp limpiado (checkbox desmarcado)')
+  }
+})
 
 // ==========================================
 // MAPA PREVIEW
@@ -2007,6 +1746,33 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
 .btn-primary:active {
   transform: translateY(0);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-primary:disabled:hover,
+.btn-secondary:disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Animación de rotación para el ícono de carga */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotating {
+  animation: rotate 1s linear infinite;
 }
 
 .btn-secondary {

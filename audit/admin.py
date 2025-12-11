@@ -41,7 +41,7 @@ class AuditLogAdmin(admin.ModelAdmin):
         'user_role',
         'content_type',
         'object_id',
-        'content_object',
+        'content_object_display',
         'object_repr',
         'action',
         'action_description',
@@ -87,23 +87,32 @@ class AuditLogAdmin(admin.ModelAdmin):
 
     def user_email_display(self, obj):
         """Mostrar email del usuario con badge de rol"""
+        # Detectar si es una acción administrativa (aprobación/rechazo de pago)
+        is_admin_action = obj.action in ['verify_payment', 'reject_payment', 'update'] and obj.user and (obj.user.is_staff or obj.user.is_superuser)
+
+        # Colores más distinguibles y consistentes
         role_colors = {
-            'company': '#7c3aed',
-            'applicant': '#3b82f6',
-            '': '#6b7280',
+            'admin': '#dc2626',      # Rojo para admin (más autoridad)
+            'company': '#7c3aed',    # Púrpura para empresa
+            'applicant': '#059669',  # Verde para postulante
+            '': '#6b7280',          # Gris para sistema
         }
         role_labels = {
+            'admin': 'Administrador',
             'company': 'Empresa',
             'applicant': 'Postulante',
             '': 'Sistema',
         }
-        color = role_colors.get(obj.user_role, '#6b7280')
-        label = role_labels.get(obj.user_role, obj.user_role)
+
+        # Si es acción administrativa, usar el rol admin, sino usar el rol guardado
+        final_role = 'admin' if is_admin_action else obj.user_role
+        color = role_colors.get(final_role, '#6b7280')
+        label = role_labels.get(final_role, obj.user_role)
 
         return format_html(
             '<div style="display: flex; align-items: center; gap: 8px;">'
             '<strong>{}</strong>'
-            '<span style="background: {}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">{}</span>'
+            '<span style="background: {}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">{}</span>'
             '</div>',
             obj.user_email,
             color,
@@ -196,6 +205,20 @@ class AuditLogAdmin(admin.ModelAdmin):
             )
         return format_html('<span style="color: #9ca3af;">—</span>')
     ip_address_display.short_description = 'IP'
+
+    def content_object_display(self, obj):
+        """Mostrar objeto relacionado con manejo de objetos eliminados"""
+        if obj.content_object:
+            return format_html(
+                '<a href="#" style="color: #7c3aed; text-decoration: underline;">{}</a>',
+                str(obj.content_object)[:100]
+            )
+        else:
+            return format_html(
+                '<span style="color: #ef4444; background: #fee2e2; padding: 4px 8px; border-radius: 4px; font-weight: 600;">'
+                '⚠️ Objeto Eliminado</span>'
+            )
+    content_object_display.short_description = 'Objeto Relacionado'
 
     def changes_display(self, obj):
         """Mostrar cambios formateados con colores"""

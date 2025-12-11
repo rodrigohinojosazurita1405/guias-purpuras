@@ -195,10 +195,20 @@ class AuditLog(models.Model):
             user_agent = request.META.get('HTTP_USER_AGENT', '')
             session_key = request.session.session_key or ''
 
+        # Manejar AnonymousUser
+        actual_user = None
+        user_email_value = 'sistema'
+        user_role_value = ''
+
+        if user and hasattr(user, 'is_authenticated') and user.is_authenticated:
+            actual_user = user
+            user_email_value = user.email if hasattr(user, 'email') else 'sistema'
+            user_role_value = getattr(user, 'role', '')
+
         return cls.objects.create(
-            user=user,
-            user_email=user.email if user else 'sistema',
-            user_role=getattr(user, 'role', '') if user else '',
+            user=actual_user,
+            user_email=user_email_value,
+            user_role=user_role_value,
             content_type=content_type,
             object_id=str(obj.pk),
             object_repr=str(obj)[:500],

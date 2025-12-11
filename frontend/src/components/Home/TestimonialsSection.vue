@@ -58,28 +58,28 @@ import { ref } from 'vue'
 const testimonials = ref([
   {
     id: 1,
-    name: 'Juan Pérez',
+    name: 'José Rodriguez',
     role: 'Propietario de Restaurante',
     city: 'La Paz',
-    text: 'En 3 meses aumentamos nuestras reservas un 300%. La plataforma es fácil de usar y el soporte excepcional.',
+    text: 'La plataforma es fácil de usar y el metodo de pago es seguro',
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
     rating: 5
   },
   {
     id: 2,
-    name: 'María González',
-    role: 'Abogada Independiente',
+    name: 'María González Alvárez',
+    role: 'Encargada de Recursos Humanos',
     city: 'Cochabamba',
-    text: 'Conseguí más de 50 clientes nuevos en 2 meses. El plan destacado vale cada boliviano invertido.',
+    text: 'En menos de 15 días encontre el prospecto ideal para la empresa. El plan destacado vale cada boliviano invertido.',
     image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
     rating: 5
   },
   {
     id: 3,
-    name: 'Roberto Sánchez',
-    role: 'Ingeniero Electricista',
+    name: 'Roberto Sánchez Carrillo',
+    role: 'Reclutador Senior',
     city: 'Santa Cruz',
-    text: 'En una semana recibí más de 20 contactos reales. La mejor inversión para mi negocio.',
+    text: 'En una semana recibí más de 30 talentos reales. El plan Patrocinado funciona perfecto y la etiqueta "urgente le da un plus"',
     image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop',
     rating: 5
   }

@@ -16,7 +16,8 @@
     <div class="selection-indicator"></div>
 
     <!-- Logo de Empresa GRANDE (lado izquierdo) -->
-    <div v-if="listing.companyLogo" class="company-logo-large">
+    <!-- NO mostrar logo si la empresa es anónima -->
+    <div v-if="listing.companyLogo && !listing.companyAnonymous" class="company-logo-large">
       <img :src="listing.companyLogo" :alt="listing.companyName" />
     </div>
     <div v-else class="company-logo-placeholder">
@@ -85,11 +86,27 @@ export default {
   computed: {
     publishDate() {
       const days = this.listing.publishedDaysAgo || 0
-      if (days === 0) return 'Hoy'
-      if (days === 1) return 'Ayer'
-      if (days < 7) return `${days}d`
-      if (days < 30) return `${Math.floor(days / 7)}sem`
-      return `${Math.floor(days / 30)}m`
+
+      // Casos especiales
+      if (days === 0) return 'Publicado hoy'
+      if (days === 1) return 'Publicado hace 1 día'
+
+      // Días recientes (menos de una semana)
+      if (days < 7) {
+        return `Publicado hace ${days} días`
+      }
+
+      // Semanas (7-29 días)
+      if (days < 30) {
+        const weeks = Math.floor(days / 7)
+        if (weeks === 1) return 'Publicado hace una semana'
+        return `Publicado hace ${weeks} semanas`
+      }
+
+      // Meses (30+ días)
+      const months = Math.floor(days / 30)
+      if (months === 1) return 'Publicado hace un mes'
+      return `Publicado hace ${months} meses`
     },
 
     formattedSalary() {
@@ -290,7 +307,6 @@ export default {
 .company-logo-placeholder {
   background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
   color: #9CA3AF;
-  border: 2px dashed #D1D5DB;
 }
 
 .job-list-compact.selected .company-logo-large,

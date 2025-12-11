@@ -216,11 +216,12 @@
                 class="team-image"
               />
             </div>
-            <h4>Rodrigo Hinojosa Zurita</h4>
+            <h4>Rodrigo Hinojosa Z.</h4>
             <p class="team-role">CEO & Fundador</p>
             <p class="team-bio">Nacido en la bella Ciudad de Cochabamba, titulado de la carrera
-              de Sistemas Informáticos, Mercadotecnia y Abogado de profesión: Experiencia en Desarrollo
-              Frontend y Backend, experto en Marketing Digital y Registro de Marcas, Derecho Civil y Corporativo. 
+              de Sistemas Informáticos, Mercadotecnia y Abogado de profesión, más de 12 años de amplia experiencia en Desarrollo
+              Frontend y Backend, experto en Marketing Digital y Trafficker Digital, me apasiona el Derecho por lo que 
+              soy experto en registro de Marcas, Derecho Civil, Corporativo y Penal. 
             </p>
           </div>
 
@@ -232,7 +233,7 @@
                 class="team-image"
               />
             </div>
-            <h4>María Eugenia Varquera Santa Cruz</h4>
+            <h4>María E. Varquera S.</h4>
             <p class="team-role">Directora de Marketing y Comunicación</p>
             <p class="team-bio">Nacida en la bella ciudad  de Cochabamba: Experta en diseño publicitario branding corporativo y atención al cliente</p>
           </div>
@@ -358,7 +359,7 @@
               @click="goToHome"
             >
               <va-icon name="explore" />
-              Explorar Guías
+              Explorar nuevas oportunidades
             </va-button>
           </div>
 

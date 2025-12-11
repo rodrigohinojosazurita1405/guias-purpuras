@@ -93,9 +93,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useSearchStore } from '@/stores/useSearchStore'
 import axios from 'axios'
 
 const router = useRouter()
+const searchStore = useSearchStore()
 
 // ==========================================
 // DATA
@@ -230,10 +232,16 @@ const isNew = (dateString) => {
 }
 
 const navigateToJob = (jobId) => {
-  router.push(`/guias/trabajos/${jobId}`)
+  // Redirigir a GuideView con el trabajo preseleccionado
+  // NO pasamos filtros en query params, así GuideView mostrará todos los trabajos
+  router.push({
+    path: '/guias/trabajos',
+    query: { selected: jobId }
+  })
 }
 
 const goToAllJobs = () => {
+  // Redirigir a GuideView sin filtros
   router.push('/guias/trabajos')
 }
 

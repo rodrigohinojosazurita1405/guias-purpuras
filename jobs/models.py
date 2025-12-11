@@ -100,8 +100,7 @@ class Job(models.Model):
         max_length=20,
         choices=[
             ('internal', 'Interna (en Guías Púrpuras)'),
-            ('external', 'Externa (URL propia)'),
-            ('both', 'Ambas')
+            ('external', 'Externa (URL propia)')
         ],
         default='internal',
         verbose_name="Tipo de aplicación"
@@ -238,7 +237,9 @@ class PlanOrder(models.Model):
     # Datos de contacto
     email = models.EmailField(
         verbose_name="Email para factura",
-        default='noreply@guiaspurpuras.com'
+        default='noreply@guiaspurpuras.com',
+        blank=True,
+        help_text="Solo requerido si el usuario solicitó factura"
     )
     whatsapp = models.CharField(
         max_length=20,

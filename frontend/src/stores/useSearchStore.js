@@ -6,7 +6,7 @@ export const useSearchStore = defineStore('search', () => {
   // ========== STATE ==========
   const searchQuery = ref('')
   const selectedCity = ref('')
-  const selectedCategory = ref('profesionales')
+  const selectedContractType = ref('') // Tipo de contrato seleccionado
   const userDetectedCity = ref('')
   const isLoadingLocation = ref(false)
   const locationMethod = ref('') // 'gps', 'ip', 'manual'
@@ -20,6 +20,7 @@ export const useSearchStore = defineStore('search', () => {
     const params = {}
     if (searchQuery.value) params.q = searchQuery.value
     if (selectedCity.value) params.ciudad = selectedCity.value
+    if (selectedContractType.value) params.contractType = selectedContractType.value
     return params
   })
 
@@ -48,11 +49,11 @@ export const useSearchStore = defineStore('search', () => {
    */
   const initFromStorage = () => {
     const savedCity = localStorage.getItem('selectedCity')
-    const savedCategory = localStorage.getItem('selectedCategory')
+    const savedContractType = localStorage.getItem('selectedContractType')
     const savedMethod = localStorage.getItem('locationMethod')
-    
+
     if (savedCity) selectedCity.value = savedCity
-    if (savedCategory) selectedCategory.value = savedCategory
+    if (savedContractType) selectedContractType.value = savedContractType
     if (savedMethod) locationMethod.value = savedMethod
   }
 
@@ -241,11 +242,15 @@ export const useSearchStore = defineStore('search', () => {
   }
 
   /**
-   * Establecer categoría seleccionada
+   * Establecer tipo de contrato seleccionado
    */
-  const setSelectedCategory = (category) => {
-    selectedCategory.value = category
-    localStorage.setItem('selectedCategory', category)
+  const setSelectedContractType = (contractType) => {
+    selectedContractType.value = contractType
+    if (contractType) {
+      localStorage.setItem('selectedContractType', contractType)
+    } else {
+      localStorage.removeItem('selectedContractType')
+    }
   }
 
   /**
@@ -275,34 +280,39 @@ export const useSearchStore = defineStore('search', () => {
   const clearAllFilters = () => {
     searchQuery.value = ''
     selectedCity.value = ''
-    selectedCategory.value = 'profesionales'
+    selectedContractType.value = ''
     localStorage.removeItem('selectedCity')
-    localStorage.removeItem('selectedCategory')
+    localStorage.removeItem('selectedContractType')
   }
 
   // Inicializar al cargar
   initFromStorage()
 
+  // Detectar ubicación automáticamente si no hay ciudad guardada
+  if (!selectedCity.value) {
+    detectUserLocation()
+  }
+
   return {
     // State
     searchQuery,
     selectedCity,
-    selectedCategory,
+    selectedContractType,
     userDetectedCity,
     isLoadingLocation,
     locationMethod,
-    
+
     // Getters
     hasActiveFilters,
     searchParams,
     displayCity,
-    
+
     // Actions
     detectUserLocation,
     tryGPSLocation,
     tryIPLocation,
     setSelectedCity,
-    setSelectedCategory,
+    setSelectedContractType,
     setSearchQuery,
     resetLocation,
     clearAllFilters

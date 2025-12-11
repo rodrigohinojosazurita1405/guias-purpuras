@@ -103,6 +103,34 @@ def register(request):
         # Generar tokens
         refresh = RefreshToken.for_user(user)
 
+        # Intentar obtener la foto de perfil del UserProfile o logo de CompanyProfile
+        from profiles.models import UserProfile, CompanyProfile
+        from django.conf import settings
+
+        profile_photo = None
+        try:
+            user_profile = UserProfile.objects.get(email=user.email)
+
+            # Si es empresa, buscar el logo de la empresa
+            if user.role == 'company':
+                company_profile = CompanyProfile.objects.filter(owner=user_profile).first()
+                if company_profile and company_profile.logo:
+                    photo_path = str(company_profile.logo)
+                    if not photo_path.startswith('http'):
+                        profile_photo = f"http://localhost:8000{settings.MEDIA_URL}{photo_path}"
+                    else:
+                        profile_photo = photo_path
+            # Si es postulante, usar la foto del UserProfile
+            elif user_profile.profilePhoto:
+                photo_path = str(user_profile.profilePhoto)
+                if not photo_path.startswith('http'):
+                    profile_photo = f"http://localhost:8000{settings.MEDIA_URL}{photo_path}"
+                else:
+                    profile_photo = photo_path
+        except UserProfile.DoesNotExist:
+            # No hay perfil, la foto será None
+            pass
+
         return JsonResponse({
             'success': True,
             'message': 'Usuario registrado exitosamente',
@@ -110,7 +138,8 @@ def register(request):
                 'id': user.id,
                 'email': user.email,
                 'name': user.get_full_name() or user.username,
-                'role': user.role
+                'role': user.role,
+                'profilePhoto': profile_photo
             },
             'tokens': {
                 'access': str(refresh.access_token),
@@ -169,6 +198,34 @@ def login(request):
         # Generar tokens
         refresh = RefreshToken.for_user(user)
 
+        # Intentar obtener la foto de perfil del UserProfile o logo de CompanyProfile
+        from profiles.models import UserProfile, CompanyProfile
+        from django.conf import settings
+
+        profile_photo = None
+        try:
+            user_profile = UserProfile.objects.get(email=user.email)
+
+            # Si es empresa, buscar el logo de la empresa
+            if user.role == 'company':
+                company_profile = CompanyProfile.objects.filter(owner=user_profile).first()
+                if company_profile and company_profile.logo:
+                    photo_path = str(company_profile.logo)
+                    if not photo_path.startswith('http'):
+                        profile_photo = f"http://localhost:8000{settings.MEDIA_URL}{photo_path}"
+                    else:
+                        profile_photo = photo_path
+            # Si es postulante, usar la foto del UserProfile
+            elif user_profile.profilePhoto:
+                photo_path = str(user_profile.profilePhoto)
+                if not photo_path.startswith('http'):
+                    profile_photo = f"http://localhost:8000{settings.MEDIA_URL}{photo_path}"
+                else:
+                    profile_photo = photo_path
+        except UserProfile.DoesNotExist:
+            # No hay perfil, la foto será None
+            pass
+
         return JsonResponse({
             'success': True,
             'message': 'Sesión iniciada exitosamente',
@@ -176,7 +233,8 @@ def login(request):
                 'id': user.id,
                 'email': user.email,
                 'name': user.get_full_name() or user.username,
-                'role': user.role
+                'role': user.role,
+                'profilePhoto': profile_photo
             },
             'tokens': {
                 'access': str(refresh.access_token),

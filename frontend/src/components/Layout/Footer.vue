@@ -49,7 +49,7 @@
               </a>
               
               <a 
-                href="https://instagram.com/guiaspurpuras" 
+                href="https://www.instagram.com/guiaspurpuraspbolivia/" 
                 target="_blank"
                 rel="noopener noreferrer"
                 class="social-link instagram"
@@ -136,32 +136,27 @@
 
         <!-- Columna 3: Categorías -->
         <div class="footer-col">
-          <h4>Categorías</h4>
+          <h4>Nuestras Guías</h4>
           <ul class="footer-links">
             <li>
               <router-link to="/guias/trabajos">
                 <va-icon name="business_center" size="small" />
-                Trabajos
+                Trabajos 100% Active
               </router-link>
             </li>
                <li>
               <router-link to="/guias/gastronomia">
                 <va-icon name="restaurant" size="small" />
-                Gastronomía
+                Gastronomía en proceso al 60 %
               </router-link>
             </li>
             <li>
               <router-link to="/guias/profesionales">
                 <va-icon name="work" size="small" />
-                Profesionales
+                Proximamente....
               </router-link>
             </li>
-            <li>
-              <router-link to="/guias/negocios">
-                <va-icon name="store" size="small" />
-                Negocios
-              </router-link>
-            </li>
+           
           </ul>
         </div>
 

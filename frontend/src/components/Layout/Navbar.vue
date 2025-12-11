@@ -18,7 +18,7 @@
         </router-link>
 
         <router-link to="/guias/trabajos" class="nav-link" exact-active-class="active">
-          <span>Empleos</span>
+          <span>Trabajos</span>
         </router-link>
 
         <router-link to="/nosotros" class="nav-link" exact-active-class="active">
@@ -40,7 +40,10 @@
         <!-- Authenticated: Show Avatar Dropdown Menu -->
         <div v-else class="user-dropdown desktop-only">
           <button @click="toggleDropdown" class="user-avatar-btn" :class="{ active: dropdownOpen }">
-            <div class="user-avatar">{{ authStore.userInitials }}</div>
+            <div class="user-avatar">
+              <img v-if="authStore.user?.profilePhoto" :src="authStore.user.profilePhoto" :alt="authStore.user.name" />
+              <span v-else>{{ authStore.userInitials }}</span>
+            </div>
             <va-icon name="expand_more" size="small" class="dropdown-arrow" :class="{ rotated: dropdownOpen }" />
           </button>
 
@@ -49,7 +52,6 @@
             <div v-if="dropdownOpen" class="dropdown-menu">
               <!-- User Info -->
               <div class="dropdown-header">
-                <div class="dropdown-user-avatar">{{ authStore.userInitials }}</div>
                 <div class="dropdown-user-info">
                   <div class="dropdown-user-name">{{ authStore.user?.name }}</div>
                   <div class="dropdown-user-email">{{ authStore.user?.email }}</div>
@@ -135,7 +137,10 @@
           <!-- If Logged In -->
           <div v-if="authStore.isAuthenticated">
             <div class="mobile-user-info">
-              <div class="user-avatar-mobile">{{ authStore.userInitials }}</div>
+              <div class="user-avatar-mobile">
+                <img v-if="authStore.user?.profilePhoto" :src="authStore.user.profilePhoto" :alt="authStore.user.name" />
+                <span v-else>{{ authStore.userInitials }}</span>
+              </div>
               <div class="user-details">
                 <div class="mobile-user-name">{{ authStore.user?.name }}</div>
                 <div class="mobile-user-email">{{ authStore.user?.email }}</div>
@@ -421,7 +426,7 @@ const closeMobileMenu = () => {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.375rem 0.625rem;
   background: rgba(255, 255, 255, 0.12);
   border: 2px solid rgba(255, 255, 255, 0.25);
   border-radius: 8px;
@@ -443,17 +448,32 @@ const closeMobileMenu = () => {
 }
 
 .user-avatar {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: var(--color-yellow-primary);
+  background: white;
   color: var(--color-purple-darkest);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.user-avatar:not(:has(img)) {
+  background: var(--color-yellow-primary);
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  padding: 2px;
 }
 
 .dropdown-arrow {
@@ -717,7 +737,7 @@ const closeMobileMenu = () => {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--color-yellow-primary);
+  background: white;
   color: var(--color-purple-darkest);
   display: flex;
   align-items: center;
@@ -725,6 +745,21 @@ const closeMobileMenu = () => {
   font-weight: 700;
   font-size: 1.1rem;
   flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.user-avatar-mobile:not(:has(img)) {
+  background: var(--color-yellow-primary);
+}
+
+.user-avatar-mobile img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  padding: 3px;
 }
 
 .user-details {

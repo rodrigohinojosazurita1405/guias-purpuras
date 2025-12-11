@@ -361,35 +361,55 @@ class JobAdmin(admin.ModelAdmin):
 
     def mark_as_active(self, request, queryset):
         """Acción: Marcar como activa"""
-        updated = queryset.update(status='active')
+        updated = 0
+        for job in queryset:
+            job.status = 'active'
+            job._audit_user = request.user
+            job._audit_request = request
+            job.save()
+            updated += 1
         self.message_user(request, f'{updated} anuncios marcados como ACTIVOS')
     mark_as_active.short_description = 'Marcar como ACTIVA'
 
     def mark_as_closed(self, request, queryset):
         """Acción: Marcar como cerrada"""
-        updated = queryset.update(status='closed')
+        updated = 0
+        for job in queryset:
+            job.status = 'closed'
+            job._audit_user = request.user
+            job._audit_request = request
+            job.save()
+            updated += 1
         self.message_user(request, f'{updated} anuncios marcados como CERRADOS')
     mark_as_closed.short_description = 'Marcar como CERRADA'
 
     def verify_payment_action(self, request, queryset):
         """Acción: Verificar pago y activar anuncio automáticamente"""
-        updated = queryset.update(
-            paymentVerified=True,
-            paymentVerifiedBy=request.user,
-            paymentVerificationDate=datetime.now(),
-            status='active'  # Activar anuncio automáticamente al verificar pago
-        )
+        updated = 0
+        for job in queryset:
+            job.paymentVerified = True
+            job.paymentVerifiedBy = request.user
+            job.paymentVerificationDate = datetime.now()
+            job.status = 'active'
+            job._audit_user = request.user
+            job._audit_request = request
+            job.save()
+            updated += 1
         from django.contrib.admin import messages as admin_messages
         self.message_user(request, f'✓ {updated} pago(s) VERIFICADO(s) y anuncio(s) ACTIVADO(s) exitosamente', admin_messages.SUCCESS)
     verify_payment_action.short_description = '✓ VERIFICAR pagos y ACTIVAR anuncios'
 
     def reject_payment_action(self, request, queryset):
         """Acción: Rechazar pago"""
-        updated = queryset.update(
-            paymentVerified=False,
-            paymentVerifiedBy=None,
-            paymentVerificationDate=None
-        )
+        updated = 0
+        for job in queryset:
+            job.paymentVerified = False
+            job.paymentVerifiedBy = None
+            job.paymentVerificationDate = None
+            job._audit_user = request.user
+            job._audit_request = request
+            job.save()
+            updated += 1
         from django.contrib.admin import messages as admin_messages
         self.message_user(request, f'✗ {updated} pago(s) RECHAZADO(s)', admin_messages.WARNING)
     reject_payment_action.short_description = '✗ RECHAZAR pagos seleccionados'

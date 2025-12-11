@@ -7,7 +7,7 @@ import GuideView from '@/views/GuideView.vue'
 import PublishView from '@/views/PublishView.vue'
 
 // ========== VIEWS DE DETALLE - SOLO TRABAJOS ==========
-import JobDetailView from '@/views/Detail/JobDetailView.vue'
+// JobDetailView eliminado - ahora se usa GuideView con split view
 
 // ========== VIEWS DE PROCESO ==========
 import ApplicationProcess from '@/components/Process/ApplicationProcess.vue'
@@ -60,10 +60,16 @@ const routes = [
   },
 
   // ========== DETALLE DE TRABAJO ==========
+  // Redirigir a GuideView con el trabajo preseleccionado
   {
     path: '/guias/trabajos/:id',
     name: 'JobDetail',
-    component: JobDetailView,
+    redirect: (to) => {
+      return {
+        path: '/guias/trabajos',
+        query: { selected: to.params.id }
+      }
+    },
     meta: {
       title: 'Detalle de Trabajo',
       requiresAuth: false

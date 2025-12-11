@@ -1136,7 +1136,7 @@ const currentYear = new Date().getFullYear()
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(90deg, #5700f8 0%, #6d03d8 100%);
   transition: width 0.3s ease;
 }
 

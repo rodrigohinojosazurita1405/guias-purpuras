@@ -27,7 +27,7 @@
           v-for="jobType in jobTypes"
           :key="jobType.id"
           class="job-type-card"
-          :class="{ selected: formData.subcategory === jobType.id }"
+          :class="{ selected: formData.contractType === jobType.id }"
           @click="selectJobType(jobType.id)"
         >
           <div class="type-icon">
@@ -35,15 +35,15 @@
           </div>
           <h3 class="type-title">{{ jobType.name }}</h3>
           <p class="type-description">{{ jobType.description }}</p>
-          <div v-if="formData.subcategory === jobType.id" class="check-mark">
+          <div v-if="formData.contractType === jobType.id" class="check-mark">
             <va-icon name="check_circle" size="1.5rem" color="success" />
           </div>
         </div>
       </div>
 
-      <span v-if="errors.subcategory" class="error-message">
+      <span v-if="errors.contractType" class="error-message">
         <va-icon name="error" size="small" />
-        {{ errors.subcategory }}
+        {{ errors.contractType }}
       </span>
     </div>
 
@@ -126,7 +126,7 @@ const props = defineProps({
   modelValue: {
     type: Object,
     default: () => ({
-      subcategory: '',
+      contractType: '',
       city: ''
     })
   }
@@ -134,12 +134,12 @@ const props = defineProps({
 
 // Reactive form data
 const formData = ref({
-  subcategory: props.modelValue.subcategory || '',
+  contractType: props.modelValue.contractType || '',
   city: props.modelValue.city || ''
 })
 
 const errors = ref({
-  subcategory: '',
+  contractType: '',
   city: ''
 })
 
@@ -197,19 +197,19 @@ const selectedCityName = computed(() => {
 })
 
 const isFormValid = computed(() => {
-  return formData.value.subcategory && formData.value.city
+  return formData.value.contractType && formData.value.city
 })
 
 // ========== METHODS ==========
 const selectJobType = (typeId) => {
-  formData.value.subcategory = typeId
-  errors.value.subcategory = ''
+  formData.value.contractType = typeId
+  errors.value.contractType = ''
 }
 
 const proceedToWizard = () => {
   // Validar
-  if (!formData.value.subcategory) {
-    errors.value.subcategory = 'Debes seleccionar un tipo de empleo'
+  if (!formData.value.contractType) {
+    errors.value.contractType = 'Debes seleccionar un tipo de empleo'
     return
   }
   if (!formData.value.city) {

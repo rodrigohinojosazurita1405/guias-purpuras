@@ -226,6 +226,13 @@ export const useProfileStore = defineStore('profile', () => {
         ...data.profile
       }
 
+      // 🆕 Actualizar también el authStore con la nueva foto
+      if (authStore.user && data.profile.profilePhoto) {
+        authStore.user.profilePhoto = data.profile.profilePhoto
+        // Actualizar localStorage también
+        localStorage.setItem('auth_user', JSON.stringify(authStore.user))
+      }
+
       successMessage.value = data.message
       return { success: true, profile: data.profile }
     } catch (err) {
@@ -273,6 +280,13 @@ export const useProfileStore = defineStore('profile', () => {
       userProfile.value = {
         ...userProfile.value,
         ...data.profile
+      }
+
+      // 🆕 Actualizar también el authStore eliminando la foto
+      if (authStore.user) {
+        authStore.user.profilePhoto = null
+        // Actualizar localStorage también
+        localStorage.setItem('auth_user', JSON.stringify(authStore.user))
       }
 
       successMessage.value = data.message

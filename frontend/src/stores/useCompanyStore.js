@@ -222,6 +222,14 @@ export const useCompanyStore = defineStore('company', () => {
       }
 
       currentCompany.value = data.profile
+
+      // 🆕 Si se actualizó el logo, actualizar también el authStore (para el navbar)
+      if (authStore.user && files && files.logo && data.profile.logo) {
+        authStore.user.profilePhoto = data.profile.logo
+        // Actualizar localStorage también
+        localStorage.setItem('auth_user', JSON.stringify(authStore.user))
+      }
+
       successMessage.value = data.message
       return { success: true, company: data.profile }
     } catch (err) {
@@ -271,6 +279,13 @@ export const useCompanyStore = defineStore('company', () => {
       currentCompany.value = {
         ...currentCompany.value,
         ...data.profile
+      }
+
+      // 🆕 Actualizar también el authStore con el nuevo logo (para el navbar)
+      if (authStore.user && data.profile.logo) {
+        authStore.user.profilePhoto = data.profile.logo
+        // Actualizar localStorage también
+        localStorage.setItem('auth_user', JSON.stringify(authStore.user))
       }
 
       successMessage.value = data.message || 'Logo actualizado exitosamente'

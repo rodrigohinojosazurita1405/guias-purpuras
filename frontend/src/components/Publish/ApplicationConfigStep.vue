@@ -3,6 +3,32 @@
 
 <template>
   <div class="application-config-step">
+    <!-- MODAL DE ERRORES DE VALIDACIÓN -->
+    <va-modal
+      v-model="showErrorModal"
+      title="Campos Incompletos"
+      size="medium"
+      hide-default-actions
+    >
+      <div class="error-modal-content">
+        <div class="error-icon">
+          <va-icon name="error" size="4rem" color="danger" />
+        </div>
+        <h3 class="error-title">Por favor completa lo siguiente:</h3>
+        <ul class="error-list">
+          <li v-for="(error, index) in validationErrors" :key="index" class="error-item">
+            <va-icon name="arrow_right" size="small" color="danger" />
+            {{ error }}
+          </li>
+        </ul>
+      </div>
+      <template #footer>
+        <va-button @click="showErrorModal = false" color="primary">
+          Entendido
+        </va-button>
+      </template>
+    </va-modal>
+
     <!-- Header -->
     <div class="step-header">
       <div class="header-content">
@@ -94,64 +120,19 @@
             </div>
           </div>
 
-          <!-- Opción Ambas -->
-          <div
-            class="option-card"
-            :class="{ selected: modelValue.applicationType === 'both' }"
-            @click="updateData('applicationType', 'both')"
-          >
-            <div class="option-header">
-              <va-radio
-                v-model="modelValue.applicationType"
-                option="both"
-                label=""
-                @update:model-value="updateData('applicationType', 'both')"
-              />
-              <h4>Ambas</h4>
-            </div>
-            <p class="option-description">
-              Ofrece aplicación interna y externa
-            </p>
-            <div class="option-benefits">
-              <div class="benefit">
-                <va-icon name="check_circle" size="small" color="success" />
-                <span>Mayor alcance</span>
-              </div>
-              <div class="benefit">
-                <va-icon name="check_circle" size="small" color="success" />
-                <span>Flexibilidad total</span>
-              </div>
-              <div class="benefit">
-                <va-icon name="check_circle" size="small" color="success" />
-                <span>Más candidatos</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
-      <!-- URL Externa (si es externa o ambas) -->
-      <div v-if="['external', 'both'].includes(modelValue.applicationType)" class="form-section">
+      <!-- Instrucciones para el Candidato (si es externa) -->
+      <div v-if="modelValue.applicationType === 'external'" class="form-section">
         <h3 class="section-title">
-          <va-icon name="language" size="1.25rem" />
-          URL de Aplicación Externa
+          <va-icon name="description" size="1.25rem" />
+          Instrucciones para el Candidato
         </h3>
-
-        <div class="form-row">
-          <label for="external-url">URL del formulario externo *</label>
-          <input
-            id="external-url"
-            :value="modelValue.externalApplicationUrl"
-            type="url"
-            placeholder="https://ejemplo.com/aplicar"
-            class="form-input"
-            @input="updateData('externalApplicationUrl', $event.target.value)"
-          />
-          <small class="form-hint">
-            Ej: LinkedIn, tu sitio web, Email, Whatsapp, formulario Google, etc.
-          </small>
-        </div>
-
+        <p class="section-description">
+          Proporciona instrucciones claras sobre cómo deben aplicar los candidatos
+        </p>
+<br>
         <!-- Instrucciones de Aplicación -->
         <div class="form-row">
           <label for="application-instructions">Instrucciones de Aplicación (Opcional)</label>
@@ -171,7 +152,7 @@
       </div>
 
       <!-- Preguntas de Filtrado (solo para aplicación interna) -->
-      <div v-if="['internal', 'both'].includes(modelValue.applicationType)" class="form-section">
+      <div v-if="modelValue.applicationType === 'internal'" class="form-section">
         <div class="screening-header">
           <div>
             <h3 class="section-title">
@@ -270,16 +251,32 @@
         </div>
       </div>
 
-      <!-- INFORMACIÓN DE CONTACTO (si es externa o ambas) -->
-      <div v-if="['external', 'both'].includes(modelValue.applicationType)" class="form-section">
+      <!-- INFORMACIÓN DE CONTACTO (si es externa) -->
+      <div v-if="modelValue.applicationType === 'external'" class="form-section">
         <h3 class="section-title">
           <va-icon name="phone" size="1.25rem" />
-          Información de Contacto Directo
+          Información de Contacto
         </h3>
         <p class="section-description">
-          Proporciona los medios de contacto por los cuales los candidatos pueden enviarte su CV directamente <br>
+          Usted puede elegir el medio externo por donde los candidatos podrán postular a su vacante laboral, selecione al menos una opción.
         </p>
 <br>
+        <!-- URL del Formulario Externo -->
+        <div class="form-row">
+          <label for="external-url">URL del Formulario Externo (Opcional)</label>
+          <input
+            id="external-url"
+            :value="modelValue.externalApplicationUrl"
+            type="url"
+            placeholder="https://forms.google.com/... o https://ejemplo.com/aplicar"
+            class="form-input"
+            @input="updateData('externalApplicationUrl', $event.target.value)"
+          />
+          <small class="form-hint">
+            Enlace a Google Forms, Typeform, LinkedIn, o tu propio formulario
+          </small>
+        </div>
+
         <!-- Email de Contacto -->
         <div class="form-row">
           <label for="contact-email">Email de Contacto (Opcional)</label>
@@ -325,7 +322,7 @@
         <div class="info-box">
           <va-icon name="info" color="#7C3AED" size="1.5rem" />
           <div class="info-content">
-            <p><strong>Proporciona al menos un método de contacto</strong> (Email o WhatsApp) para recibir aplicaciones exitosamente. Los candidatos que apliquen internamente recibirán un email de confirmación automático.</p>
+            <p><strong>Proporciona al menos un método de contacto</strong> (URL del formulario externo, Email o WhatsApp) para que los candidatos puedan aplicar exitosamente.</p>
           </div>
         </div>
       </div>
@@ -346,7 +343,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'
+import { defineProps, defineEmits, ref } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -356,6 +353,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'next', 'back'])
+
+// Estados para el modal de validación
+const showErrorModal = ref(false)
+const validationErrors = ref([])
 
 const updateData = (key, value) => {
   emit('update:modelValue', {
@@ -419,23 +420,44 @@ const handleNext = () => {
 }
 
 const validate = () => {
+  const errors = []
+
+  // Validar que se haya seleccionado un tipo de aplicación
   if (!props.modelValue.applicationType) {
-    alert('Por favor selecciona un tipo de aplicación')
-    return false
+    errors.push('Debes seleccionar un tipo de aplicación (Interna o Externa)')
   }
 
-  // Validar URL externa si es necesario
-  if (['external', 'both'].includes(props.modelValue.applicationType)) {
-    if (!props.modelValue.externalApplicationUrl) {
-      alert('Por favor ingresa la URL de aplicación externa')
-      return false
+  // Validar aplicación externa
+  if (props.modelValue.applicationType === 'external') {
+    const hasUrl = props.modelValue.externalApplicationUrl && props.modelValue.externalApplicationUrl.trim()
+    const hasEmail = props.modelValue.email && props.modelValue.email.trim()
+    const hasWhatsapp = props.modelValue.whatsapp && props.modelValue.whatsapp.trim()
+
+    // Debe tener al menos uno de los tres métodos de contacto
+    if (!hasUrl && !hasEmail && !hasWhatsapp) {
+      errors.push('Debes proporcionar al menos un método de contacto: URL del formulario externo, Email o WhatsApp')
     }
-    try {
-      new URL(props.modelValue.externalApplicationUrl)
-    } catch {
-      alert('Por favor ingresa una URL válida')
-      return false
+
+    // Si hay URL, validar que sea válida
+    if (hasUrl) {
+      try {
+        new URL(props.modelValue.externalApplicationUrl)
+      } catch {
+        errors.push('La URL del formulario externo no es válida. Debe comenzar con http:// o https://')
+      }
     }
+
+    // Si hay email, validar formato básico
+    if (hasEmail && !props.modelValue.email.includes('@')) {
+      errors.push('El email de contacto no es válido')
+    }
+  }
+
+  // Si hay errores, mostrar modal
+  if (errors.length > 0) {
+    validationErrors.value = errors
+    showErrorModal.value = true
+    return false
   }
 
   return true
@@ -522,8 +544,10 @@ const validate = () => {
 /* Opciones de Aplicación */
 .application-type-options {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .option-card {
@@ -961,6 +985,71 @@ const validate = () => {
 
   .btn {
     justify-content: center;
+  }
+}
+
+/* Modal de Errores de Validación */
+.error-modal-content {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.error-icon {
+  margin-bottom: 1.5rem;
+  animation: shake 0.5s ease-in-out;
+}
+
+.error-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 1.5rem;
+}
+
+.error-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.error-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #FEF2F2 0%, #FFFFFF 100%);
+  border-left: 3px solid #EF4444;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #1F2937;
+  animation: slideIn 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+.error-item:nth-child(1) { animation-delay: 0.1s; }
+.error-item:nth-child(2) { animation-delay: 0.2s; }
+.error-item:nth-child(3) { animation-delay: 0.3s; }
+.error-item:nth-child(4) { animation-delay: 0.4s; }
+.error-item:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

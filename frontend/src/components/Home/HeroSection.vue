@@ -36,13 +36,13 @@
           <!-- Tabs compactos arriba del buscador -->
           <div class="search-tabs">
             <button
-              v-for="jobType in jobTypes"
-              :key="jobType.id"
-              @click="selectCategory(jobType.id)"
-              :class="['search-tab', { active: searchStore.selectedCategory === jobType.id }]"
+              v-for="contractType in contractTypes"
+              :key="contractType.value"
+              @click="selectContractType(contractType.value)"
+              :class="['search-tab', { active: searchStore.selectedContractType === contractType.value }]"
             >
-              <va-icon :name="jobType.icon" size="16px" />
-              <span>{{ jobType.label }}</span>
+              <va-icon :name="contractType.icon" size="16px" />
+              <span>{{ contractType.text }}</span>
             </button>
           </div>
 
@@ -73,10 +73,10 @@
                 :disabled="searchStore.isLoadingLocation"
               >
                 <option value="">Toda Bolivia</option>
-                <option value="oruro">Oruro</option>
                 <option value="la-paz">La Paz</option>
                 <option value="cochabamba">Cochabamba</option>
                 <option value="santa-cruz">Santa Cruz</option>
+                <option value="oruro">Oruro</option>
                 <option value="potosi">Potosí</option>
                 <option value="tarija">Tarija</option>
                 <option value="chuquisaca">Chuquisaca</option>
@@ -184,9 +184,10 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, onUnmounted } from 'vue'
+import { onMounted, ref, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSearchStore } from '@/stores/useSearchStore'
+import axios from 'axios'
 import bg1 from '@/assets/hero/bg1.jpg'
 import bg2 from '@/assets/hero/bg2.jpg'
 
@@ -206,44 +207,58 @@ const startBackgroundRotation = () => {
 }
 
 // ==========================================
-// DATOS
+// DATOS DINÁMICOS DESDE BACKEND
 // ==========================================
-const jobTypes = [
-  { id: 'todas', label: 'Todas', icon: 'work' },
-  { id: 'tiempo-completo', label: 'Tiempo Completo', icon: 'work_history' },
-  { id: 'remoto', label: 'Remoto', icon: 'laptop' },
-  { id: 'freelance', label: 'Freelance', icon: 'person_check' },
-  { id: 'practicas', label: 'Pasantía', icon: 'school' }
-]
+const contractTypes = ref([])
+const loading = ref(false)
 
-// ✅ BÚSQUEDAS POPULARES DINÁMICAS SEGÚN TIPO DE TRABAJO
-const popularSearches = computed(() => {
-  const searches = {
-    todas: ['Desarrollador', 'Diseñador', 'Contador', 'Ingeniero', 'Vendedor'],
-    'tiempo-completo': ['Gerente', 'Analista', 'Especialista', 'Coordinador'],
-    remoto: ['Frontend Developer', 'Backend Developer', 'UI/UX Designer', 'Virtual Assistant'],
-    freelance: ['Diseñador Gráfico', 'Copywriter', 'Community Manager', 'Programador'],
-    practicas: ['Practicante IT', 'Practicante RRHH', 'Practicante Ventas', 'Practicante Contabilidad']
+// Cargar tipos de contrato desde la API
+const fetchContractTypes = async () => {
+  try {
+    loading.value = true
+    const response = await axios.get('http://localhost:8000/api/jobs/contract-types')
+
+    if (response.data.success) {
+      // Agregar opción "Todas" al inicio
+      contractTypes.value = [
+        { value: '', text: 'Todas', icon: 'work' },
+        ...response.data.contractTypes.map(ct => ({
+          value: ct.value,
+          text: ct.text,
+          icon: getIconForContractType(ct.value)
+        }))
+      ]
+    }
+  } catch (error) {
+    console.error('Error cargando tipos de contrato:', error)
+    // Fallback a valores por defecto
+    contractTypes.value = [
+      { value: '', text: 'Todas', icon: 'work' }
+    ]
+  } finally {
+    loading.value = false
   }
-  return searches[searchStore.selectedCategory] || searches.todas
-})
+}
+
+// Mapear iconos según el tipo de contrato
+const getIconForContractType = (contractType) => {
+  const iconMap = {
+    'Tiempo Completo': 'work_history',
+    'Medio Tiempo': 'schedule',
+    'Por Proyecto': 'assignment',
+    'Freelance': 'person_check',
+    'Pasantía': 'school',
+    'Temporal': 'event',
+    'Remoto': 'laptop'
+  }
+  return iconMap[contractType] || 'work'
+}
 
 // ==========================================
 // MÉTODOS
 // ==========================================
-const getPlaceholder = () => {
-  const placeholders = {
-    todas: 'Busca empleos, ofertas laborales...',
-    'tiempo-completo': 'Busca trabajos de tiempo completo...',
-    remoto: 'Busca trabajos remotos...',
-    freelance: 'Busca trabajos por proyecto...',
-    practicas: 'Busca programas de pasantía...'
-  }
-  return placeholders[searchStore.selectedCategory] || placeholders.todas
-}
-
-const selectCategory = (categoryId) => {
-  searchStore.setSelectedCategory(categoryId)
+const selectContractType = (contractTypeValue) => {
+  searchStore.setSelectedContractType(contractTypeValue)
 }
 
 const onCityChange = () => {
@@ -258,15 +273,13 @@ const handleSearch = () => {
   })
 }
 
-const quickSearch = (term) => {
-  searchStore.setSearchQuery(term)
-  handleSearch()
-}
-
 // ==========================================
 // LIFECYCLE HOOKS
 // ==========================================
 onMounted(async () => {
+  // 🎯 CARGAR TIPOS DE CONTRATO DESDE BACKEND
+  await fetchContractTypes()
+
   // 🎯 DETECTAR UBICACIÓN AUTOMÁTICAMENTE AL CARGAR
   await searchStore.detectUserLocation()
 
@@ -318,7 +331,7 @@ onUnmounted(() => {
 }
 
 .bg-image.active {
-  opacity: 0.80;
+  opacity: 0.90;
 }
 
 .bg-image::before {
@@ -497,7 +510,18 @@ onUnmounted(() => {
 .location-select {
   appearance: none;
   cursor: pointer;
-  padding-right: 2rem;
+  padding-right: 2.5rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.location-select option {
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.8;
+  background: white;
+  color: #1F2937;
 }
 
 .location-select:disabled {
