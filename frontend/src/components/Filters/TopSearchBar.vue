@@ -562,7 +562,7 @@ export default {
         this.selectedCityOption = this.cityOptions.find(c => c.value === detectedCity) || this.cityOptions[0]
 
         this.notify({
-          message: `📍 Ubicación detectada: ${this.searchStore.displayCity}`,
+          message: `Ubicación detectada: ${this.searchStore.displayCity}`,
           color: 'success',
           duration: 3000
         })
@@ -574,7 +574,7 @@ export default {
         this.emitFilters()
       } else {
         this.notify({
-          message: '⚠️ No se pudo detectar tu ubicación. Por favor selecciona manualmente.',
+          message: 'No se pudo detectar tu ubicación. Por favor selecciona manualmente.',
           color: 'warning',
           duration: 4000
         })
@@ -588,7 +588,7 @@ export default {
       this.searchStore.setSelectedCity(this.selectedCityOption.value)
 
       this.notify({
-        message: `✅ Ubicación actualizada: ${this.selectedCityOption.text}`,
+        message: `Ubicación actualizada: ${this.selectedCityOption.text}`,
         color: 'success',
         duration: 2500
       })
@@ -609,7 +609,7 @@ export default {
         // Activar: usar ciudad detectada
         this.localFilters.city = this.searchStore.selectedCity
         this.notify({
-          message: `📍 Ubicación activada: ${this.searchStore.displayCity}`,
+          message: `Ubicación activada: ${this.searchStore.displayCity}`,
           color: 'success',
           duration: 2500
         })
@@ -617,7 +617,7 @@ export default {
         // Desactivar: mostrar todo Bolivia
         this.localFilters.city = ''
         this.notify({
-          message: '🌎 Mostrando anuncios de todo Bolivia',
+          message: 'Mostrando anuncios de todo Bolivia',
           color: 'info',
           duration: 2500
         })
