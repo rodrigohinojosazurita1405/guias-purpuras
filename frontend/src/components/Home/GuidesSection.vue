@@ -4,8 +4,12 @@
     <div class="jobs-container">
       <!-- Header con título y botón ver todos -->
       <div class="section-header">
-        <div>
+        <div class="header-content">
           <h2 class="section-title">Empleos destacados en Bolivia</h2>
+          <p class="section-description">
+            Sectores con mayor crecimiento y demanda de talento. Explora y postúlate
+            a las vacantes de las empresas más destacadas del país.
+          </p>
           <p class="section-subtitle">
             {{ loading ? 'Cargando...' : `${displayedJobs.length} oportunidades activas hoy` }}
           </p>
@@ -36,7 +40,7 @@
             <!-- Logo empresa -->
             <div class="company-logo">
               <img
-                v-if="job.companyLogo"
+                v-if="job.companyLogo && !job.companyAnonymous"
                 :src="job.companyLogo"
                 :alt="job.companyName"
               />
@@ -272,21 +276,35 @@ onMounted(async () => {
 .section-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 2rem;
+  gap: 2rem;
+}
+
+.header-content {
+  flex: 1;
 }
 
 .section-title {
   font-size: 1.875rem;
   font-weight: 700;
   color: #1F2937;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.75rem 0;
+}
+
+.section-description {
+  font-size: 1rem;
+  color: #6B7280;
+  line-height: 1.6;
+  margin: 0 0 0.75rem 0;
+  max-width: 650px;
 }
 
 .section-subtitle {
   font-size: 0.9375rem;
-  color: #6B7280;
+  color: #9CA3AF;
   margin: 0;
+  font-weight: 500;
 }
 
 .btn-see-all-top {

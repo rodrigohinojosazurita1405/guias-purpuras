@@ -43,9 +43,10 @@
           <select
             v-model="localFilters.city"
             class="search-select"
-            @change="emitFilters"
+            :disabled="useGeolocation"
+            @change="handleCityChange"
           >
-            <option value="">Ciudad o Departamento</option>
+            <option value="">{{ useGeolocation ? searchStore.displayCity : 'Ciudad o Departamento' }}</option>
             <option
               v-for="city in cities"
               :key="city"
@@ -255,13 +256,13 @@
           </div>
 
           <div class="location-display">
-            <p class="location-prefix">Mostrando anuncios para:</p>
+            <p class="location-prefix">Mostrando anuncios {{ useGeolocation ? 'para' : 'en' }}:</p>
             <va-icon
               :name="searchStore.isLoadingLocation ? 'refresh' : 'location_on'"
               :class="['location-icon', { spinning: searchStore.isLoadingLocation }]"
               size="small"
             />
-            <span class="location-text">{{ useGeolocation ? searchStore.displayCity : 'Todo Bolivia' }}</span>
+            <span class="location-text">{{ useGeolocation ? searchStore.displayCity : 'Toda Bolivia' }}</span>
             <button
               v-if="!searchStore.isLoadingLocation && useGeolocation"
               @click="openLocationModal"
@@ -474,6 +475,11 @@ export default {
       this.$emit('search-click')
     },
 
+    handleCityChange() {
+      // Si el usuario cambia la ciudad manualmente, emitir filtros
+      this.emitFilters()
+    },
+
     toggleDropdown(name) {
       this.activeDropdown = this.activeDropdown === name ? null : name
     },
@@ -606,20 +612,20 @@ export default {
       localStorage.setItem('useGeolocation', this.useGeolocation)
 
       if (this.useGeolocation) {
-        // Activar: usar ciudad detectada
+        // Activar: usar ciudad detectada automáticamente
         this.localFilters.city = this.searchStore.selectedCity
         this.notify({
-          message: `Ubicación activada: ${this.searchStore.displayCity}`,
+          message: `Filtrado por ubicación: ${this.searchStore.displayCity}`,
           color: 'success',
           duration: 2500
         })
       } else {
-        // Desactivar: mostrar todo Bolivia
+        // Desactivar: limpiar filtro (Todo Bolivia) y permitir selección manual
         this.localFilters.city = ''
         this.notify({
-          message: 'Mostrando anuncios de todo Bolivia',
+          message: 'Geolocalización desactivada. Puedes elegir una ciudad manualmente',
           color: 'info',
-          duration: 2500
+          duration: 3000
         })
       }
 
@@ -628,16 +634,47 @@ export default {
     }
   },
 
-  mounted() {
-    // Cargar preferencia de geolocalización desde localStorage
+  async mounted() {
+    // 🎯 LÓGICA CORREGIDA: Detectar ubicación automáticamente al inicio
     const savedPreference = localStorage.getItem('useGeolocation')
-    if (savedPreference !== null) {
-      this.useGeolocation = savedPreference === 'true'
-    }
 
-    // Si la geolocalización está activada, aplicar el filtro de ciudad
-    if (this.useGeolocation && this.searchStore.selectedCity) {
-      this.localFilters.city = this.searchStore.selectedCity
+    // Si NO hay preferencia guardada, activar por defecto y detectar ubicación
+    if (savedPreference === null) {
+      this.useGeolocation = true
+      // Detectar ubicación automáticamente
+      const detectedCity = await this.searchStore.detectUserLocation()
+      console.log('🔍 [TopSearchBar] Ciudad detectada:', detectedCity)
+      console.log('🔍 [TopSearchBar] Store selectedCity:', this.searchStore.selectedCity)
+
+      if (detectedCity || this.searchStore.selectedCity) {
+        this.localFilters.city = detectedCity || this.searchStore.selectedCity
+        console.log('✅ [TopSearchBar] Aplicando filtro de ciudad:', this.localFilters.city)
+        // ⚠️ IMPORTANTE: Emitir filtros para aplicar la ciudad detectada
+        this.$nextTick(() => {
+          this.emitFilters()
+        })
+      }
+    }
+    // Si hay preferencia guardada, respetarla
+    else {
+      this.useGeolocation = savedPreference === 'true'
+      console.log('🔍 [TopSearchBar] useGeolocation cargado:', this.useGeolocation)
+
+      if (this.useGeolocation) {
+        // Detectar ubicación si no hay una guardada
+        if (!this.searchStore.selectedCity) {
+          const detectedCity = await this.searchStore.detectUserLocation()
+          this.localFilters.city = detectedCity || this.searchStore.selectedCity
+        } else {
+          this.localFilters.city = this.searchStore.selectedCity
+        }
+
+        console.log('✅ [TopSearchBar] Ciudad aplicada:', this.localFilters.city)
+        // ⚠️ IMPORTANTE: Emitir filtros para aplicar la ciudad
+        this.$nextTick(() => {
+          this.emitFilters()
+        })
+      }
     }
 
     // Cerrar dropdowns al hacer click fuera
@@ -738,6 +775,12 @@ export default {
 .search-select {
   cursor: pointer;
   padding-right: 1rem;
+}
+
+.search-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: #f3f4f6;
 }
 
 .clear-btn {

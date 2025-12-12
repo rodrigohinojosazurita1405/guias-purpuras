@@ -224,6 +224,22 @@ export default {
     filteredListings() {
       let results = [...this.allListings]
 
+      // 🎯 Si hay parámetro 'selected', mostrar SOLO ese trabajo
+      const selectedId = this.$route.query.selected
+      if (selectedId) {
+        console.log('🎯 [filteredListings] Detectado parámetro selected:', selectedId)
+        console.log('🎯 [filteredListings] Total trabajos disponibles:', results.length)
+        // Comparar como string porque los IDs pueden ser UUIDs alfanuméricos
+        const selectedJob = results.find(job => String(job.id) === String(selectedId))
+        if (selectedJob) {
+          console.log('✅ [filteredListings] Trabajo encontrado:', selectedJob.title, '- Retornando array con 1 elemento')
+          return [selectedJob]
+        } else {
+          console.warn('⚠️ [filteredListings] Trabajo NO encontrado con ID:', selectedId, '- Mostrando todos')
+          return results
+        }
+      }
+
       // Filtrar por categoría (trabajos)
       if (this.category === 'trabajos' && this.topFilters.category) {
         console.log('🔍 Filtrando por categoría:', this.topFilters.category)
@@ -978,8 +994,8 @@ export default {
     if (selectedId) {
       console.log('[GuideView] Buscando trabajo con ID:', selectedId)
       console.log('[GuideView] Total trabajos cargados:', this.allListings.length)
-      // Buscar el trabajo en la lista y seleccionarlo
-      const job = this.allListings.find(listing => listing.id === parseInt(selectedId))
+      // Buscar el trabajo en la lista y seleccionarlo (comparar como string porque IDs pueden ser UUIDs)
+      const job = this.allListings.find(listing => String(listing.id) === String(selectedId))
       if (job) {
         console.log('[GuideView] Trabajo encontrado, seleccionando:', job.title)
         this.selectJob(job)

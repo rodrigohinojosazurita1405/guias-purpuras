@@ -55,6 +55,8 @@
 import { ref } from 'vue'
 
 // Solo 3 testimonios reales y concisos
+// 📸 Coloca tus imágenes en: frontend/src/assets/testimonials/
+// Nombres sugeridos: testimonial-1.jpg, testimonial-2.jpg, testimonial-3.jpg
 const testimonials = ref([
   {
     id: 1,
@@ -62,7 +64,7 @@ const testimonials = ref([
     role: 'Propietario de Restaurante',
     city: 'La Paz',
     text: 'La plataforma es fácil de usar y el metodo de pago es seguro',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
+    image: '/src/assets/testimonials/testimonial-1.jpg', // 👈 Reemplaza con tu imagen
     rating: 5
   },
   {
@@ -71,7 +73,7 @@ const testimonials = ref([
     role: 'Encargada de Recursos Humanos',
     city: 'Cochabamba',
     text: 'En menos de 15 días encontre el prospecto ideal para la empresa. El plan destacado vale cada boliviano invertido.',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+    image: '/src/assets/testimonials/testimonial-2.jpg', // 👈 Reemplaza con tu imagen
     rating: 5
   },
   {
@@ -80,7 +82,7 @@ const testimonials = ref([
     role: 'Reclutador Senior',
     city: 'Santa Cruz',
     text: 'En una semana recibí más de 30 talentos reales. El plan Patrocinado funciona perfecto y la etiqueta "urgente le da un plus"',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop',
+    image: '/src/assets/testimonials/testimonial-3.jpg', // 👈 Reemplaza con tu imagen
     rating: 5
   }
 ])

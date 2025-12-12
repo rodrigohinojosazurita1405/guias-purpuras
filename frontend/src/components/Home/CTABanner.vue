@@ -3,10 +3,10 @@
   <section class="cta-banner">
     <div class="cta-container">
       <div class="cta-content">
-        <h2 class="cta-title">¿Estás buscando talento para tu empresa?</h2>
-        <p class="cta-subtitle">Publica tus ofertas de empleo y encuentra a los mejores candidatos en Bolivia</p>
+        <h2 class="cta-title">¿Buscas tu próximo empleo ideal?</h2>
+        <p class="cta-subtitle">Regístrate gratis, crea tu CV en minutos y postúlate a las mejores oportunidades laborales. Conecta directamente con reclutadores de empresas líderes en Bolivia.</p>
         <button class="cta-button" @click="handleRegister">
-          Publicar empleo ahora
+          Crea tu cuenta
           <va-icon name="arrow_forward" size="20px" />
         </button>
       </div>
@@ -72,8 +72,8 @@ const handleRegister = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 20% 50%, rgba(253, 197, 0, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  background: radial-gradient(circle at 20% 50%, rgba(147, 51, 234, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
   pointer-events: none;
 }
 

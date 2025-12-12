@@ -3,7 +3,11 @@
   <section class="categories-section">
     <div class="categories-container">
       <h2 class="section-title">Explora por categoría</h2>
-      
+      <p class="section-description">
+        Descubre miles de oportunidades laborales organizadas por área profesional.
+        Encuentra el trabajo perfecto que se ajusta a tu experiencia y pasión.
+      </p>
+
       <!-- Loading state -->
       <div v-if="loading" class="loading-state">
         <va-progress-circle indeterminate color="purple" />
@@ -266,8 +270,17 @@ onUnmounted(() => {
   font-size: 1.75rem;
   font-weight: 700;
   color: #1F2937;
-  margin: 0 0 2rem 0;
+  margin: 0 0 0.75rem 0;
   text-align: center;
+}
+
+.section-description {
+  font-size: 1.0625rem;
+  color: #6B7280;
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto 2.5rem auto;
+  line-height: 1.6;
 }
 
 /* Container del slider */
