@@ -31,6 +31,17 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # Jazzmin (debe ir PRIMERO antes de django.contrib.admin)
+    'jazzmin',
+
+    # Django default apps
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
     # CORS
     'corsheaders',
 
@@ -46,14 +57,6 @@ INSTALLED_APPS = [
     'plans',
     'audit',  # Sistema de auditoría
     'reports',  # Sistema de reportes
-
-    # Django default apps
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
 ]
 
 MIDDLEWARE = [
@@ -134,6 +137,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # Media files (User uploads)
 MEDIA_URL = 'media/'
@@ -207,5 +214,145 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+}
+
+
+# ============================================================================
+# JAZZMIN CONFIGURATION - Admin Dashboard Professional
+# ============================================================================
+
+JAZZMIN_SETTINGS = {
+    # ========== BRANDING ==========
+    "site_title": "Guías Púrpuras Admin",
+    "site_header": "Guías Púrpuras",
+    "site_brand": "Guías Púrpuras",
+    "site_logo": None,  # Agrega tu logo aquí: "img/logo.png"
+    "login_logo": None,
+    "login_logo_dark": None,
+    "site_logo_classes": "img-circle",
+    "site_icon": None,  # FontAwesome icon: "fas fa-briefcase"
+    "welcome_sign": "Bienvenido al Panel Administrativo",
+    "copyright": "Guías Púrpuras - Bolivia",
+
+    # ========== SEARCH ==========
+    "search_model": ["auth_api.CustomUser", "jobs.Job", "profiles.CompanyProfile"],
+
+    # ========== USER MENU ==========
+    "user_avatar": None,
+
+    # ========== TOP MENU LINKS ==========
+    "topmenu_links": [
+        {"name": "Inicio", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Ver Sitio", "url": "/", "new_window": True},
+        {"name": "Soporte", "url": "https://github.com/anthropics/claude-code/issues", "new_window": True},
+        {"model": "auth_api.CustomUser"},
+        {"app": "jobs"},
+    ],
+
+    # ========== SIDE MENU (MENÚ LATERAL CON JERARQUÍA) ==========
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+
+    "icons": {
+        # ===== OFERTAS DE TRABAJO (PRINCIPAL) =====
+        "jobs": "fas fa-briefcase",
+        "jobs.Job": "fas fa-file-alt",
+        "jobs.JobCategory": "fas fa-tags",
+        "jobs.ContractType": "fas fa-file-contract",
+        "jobs.City": "fas fa-map-marker-alt",
+        "jobs.BlockedUser": "fas fa-user-slash",
+        "jobs.PlanOrder": "fas fa-receipt",
+
+        # ===== PLANES =====
+        "plans": "fas fa-gem",
+        "plans.Plan": "fas fa-crown",
+
+        # ===== PERFILES =====
+        "profiles": "fas fa-users",
+        "profiles.CompanyProfile": "fas fa-building",
+        "profiles.UserProfile": "fas fa-user-circle",
+
+        # ===== REPORTES =====
+        "reports": "fas fa-chart-line",
+        "reports.DailyReport": "fas fa-calendar-day",
+
+        # ===== AUDITORÍA =====
+        "audit": "fas fa-shield-alt",
+        "audit.AuditLog": "fas fa-history",
+        "audit.AuditLogSummary": "fas fa-clipboard-list",
+
+        # ===== AUTENTICACIÓN =====
+        "auth": "fas fa-lock",
+        "auth.Group": "fas fa-users-cog",
+        "auth_api": "fas fa-user-shield",
+        "auth_api.CustomUser": "fas fa-user-tie",
+
+        # ===== TOKEN BLACKLIST =====
+        "token_blacklist": "fas fa-ban",
+        "token_blacklist.OutstandingToken": "fas fa-key",
+        "token_blacklist.BlacklistedToken": "fas fa-times-circle",
+    },
+
+    "default_icon_parents": "fas fa-folder",
+    "default_icon_children": "fas fa-circle",
+
+    # ========== RELATED MODAL (Para selección de relaciones) ==========
+    "related_modal_active": False,
+
+    # ========== UI CUSTOMIZATION ==========
+    "custom_css": None,  # Sin CSS personalizado - usar estilos por defecto
+    "custom_js": None,
+    "use_google_fonts_cdn": True,
+    "show_ui_builder": False,
+
+    # ========== CHANGE FORM TEMPLATES ==========
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {
+        "auth_api.CustomUser": "collapsible",
+        "jobs.Job": "horizontal_tabs",
+    },
+
+    # ========== LANGUAGE CHOOSER ==========
+    "language_chooser": False,
+}
+
+# ============================================================================
+# JAZZMIN UI TWEAKS - Personalización Visual
+# ============================================================================
+
+JAZZMIN_UI_TWEAKS = {
+    # ===== TEMA GENERAL =====
+    "theme": "flatly",  # Tema por defecto Jazzmin
+
+    # ===== NAVBAR (Barra superior) =====
+    "navbar": "navbar-dark",  # Navbar oscuro por defecto
+    "navbar_fixed": True,
+
+    # ===== SIDEBAR (Barra lateral) =====
+    "sidebar": "sidebar-dark-primary",  # Sidebar negro por defecto
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": True,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+
+    # ===== ACCENTS (Acentos de color) =====
+    "accent": "accent-primary",  # Acento primario por defecto
+
+    # ===== BRAND (Logo y marca) =====
+    "brand_small_text": False,
+    "brand_colour": "navbar-dark",
+
+    # ===== FOOTER =====
+    "footer_fixed": False,
+
+    # ===== BODY =====
+    "body_small_text": False,
+
+    # ===== ACTIONS (Botones de acción) =====
+    "actions_sticky_top": True,
 }
 

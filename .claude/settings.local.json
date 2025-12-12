@@ -32,7 +32,8 @@
       "Bash(py manage.py migrate jobs)",
       "Bash(del temp_jobs.json)",
       "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\frontend\\src\\views\\Detail\\JobDetailView.vue\")",
-      "Bash(del nul)"
+      "Bash(del nul)",
+      "Bash(pip install:*)"
     ],
     "deny": [],
     "ask": []
