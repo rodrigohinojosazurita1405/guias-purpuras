@@ -226,11 +226,11 @@ JAZZMIN_SETTINGS = {
     "site_title": "Guías Púrpuras Admin",
     "site_header": "Guías Púrpuras",
     "site_brand": "Guías Púrpuras",
-    "site_logo": None,  # Agrega tu logo aquí: "img/logo.png"
-    "login_logo": None,
+    "site_logo": "admin/img/logo.ico",  # Logo en el sidebar
+    "login_logo": "admin/img/logo.ico",  # Logo en página de login
     "login_logo_dark": None,
     "site_logo_classes": "img-circle",
-    "site_icon": None,  # FontAwesome icon: "fas fa-briefcase"
+    "site_icon": "admin/img/logo.ico",  # Favicon
     "welcome_sign": "Bienvenido al Panel Administrativo",
     "copyright": "Guías Púrpuras - Bolivia",
 

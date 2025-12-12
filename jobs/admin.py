@@ -61,6 +61,11 @@ class JobAdmin(admin.ModelAdmin):
     ]
 
     fieldsets = (
+        ('Verificación de Pago', {
+            'fields': ('proofOfPayment', 'proof_of_payment_preview', 'payment_verification_summary', 'paymentVerified', 'paymentVerifiedBy', 'paymentVerificationDate', 'paymentVerificationNotes'),
+            'classes': ('wide',),
+            'description': 'Gestión de comprobantes y verificación de pagos. Solo administradores pueden aprobar pagos.'
+        }),
         ('Información Básica', {
             'fields': ('id', 'title', 'companyName', 'companyAnonymous', 'description')
         }),
@@ -81,11 +86,6 @@ class JobAdmin(admin.ModelAdmin):
         }),
         ('Plan y Estado', {
             'fields': ('selectedPlan', 'status', 'views')
-        }),
-        ('Verificación de Pago (FASE 7.1 - Solo Superadmin)', {
-            'fields': ('proofOfPayment', 'proof_of_payment_preview', 'payment_verification_summary', 'paymentVerified', 'paymentVerifiedBy', 'paymentVerificationDate', 'paymentVerificationNotes'),
-            'classes': ('wide',),
-            'description': 'Solo administradores con permiso de superuser pueden verificar pagos'
         }),
         ('Timestamps', {
             'fields': ('createdAt', 'updatedAt'),
@@ -126,158 +126,157 @@ class JobAdmin(admin.ModelAdmin):
     company_display.short_description = 'Empresa'
 
     def status_badge(self, obj):
-        """Badge de estado con colores sobrios"""
-        status_colors = {
-            'pending': '#F59E0B',    # Naranja - Pendiente
-            'active': '#059669',     # Verde sobrio
-            'closed': '#DC2626',     # Rojo sobrio
-            'draft': '#6B7280'       # Gris sobrio
+        """Badge de estado con colores tenues y sutiles"""
+        # Colores tenues con backgrounds claros y texto oscuro
+        status_styles = {
+            'pending': {'bg': '#FEF3C7', 'color': '#92400E'},    # Amarillo tenue
+            'active': {'bg': '#D1FAE5', 'color': '#065F46'},     # Verde tenue
+            'closed': {'bg': '#FEE2E2', 'color': '#991B1B'},     # Rojo tenue
+            'draft': {'bg': '#E5E7EB', 'color': '#374151'}       # Gris tenue
         }
         status_labels = {
-            'pending': 'PENDIENTE',
-            'active': 'ACTIVA',
-            'closed': 'CERRADA',
-            'draft': 'BORRADOR'
+            'pending': 'Pendiente',
+            'active': 'Activa',
+            'closed': 'Cerrada',
+            'draft': 'Borrador'
         }
-        color = status_colors.get(obj.status, '#6B7280')
-        label = status_labels.get(obj.status, obj.status.upper())
+        style = status_styles.get(obj.status, status_styles['draft'])
+        label = status_labels.get(obj.status, obj.status.capitalize())
 
         return format_html(
-            '<span style="background-color: {}; color: white; padding: 6px 14px; '
-            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            '<span style="background-color: {}; color: {}; padding: 3px 10px; '
+            'border-radius: 6px; font-weight: 600; font-size: 11px; '
             'display: inline-block;">{}</span>',
-            color, label
+            style['bg'], style['color'], label
         )
     status_badge.short_description = 'Estado'
 
     def payment_badge(self, obj):
-        """Badge de estado de pago con colores y estilos"""
+        """Badge de estado de pago con colores tenues"""
         if obj.paymentVerified:
-            color = '#059669'  # Verde oscuro
-            label = '✓ VERIFICADO'
-            icon = '✓'
+            style = {'bg': '#D1FAE5', 'color': '#065F46'}  # Verde tenue
+            label = 'Verificado'
         elif obj.proofOfPayment:
-            color = '#F59E0B'  # Naranja
-            label = '⏳ PENDIENTE'
-            icon = '⏳'
+            style = {'bg': '#FEF3C7', 'color': '#92400E'}  # Amarillo tenue
+            label = 'Pendiente'
         else:
-            color = '#DC2626'  # Rojo oscuro
-            label = '✗ SIN PAGO'
-            icon = '✗'
+            style = {'bg': '#FEE2E2', 'color': '#991B1B'}  # Rojo tenue
+            label = 'Sin pago'
 
         return format_html(
-            '<span style="background-color: {}; color: white; padding: 6px 14px; '
-            'border-radius: 20px; font-weight: bold; font-size: 12px; '
-            'display: inline-block; letter-spacing: 0.5px;">{}</span>',
-            color, label
+            '<span style="background-color: {}; color: {}; padding: 3px 10px; '
+            'border-radius: 6px; font-weight: 600; font-size: 11px; '
+            'display: inline-block;">{}</span>',
+            style['bg'], style['color'], label
         )
     payment_badge.short_description = 'Estado Pago'
 
     def applications_count(self, obj):
-        """Muestra el contador de aplicaciones con estilo"""
+        """Muestra el contador de aplicaciones con estilo tenue"""
         count = obj.applications
         return format_html(
-            '<span style="background-color: #EDE9FE; color: #6D28D9; padding: 6px 12px; '
-            'border-radius: 20px; font-weight: bold; font-size: 13px; '
+            '<span style="background-color: #F3E8FF; color: #6B21A8; padding: 3px 10px; '
+            'border-radius: 6px; font-weight: 600; font-size: 11px; '
             'display: inline-block;">👥 {}</span>',
-            f'{count} aplicación{"es" if count != 1 else ""}'
+            count
         )
     applications_count.short_description = 'Aplicaciones'
 
     def views_count(self, obj):
-        """Muestra el contador de vistas con estilo"""
+        """Muestra el contador de vistas con estilo tenue"""
         count = obj.views
         return format_html(
-            '<span style="background-color: #DBEAFE; color: #1E40AF; padding: 6px 12px; '
-            'border-radius: 20px; font-weight: bold; font-size: 13px; '
+            '<span style="background-color: #DBEAFE; color: #1E3A8A; padding: 3px 10px; '
+            'border-radius: 6px; font-weight: 600; font-size: 11px; '
             'display: inline-block;">👁️ {}</span>',
-            f'{count} vista{"s" if count != 1 else ""}'
+            count
         )
     views_count.short_description = 'Vistas'
 
     def created_date_display(self, obj):
-        """Muestra la fecha de creación con estilo"""
+        """Muestra la fecha de creación con estilo tenue"""
         return format_html(
-            '<span style="background-color: #ECFDF5; color: #065F46; padding: 6px 12px; '
-            'border-radius: 20px; font-weight: bold; font-size: 13px; '
+            '<span style="background-color: #D1FAE5; color: #065F46; padding: 3px 10px; '
+            'border-radius: 6px; font-weight: 600; font-size: 11px; '
             'display: inline-block;">📅 {}</span>',
             obj.createdAt.strftime('%d/%m/%Y')
         )
     created_date_display.short_description = 'Publicado'
 
     def plan_display(self, obj):
-        """Muestra el plan seleccionado con colores temáticos y duración"""
+        """Muestra el plan seleccionado con colores tenues"""
         from plans.models import Plan
 
-        # Colores para cada plan
+        # Colores tenues para cada plan
         plan_colors = {
-            'escencial': {'color': '#3B82F6', 'bg': '#DBEAFE'},  # Azul
-            'purpura': {'color': '#8B5CF6', 'bg': '#EDE9FE'},     # Púrpura
-            'impulso': {'color': '#EC4899', 'bg': '#FCE7F3'}      # Rosa
+            'escencial': {'color': '#1E3A8A', 'bg': '#DBEAFE'},  # Azul tenue
+            'purpura': {'color': '#6B21A8', 'bg': '#F3E8FF'},     # Púrpura tenue
+            'impulso': {'color': '#BE185D', 'bg': '#FCE7F3'}      # Rosa tenue
         }
 
         # Obtener datos del plan desde BD
         try:
             plan_obj = Plan.objects.get(name=obj.selectedPlan)
             label = plan_obj.label
-            duration = f"{plan_obj.duration_days} días"
+            duration = f"{plan_obj.duration_days}d"
             colors = plan_colors.get(obj.selectedPlan, plan_colors['escencial'])
         except Plan.DoesNotExist:
             # Fallback si el plan no existe en BD
-            label = obj.selectedPlan.upper()
+            label = obj.selectedPlan.capitalize()
             duration = "N/A"
             colors = plan_colors.get(obj.selectedPlan, plan_colors['escencial'])
 
         return format_html(
-            '<span style="background-color: {}; color: {}; padding: 6px 14px; '
-            'border-radius: 20px; font-weight: bold; font-size: 12px; '
-            'display: inline-block;">💰 {} ({} vigencia)</span>',
+            '<span style="background-color: {}; color: {}; padding: 3px 10px; '
+            'border-radius: 6px; font-weight: 600; font-size: 11px; '
+            'display: inline-block;">💎 {} ({})</span>',
             colors['bg'], colors['color'], label, duration
         )
     plan_display.short_description = 'Plan'
 
     def expiry_countdown(self, obj):
-        """Muestra días restantes con color dinámico según urgencia"""
+        """Muestra días restantes y fecha exacta de vencimiento con colores tenues según urgencia"""
         from datetime import date, timedelta
 
         today = date.today()
         days_remaining = (obj.expiryDate - today).days
+        expiry_date_str = obj.expiryDate.strftime('%d/%m/%Y')
 
-        # Determinar color según urgencia
+        # Determinar color según urgencia (colores tenues)
         if days_remaining < 0:
-            color = '#DC2626'      # Rojo - Expirado
-            bg_color = '#FEE2E2'
-            status = 'EXPIRADO'
+            color = '#991B1B'      # Rojo oscuro
+            bg_color = '#FEE2E2'   # Rojo tenue
+            status = f'Expirado ({expiry_date_str})'
             icon = '✗'
         elif days_remaining == 0:
-            color = '#DC2626'      # Rojo - Vence hoy
+            color = '#991B1B'
             bg_color = '#FEE2E2'
-            status = 'VENCE HOY'
+            status = f'Hoy ({expiry_date_str})'
             icon = '⚠️'
         elif days_remaining <= 3:
-            color = '#DC2626'      # Rojo - Menos de 3 días
+            color = '#991B1B'
             bg_color = '#FEE2E2'
-            status = f'{days_remaining} día{"s" if days_remaining != 1 else ""} restante{"s" if days_remaining != 1 else ""}'
+            status = f'{days_remaining}d ({expiry_date_str})'
             icon = '🔴'
         elif days_remaining <= 7:
-            color = '#F59E0B'      # Naranja - Una semana
-            bg_color = '#FFFBEB'
-            status = f'{days_remaining} días restantes'
+            color = '#92400E'      # Amarillo oscuro
+            bg_color = '#FEF3C7'   # Amarillo tenue
+            status = f'{days_remaining}d ({expiry_date_str})'
             icon = '🟡'
         elif days_remaining <= 14:
-            color = '#F59E0B'      # Naranja claro - Dos semanas
-            bg_color = '#FFFBEB'
-            status = f'{days_remaining} días restantes'
+            color = '#92400E'
+            bg_color = '#FEF3C7'
+            status = f'{days_remaining}d ({expiry_date_str})'
             icon = '🟡'
         else:
-            color = '#10B981'      # Verde - Tiempo suficiente
-            bg_color = '#ECFDF5'
-            status = f'{days_remaining} días restantes'
+            color = '#065F46'      # Verde oscuro
+            bg_color = '#D1FAE5'   # Verde tenue
+            status = f'{days_remaining}d ({expiry_date_str})'
             icon = '🟢'
 
         return format_html(
-            '<span style="background-color: {}; color: {}; padding: 6px 14px; '
-            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            '<span style="background-color: {}; color: {}; padding: 3px 10px; '
+            'border-radius: 6px; font-weight: 600; font-size: 11px; '
             'display: inline-block;">{} {}</span>',
             bg_color, color, icon, status
         )
@@ -324,13 +323,15 @@ class JobAdmin(admin.ModelAdmin):
             bg_color = '#ECFDF5'
             border_color = '#059669'
             text_color = '#065F46'
-            status_label = '✓ VERIFICADO'
+            status_label = 'Verificado'
+            status_icon = '✓'
             status_color = '#059669'
         else:
             bg_color = '#FFFBEB'
             border_color = '#F59E0B'
             text_color = '#78350F'
-            status_label = '⏳ PENDIENTE'
+            status_label = 'Pendiente'
+            status_icon = '⏳'
             status_color = '#F59E0B'
 
         # Mostrar nombre completo del admin, si no tiene nombre mostrar username
@@ -346,8 +347,8 @@ class JobAdmin(admin.ModelAdmin):
             f'<div style="background-color: {bg_color}; padding: 14px; border-radius: 6px; '
             f'border-left: 4px solid {border_color}; color: {text_color}; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto;">'
             f'<p style="margin: 0 0 8px 0; font-weight: bold; font-size: 14px;">'
-            f'<span style="color: {status_color}; font-size: 16px; margin-right: 6px;">'
-            f'{status_label.split()[0]}</span>{status_label}</p>'
+            f'<span style="color: {status_color}; font-size: 14px; margin-right: 6px;">'
+            f'{status_icon}</span>{status_label}</p>'
             f'<p style="margin: 0 0 4px 0; font-size: 13px;">Verificado por: <strong>{verified_by}</strong></p>'
             f'<p style="margin: 0 0 4px 0; font-size: 13px;">Fecha: <strong>{date_str}</strong></p>'
             f'<p style="margin: 0; font-size: 13px; font-style: italic; color: {text_color}; opacity: 0.8;">Notas: {notes}</p>'
@@ -867,23 +868,23 @@ class PlanOrderAdmin(admin.ModelAdmin):
     amount_display.short_description = 'Monto'
 
     def status_badge(self, obj):
-        """Badge del estado de la orden"""
-        status_colors = {
-            'processing': '#F59E0B',
-            'completed': '#10B981',
+        """Badge del estado de la orden con colores tenues"""
+        status_styles = {
+            'processing': {'bg': '#FEF3C7', 'color': '#92400E'},  # Amarillo tenue
+            'completed': {'bg': '#D1FAE5', 'color': '#065F46'},   # Verde tenue
         }
         status_labels = {
             'processing': 'En Proceso',
             'completed': 'Completado',
         }
-        color = status_colors.get(obj.status, '#6B7280')
+        style = status_styles.get(obj.status, {'bg': '#E5E7EB', 'color': '#374151'})
         label = status_labels.get(obj.status, obj.get_status_display())
 
         return format_html(
-            '<span style="background-color: {}; color: white; padding: 6px 14px; '
-            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            '<span style="background-color: {}; color: {}; padding: 3px 10px; '
+            'border-radius: 6px; font-weight: 600; font-size: 11px; '
             'display: inline-block;">{}</span>',
-            color, label
+            style['bg'], style['color'], label
         )
     status_badge.short_description = 'Estado'
 
@@ -953,25 +954,25 @@ class BlockedUserAdmin(admin.ModelAdmin):
     blocked_user_display.short_description = 'Usuario Bloqueado'
 
     def reason_badge(self, obj):
-        """Badge del motivo del bloqueo"""
-        reason_colors = {
-            'SPAM': '#DC2626',
-            'UNQUALIFIED': '#F59E0B',
-            'OTHER': '#6B7280',
+        """Badge del motivo del bloqueo con colores tenues"""
+        reason_styles = {
+            'SPAM': {'bg': '#FEE2E2', 'color': '#991B1B'},           # Rojo tenue
+            'UNQUALIFIED': {'bg': '#FEF3C7', 'color': '#92400E'},    # Amarillo tenue
+            'OTHER': {'bg': '#E5E7EB', 'color': '#374151'},          # Gris tenue
         }
         reason_labels = {
             'SPAM': 'Spam',
             'UNQUALIFIED': 'No Calificado',
             'OTHER': 'Otro',
         }
-        color = reason_colors.get(obj.reason, '#6B7280')
+        style = reason_styles.get(obj.reason, reason_styles['OTHER'])
         label = reason_labels.get(obj.reason, obj.reason)
 
         return format_html(
-            '<span style="background-color: {}; color: white; padding: 6px 14px; '
-            'border-radius: 20px; font-weight: bold; font-size: 12px; '
+            '<span style="background-color: {}; color: {}; padding: 3px 10px; '
+            'border-radius: 6px; font-weight: 600; font-size: 11px; '
             'display: inline-block;">{}</span>',
-            color, label
+            style['bg'], style['color'], label
         )
     reason_badge.short_description = 'Razón'
 
