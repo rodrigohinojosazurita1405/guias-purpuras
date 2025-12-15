@@ -39,7 +39,11 @@
       "Bash(ls:*)",
       "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\jobs\\constants.py\")",
       "Bash(py manage.py check)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
