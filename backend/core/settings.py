@@ -50,19 +50,19 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
 
-    # Apps propias
+    # Apps compartidas
     'auth_api',
-    'jobs',
     'profiles',
-    'plans',
     'audit',  # Sistema de auditoría
-    'reports',  # Sistema de reportes
 
-    # Apps modulares (refactorización)
-    'catalogs',  # Catálogos dinámicos (JobCategory, ContractType, City)
-    'payments',  # Pagos y facturación (PlanOrder)
-    'moderation',  # Moderación de usuarios (BlockedUser)
-    'dashboard',  # Dashboard y estadísticas de usuario
+    # G_Jobs - Guías de Trabajos
+    'G_Jobs.jobs',  # Core de trabajos
+    'G_Jobs.catalogs',  # Catálogos dinámicos (JobCategory, ContractType, City)
+    'G_Jobs.payments',  # Pagos y facturación (PlanOrder)
+    'G_Jobs.moderation',  # Moderación de usuarios (BlockedUser)
+    'G_Jobs.dashboard',  # Dashboard y estadísticas de usuario
+    'G_Jobs.plans',  # Planes de publicación
+    'G_Jobs.reports',  # Sistema de reportes diarios
 ]
 
 MIDDLEWARE = [
@@ -262,30 +262,34 @@ JAZZMIN_SETTINGS = {
     "hide_models": [],
 
     "icons": {
-        # ===== OFERTAS DE TRABAJO (PRINCIPAL) =====
-        "jobs": "fas fa-briefcase",
-        "jobs.Job": "fas fa-file-alt",
+        # ===== G_JOBS - GUÍAS DE TRABAJOS =====
+        "G_Jobs.jobs": "fas fa-briefcase",
+        "G_Jobs.jobs.Job": "fas fa-file-alt",
 
         # ===== CATÁLOGOS DINÁMICOS =====
-        "catalogs": "fas fa-database",
-        "catalogs.JobCategory": "fas fa-tags",
-        "catalogs.ContractType": "fas fa-file-contract",
-        "catalogs.City": "fas fa-map-marker-alt",
+        "G_Jobs.catalogs": "fas fa-database",
+        "G_Jobs.catalogs.JobCategory": "fas fa-tags",
+        "G_Jobs.catalogs.ContractType": "fas fa-file-contract",
+        "G_Jobs.catalogs.City": "fas fa-map-marker-alt",
 
         # ===== PAGOS Y FACTURACIÓN =====
-        "payments": "fas fa-credit-card",
-        "payments.PlanOrder": "fas fa-receipt",
+        "G_Jobs.payments": "fas fa-credit-card",
+        "G_Jobs.payments.PlanOrder": "fas fa-receipt",
 
         # ===== MODERACIÓN =====
-        "moderation": "fas fa-user-shield",
-        "moderation.BlockedUser": "fas fa-user-slash",
+        "G_Jobs.moderation": "fas fa-user-shield",
+        "G_Jobs.moderation.BlockedUser": "fas fa-user-slash",
 
         # ===== DASHBOARD =====
-        "dashboard": "fas fa-chart-line",
+        "G_Jobs.dashboard": "fas fa-chart-line",
 
         # ===== PLANES =====
-        "plans": "fas fa-gem",
-        "plans.Plan": "fas fa-crown",
+        "G_Jobs.plans": "fas fa-gem",
+        "G_Jobs.plans.Plan": "fas fa-crown",
+
+        # ===== REPORTES =====
+        "G_Jobs.reports": "fas fa-chart-bar",
+        "G_Jobs.reports.DailyReport": "fas fa-calendar-day",
 
         # ===== PERFILES =====
         "profiles": "fas fa-users",

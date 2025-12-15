@@ -25,17 +25,18 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/admin/', permanent=False)),
 
     path('admin/', admin.site.urls),
-    # API URLs
-    path('api/', include('auth_api.urls')),
-    path('api/', include('jobs.urls')),
-    path('api/profiles/', include('profiles.urls')),
-    path('api/', include('plans.urls')),
 
-    # Apps modulares (refactorización)
-    path('api/', include('catalogs.urls')),
-    path('api/', include('payments.urls')),
-    path('api/', include('moderation.urls')),
-    path('api/', include('dashboard.urls')),
+    # Apps compartidas
+    path('api/', include('auth_api.urls')),
+    path('api/profiles/', include('profiles.urls')),
+
+    # G_Jobs - Guías de Trabajos
+    path('api/', include('G_Jobs.jobs.urls')),
+    path('api/', include('G_Jobs.catalogs.urls')),
+    path('api/', include('G_Jobs.payments.urls')),
+    path('api/', include('G_Jobs.moderation.urls')),
+    path('api/', include('G_Jobs.dashboard.urls')),
+    path('api/', include('G_Jobs.plans.urls')),
 ]
 
 # Servir archivos media en desarrollo

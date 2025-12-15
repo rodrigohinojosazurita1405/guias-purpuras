@@ -45,7 +45,11 @@
       "Bash(rm:*)",
       "Bash(tree:*)",
       "Bash(git rm:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(for dir in payments moderation dashboard plans reports)",
+      "Bash(do echo \"Updating $dir/apps.py\")",
+      "Bash(done)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
