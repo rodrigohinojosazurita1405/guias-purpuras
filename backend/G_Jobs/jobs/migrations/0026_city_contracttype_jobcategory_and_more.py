@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.jobs', '0025_planorder_ci_complement'),
+        ('jobs', '0025_planorder_ci_complement'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('G_Jobs.jobs', '0030_alter_blockeduser_unique_together_and_more'),
+        ('jobs', '0030_alter_blockeduser_unique_together_and_more'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

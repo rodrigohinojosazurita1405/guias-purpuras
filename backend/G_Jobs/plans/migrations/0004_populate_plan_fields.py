@@ -5,7 +5,7 @@ from django.db import migrations
 
 def populate_plan_fields(apps, schema_editor):
     """Migrar datos de JSON a campos separados"""
-    Plan = apps.get_model('G_Jobs.plans', 'Plan')
+    Plan = apps.get_model('plans', 'Plan')
 
     for plan in Plan.objects.all():
         features = plan.features if isinstance(plan.features, dict) else {}
@@ -22,7 +22,7 @@ def populate_plan_fields(apps, schema_editor):
 
 def reverse_populate(apps, schema_editor):
     """Reverse - resetear campos a valores por defecto"""
-    Plan = apps.get_model('G_Jobs.plans', 'Plan')
+    Plan = apps.get_model('plans', 'Plan')
     Plan.objects.all().update(
         max_announcements=1,
         is_featured=False,
@@ -33,7 +33,7 @@ def reverse_populate(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.plans', '0003_plan_application_form_plan_has_highlighted_results_and_more'),
+        ('plans', '0003_plan_application_form_plan_has_highlighted_results_and_more'),
     ]
 
     operations = [

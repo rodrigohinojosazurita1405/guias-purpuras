@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.plans', '0005_remove_unnecessary_fields'),
+        ('plans', '0005_remove_unnecessary_fields'),
     ]
 
     operations = [

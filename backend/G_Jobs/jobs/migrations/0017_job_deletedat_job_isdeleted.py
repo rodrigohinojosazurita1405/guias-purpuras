@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.jobs', '0016_add_jobauditlog_model'),
+        ('jobs', '0016_add_jobauditlog_model'),
     ]
 
     operations = [

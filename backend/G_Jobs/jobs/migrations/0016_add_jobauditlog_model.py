@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.jobs', '0015_recalculate_expiry_dates'),
+        ('jobs', '0015_recalculate_expiry_dates'),
     ]
 
     operations = [

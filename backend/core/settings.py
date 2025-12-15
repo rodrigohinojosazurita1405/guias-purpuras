@@ -53,7 +53,6 @@ INSTALLED_APPS = [
     # Apps compartidas
     'auth_api',
     'profiles',
-    'audit',  # Sistema de auditoría
 
     # G_Jobs - Guías de Trabajos
     'G_Jobs.jobs',  # Core de trabajos
@@ -63,6 +62,7 @@ INSTALLED_APPS = [
     'G_Jobs.dashboard',  # Dashboard y estadísticas de usuario
     'G_Jobs.plans',  # Planes de publicación
     'G_Jobs.reports',  # Sistema de reportes diarios
+    'G_Jobs.audit',  # Sistema de auditoría
 ]
 
 MIDDLEWARE = [
@@ -74,7 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'audit.middleware.AuditMiddleware',  # Middleware de auditoría
+    'G_Jobs.audit.middleware.AuditMiddleware',  # Middleware de auditoría
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -297,13 +297,13 @@ JAZZMIN_SETTINGS = {
         "profiles.UserProfile": "fas fa-user-circle",
 
         # ===== REPORTES =====
-        "reports": "fas fa-chart-line",
-        "reports.DailyReport": "fas fa-calendar-day",
+        "G_Jobs.reports": "fas fa-chart-line",
+        "G_Jobs.reports.DailyReport": "fas fa-calendar-day",
 
         # ===== AUDITORÍA =====
-        "audit": "fas fa-shield-alt",
-        "audit.AuditLog": "fas fa-history",
-        "audit.AuditLogSummary": "fas fa-clipboard-list",
+        "G_Jobs.audit": "fas fa-shield-alt",
+        "G_Jobs.audit.AuditLog": "fas fa-history",
+        "G_Jobs.audit.AuditLogSummary": "fas fa-clipboard-list",
 
         # ===== AUTENTICACIÓN =====
         "auth": "fas fa-lock",

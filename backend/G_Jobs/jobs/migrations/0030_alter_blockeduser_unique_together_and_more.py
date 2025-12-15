@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.jobs', '0029_remove_both_application_type'),
+        ('jobs', '0029_remove_both_application_type'),
     ]
 
     operations = [

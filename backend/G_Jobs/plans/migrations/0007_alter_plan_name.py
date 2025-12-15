@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.plans', '0006_add_social_and_featured_fields'),
+        ('plans', '0006_add_social_and_featured_fields'),
     ]
 
     operations = [

@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.jobs', '0003_application'),
+        ('jobs', '0003_application'),
         ('profiles', '0001_initial'),
     ]
 

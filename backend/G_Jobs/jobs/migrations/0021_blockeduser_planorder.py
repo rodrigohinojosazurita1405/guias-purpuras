@@ -8,8 +8,8 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.jobs', '0020_remove_job_education_remove_job_experience_and_more'),
-        ('G_Jobs.plans', '0008_plan_badge_label'),
+        ('jobs', '0020_remove_job_education_remove_job_experience_and_more'),
+        ('plans', '0008_plan_badge_label'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

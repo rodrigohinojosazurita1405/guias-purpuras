@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.jobs', '0027_alter_job_selectedplan_alter_planorder_selected_plan'),
+        ('jobs', '0027_alter_job_selectedplan_alter_planorder_selected_plan'),
     ]
 
     operations = [

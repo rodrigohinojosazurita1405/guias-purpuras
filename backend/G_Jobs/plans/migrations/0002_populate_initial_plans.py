@@ -5,7 +5,7 @@ from django.db import migrations
 
 def populate_plans(apps, schema_editor):
     """Crear los 3 planes iniciales"""
-    Plan = apps.get_model('G_Jobs.plans', 'Plan')
+    Plan = apps.get_model('plans', 'Plan')
 
     # Plan Escencial
     Plan.objects.create(
@@ -70,14 +70,14 @@ def populate_plans(apps, schema_editor):
 
 def reverse_populate(apps, schema_editor):
     """Eliminar los planes (reversible)"""
-    Plan = apps.get_model('G_Jobs.plans', 'Plan')
+    Plan = apps.get_model('plans', 'Plan')
     Plan.objects.filter(name__in=['escencial', 'purpura', 'impulso']).delete()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.plans', '0001_initial'),
+        ('plans', '0001_initial'),
     ]
 
     operations = [

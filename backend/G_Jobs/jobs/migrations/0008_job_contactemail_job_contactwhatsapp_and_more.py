@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.jobs', '0007_job_softskills'),
+        ('jobs', '0007_job_softskills'),
     ]
 
     operations = [

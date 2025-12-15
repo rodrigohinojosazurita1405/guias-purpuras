@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.jobs', '0026_city_contracttype_jobcategory_and_more'),
+        ('jobs', '0026_city_contracttype_jobcategory_and_more'),
     ]
 
     operations = [

@@ -6,7 +6,7 @@ from datetime import timedelta
 
 def recalculate_expiry_dates(apps, schema_editor):
     """Recalcular fechas de vencimiento basándose en createdAt + duración del plan"""
-    Job = apps.get_model('G_Jobs.jobs', 'Job')
+    Job = apps.get_model('jobs', 'Job')
 
     # Duración de cada plan en días
     plan_durations = {
@@ -40,7 +40,7 @@ def reverse_recalculate(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.jobs', '0014_alter_job_whatsapp'),
+        ('jobs', '0014_alter_job_whatsapp'),
     ]
 
     operations = [

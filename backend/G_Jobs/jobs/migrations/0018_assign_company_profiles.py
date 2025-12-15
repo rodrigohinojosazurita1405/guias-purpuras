@@ -8,7 +8,7 @@ def assign_company_profiles(apps, schema_editor):
     Asigna el primer CompanyProfile de cada usuario a sus trabajos existentes
     que no tengan companyProfile asignado
     """
-    Job = apps.get_model('G_Jobs.jobs', 'Job')
+    Job = apps.get_model('jobs', 'Job')
     UserProfile = apps.get_model('profiles', 'UserProfile')
     CompanyProfile = apps.get_model('profiles', 'CompanyProfile')
 
@@ -52,14 +52,14 @@ def reverse_assign_company_profiles(apps, schema_editor):
     """
     Reversa: establecer companyProfile a NULL nuevamente
     """
-    Job = apps.get_model('G_Jobs.jobs', 'Job')
+    Job = apps.get_model('jobs', 'Job')
     Job.objects.all().update(companyProfile=None)
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('G_Jobs.jobs', '0017_job_deletedat_job_isdeleted'),
+        ('jobs', '0017_job_deletedat_job_isdeleted'),
     ]
 
     operations = [
