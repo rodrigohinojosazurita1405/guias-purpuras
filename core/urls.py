@@ -30,6 +30,12 @@ urlpatterns = [
     path('api/', include('jobs.urls')),
     path('api/profiles/', include('profiles.urls')),
     path('api/', include('plans.urls')),
+
+    # Apps modulares (refactorización)
+    path('api/', include('catalogs.urls')),
+    path('api/', include('payments.urls')),
+    path('api/', include('moderation.urls')),
+    path('api/', include('dashboard.urls')),
 ]
 
 # Servir archivos media en desarrollo

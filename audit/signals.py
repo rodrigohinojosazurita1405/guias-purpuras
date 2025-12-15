@@ -226,10 +226,10 @@ def audit_job_delete(sender, instance, **kwargs):
 
 # ========== AUDITAR PLANORDERS ==========
 
-@receiver(post_save, sender='jobs.PlanOrder')
+@receiver(post_save, sender='payments.PlanOrder')
 def audit_plan_order_save(sender, instance, created, **kwargs):
     """Auditar cuando se crea o actualiza una PlanOrder"""
-    from jobs.models import PlanOrder
+    from payments.models import PlanOrder
 
     action = 'create' if created else 'update'
     changes = get_model_changes(instance, created)

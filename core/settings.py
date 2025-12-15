@@ -57,6 +57,12 @@ INSTALLED_APPS = [
     'plans',
     'audit',  # Sistema de auditoría
     'reports',  # Sistema de reportes
+
+    # Apps modulares (refactorización)
+    'catalogs',  # Catálogos dinámicos (JobCategory, ContractType, City)
+    'payments',  # Pagos y facturación (PlanOrder)
+    'moderation',  # Moderación de usuarios (BlockedUser)
+    'dashboard',  # Dashboard y estadísticas de usuario
 ]
 
 MIDDLEWARE = [
@@ -259,11 +265,23 @@ JAZZMIN_SETTINGS = {
         # ===== OFERTAS DE TRABAJO (PRINCIPAL) =====
         "jobs": "fas fa-briefcase",
         "jobs.Job": "fas fa-file-alt",
-        "jobs.JobCategory": "fas fa-tags",
-        "jobs.ContractType": "fas fa-file-contract",
-        "jobs.City": "fas fa-map-marker-alt",
-        "jobs.BlockedUser": "fas fa-user-slash",
-        "jobs.PlanOrder": "fas fa-receipt",
+
+        # ===== CATÁLOGOS DINÁMICOS =====
+        "catalogs": "fas fa-database",
+        "catalogs.JobCategory": "fas fa-tags",
+        "catalogs.ContractType": "fas fa-file-contract",
+        "catalogs.City": "fas fa-map-marker-alt",
+
+        # ===== PAGOS Y FACTURACIÓN =====
+        "payments": "fas fa-credit-card",
+        "payments.PlanOrder": "fas fa-receipt",
+
+        # ===== MODERACIÓN =====
+        "moderation": "fas fa-user-shield",
+        "moderation.BlockedUser": "fas fa-user-slash",
+
+        # ===== DASHBOARD =====
+        "dashboard": "fas fa-chart-line",
 
         # ===== PLANES =====
         "plans": "fas fa-gem",

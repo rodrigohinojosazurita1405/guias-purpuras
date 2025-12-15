@@ -1,25 +1,31 @@
 from django.urls import path
 from . import views
 
+# Import views from modular apps (refactorización)
+from catalogs import views as catalog_views
+from payments import views as payment_views
+from moderation import views as moderation_views
+from dashboard import views as dashboard_views
+
 app_name = 'jobs'
 
 urlpatterns = [
-    # Dashboard Statistics Endpoints (prioritarios)
-    path('user/stats', views.get_user_statistics, name='get_user_statistics'),
-    path('user/published', views.get_user_published_jobs, name='get_user_published_jobs'),
-    path('user/applied', views.get_user_applied_jobs, name='get_user_applied_jobs'),
-    path('user/activities', views.get_user_activities, name='get_user_activities'),
+    # Dashboard Statistics Endpoints (prioritarios) - Ahora en dashboard app
+    path('user/stats', dashboard_views.get_user_statistics, name='get_user_statistics'),
+    path('user/published', dashboard_views.get_user_published_jobs, name='get_user_published_jobs'),
+    path('user/applied', dashboard_views.get_user_applied_jobs, name='get_user_applied_jobs'),
+    path('user/activities', dashboard_views.get_user_activities, name='get_user_activities'),
 
     # Publicar nuevo trabajo
     path('jobs/publish', views.publish_job, name='publish_job'),
 
-    # Job Categories Endpoint (DEBE estar antes del patrón genérico)
-    path('jobs/categories', views.get_job_categories, name='get_job_categories'),
+    # Job Categories Endpoint (DEBE estar antes del patrón genérico) - Ahora en catalogs app
+    path('jobs/categories', catalog_views.get_job_categories, name='get_job_categories'),
 
-    # Endpoints dinámicos (DEBEN estar antes de los patrones genéricos)
-    path('jobs/contract-types/', views.get_contract_types, name='get_contract_types'),
-    path('jobs/cities/', views.get_cities, name='get_cities'),
-    path('jobs/categories-dynamic/', views.get_job_categories_dynamic, name='get_job_categories_dynamic'),
+    # Endpoints dinámicos (DEBEN estar antes de los patrones genéricos) - Ahora en catalogs app
+    path('jobs/contract-types/', catalog_views.get_contract_types, name='get_contract_types'),
+    path('jobs/cities/', catalog_views.get_cities, name='get_cities'),
+    path('jobs/categories-dynamic/', catalog_views.get_job_categories_dynamic, name='get_job_categories_dynamic'),
 
     # Listar trabajos
     path('jobs/', views.list_jobs, name='list_jobs'),
@@ -48,14 +54,14 @@ urlpatterns = [
     # Actualizar estado de una aplicación
     path('jobs/<str:job_id>/applications/<str:application_id>', views.update_application_status, name='update_application_status'),
 
-    # ========== ENDPOINTS PARA ÓRDENES DE PLANES ==========
-    path('orders/me', views.get_user_orders, name='get_user_orders'),
-    path('orders/<int:order_id>/', views.get_order_detail, name='get_order_detail'),
-    path('orders/<int:order_id>/resend-invoice', views.resend_invoice, name='resend_invoice'),
+    # ========== ENDPOINTS PARA ÓRDENES DE PLANES ========== - Ahora en payments app
+    path('orders/me', payment_views.get_user_orders, name='get_user_orders'),
+    path('orders/<int:order_id>/', payment_views.get_order_detail, name='get_order_detail'),
+    path('orders/<int:order_id>/resend-invoice', payment_views.resend_invoice, name='resend_invoice'),
 
-    # ========== ENDPOINTS PARA USUARIOS BLOQUEADOS ==========
-    path('blocked-users/me', views.get_blocked_users, name='get_blocked_users'),
-    path('blocked-users/block', views.block_user, name='block_user'),
-    path('blocked-users/<int:block_id>/', views.unblock_user, name='unblock_user'),
-    path('blocked-users/check/<int:user_id>/', views.check_if_blocked, name='check_if_blocked'),
+    # ========== ENDPOINTS PARA USUARIOS BLOQUEADOS ========== - Ahora en moderation app
+    path('blocked-users/me', moderation_views.get_blocked_users, name='get_blocked_users'),
+    path('blocked-users/block', moderation_views.block_user, name='block_user'),
+    path('blocked-users/<int:block_id>/', moderation_views.unblock_user, name='unblock_user'),
+    path('blocked-users/check/<int:user_id>/', moderation_views.check_if_blocked, name='check_if_blocked'),
 ]

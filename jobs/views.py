@@ -1,5 +1,14 @@
 """
 API Views para Ofertas de Trabajo
+
+NOTA: Algunas funciones han sido movidas a apps modulares:
+- Funciones de catálogos → catalogs/views.py (get_job_categories, get_contract_types, get_cities, etc.)
+- Funciones de órdenes → payments/views.py (get_user_orders, get_order_detail, resend_invoice)
+- Funciones de moderación → moderation/views.py (get_blocked_users, block_user, unblock_user, check_if_blocked)
+- Funciones de dashboard → dashboard/views.py (get_user_statistics, get_user_published_jobs, get_user_applied_jobs, get_user_activities)
+
+Las funciones duplicadas aquí se mantendrán temporalmente para backwards compatibility
+y serán removidas en una futura versión una vez verificado que todo funciona correctamente.
 """
 import json
 from django.http import JsonResponse
@@ -274,7 +283,7 @@ def publish_job(request):
             # ========== CREAR PLANORDER (SIEMPRE) ==========
             try:
                 from datetime import datetime
-                from .models import PlanOrder
+                from payments.models import PlanOrder
 
                 # Parsear billingData que viene como JSON string desde el frontend
                 billing_data_raw = data.get('billingData')
@@ -1600,7 +1609,7 @@ def get_job_categories(request):
     }
     """
     try:
-        from .models import JobCategory
+        from catalogs.models import JobCategory
 
         # Cargar desde base de datos (dinámico)
         categories_qs = JobCategory.objects.filter(is_active=True).order_by('order', 'name')
@@ -1891,7 +1900,7 @@ def get_blocked_users(request):
     }
     """
     try:
-        from .models import BlockedUser
+        from moderation.models import BlockedUser
 
         # Obtener usuarios bloqueados por esta empresa
         blocked = BlockedUser.objects.filter(company=request.user).select_related('blocked_user')
@@ -1952,7 +1961,7 @@ def block_user(request):
     """
     try:
         import json
-        from .models import BlockedUser
+        from moderation.models import BlockedUser
         from auth_api.models import CustomUser
         from datetime import datetime, timedelta
 
@@ -2040,7 +2049,7 @@ def unblock_user(request, block_id):
     }
     """
     try:
-        from .models import BlockedUser
+        from moderation.models import BlockedUser
 
         # Obtener y eliminar el bloqueo
         block = BlockedUser.objects.get(id=block_id, company=request.user)
@@ -2085,7 +2094,7 @@ def check_if_blocked(request, user_id):
     }
     """
     try:
-        from .models import BlockedUser
+        from moderation.models import BlockedUser
         from auth_api.models import CustomUser
         from datetime import datetime
 
@@ -2174,7 +2183,7 @@ def get_contract_types(request):
     GET /api/jobs/contract-types
     """
     try:
-        from .models import ContractType
+        from catalogs.models import ContractType
         
         contract_types = ContractType.objects.filter(is_active=True).order_by('order', 'name')
         
@@ -2207,7 +2216,7 @@ def get_cities(request):
     GET /api/jobs/cities
     """
     try:
-        from .models import City
+        from catalogs.models import City
         
         cities = City.objects.filter(is_active=True).order_by('order', 'name')
         
@@ -2242,7 +2251,7 @@ def get_job_categories_dynamic(request):
     GET /api/jobs/categories-dynamic
     """
     try:
-        from .models import JobCategory
+        from catalogs.models import JobCategory
         
         categories = JobCategory.objects.filter(is_active=True).order_by('order', 'name')
         

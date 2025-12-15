@@ -51,7 +51,8 @@ class DailyReport(models.Model):
             date = timezone.now().date()
 
         from auth_api.models import CustomUser
-        from jobs.models import Job, PlanOrder
+        from jobs.models import Job
+        from payments.models import PlanOrder
         from plans.models import Plan
 
         # Obtener o crear el reporte

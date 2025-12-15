@@ -35,7 +35,11 @@
       "Bash(del nul)",
       "Bash(pip install:*)",
       "Bash(copy \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\frontend\\src\\assets\\guiaspurpuras.ico\" \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\static\\admin\\img\\logo.ico\")",
-      "Bash(if not exist \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\static\\admin\\img\" mkdir \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\static\\admin\\img\")"
+      "Bash(if not exist \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\static\\admin\\img\" mkdir \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\static\\admin\\img\")",
+      "Bash(ls:*)",
+      "Bash(del \"d:\\Proyectos Django\\GuiasPurpuras_V1.0\\jobs\\constants.py\")",
+      "Bash(py manage.py check)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
