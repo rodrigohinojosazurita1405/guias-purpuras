@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'G_Jobs.plans',  # Planes de publicación
     'G_Jobs.reports',  # Sistema de reportes diarios
     'G_Jobs.audit',  # Sistema de auditoría
+    'G_Jobs.applicants',  # Sistema de postulantes y aplicaciones
 ]
 
 MIDDLEWARE = [
@@ -241,7 +242,7 @@ JAZZMIN_SETTINGS = {
     "copyright": "Guías Púrpuras - Bolivia",
 
     # ========== SEARCH ==========
-    "search_model": ["auth_api.CustomUser", "jobs.Job", "profiles.CompanyProfile"],
+    "search_model": ["auth_api.CustomUser", "jobs.Job", "profiles.CompanyProfile", "applicants.JobApplication", "applicants.ApplicantCV"],
 
     # ========== USER MENU ==========
     "user_avatar": None,
@@ -304,6 +305,13 @@ JAZZMIN_SETTINGS = {
         "G_Jobs.audit": "fas fa-shield-alt",
         "G_Jobs.audit.AuditLog": "fas fa-history",
         "G_Jobs.audit.AuditLogSummary": "fas fa-clipboard-list",
+
+        # ===== POSTULANTES Y APLICACIONES =====
+        "G_Jobs.applicants": "fas fa-user-friends",
+        "G_Jobs.applicants.ApplicantProfile": "fas fa-user-circle",
+        "G_Jobs.applicants.ApplicantCV": "fas fa-file-pdf",
+        "G_Jobs.applicants.JobApplication": "fas fa-paper-plane",
+        "G_Jobs.applicants.SavedJob": "fas fa-bookmark",
 
         # ===== AUTENTICACIÓN =====
         "auth": "fas fa-lock",

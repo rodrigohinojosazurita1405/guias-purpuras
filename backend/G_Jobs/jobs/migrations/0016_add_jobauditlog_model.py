@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('notes', models.TextField(blank=True, verbose_name='Notas')),
                 ('clientIP', models.GenericIPAddressField(blank=True, null=True, verbose_name='IP del cliente')),
                 ('timestamp', models.DateTimeField(auto_now_add=True, verbose_name='Fecha y hora')),
-                ('job', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='audit_logs', to='G_Jobs.jobs.job', verbose_name='Trabajo')),
+                ('job', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='audit_logs', to='jobs.job', verbose_name='Trabajo')),
             ],
             options={
                 'verbose_name': 'Auditoría de Trabajo',

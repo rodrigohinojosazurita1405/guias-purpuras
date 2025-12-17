@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 ('company_data', models.JSONField(blank=True, default=dict, help_text='Datos del SummaryCard al momento de la compra', verbose_name='Datos de la Empresa')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('plan', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='orders', to='G_Jobs.plans.plan', verbose_name='Plan')),
+                ('plan', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='orders', to='plans.plan', verbose_name='Plan')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='plan_orders', to=settings.AUTH_USER_MODEL, verbose_name='Empresa')),
             ],
             options={

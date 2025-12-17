@@ -188,6 +188,8 @@ const updateIsMobile = () => {
 
 onMounted(() => {
   window.addEventListener('resize', updateIsMobile)
+  // Restaurar datos guardados al montar el componente
+  restoreFromLocalStorage()
 })
 
 onUnmounted(() => {
@@ -226,6 +228,88 @@ const cvData = ref({
   certifications: [],
   languages: [],
   projects: []
+})
+
+// ==========================================
+// PERSISTENCIA EN LOCALSTORAGE
+// ==========================================
+
+const STORAGE_KEYS = {
+  CV_DATA: 'applicationModal_cvData',
+  UPLOADED_FILE: 'applicationModal_uploadedFile',
+  COVER_LETTER: 'applicationModal_coverLetter',
+  ACTIVE_TAB: 'applicationModal_activeTab'
+}
+
+/**
+ * Guardar datos en localStorage
+ */
+const saveToLocalStorage = () => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.CV_DATA, JSON.stringify(cvData.value))
+    localStorage.setItem(STORAGE_KEYS.COVER_LETTER, coverLetter.value)
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_TAB, activeTab.value)
+    // Nota: No guardamos uploadedFile porque File object no se puede serializar
+    console.log('💾 Datos guardados en localStorage')
+  } catch (error) {
+    console.error('Error guardando en localStorage:', error)
+  }
+}
+
+/**
+ * Restaurar datos desde localStorage
+ */
+const restoreFromLocalStorage = () => {
+  try {
+    const savedCvData = localStorage.getItem(STORAGE_KEYS.CV_DATA)
+    const savedCoverLetter = localStorage.getItem(STORAGE_KEYS.COVER_LETTER)
+    const savedTab = localStorage.getItem(STORAGE_KEYS.ACTIVE_TAB)
+
+    if (savedCvData) {
+      cvData.value = JSON.parse(savedCvData)
+      console.log('📥 CV Data restaurado desde localStorage')
+    }
+
+    if (savedCoverLetter) {
+      coverLetter.value = savedCoverLetter
+      console.log('📥 Carta de presentación restaurada desde localStorage')
+    }
+
+    if (savedTab) {
+      activeTab.value = savedTab
+      console.log('📥 Tab activo restaurado:', savedTab)
+    }
+  } catch (error) {
+    console.error('Error restaurando desde localStorage:', error)
+  }
+}
+
+/**
+ * Limpiar datos de localStorage
+ */
+const clearLocalStorage = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.CV_DATA)
+    localStorage.removeItem(STORAGE_KEYS.UPLOADED_FILE)
+    localStorage.removeItem(STORAGE_KEYS.COVER_LETTER)
+    localStorage.removeItem(STORAGE_KEYS.ACTIVE_TAB)
+    console.log('🗑️ localStorage limpiado')
+  } catch (error) {
+    console.error('Error limpiando localStorage:', error)
+  }
+}
+
+// Watch para guardar automáticamente cuando cambian los datos
+watch(cvData, () => {
+  saveToLocalStorage()
+}, { deep: true })
+
+watch(coverLetter, () => {
+  saveToLocalStorage()
+})
+
+watch(activeTab, () => {
+  saveToLocalStorage()
 })
 
 /**
@@ -432,6 +516,10 @@ const handleSubmit = () => {
   }
 
   emit('submit', applicationData)
+
+  // Limpiar localStorage después de enviar exitosamente
+  clearLocalStorage()
+
   handleClose()
 }
 

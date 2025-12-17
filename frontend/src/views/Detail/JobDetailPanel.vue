@@ -18,6 +18,13 @@
       @saveCV="handleSaveCV"
     />
 
+    <!-- Application Success Modal -->
+    <ApplicationSuccessModal
+      v-model="showSuccessModal"
+      :applicationData="applicationResult"
+      @search-more="handleSearchMore"
+    />
+
     <!-- Sistema de Tabs -->
     <div class="tabs-container">
       <div class="tabs-header">
@@ -53,9 +60,17 @@
             </div>
           </div>
           <div class="header-actions">
-            <button @click="applyToJob" class="btn-apply-header">
+            <button @click="applyToJob" class="btn-apply-header" title="Postularme">
               <va-icon name="send" size="small" />
-              Postularme
+              <span class="btn-text">Postularme</span>
+            </button>
+            <button
+              class="save-btn"
+              :class="{ saved: isJobSaved }"
+              @click="toggleSaveJob"
+              :title="isJobSaved ? 'Guardado' : 'Guardar trabajo'"
+            >
+              <va-icon :name="isJobSaved ? 'bookmark' : 'bookmark_border'" size="small" />
             </button>
             <button class="share-btn" @click="shareJob" title="Compartir">
               <va-icon name="share" size="small" />
@@ -95,6 +110,9 @@
           <span class="meta-item" v-if="listing.modality">
             <va-icon name="laptop" size="small" />
             {{ listing.modality }}
+            <span class="job-status-badge" :class="jobStatusClass">
+              {{ jobStatusText }}
+            </span>
           </span>
         </div>
 
@@ -256,13 +274,15 @@
 
 <script>
 import ApplicationModal from '@/components/Process/ApplicationModal.vue'
+import ApplicationSuccessModal from '@/components/Modals/ApplicationSuccessModal.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 export default {
   name: 'JobDetailPanel',
 
   components: {
-    ApplicationModal
+    ApplicationModal,
+    ApplicationSuccessModal
   },
 
   props: {
@@ -282,7 +302,11 @@ export default {
   data() {
     return {
       activeTab: 'oferta',
-      showApplicationModal: false
+      showApplicationModal: false,
+      showSuccessModal: false,
+      applicationResult: null,
+      isJobSaved: false,
+      isSaving: false
     }
   },
 
@@ -330,6 +354,30 @@ export default {
         this.listing.experienceLevel ||
         this.listing.expiryDate
       )
+    },
+
+    jobStatusText() {
+      if (!this.listing) return ''
+
+      // Verificar si está cerrado manualmente
+      if (this.listing.status === 'closed') {
+        return 'Cerrado'
+      }
+
+      // Verificar si expiró por fecha
+      if (this.listing.expiryDate) {
+        const expiryDate = new Date(this.listing.expiryDate)
+        const today = new Date()
+        if (expiryDate < today) {
+          return 'Cerrado'
+        }
+      }
+
+      return 'Vigente'
+    },
+
+    jobStatusClass() {
+      return this.jobStatusText === 'Vigente' ? 'status-active' : 'status-closed'
     }
   },
 
@@ -347,7 +395,7 @@ export default {
       return `${day}/${month}/${year}`
     },
 
-    applyToJob() {
+    async applyToJob() {
       console.log('🎯 [CLICK] applyToJob called')
       console.log('📱 [DEVICE] Window width:', window.innerWidth)
       console.log('🔐 [AUTH] isAuthenticated:', this.authStore.isAuthenticated)
@@ -385,6 +433,18 @@ export default {
 
       // Proceder según el tipo de aplicación
       if (this.listing.applicationType === 'internal') {
+        // Verificar si ya se postuló antes de abrir el modal
+        const alreadyApplied = await this.checkIfAlreadyApplied()
+        if (alreadyApplied) {
+          this.$vaToast.init({
+            message: 'Ya te has postulado a este trabajo anteriormente.',
+            color: 'warning',
+            duration: 5000,
+            position: 'top-right'
+          })
+          return
+        }
+
         this.showApplicationModal = true
         console.log('✅ [MODAL] showApplicationModal DESPUÉS:', this.showApplicationModal)
 
@@ -399,60 +459,150 @@ export default {
       }
     },
 
-    async handleApplicationSubmit(applicationData) {
+    async checkIfAlreadyApplied() {
       try {
-        const formData = new FormData()
+        const response = await fetch('/api/applications/', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${this.authStore.accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        })
 
-        // Agregar datos comunes
-        formData.append('job_id', applicationData.jobId)
-        formData.append('application_type', applicationData.type)
+        if (response.ok) {
+          const data = await response.json()
+          const applications = data.applications || []
 
-        if (applicationData.type === 'upload') {
-          // Tipo: Subir CV
-          formData.append('cv_file', applicationData.uploadedFile)
-          if (applicationData.coverLetter) {
-            formData.append('cover_letter', applicationData.coverLetter)
-          }
-        } else if (applicationData.type === 'create') {
-          // Tipo: Crear CV (enviar como JSON)
-          formData.append('cv_data', JSON.stringify(applicationData.cvData))
+          // Verificar si ya existe una postulación para este trabajo
+          const alreadyApplied = applications.some(app => app.job_id === this.listing.id)
+          return alreadyApplied
         }
 
-        // Enviar al backend Django
-        const response = await fetch('/api/applications/submit/', {
+        return false
+      } catch (error) {
+        console.error('Error checking if already applied:', error)
+        return false // En caso de error, permitir que intente postular
+      }
+    },
+
+    async handleApplicationSubmit(applicationData) {
+      try {
+        // Primero guardar o crear el CV si es necesario
+        let cvId = null
+
+        if (applicationData.type === 'upload' && applicationData.uploadedFile) {
+          // Subir CV como archivo
+          const cvFormData = new FormData()
+          cvFormData.append('file', applicationData.uploadedFile)
+          cvFormData.append('name', `CV ${new Date().toLocaleDateString()}`)
+
+          const cvResponse = await fetch('/api/cvs/save/', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${this.authStore.accessToken}`,
+              'X-CSRFToken': this.getCsrfToken()
+            },
+            body: cvFormData,
+            credentials: 'include'
+          })
+
+          if (cvResponse.ok) {
+            const cvData = await cvResponse.json()
+            cvId = cvData.cv.id
+          }
+        } else if (applicationData.type === 'create' && applicationData.cvData) {
+          // Crear CV con datos
+          const cvResponse = await fetch('/api/cvs/save/', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${this.authStore.accessToken}`,
+              'Content-Type': 'application/json',
+              'X-CSRFToken': this.getCsrfToken()
+            },
+            body: JSON.stringify({
+              cv_type: 'created',
+              name: `CV ${applicationData.cvData.personalInfo?.fullName || 'Profesional'}`,
+              cv_data: applicationData.cvData
+            }),
+            credentials: 'include'
+          })
+
+          if (cvResponse.ok) {
+            const cvData = await cvResponse.json()
+            cvId = cvData.cv.id
+          }
+        } else if (applicationData.type === 'select' && applicationData.selectedCvId) {
+          cvId = applicationData.selectedCvId
+        }
+
+        // Ahora enviar la postulación
+        const response = await fetch(`/api/apply/${applicationData.jobId}/`, {
           method: 'POST',
           headers: {
-            // No incluir Content-Type - FormData lo maneja automáticamente
+            'Authorization': `Bearer ${this.authStore.accessToken}`,
+            'Content-Type': 'application/json',
             'X-CSRFToken': this.getCsrfToken()
           },
-          body: formData,
+          body: JSON.stringify({
+            cv_id: cvId,
+            cover_letter: applicationData.coverLetter || '',
+            screening_answers: {}
+          }),
           credentials: 'include'
         })
 
         if (!response.ok) {
           const errorData = await response.json()
-          throw new Error(errorData.detail || 'Error al enviar la postulación')
+
+          // Manejar caso específico de postulación duplicada
+          if (response.status === 400 && errorData.error &&
+              (errorData.error.includes('Ya te has postulado') ||
+               errorData.error.includes('ya postulado') ||
+               errorData.error.includes('duplicate'))) {
+            throw new Error('Ya te has postulado a este trabajo anteriormente.')
+          }
+
+          throw new Error(errorData.error || errorData.detail || 'Error al enviar la postulación')
         }
 
         const result = await response.json()
 
-        // Mostrar mensaje de éxito
-        this.$vaToast.init({
-          message: 'Postulación enviada correctamente',
-          color: 'success',
-          duration: 3000,
-          position: 'top-right'
-        })
-
-        // Opcional: Redirigir a mis postulaciones o cerrar modal
         console.log('Application submitted successfully:', result)
+
+        // Cerrar el modal de postulación
+        this.showApplicationModal = false
+
+        // Esperar a que el modal de postulación se cierre completamente
+        await new Promise(resolve => setTimeout(resolve, 300))
+
+        // Preparar datos para el modal de éxito
+        this.applicationResult = {
+          id: result.application.id,
+          job_title: result.application.job_title,
+          company: this.listing.companyName,
+          applied_at: result.application.applied_at,
+          status: result.application.status
+        }
+
+        // Mostrar modal de éxito
+        this.showSuccessModal = true
 
       } catch (error) {
         console.error('Error submitting application:', error)
+
+        // Cerrar el modal de postulación si hay error
+        this.showApplicationModal = false
+
+        // Determinar el color del mensaje según el tipo de error
+        const isDuplicateError = error.message.includes('Ya te has postulado')
+        const toastColor = isDuplicateError ? 'warning' : 'danger'
+        const toastDuration = isDuplicateError ? 5000 : 4000
+
         this.$vaToast.init({
           message: error.message || 'Error al enviar la postulación. Intenta nuevamente.',
-          color: 'danger',
-          duration: 4000,
+          color: toastColor,
+          duration: toastDuration,
           position: 'top-right'
         })
       }
@@ -539,6 +689,134 @@ export default {
       return cookieValue
     },
 
+    async toggleSaveJob() {
+      // Validar autenticación
+      if (!this.authStore.isAuthenticated) {
+        this.$vaToast.init({
+          message: 'Debes iniciar sesión para guardar trabajos',
+          color: 'warning',
+          duration: 3000,
+          position: 'top-right'
+        })
+        sessionStorage.setItem('redirectAfterLogin', this.$route.fullPath)
+        this.$router.push('/login')
+        return
+      }
+
+      // Validar que sea postulante
+      if (this.authStore.user?.role !== 'applicant') {
+        this.$vaToast.init({
+          message: 'Solo los postulantes pueden guardar trabajos',
+          color: 'warning',
+          duration: 3000,
+          position: 'top-right'
+        })
+        return
+      }
+
+      if (this.isSaving) return
+
+      // Verificar que tengamos un token válido
+      if (!this.authStore.accessToken) {
+        console.error('❌ No hay accessToken disponible')
+        this.$vaToast.init({
+          message: 'Sesión expirada. Por favor inicia sesión nuevamente.',
+          color: 'warning',
+          duration: 3000,
+          position: 'top-right'
+        })
+        this.$router.push('/login')
+        return
+      }
+
+      this.isSaving = true
+
+      try {
+        const endpoint = this.isJobSaved ? '/api/saved-jobs/unsave/' : '/api/saved-jobs/save/'
+        const method = this.isJobSaved ? 'DELETE' : 'POST'
+
+        console.log(`🔐 Enviando ${method} a ${endpoint}`)
+        console.log(`🎫 Token: ${this.authStore.accessToken.substring(0, 20)}...`)
+
+        const response = await fetch(endpoint, {
+          method: method,
+          headers: {
+            'Authorization': `Bearer ${this.authStore.accessToken}`,
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this.getCsrfToken()
+          },
+          body: JSON.stringify({
+            job_id: this.listing.id
+          }),
+          credentials: 'include'
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || errorData.detail || 'Error al guardar trabajo')
+        }
+
+        await response.json()
+
+        // Toggle estado
+        this.isJobSaved = !this.isJobSaved
+
+        // Mostrar mensaje
+        this.$vaToast.init({
+          message: this.isJobSaved ? 'Trabajo guardado en tu dashboard' : 'Trabajo removido de guardados',
+          color: 'success',
+          duration: 2500,
+          position: 'top-right'
+        })
+
+      } catch (error) {
+        console.error('Error saving job:', error)
+        this.$vaToast.init({
+          message: error.message || 'Error al guardar trabajo. Intenta nuevamente.',
+          color: 'danger',
+          duration: 3000,
+          position: 'top-right'
+        })
+      } finally {
+        this.isSaving = false
+      }
+    },
+
+    async checkIfJobSaved() {
+      // Solo verificar si está autenticado y es postulante
+      if (!this.authStore.isAuthenticated || this.authStore.user?.role !== 'applicant') {
+        this.isJobSaved = false
+        return
+      }
+
+      // Verificar que tengamos un token válido
+      if (!this.authStore.accessToken) {
+        console.warn('⚠️ No hay accessToken disponible')
+        this.isJobSaved = false
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/saved-jobs/check/${this.listing.id}/`, {
+          headers: {
+            'Authorization': `Bearer ${this.authStore.accessToken}`
+          },
+          credentials: 'include'
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          this.isJobSaved = data.is_saved || false
+        } else if (response.status === 401) {
+          console.warn('⚠️ Token no válido o expirado, refrescando...')
+          // Token podría haber expirado, intentar refrescar
+          await this.authStore.refreshTokens()
+        }
+      } catch (error) {
+        console.error('Error checking if job is saved:', error)
+      }
+    },
+
     shareJob() {
       if (navigator.share) {
         navigator.share({
@@ -550,6 +828,18 @@ export default {
         navigator.clipboard.writeText(window.location.href)
         alert('Enlace copiado al portapapeles')
       }
+    },
+
+    handleSearchMore() {
+      // Cerrar el panel de detalles y volver a la búsqueda
+      this.$emit('close')
+    }
+  },
+
+  mounted() {
+    // Verificar si el trabajo ya está guardado cuando se monta el componente
+    if (this.listing) {
+      this.checkIfJobSaved()
     }
   },
 
@@ -562,8 +852,14 @@ export default {
               this.$refs.detailPanel.scrollTop = 0
             }
           })
+          // Verificar si el nuevo trabajo está guardado
+          this.checkIfJobSaved()
+        } else if (newListing && !oldListing) {
+          // Primera carga
+          this.checkIfJobSaved()
         }
-      }
+      },
+      immediate: true
     }
   }
 }
@@ -702,22 +998,55 @@ export default {
   transform: translateY(-1px);
 }
 
-.share-btn {
-  background: transparent;
-  border: 1px solid #E5E7EB;
+.save-btn {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border: none;
   border-radius: 6px;
   padding: 0.625rem;
   cursor: pointer;
-  color: #6B7280;
-  transition: all 0.2s;
+  color: white;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+}
+
+.save-btn:hover {
+  background: linear-gradient(135deg, #6d28d9, #5b21b6);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+}
+
+.save-btn.saved {
+  background: linear-gradient(135deg, #10B981, #059669);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+.save-btn.saved:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+.share-btn {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border: none;
+  border-radius: 6px;
+  padding: 0.625rem;
+  cursor: pointer;
+  color: white;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
 }
 
 .share-btn:hover {
-  background: #F3F4F6;
-  color: #7C3AED;
+  background: linear-gradient(135deg, #6d28d9, #5b21b6);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
 }
 
 /* Sección Título con Logo */
@@ -810,6 +1139,31 @@ export default {
   gap: 0.375rem;
   font-size: 0.9375rem;
   color: #4B5563;
+}
+
+/* Badge de estado del trabajo */
+.job-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.job-status-badge.status-active {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.job-status-badge.status-closed {
+  background: rgba(239, 68, 68, 0.1);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 /* Salario */
@@ -1149,6 +1503,114 @@ export default {
   /* Ajustar el header para que no choque con el botón X */
   .detail-header {
     padding-right: 2.5rem; /* Espacio para el botón X */
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .header-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  /* Badges en línea horizontal */
+  .badges {
+    display: flex;
+    flex-direction: row;
+    gap: 0.375rem;
+    flex-wrap: nowrap;
+  }
+
+  .badge {
+    font-size: 0.6875rem;
+    padding: 0.1875rem 0.5rem;
+  }
+
+  /* Mejorar botones en móvil */
+  .header-actions {
+    gap: 0.375rem;
+  }
+
+  /* Ocultar texto del botón, solo mostrar ícono */
+  .btn-apply-header .btn-text {
+    display: none !important;
+  }
+
+  .btn-apply-header {
+    padding: 0.5rem !important;
+    min-width: 40px;
+    min-height: 40px;
+    justify-content: center;
+  }
+
+  .save-btn,
+  .share-btn {
+    padding: 0.5rem;
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Asegurar que el texto se oculte en tablets también */
+  .btn-apply-header .btn-text {
+    display: none !important;
+  }
+
+  .btn-apply-header {
+    padding: 0.5rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-actions {
+    gap: 0.25rem;
+  }
+
+  .btn-apply-header .btn-text {
+    display: none !important;
+  }
+
+  .btn-apply-header,
+  .save-btn,
+  .share-btn {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0.4375rem !important;
+  }
+
+  .badge {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
+  }
+}
+
+@media (max-width: 375px) {
+  /* iPhone 5/SE y dispositivos muy pequeños */
+  .btn-apply-header .btn-text {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .btn-apply-header,
+  .save-btn,
+  .share-btn {
+    min-width: 34px;
+    min-height: 34px;
+    max-width: 34px;
+    padding: 0.375rem !important;
+  }
+
+  .header-actions {
+    gap: 0.1875rem;
+  }
+
+  .badge {
+    font-size: 0.5625rem;
+    padding: 0.125rem 0.25rem;
   }
 }
 </style>

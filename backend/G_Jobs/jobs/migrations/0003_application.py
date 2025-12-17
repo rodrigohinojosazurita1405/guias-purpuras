@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('recruiterNotes', models.TextField(blank=True, verbose_name='Notas del reclutador')),
                 ('createdAt', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de aplicación')),
                 ('updatedAt', models.DateTimeField(auto_now=True, verbose_name='Última actualización')),
-                ('job', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='job_applications', to='G_Jobs.jobs.job', verbose_name='Trabajo')),
+                ('job', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='job_applications', to='jobs.job', verbose_name='Trabajo')),
             ],
             options={
                 'verbose_name': 'Aplicación',

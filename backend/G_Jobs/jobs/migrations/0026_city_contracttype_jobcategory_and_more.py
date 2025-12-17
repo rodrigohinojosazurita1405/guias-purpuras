@@ -195,7 +195,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='planorder',
             name='job',
-            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='plan_order', to='G_Jobs.jobs.job', verbose_name='Trabajo asociado'),
+            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='plan_order', to='jobs.job', verbose_name='Trabajo asociado'),
         ),
         migrations.AddField(
             model_name='planorder',

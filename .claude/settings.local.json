@@ -49,7 +49,11 @@
       "Bash(for dir in payments moderation dashboard plans reports)",
       "Bash(do echo \"Updating $dir/apps.py\")",
       "Bash(done)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(Trabajo Actual/Finalizado\" junto al switch\n\n## CreateCVTab.vue - Inputs y Placeholders\n- ✅ Eliminado type=\"number\" de inputs de año (sin spinners molestos)\n- ✅ Placeholders genéricos para profesiones bolivianas (no solo developers)\n- ✅ Perfil profesional: ejemplo de \"gestión comercial\" en lugar de \"desarrollo software\"\n- ✅ Experiencia: \"Gerente de Ventas\" en lugar de \"Desarrollador Full Stack\"\n- ✅ Logros educativos: eliminado GPA, añadido \"mención honorífica\" y \"primero de promoción\"\n- ✅ Logros laborales: ejemplos más genéricos y aplicables a cualquier sector\n\n## UploadCVTab.vue\n- ✅ Carta de presentación: reducida de 6 a 4 min-rows para compactar\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(python -c:*)",
+      "Bash(python test_application.py:*)",
+      "Bash(python test_application_new.py:*)"
     ],
     "deny": [],
     "ask": []

@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(choices=[('processing', 'En Proceso'), ('completed', 'Completado')], default='processing', max_length=20, verbose_name='Estado')),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')),
                 ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Última actualización')),
-                ('job', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='plan_order', to='G_Jobs.jobs.job', verbose_name='Trabajo asociado')),
+                ('job', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='plan_order', to='jobs.job', verbose_name='Trabajo asociado')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='plan_orders', to=settings.AUTH_USER_MODEL, verbose_name='Usuario')),
             ],
             options={

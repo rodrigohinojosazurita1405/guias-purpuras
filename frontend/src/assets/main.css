@@ -93,3 +93,44 @@ textarea {
   font-size: 1.0rem !important;
 }
 
+/* ========== MODAL Z-INDEX FIX ========== */
+/* El TopSearchBar tiene z-index: 1000-1315 */
+/* El overlay debe estar DEBAJO del TopSearchBar pero el container ENCIMA */
+
+/* Overlay del modal - DEBAJO del TopSearchBar para que no lo oscurezca */
+.va-modal__overlay,
+div.va-modal__overlay,
+body > .va-modal__overlay,
+body > div.va-modal__overlay,
+[class*="va-modal__overlay"] {
+  z-index: 999 !important;
+  position: fixed !important;
+}
+
+/* Container del modal - ENCIMA del TopSearchBar */
+.va-modal__container,
+div.va-modal__container,
+body > .va-modal__container,
+body > div.va-modal__container,
+[class*="va-modal__container"] {
+  z-index: 10000 !important;
+  position: fixed !important;
+}
+
+/* Selector específico para el modal wrapper completo */
+.va-modal,
+div.va-modal,
+body > .va-modal {
+  z-index: 999 !important;
+}
+
+/* Targeting directo del portal/teleport de Vuestic */
+body > div[data-v-app] > .va-modal__overlay {
+  z-index: 999 !important;
+}
+
+body > div[data-v-app] > .va-modal__container,
+body > div[data-v-app] .va-modal__container {
+  z-index: 10000 !important;
+}
+
