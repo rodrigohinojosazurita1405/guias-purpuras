@@ -256,7 +256,15 @@ const getLineClass = (index) => {
   }
 
   .step-info {
-    display: none;
+    max-width: 100px;
+  }
+
+  .step-name {
+    font-size: 0.8rem;
+  }
+
+  .step-description {
+    font-size: 0.7rem;
   }
 
   .step-line {
@@ -266,8 +274,8 @@ const getLineClass = (index) => {
 
 @media (max-width: 768px) {
   .publish-steps-indicator {
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
   }
 
   .steps-container {
@@ -275,13 +283,25 @@ const getLineClass = (index) => {
   }
 
   .step-circle {
-    width: 36px;
-    height: 36px;
-    font-size: 0.85rem;
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .step-info {
+    max-width: 70px;
+  }
+
+  .step-name {
+    font-size: 0.7rem;
+  }
+
+  .step-description {
+    display: none;
   }
 
   .step-line {
-    min-width: 15px;
+    min-width: 10px;
   }
 }
 </style>

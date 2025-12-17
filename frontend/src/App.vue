@@ -204,4 +204,25 @@ label {
   gap: 0.6rem !important;
   margin: 0 !important;
 }
+
+/* ==========================================
+   ESTILOS GLOBALES DE BOTONES
+   ========================================== */
+/* Botones primarios con gradiente púrpura */
+.va-button:not([class*="secondary"]):not([class*="danger"]):not(.btn-delete):not(.delete-confirm-btn),
+button.btn-primary,
+.btn-purple {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+  color: white !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+}
+
+.va-button:not([class*="secondary"]):not([class*="danger"]):not(.btn-delete):not(.delete-confirm-btn):hover,
+button.btn-primary:hover,
+.btn-purple:hover {
+  background: linear-gradient(135deg, #6d28d9, #5b21b6) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3) !important;
+}
 </style>

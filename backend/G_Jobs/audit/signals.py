@@ -95,7 +95,7 @@ def job_pre_save(sender, instance, **kwargs):
 @receiver(post_save, sender='jobs.Job')
 def audit_job_save(sender, instance, created, **kwargs):
     """Auditar cuando se crea o actualiza un Job"""
-    from jobs.models import Job
+    from G_Jobs.jobs.models import Job
 
     print(f"[AUDIT] Signal post_save ejecutado para Job: {instance.title}, created={created}")
 
@@ -229,7 +229,7 @@ def audit_job_delete(sender, instance, **kwargs):
 @receiver(post_save, sender='payments.PlanOrder')
 def audit_plan_order_save(sender, instance, created, **kwargs):
     """Auditar cuando se crea o actualiza una PlanOrder"""
-    from payments.models import PlanOrder
+    from G_Jobs.payments.models import PlanOrder
 
     action = 'create' if created else 'update'
     changes = get_model_changes(instance, created)
@@ -258,6 +258,7 @@ def audit_plan_order_save(sender, instance, created, **kwargs):
 @receiver(post_save, sender='profiles.CompanyProfile')
 def audit_company_profile_save(sender, instance, created, **kwargs):
     """Auditar cuando se crea o actualiza un CompanyProfile"""
+    # profiles está fuera de G_Jobs, mantener importación original
     from profiles.models import CompanyProfile
 
     action = 'create' if created else 'update'

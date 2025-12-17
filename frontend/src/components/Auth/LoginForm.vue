@@ -244,11 +244,21 @@ const handleLogin = async () => {
       if (formData.value.rememberMe) {
         localStorage.setItem('rememberMe', 'true')
       }
-      // Redirigir inteligentemente según el rol
+
+      // Verificar si hay una URL de redirección guardada
+      const redirectUrl = sessionStorage.getItem('redirectAfterLogin')
+      sessionStorage.removeItem('redirectAfterLogin')
+
+      // Redirigir inteligentemente
       setTimeout(() => {
-        if (authStore.user?.role === 'company') {
+        if (redirectUrl) {
+          // Si hay una URL guardada, redirigir allí
+          router.push(redirectUrl)
+        } else if (authStore.user?.role === 'company') {
+          // Si es empresa, ir al dashboard de empresa
           router.push('/dashboard/jobs-manager')
         } else {
+          // Si es postulante, ir al perfil
           router.push('/dashboard/profile')
         }
       }, 500)

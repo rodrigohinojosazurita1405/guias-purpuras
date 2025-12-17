@@ -173,6 +173,52 @@
     </div>
   </div>
 
+    <!-- Modal de Confirmación de Eliminación -->
+    <va-modal
+      v-model="showDeleteModal"
+      size="small"
+      :close-button="false"
+      hide-default-actions
+    >
+      <template #header>
+        <div class="delete-header">
+          <va-icon name="warning" size="2.5rem" color="#DC2626" />
+          <h2 class="delete-title">¿Eliminar anuncio?</h2>
+        </div>
+      </template>
+
+      <div class="delete-content">
+        <!-- Job info -->
+        <div class="job-info-box">
+          <p class="job-name">{{ jobToDelete?.title }}</p>
+          <p class="job-stats">{{ jobToDelete?.views || 0 }} vistas • {{ jobToDelete?.applications || 0 }} aplicaciones</p>
+        </div>
+
+        <!-- Warning -->
+        <div class="warning-compact">
+          <va-icon name="info" size="small" color="#DC2626" />
+          <p>Esta acción es permanente. Se perderán todos los datos y no se puede deshacer.</p>
+        </div>
+
+        <!-- Checkbox -->
+        <label class="confirm-label">
+          <input type="checkbox" v-model="deleteConfirmed" class="confirm-check" />
+          <span class="confirm-box"></span>
+          <span class="confirm-text">Confirmo que deseo eliminar este anuncio</span>
+        </label>
+      </div>
+
+      <template #footer>
+        <div class="delete-actions">
+          <va-button color="secondary" @click="closeDeleteModal">Cancelar</va-button>
+          <va-button @click="confirmDelete" :disabled="!deleteConfirmed" class="btn-delete">
+            <va-icon name="delete" size="small" />
+            Eliminar
+          </va-button>
+        </div>
+      </template>
+    </va-modal>
+
     <!-- Modal de Edición -->
     <va-modal
       v-model="showEditModal"
@@ -301,7 +347,10 @@ const filterStatus = ref('')
 const sortBy = ref('recent')
 const showDetailModal = ref(false)
 const showEditModal = ref(false)
+const showDeleteModal = ref(false)
 const selectedJob = ref(null)
+const jobToDelete = ref(null)
+const deleteConfirmed = ref(false)
 const editFormData = ref({
   title: '',
   city: '',
@@ -646,11 +695,23 @@ const toggleJobStatus = async (job) => {
   }
 }
 
-const deleteJob = async (job) => {
-  if (!confirm(`¿Está seguro de que desea eliminar "${job.title}"?`)) return
+const deleteJob = (job) => {
+  jobToDelete.value = job
+  deleteConfirmed.value = false
+  showDeleteModal.value = true
+}
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false
+  jobToDelete.value = null
+  deleteConfirmed.value = false
+}
+
+const confirmDelete = async () => {
+  if (!deleteConfirmed.value || !jobToDelete.value) return
 
   try {
-    const response = await fetch(`/api/jobs/${job.id}/delete`, {
+    const response = await fetch(`/api/jobs/${jobToDelete.value.id}/delete`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${authStore.accessToken}`,
@@ -664,12 +725,14 @@ const deleteJob = async (job) => {
       throw new Error(data.message || 'Error al eliminar trabajo')
     }
 
-    jobs.value = jobs.value.filter(j => j.id !== job.id)
+    jobs.value = jobs.value.filter(j => j.id !== jobToDelete.value.id)
+
+    closeDeleteModal()
 
     notify({
-      message: 'Anuncio eliminado',
+      message: 'Anuncio eliminado exitosamente',
       color: 'success',
-      duration: 2000,
+      duration: 3000,
       position: 'top-right',
       closeable: true
     })
@@ -1594,6 +1657,159 @@ const activateJob = async () => {
   }
 
   .modal-footer .va-button {
+    width: 100%;
+  }
+}
+
+/* ========== DELETE MODAL COMPACTO ========== */
+.delete-header {
+  text-align: center;
+  padding: 1rem 0 0.5rem;
+}
+
+.delete-title {
+  color: #DC2626;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0.75rem 0 0;
+}
+
+.delete-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.job-info-box {
+  background: #F9FAFB;
+  border-left: 3px solid #7c3aed;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+}
+
+.job-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.job-stats {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  color: #6B7280;
+}
+
+.warning-compact {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.75rem;
+  background: #FEF2F2;
+  border-radius: 6px;
+  border: 1px solid #FECACA;
+}
+
+.warning-compact p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #991B1B;
+  line-height: 1.5;
+}
+
+.confirm-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  padding: 0.75rem;
+  background: white;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.confirm-label:has(.confirm-check:checked) {
+  border-color: #DC2626;
+  background: #FEF2F2;
+}
+
+.confirm-check {
+  display: none;
+}
+
+.confirm-box {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #D1D5DB;
+  border-radius: 4px;
+  background: white;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.confirm-check:checked + .confirm-box {
+  background: #DC2626;
+  border-color: #DC2626;
+}
+
+.confirm-check:checked + .confirm-box::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.confirm-text {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.confirm-check:checked ~ .confirm-text {
+  color: #1F2937;
+  font-weight: 600;
+}
+
+.delete-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
+  color: white !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-delete:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.btn-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+@media (max-width: 768px) {
+  .delete-actions {
+    flex-direction: column-reverse;
+  }
+
+  .delete-actions .va-button {
     width: 100%;
   }
 }

@@ -10,6 +10,14 @@
       <va-icon name="close" size="large" />
     </button>
 
+    <!-- Application Modal -->
+    <ApplicationModal
+      v-model="showApplicationModal"
+      :job="listing"
+      @submit="handleApplicationSubmit"
+      @saveCV="handleSaveCV"
+    />
+
     <!-- Sistema de Tabs -->
     <div class="tabs-container">
       <div class="tabs-header">
@@ -247,8 +255,15 @@
 </template>
 
 <script>
+import ApplicationModal from '@/components/Process/ApplicationModal.vue'
+import { useAuthStore } from '@/stores/useAuthStore'
+
 export default {
   name: 'JobDetailPanel',
+
+  components: {
+    ApplicationModal
+  },
 
   props: {
     listing: {
@@ -259,9 +274,15 @@ export default {
 
   emits: ['close'],
 
+  setup() {
+    const authStore = useAuthStore()
+    return { authStore }
+  },
+
   data() {
     return {
-      activeTab: 'oferta'
+      activeTab: 'oferta',
+      showApplicationModal: false
     }
   },
 
@@ -327,13 +348,195 @@ export default {
     },
 
     applyToJob() {
+      console.log('🎯 [CLICK] applyToJob called')
+      console.log('📱 [DEVICE] Window width:', window.innerWidth)
+      console.log('🔐 [AUTH] isAuthenticated:', this.authStore.isAuthenticated)
+
+      // Validar autenticación
+      if (!this.authStore.isAuthenticated) {
+        console.log('⚠️ [AUTH] Usuario no autenticado, redirigiendo a login')
+        this.$vaToast.init({
+          message: 'Debes iniciar sesión para postular a esta oferta',
+          color: 'warning',
+          duration: 4000,
+          position: 'top-right'
+        })
+        // Guardar la URL actual para redirigir después del login
+        sessionStorage.setItem('redirectAfterLogin', this.$route.fullPath)
+        // Redirigir a login
+        this.$router.push('/login')
+        return
+      }
+
+      // Validar que el usuario sea postulante (no empresa)
+      if (this.authStore.user?.role === 'company') {
+        console.log('⚠️ [AUTH] Usuario es empresa, no puede postular')
+        this.$vaToast.init({
+          message: 'Solo los postulantes pueden aplicar a ofertas. Cambia a una cuenta de postulante.',
+          color: 'danger',
+          duration: 4000,
+          position: 'top-right'
+        })
+        return
+      }
+
+      console.log('✅ [MODAL] Abriendo modal, applicationType:', this.listing.applicationType)
+      console.log('🔍 [MODAL] showApplicationModal ANTES:', this.showApplicationModal)
+
+      // Proceder según el tipo de aplicación
       if (this.listing.applicationType === 'internal') {
-        this.$router.push(`/guias/trabajos/${this.listing.id}/aplicar`)
+        this.showApplicationModal = true
+        console.log('✅ [MODAL] showApplicationModal DESPUÉS:', this.showApplicationModal)
+
+        // Forzar actualización en el siguiente tick
+        this.$nextTick(() => {
+          console.log('🔄 [MODAL] nextTick - showApplicationModal:', this.showApplicationModal)
+        })
       } else if (this.listing.applicationType === 'external') {
         window.open(this.listing.externalApplicationUrl, '_blank')
       } else if (this.listing.applicationType === 'email') {
         window.location.href = `mailto:${this.listing.email}?subject=Postulación - ${this.listing.title}`
       }
+    },
+
+    async handleApplicationSubmit(applicationData) {
+      try {
+        const formData = new FormData()
+
+        // Agregar datos comunes
+        formData.append('job_id', applicationData.jobId)
+        formData.append('application_type', applicationData.type)
+
+        if (applicationData.type === 'upload') {
+          // Tipo: Subir CV
+          formData.append('cv_file', applicationData.uploadedFile)
+          if (applicationData.coverLetter) {
+            formData.append('cover_letter', applicationData.coverLetter)
+          }
+        } else if (applicationData.type === 'create') {
+          // Tipo: Crear CV (enviar como JSON)
+          formData.append('cv_data', JSON.stringify(applicationData.cvData))
+        }
+
+        // Enviar al backend Django
+        const response = await fetch('/api/applications/submit/', {
+          method: 'POST',
+          headers: {
+            // No incluir Content-Type - FormData lo maneja automáticamente
+            'X-CSRFToken': this.getCsrfToken()
+          },
+          body: formData,
+          credentials: 'include'
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.detail || 'Error al enviar la postulación')
+        }
+
+        const result = await response.json()
+
+        // Mostrar mensaje de éxito
+        this.$vaToast.init({
+          message: 'Postulación enviada correctamente',
+          color: 'success',
+          duration: 3000,
+          position: 'top-right'
+        })
+
+        // Opcional: Redirigir a mis postulaciones o cerrar modal
+        console.log('Application submitted successfully:', result)
+
+      } catch (error) {
+        console.error('Error submitting application:', error)
+        this.$vaToast.init({
+          message: error.message || 'Error al enviar la postulación. Intenta nuevamente.',
+          color: 'danger',
+          duration: 4000,
+          position: 'top-right'
+        })
+      }
+    },
+
+    async handleSaveCV(data) {
+      try {
+        // Verificar que el usuario sea postulante
+        if (this.authStore.user?.role !== 'applicant') {
+          this.$vaToast.init({
+            message: 'Solo los postulantes pueden guardar CVs',
+            color: 'danger',
+            duration: 3000
+          })
+          return
+        }
+
+        // Preparar datos para enviar al backend
+        const response = await fetch('/api/cvs/save/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this.getCsrfToken()
+          },
+          body: JSON.stringify({
+            cv_data: data.cvData
+          }),
+          credentials: 'include'
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.detail || 'Error al guardar CV')
+        }
+
+        const result = await response.json()
+
+        // Mostrar mensaje de éxito
+        this.$vaToast.init({
+          message: result.message || 'CV guardado correctamente en tu dashboard',
+          color: 'success',
+          duration: 3000,
+          position: 'top-right'
+        })
+
+        console.log('CV saved successfully:', result)
+
+      } catch (error) {
+        console.error('Error saving CV:', error)
+
+        // Si el error es por límite de CVs (máx 2)
+        if (error.message.includes('máximo') || error.message.includes('límite')) {
+          this.$vaToast.init({
+            message: error.message,
+            color: 'warning',
+            duration: 5000,
+            position: 'top-right'
+          })
+        } else {
+          this.$vaToast.init({
+            message: error.message || 'Error al guardar CV. Intenta nuevamente.',
+            color: 'danger',
+            duration: 4000,
+            position: 'top-right'
+          })
+        }
+      }
+    },
+
+    getCsrfToken() {
+      // Obtener token CSRF de las cookies
+      const name = 'csrftoken'
+      let cookieValue = null
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';')
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim()
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+            break
+          }
+        }
+      }
+      return cookieValue
     },
 
     shareJob() {
