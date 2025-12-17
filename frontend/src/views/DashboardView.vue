@@ -44,22 +44,17 @@
 
       <!-- CV Section (Applicant Only) -->
       <div v-else-if="activeSection === 'cv'" class="dashboard-section">
-        <div class="dashboard-placeholder">
-          <va-icon name="description" size="3rem" color="purple" />
-          <h2>Mi CV</h2>
-          <p>Aquí podrás gestionar tus currículum vitae (máximo 2 CVs)</p>
-          <p style="font-size: 0.9rem; color: #999;">Funcionalidad próximamente disponible</p>
-        </div>
+        <CVManager />
       </div>
 
       <!-- Applications Section (Applicant Only) -->
       <div v-else-if="activeSection === 'applications'" class="dashboard-section">
-        <div class="dashboard-placeholder">
-          <va-icon name="assignment" size="3rem" color="purple" />
-          <h2>Mis Postulaciones</h2>
-          <p>Aquí verás todas las postulaciones que has enviado y el estado de cada una</p>
-          <p style="font-size: 0.9rem; color: #999;">Funcionalidad próximamente disponible</p>
-        </div>
+        <ApplicationsView />
+      </div>
+
+      <!-- Shortlisted/Favorites Section (Applicant Only) -->
+      <div v-else-if="activeSection === 'shortlisted'" class="dashboard-section">
+        <ShortlistedView />
       </div>
 
       <!-- Blocked Users Section (Company Only) -->
@@ -95,6 +90,9 @@ import MisOrdenes from '@/components/Dashboard/MisOrdenes.vue'
 import CandidatesView from '@/components/Dashboard/CandidatesView.vue'
 import BlockedUsersList from '@/components/Dashboard/BlockedUsersList.vue'
 import MessagesView from '@/components/Dashboard/MessagesView.vue'
+import CVManager from '@/components/Dashboard/CVManager.vue'
+import ApplicationsView from '@/components/Dashboard/ApplicationsView.vue'
+import ShortlistedView from '@/components/Dashboard/ShortlistedView.vue'
 
 // ========== COMPOSABLES ==========
 const route = useRoute()
