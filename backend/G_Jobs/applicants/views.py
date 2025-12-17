@@ -148,7 +148,8 @@ def save_cv(request):
 @require_http_methods(["GET"])
 def list_cvs(request):
     """
-    Listar todos los CVs del usuario autenticado
+    Listar SOLO los CVs creados en plataforma (formato Harvard)
+    NO incluye PDFs subidos, solo CVs con cv_type='created'
 
     Response:
     {
@@ -166,8 +167,10 @@ def list_cvs(request):
     }
     """
     try:
+        # SOLO CVs creados en plataforma, NO PDFs subidos
         cvs = ApplicantCV.objects.filter(
             applicant=request.user,
+            cv_type='created',  # FILTRO: solo CVs creados en plataforma
             is_deleted=False
         ).order_by('-created_at')
 

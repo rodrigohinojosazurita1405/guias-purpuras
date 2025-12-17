@@ -6,34 +6,64 @@
       <div v-if="internalOpen" class="custom-modal-overlay" @click.self="handleOverlayClick">
       <div class="custom-modal-container" :class="{ 'is-mobile': isMobile }">
         <div class="custom-modal-dialog">
-          <!-- Header -->
+          <!-- Header Mejorado -->
           <div class="modal-header-content">
-        <!-- Job Info -->
+        <!-- Job Info con logo más grande -->
         <div class="job-header-info">
-          <div class="company-logo-mini" v-if="job.companyLogo">
+          <div class="company-logo-large" v-if="job.companyLogo">
             <img :src="job.companyLogo" :alt="job.companyName" />
           </div>
-          <div class="company-logo-placeholder-mini" v-else>
-            <va-icon name="business" size="small" />
+          <div class="company-logo-placeholder-large" v-else>
+            <va-icon name="business" size="large" />
           </div>
-          <div class="job-info-text">
-            <h2 class="job-title-modal">{{ job.title }}</h2>
-            <p class="company-name-modal">{{ job.companyName }}</p>
+          <div class="job-info-details">
+            <h2 class="job-title-large">{{ job.title }}</h2>
+            <p class="company-name-large">
+              <va-icon name="business" size="small" />
+              {{ job.companyName }}
+            </p>
+
+            <!-- Info adicional del trabajo -->
+            <div class="job-meta-info">
+              <span v-if="job.location" class="job-meta-item">
+                <va-icon name="place" size="small" />
+                {{ job.location }}
+              </span>
+              <span v-if="job.salary" class="job-meta-item">
+                <va-icon name="payments" size="small" />
+                {{ job.salary }}
+              </span>
+              <span v-if="job.contractType" class="job-meta-item">
+                <va-icon name="schedule" size="small" />
+                {{ job.contractType }}
+              </span>
+              <span v-if="job.workMode" class="job-meta-item">
+                <va-icon name="home_work" size="small" />
+                {{ job.workMode }}
+              </span>
+              <span v-if="job.vacancies" class="job-meta-item">
+                <va-icon name="group" size="small" />
+                {{ job.vacancies }} {{ job.vacancies === 1 ? 'vacante' : 'vacantes' }}
+              </span>
+              <span v-if="job.expiryDate" class="job-meta-item">
+                <va-icon name="event" size="small" />
+                Vence: {{ formatExpiryDate(job.expiryDate) }}
+              </span>
+            </div>
           </div>
         </div>
 
         <!-- Tabs -->
         <div class="tabs-header">
-          <!-- Tab: Mis CVs (solo si tiene CVs guardados) -->
+          <!-- Tab: Mis CVs (SIEMPRE visible) -->
           <button
-            v-if="hasSavedCVs"
             class="tab-btn"
             :class="{ active: activeTab === 'saved' }"
             @click="activeTab = 'saved'"
           >
             <va-icon name="folder" size="small" />
             Mis CVs
-            <span class="cv-count">{{ savedCVs.length }}</span>
+            <span v-if="savedCVs.length > 0" class="cv-count">{{ savedCVs.length }}/2</span>
           </button>
 
           <button
@@ -42,15 +72,7 @@
             @click="activeTab = 'upload'"
           >
             <va-icon name="upload_file" size="small" />
-            Subir CV
-          </button>
-          <button
-            class="tab-btn"
-            :class="{ active: activeTab === 'create' }"
-            @click="activeTab = 'create'"
-          >
-            <va-icon name="description" size="small" />
-            Crear CV
+            Subir PDF
           </button>
         </div>
 
@@ -70,9 +92,14 @@
           <p>Cargando tus CVs...</p>
         </div>
 
-        <div v-else-if="savedCVs.length === 0" class="empty-state">
+        <div v-else-if="savedCVs.length === 0" class="empty-cv-state">
           <va-icon name="folder_open" size="3rem" color="#D1D5DB" />
-          <p>No tienes CVs guardados todavía</p>
+          <h3>No tienes CVs creados en la plataforma</h3>
+          <p>Crea hasta 2 CVs profesionales en formato Harvard y reutilízalos para múltiples postulaciones.</p>
+          <button class="btn-primary-action" @click="goToDashboard">
+            <va-icon name="add_circle" size="small" />
+            Crear CV en Dashboard
+          </button>
         </div>
 
         <div v-else class="cvs-list">
@@ -110,33 +137,16 @@
 
       <!-- Tab: Subir CV -->
       <UploadCVTab
-        v-else-if="activeTab === 'upload'"
+        v-if="activeTab === 'upload'"
         :file="uploadedFile"
         :coverLetter="coverLetter"
         @update:file="uploadedFile = $event"
         @update:coverLetter="coverLetter = $event"
       />
-
-      <!-- Tab: Crear CV -->
-      <CreateCVTab
-        v-else-if="activeTab === 'create'"
-        v-model="cvData"
-      />
           </div>
 
           <!-- Footer -->
           <div class="modal-footer-actions">
-            <!-- Botón para guardar CV en dashboard (solo visible en tab "Crear CV") -->
-            <button
-              v-if="activeTab === 'create'"
-              class="btn-save-cv btn-gradient-purple"
-              @click="handleSaveCV"
-              :disabled="!canSubmit || isSavingCV"
-            >
-              <va-icon name="save" size="small" />
-              {{ isSavingCV ? 'Guardando...' : 'Guardar en Dashboard' }}
-            </button>
-
             <button
               @click="handleSubmit"
               :disabled="!canSubmit"
@@ -159,8 +169,12 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/useAuthStore'
 import UploadCVTab from './UploadCVTab.vue'
-import CreateCVTab from './CreateCVTab.vue'
+
+const router = useRouter()
+const authStore = useAuthStore()
 
 const props = defineProps({
   modelValue: {
@@ -188,129 +202,30 @@ const updateIsMobile = () => {
 
 onMounted(() => {
   window.addEventListener('resize', updateIsMobile)
-  // Restaurar datos guardados al montar el componente
-  restoreFromLocalStorage()
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateIsMobile)
+
+  // Limpiar estilos del body al desmontar
+  document.body.classList.remove('modal-open')
+  document.body.style.overflow = ''
+  document.body.style.position = ''
+  document.body.style.width = ''
 })
 
-// Tab inicial depende del tipo de aplicación
+// Tab inicial: priorizar "Mis CVs" si tiene CVs guardados, sino "Subir PDF"
 const getInitialTab = () => {
-  if (props.job?.applicationType === 'internal') {
-    return 'create' // Para trabajos internos, abrir tab "Crear CV"
-  }
-  return 'upload' // Para trabajos externos, abrir tab "Subir CV"
+  // Se determinará dinámicamente después de cargar los CVs
+  return 'upload' // Por defecto
 }
 
 const activeTab = ref(getInitialTab())
 const uploadedFile = ref(null)
 const coverLetter = ref('')
-const isSavingCV = ref(false)
 const savedCVs = ref([])
 const selectedSavedCV = ref(null)
 const isLoadingCVs = ref(false)
-const cvData = ref({
-  personalInfo: {
-    fullName: '',
-    phone: '',
-    email: '',
-    location: '',
-    linkedin: '',
-    portfolio: ''
-  },
-  professionalProfile: '',
-  education: [],
-  experience: [],
-  technicalSkills: [],
-  softSkills: [],
-  certifications: [],
-  languages: [],
-  projects: []
-})
-
-// ==========================================
-// PERSISTENCIA EN LOCALSTORAGE
-// ==========================================
-
-const STORAGE_KEYS = {
-  CV_DATA: 'applicationModal_cvData',
-  UPLOADED_FILE: 'applicationModal_uploadedFile',
-  COVER_LETTER: 'applicationModal_coverLetter',
-  ACTIVE_TAB: 'applicationModal_activeTab'
-}
-
-/**
- * Guardar datos en localStorage
- */
-const saveToLocalStorage = () => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.CV_DATA, JSON.stringify(cvData.value))
-    localStorage.setItem(STORAGE_KEYS.COVER_LETTER, coverLetter.value)
-    localStorage.setItem(STORAGE_KEYS.ACTIVE_TAB, activeTab.value)
-    // Nota: No guardamos uploadedFile porque File object no se puede serializar
-    console.log('💾 Datos guardados en localStorage')
-  } catch (error) {
-    console.error('Error guardando en localStorage:', error)
-  }
-}
-
-/**
- * Restaurar datos desde localStorage
- */
-const restoreFromLocalStorage = () => {
-  try {
-    const savedCvData = localStorage.getItem(STORAGE_KEYS.CV_DATA)
-    const savedCoverLetter = localStorage.getItem(STORAGE_KEYS.COVER_LETTER)
-    const savedTab = localStorage.getItem(STORAGE_KEYS.ACTIVE_TAB)
-
-    if (savedCvData) {
-      cvData.value = JSON.parse(savedCvData)
-      console.log('📥 CV Data restaurado desde localStorage')
-    }
-
-    if (savedCoverLetter) {
-      coverLetter.value = savedCoverLetter
-      console.log('📥 Carta de presentación restaurada desde localStorage')
-    }
-
-    if (savedTab) {
-      activeTab.value = savedTab
-      console.log('📥 Tab activo restaurado:', savedTab)
-    }
-  } catch (error) {
-    console.error('Error restaurando desde localStorage:', error)
-  }
-}
-
-/**
- * Limpiar datos de localStorage
- */
-const clearLocalStorage = () => {
-  try {
-    localStorage.removeItem(STORAGE_KEYS.CV_DATA)
-    localStorage.removeItem(STORAGE_KEYS.UPLOADED_FILE)
-    localStorage.removeItem(STORAGE_KEYS.COVER_LETTER)
-    localStorage.removeItem(STORAGE_KEYS.ACTIVE_TAB)
-    console.log('🗑️ localStorage limpiado')
-  } catch (error) {
-    console.error('Error limpiando localStorage:', error)
-  }
-}
-
-// Watch para guardar automáticamente cuando cambian los datos
-watch(cvData, () => {
-  saveToLocalStorage()
-}, { deep: true })
-
-watch(coverLetter, () => {
-  saveToLocalStorage()
-})
-
-watch(activeTab, () => {
-  saveToLocalStorage()
-})
 
 /**
  * Cargar CVs guardados del usuario desde el backend
@@ -321,6 +236,7 @@ const loadSavedCVs = async () => {
     const response = await fetch('/api/cvs/list/', {
       method: 'GET',
       headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
         'Content-Type': 'application/json'
       },
       credentials: 'include'
@@ -329,11 +245,18 @@ const loadSavedCVs = async () => {
     if (response.ok) {
       const data = await response.json()
       savedCVs.value = data.cvs || []
+
+      // Ajustar tab inicial: si tiene CVs, mostrar tab "Mis CVs", sino "Subir PDF"
+      if (savedCVs.value.length > 0) {
+        activeTab.value = 'saved'
+      } else {
+        activeTab.value = 'upload'
+      }
     }
   } catch (error) {
-    // Silenciar error 404 hasta que se implemente el backend
     console.log('Backend de CVs no disponible aún')
     savedCVs.value = []
+    activeTab.value = 'upload'
   } finally {
     isLoadingCVs.value = false
   }
@@ -365,6 +288,18 @@ const formatDate = (dateString) => {
   })
 }
 
+/**
+ * Formatear fecha de vencimiento (dd/mm/yyyy)
+ */
+const formatExpiryDate = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  const day = date.getDate().toString().padStart(2, '0')
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
 // Sincronizar internalOpen con el prop externo
 watch(() => props.modelValue, (newValue) => {
   console.log('👁️ [MODAL WATCH] props.modelValue cambió a:', newValue)
@@ -376,13 +311,23 @@ watch(() => props.modelValue, (newValue) => {
   if (newValue) {
     console.log('✅ [MODAL] Modal abierto, cargando CVs...')
     allowClose.value = false // Bloquear cierre automático
+    loadSavedCVs() // Esta función ajustará el tab inicial automáticamente
 
-    // Resetear al tab correcto según el tipo de aplicación
-    activeTab.value = getInitialTab()
-
-    loadSavedCVs()
+    // Prevenir scroll del body en móviles
+    if (isMobile.value) {
+      document.body.classList.add('modal-open')
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.width = '100%'
+    }
   } else {
     console.log('❌ [MODAL] Modal cerrado')
+
+    // Restaurar scroll del body
+    document.body.classList.remove('modal-open')
+    document.body.style.overflow = ''
+    document.body.style.position = ''
+    document.body.style.width = ''
   }
 })
 
@@ -413,28 +358,9 @@ watch(internalOpen, (newValue) => {
 
 // Resetear todos los datos del modal
 const resetModalData = () => {
-  activeTab.value = savedCVs.value.length > 0 ? 'saved' : 'upload'
   uploadedFile.value = null
   coverLetter.value = ''
   selectedSavedCV.value = null
-  cvData.value = {
-    personalInfo: {
-      fullName: '',
-      phone: '',
-      email: '',
-      location: '',
-      linkedin: '',
-      portfolio: ''
-    },
-    professionalProfile: '',
-    education: [],
-    experience: [],
-    technicalSkills: [],
-    softSkills: [],
-    certifications: [],
-    languages: [],
-    projects: []
-  }
 }
 
 const hasSavedCVs = computed(() => savedCVs.value.length > 0)
@@ -444,11 +370,8 @@ const canSubmit = computed(() => {
     return selectedSavedCV.value !== null
   } else if (activeTab.value === 'upload') {
     return uploadedFile.value !== null
-  } else {
-    return cvData.value.personalInfo.fullName &&
-           cvData.value.personalInfo.email &&
-           cvData.value.personalInfo.phone
   }
+  return false
 })
 
 const handleClose = () => {
@@ -466,43 +389,21 @@ const handleSubmit = () => {
   /**
    * Estructura de datos emitida al backend:
    *
-   * Si type === 'saved':
+   * Si type === 'saved' (CV de plataforma):
    * {
    *   jobId: Number,
    *   type: 'saved',
-   *   savedCVId: Number,            // ID del CV guardado
+   *   savedCVId: String (UUID del CV guardado),
    *   uploadedFile: null,
-   *   coverLetter: null,
-   *   cvData: null
+   *   coverLetter: null
    * }
    *
-   * Si type === 'upload':
+   * Si type === 'upload' (PDF externo):
    * {
    *   jobId: Number,
    *   type: 'upload',
-   *   uploadedFile: File,           // Archivo PDF/DOC/DOCX
-   *   coverLetter: String | null,   // Carta de presentación (opcional)
-   *   cvData: null,
-   *   savedCVId: null
-   * }
-   *
-   * Si type === 'create':
-   * {
-   *   jobId: Number,
-   *   type: 'create',
-   *   uploadedFile: null,
-   *   coverLetter: null,
-   *   cvData: {
-   *     personalInfo: { fullName, phone, email, location, linkedin, portfolio },
-   *     professionalProfile: String,
-   *     education: Array,
-   *     experience: Array,
-   *     technicalSkills: Array,
-   *     softSkills: Array,
-   *     certifications: Array,
-   *     languages: Array,
-   *     projects: Array
-   *   },
+   *   uploadedFile: File (PDF),
+   *   coverLetter: String | null,
    *   savedCVId: null
    * }
    */
@@ -511,32 +412,18 @@ const handleSubmit = () => {
     type: activeTab.value,
     savedCVId: activeTab.value === 'saved' ? selectedSavedCV.value?.id : null,
     uploadedFile: activeTab.value === 'upload' ? uploadedFile.value : null,
-    coverLetter: activeTab.value === 'upload' ? coverLetter.value : null,
-    cvData: activeTab.value === 'create' ? cvData.value : null
+    coverLetter: activeTab.value === 'upload' ? coverLetter.value : null
   }
 
+  console.log('📤 [MODAL] Enviando postulación:', applicationData)
   emit('submit', applicationData)
-
-  // Limpiar localStorage después de enviar exitosamente
-  clearLocalStorage()
-
   handleClose()
 }
 
-/**
- * Guardar CV en el dashboard del usuario (sin postular)
- * El usuario postulante puede tener hasta 2 CVs guardados
- */
-const handleSaveCV = async () => {
-  isSavingCV.value = true
-  emit('saveCV', {
-    cvData: cvData.value
-  })
-  // Recargar la lista después de guardar (con delay para dar tiempo al backend)
-  setTimeout(() => {
-    loadSavedCVs()
-    isSavingCV.value = false
-  }, 1000)
+// Función para redirigir al dashboard si no tiene CVs
+const goToDashboard = () => {
+  handleClose()
+  router.push('/dashboard/cv')
 }
 </script>
 
@@ -548,13 +435,14 @@ const handleSaveCV = async () => {
   left: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
+  height: 100dvh !important; /* Dynamic viewport height para móviles */
   background: rgba(0, 0, 0, 0.5) !important;
   z-index: 999999 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 0 !important;
-  overflow: auto !important;
+  overflow: hidden !important; /* Prevenir scroll en overlay */
 }
 
 .custom-modal-container {
@@ -567,15 +455,21 @@ const handleSaveCV = async () => {
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   margin: 1rem;
+  overflow: hidden; /* Prevenir scroll en container */
 }
 
 .custom-modal-container.is-mobile {
   max-width: 100vw !important;
   width: 100vw !important;
   height: 100vh !important;
+  height: 100dvh !important; /* Dynamic viewport height */
   max-height: 100vh !important;
+  max-height: 100dvh !important;
   border-radius: 0 !important;
   margin: 0 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
 }
 
 .custom-modal-dialog {
@@ -601,73 +495,106 @@ const handleSaveCV = async () => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 0.5rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+  border-bottom: 2px solid #E5E7EB;
 }
 
 .job-header-info {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 1.25rem;
 }
 
-.company-logo-mini {
+/* Logo de empresa más grande */
+.company-logo-large {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid #E5E7EB;
+  border: 2px solid #E5E7EB;
   background: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.company-logo-mini img {
+.company-logo-large img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 0.25rem;
+  padding: 0.5rem;
 }
 
-.company-logo-placeholder-mini {
+.company-logo-placeholder-large {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  background: #F3F4F6;
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #9CA3AF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.job-info-text {
+.job-info-details {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.job-title-modal {
+.job-title-large {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #111827;
   line-height: 1.3;
 }
 
-.company-name-modal {
-  margin: 0.25rem 0 0;
-  font-size: 0.9rem;
+.company-name-large {
+  margin: 0;
+  font-size: 1rem;
+  color: #6B7280;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Meta info del trabajo */
+.job-meta-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.job-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
   color: #6B7280;
   font-weight: 500;
+}
+
+.job-meta-item .va-icon {
+  color: #7C3AED;
 }
 
 .tabs-header {
   display: flex;
   gap: 0.5rem;
   border-bottom: 2px solid #E5E7EB;
-  margin: 0 -1.5rem;
+  margin: -0.5rem -1.5rem 0;
   padding: 0 1.5rem;
+  background: white;
 }
 
 .tab-btn {
@@ -729,11 +656,12 @@ const handleSaveCV = async () => {
 
 .modal-body {
   padding: 1.5rem;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0; /* Crítico para flexbox scroll */
   overflow-y: auto;
   overflow-x: hidden;
-  min-height: 200px;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain; /* Prevenir scroll chain */
 }
 
 .modal-body::-webkit-scrollbar {
@@ -833,6 +761,60 @@ const handleSaveCV = async () => {
   color: #6B7280;
 }
 
+/* Empty CV State con botón */
+.empty-cv-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  gap: 1rem;
+}
+
+.empty-cv-state h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.empty-cv-state p {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #6B7280;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.btn-primary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  margin-top: 0.5rem;
+  background: linear-gradient(135deg, #7C3AED, #6D28D9);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.btn-primary-action:hover {
+  background: linear-gradient(135deg, #6D28D9, #5B21B6);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.45);
+}
+
+.btn-primary-action:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
 .spinning {
   animation: spin 1s linear infinite;
 }
@@ -910,73 +892,53 @@ const handleSaveCV = async () => {
 }
 
 @media (max-width: 768px) {
-  /* Asegurar que el modal sea fullscreen en mobile */
-  :deep(.va-modal) {
+  /* Prevenir scroll de fondo en body cuando modal está abierto */
+  body.modal-open {
+    overflow: hidden !important;
     position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
+    width: 100% !important;
     height: 100vh !important;
-    z-index: 99999 !important;
+    height: 100dvh !important;
   }
 
-  :deep(.va-modal__overlay) {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    z-index: 99998 !important;
-  }
-
-  :deep(.va-modal__container) {
-    max-width: 100vw !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    margin: 0 !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    z-index: 100000 !important;
-  }
-
-  :deep(.va-modal__dialog) {
-    max-height: 100vh !important;
-    height: 100vh !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    max-width: 100vw !important;
-    width: 100vw !important;
-    z-index: 100001 !important;
-  }
-
-  :deep(.va-modal__inner) {
-    max-height: 100vh !important;
-    height: 100vh !important;
-    display: flex !important;
-    flex-direction: column !important;
+  .custom-modal-overlay {
+    height: 100dvh !important; /* Dynamic viewport para iOS */
   }
 
   .modal-header-content {
     padding: 1rem;
-    gap: 1rem;
+    gap: 0.75rem;
+    flex-shrink: 0;
   }
 
   .job-header-info {
     gap: 0.75rem;
   }
 
-  .company-logo-mini,
-  .company-logo-placeholder-mini {
-    width: 40px;
-    height: 40px;
+  .company-logo-large {
+    width: 60px;
+    height: 60px;
   }
 
-  .job-title-modal {
+  .company-logo-placeholder-large {
+    width: 60px;
+    height: 60px;
+  }
+
+  .job-title-large {
     font-size: 1.125rem;
   }
 
-  .company-name-modal {
+  .company-name-large {
+    font-size: 0.875rem;
+  }
+
+  .job-meta-info {
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .job-meta-item {
     font-size: 0.8125rem;
   }
 
@@ -986,6 +948,7 @@ const handleSaveCV = async () => {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    flex-shrink: 0;
   }
 
   .tabs-header::-webkit-scrollbar {
@@ -1007,8 +970,8 @@ const handleSaveCV = async () => {
   }
 
   .close-btn {
-    top: 1rem;
-    right: 1rem;
+    top: 0.75rem;
+    right: 0.75rem;
     width: 40px;
     height: 40px;
     background: rgba(255, 255, 255, 0.95);
@@ -1016,34 +979,43 @@ const handleSaveCV = async () => {
     z-index: 10;
   }
 
+  /* Mobile: estructura de flexbox para scroll correcto */
+  .custom-modal-container.is-mobile {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
   .custom-modal-container.is-mobile .custom-modal-dialog {
-    height: 100vh;
-    max-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
   }
 
   .custom-modal-container.is-mobile .modal-header-content {
-    flex-shrink: 0;
-    overflow: visible;
+    flex-shrink: 0 !important;
+    overflow: visible !important;
   }
 
   .custom-modal-container.is-mobile .modal-body {
-    flex: 1 1 auto;
-    min-height: 0;
-    max-height: 100%;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
     overflow-y: auto !important;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    padding: 1rem;
-    position: relative;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    padding: 1rem !important;
+    position: relative !important;
   }
 
   .custom-modal-container.is-mobile .modal-footer-actions {
-    flex-shrink: 0;
-    overflow: visible;
+    flex-shrink: 0 !important;
+    overflow: visible !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: #F9FAFB !important;
+    z-index: 10 !important;
   }
 
   .tab-intro {
@@ -1141,5 +1113,47 @@ const handleSaveCV = async () => {
   box-shadow: none;
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ===== INFO BANNER ===== */
+.info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%);
+  border: 1px solid #DDD6FE;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.info-banner-content {
+  flex: 1;
+}
+
+.info-banner-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #5B21B6;
+}
+
+.info-banner-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6D28D9;
+  line-height: 1.5;
+}
+
+.info-banner-link {
+  color: #7C3AED;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.info-banner-link:hover {
+  color: #5B21B6;
 }
 </style>
