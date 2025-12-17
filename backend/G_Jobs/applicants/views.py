@@ -22,12 +22,15 @@ def require_authentication(view_func):
     def wrapper(request, *args, **kwargs):
         # Opción 1: Sesión Django (request.user ya poblado por middleware)
         if request.user.is_authenticated:
-            print(f"✅ [AUTH] Usuario autenticado via sesión Django: {request.user.email}")
+            print(f"[AUTH] Usuario autenticado via sesion Django: {request.user.email}")
             return view_func(request, *args, **kwargs)
 
         # Opción 2: JWT Token en Authorization header
         auth_header = request.headers.get('Authorization', '')
-        print(f"🔐 [AUTH] Header Authorization: {auth_header[:50]}..." if auth_header else "❌ [AUTH] No Authorization header")
+        if auth_header:
+            print(f"[AUTH] Header Authorization recibido: {auth_header[:50]}...")
+        else:
+            print("[AUTH] No se recibio Authorization header")
 
         if auth_header.startswith('Bearer '):
             token = auth_header.split(' ')[1]
@@ -36,14 +39,14 @@ def require_authentication(view_func):
                 user_id = access_token['user_id']
                 user = User.objects.get(id=user_id)
                 request.user = user
-                print(f"✅ [AUTH] Usuario autenticado via JWT: {user.email}")
+                print(f"[AUTH] Usuario autenticado via JWT: {user.email}")
                 return view_func(request, *args, **kwargs)
             except (InvalidToken, TokenError) as e:
-                print(f"❌ [AUTH] Token inválido: {str(e)}")
+                print(f"[AUTH] Token invalido: {str(e)}")
             except User.DoesNotExist:
-                print(f"❌ [AUTH] Usuario no encontrado: user_id={user_id}")
+                print(f"[AUTH] Usuario no encontrado: user_id={user_id}")
 
-        print(f"❌ [AUTH] Autenticación fallida")
+        print("[AUTH] Autenticacion fallida")
         return JsonResponse({
             'success': False,
             'error': 'Autenticación requerida'
