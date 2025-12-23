@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.db import models
+from django.utils import timezone
 from .models import Job
 from auth_api.decorators import token_required
 
@@ -398,12 +399,29 @@ def get_job(request, job_id):
                 'message': 'Esta oferta ha sido eliminada'
             }, status=404)
 
-        # Permitir al dueño ver su propio anuncio (incluso si no está verificado)
-        is_owner = (
-            request.user.is_authenticated and
-            hasattr(request.user, 'email') and
-            request.user.email == job.email
-        )
+        # Verificar si el usuario está autenticado (intentar extraer del token JWT)
+        user_email = None
+        auth_header = request.headers.get('Authorization', '')
+
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            try:
+                from rest_framework_simplejwt.tokens import AccessToken
+                from auth_api.models import CustomUser
+
+                # Decodificar el token JWT
+                access_token = AccessToken(token)
+                user_id = access_token['user_id']
+
+                # Obtener el email del usuario
+                user = CustomUser.objects.get(id=user_id)
+                user_email = user.email
+            except Exception as e:
+                # Token inválido, expirado, o usuario no encontrado - continuar como usuario público
+                pass
+
+        # Permitir al dueño ver su propio anuncio (incluso si no está verificado o expirado)
+        is_owner = user_email and user_email == job.email
 
         # Verificar que el pago esté verificado (excepto para el dueño)
         if not job.paymentVerified and not is_owner:
@@ -412,9 +430,25 @@ def get_job(request, job_id):
                 'message': 'Esta oferta no está disponible. El pago aún no ha sido verificado.'
             }, status=403)
 
-        # Incrementar vistas
-        job.views += 1
-        job.save(update_fields=['views'])
+        # Verificar si la oferta está cerrada/expirada (excepto para el dueño)
+        if job.status == 'closed' and not is_owner:
+            # Determinar si expiró por fecha o fue cerrada manualmente
+            expiry_reason = 'expired' if job.expiryDate and job.expiryDate < timezone.now().date() else 'closed'
+
+            return JsonResponse({
+                'success': False,
+                'message': 'El período de postulación para esta oferta ha finalizado.',
+                'expired': True,
+                'reason': expiry_reason,
+                'jobTitle': job.title,
+                'companyName': job.companyName if not job.companyAnonymous else 'Empresa Confidencial',
+                'expiryDate': job.expiryDate.isoformat() if job.expiryDate else None
+            }, status=410)  # 410 Gone - recurso ya no disponible
+
+        # Incrementar vistas solo si la oferta está activa
+        if job.status == 'active':
+            job.views += 1
+            job.save(update_fields=['views'])
 
         # Obtener URL absoluta del logo si existe
         company_logo = None

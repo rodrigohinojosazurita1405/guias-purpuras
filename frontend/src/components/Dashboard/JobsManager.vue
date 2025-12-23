@@ -42,6 +42,7 @@
 
         <select v-model="sortBy" class="filter-select">
           <option value="recent">Más recientes</option>
+          <option value="urgency">Por urgencia (próximos a expirar)</option>
           <option value="views">Más vistas</option>
           <option value="applications">Más aplicaciones</option>
         </select>
@@ -56,15 +57,30 @@
 
     <!-- Jobs List -->
     <div v-else-if="filteredJobs.length > 0" class="jobs-list">
-      <div v-for="job in filteredJobs" :key="job.id" class="job-card">
+      <div v-for="(job, index) in filteredJobs" :key="job.id">
+        <!-- Separador entre activos y expirados -->
+        <div
+          v-if="index > 0 && !isJobExpired(filteredJobs[index - 1]) && isJobExpired(job)"
+          class="expired-jobs-divider"
+        >
+          <div class="divider-line"></div>
+          <div class="divider-label">
+            <va-icon name="archive" size="small" color="#f97316" />
+            <span>Anuncios Expirados</span>
+          </div>
+          <div class="divider-line"></div>
+        </div>
+
+        <div class="job-card">
         <!-- Card Header -->
         <div class="job-card-header">
           <div class="job-info">
             <h3 class="job-title">{{ job.title }}</h3>
             <p class="job-company">{{ job.companyName }}</p>
           </div>
-          <div class="job-badge" :class="job.status">
-            {{ statusLabel(job.status) }}
+          <div class="job-badge" :class="isJobExpired(job) ? 'expired' : job.status">
+            <va-icon v-if="isJobExpired(job)" name="event_busy" size="small" />
+            {{ isJobExpired(job) ? 'Expirado' : statusLabel(job.status) }}
           </div>
         </div>
 
@@ -127,17 +143,17 @@
         <div class="job-actions">
           <!-- Toggle Switch Activar/Desactivar -->
           <div class="toggle-container">
-            <label class="toggle-label" :class="{ 'disabled': !job.paymentVerified && job.status !== 'active' }">
+            <label class="toggle-label" :class="{ 'disabled': isJobExpired(job) || (!job.paymentVerified && job.status !== 'active') }">
               <input
                 type="checkbox"
                 :checked="job.status === 'active'"
                 @change="toggleJobStatus(job)"
-                :disabled="!job.paymentVerified && job.status !== 'active'"
+                :disabled="isJobExpired(job) || (!job.paymentVerified && job.status !== 'active')"
                 class="toggle-input"
               />
               <span class="toggle-slider"></span>
               <span class="toggle-text">
-                {{ job.status === 'active' ? 'Activo' : 'Inactivo' }}
+                {{ isJobExpired(job) ? 'Expirado' : (job.status === 'active' ? 'Activo' : 'Inactivo') }}
               </span>
             </label>
           </div>
@@ -148,7 +164,13 @@
               <va-icon name="visibility" size="small" />
               <span class="btn-text">Ver</span>
             </button>
-            <button class="action-btn edit" title="Editar anuncio" @click="editJob(job)">
+            <button
+              class="action-btn edit"
+              :title="isJobExpired(job) ? 'No se puede editar un anuncio expirado' : 'Editar anuncio'"
+              @click="editJob(job)"
+              :disabled="isJobExpired(job)"
+              :class="{ 'disabled': isJobExpired(job) }"
+            >
               <va-icon name="edit" size="small" />
               <span class="btn-text">Editar</span>
             </button>
@@ -157,6 +179,7 @@
               <span class="btn-text">Eliminar</span>
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>
@@ -324,6 +347,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { apiCall } from '@/utils/api'
 import JobDetailModal from '@/components/Modals/JobDetailModal.vue'
 
 // ========== COMPOSABLES ==========
@@ -378,14 +402,40 @@ const filteredJobs = computed(() => {
     )
   }
 
-  // Ordenar
-  if (sortBy.value === 'views') {
-    filtered.sort((a, b) => b.views - a.views)
-  } else if (sortBy.value === 'applications') {
-    filtered.sort((a, b) => b.applications - a.applications)
-  } else {
-    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-  }
+  // Ordenar de forma inteligente
+  filtered.sort((a, b) => {
+    const aExpired = isJobExpired(a)
+    const bExpired = isJobExpired(b)
+    const aDaysRemaining = calculateDaysRemaining(a.expiryDate)
+    const bDaysRemaining = calculateDaysRemaining(b.expiryDate)
+
+    // 1. PRIORIDAD MÁXIMA: Separar activos de expirados (activos primero)
+    if (aExpired !== bExpired) {
+      return aExpired ? 1 : -1 // Expirados al final
+    }
+
+    // 2. Si AMBOS están expirados, ordenar por fecha de expiración (más recientes primero)
+    if (aExpired && bExpired) {
+      return new Date(b.expiryDate) - new Date(a.expiryDate)
+    }
+
+    // 3. Si AMBOS están activos, aplicar el orden seleccionado por el usuario
+    if (sortBy.value === 'urgency') {
+      // Ordenar por urgencia (días restantes - MENOR a MAYOR)
+      return aDaysRemaining - bDaysRemaining
+    } else if (sortBy.value === 'views') {
+      return b.views - a.views
+    } else if (sortBy.value === 'applications') {
+      return b.applications - a.applications
+    } else {
+      // Por defecto: ordenar por urgencia primero, luego por fecha de creación
+      // Esto asegura que los anuncios próximos a expirar siempre estén primero
+      if (aDaysRemaining !== bDaysRemaining) {
+        return aDaysRemaining - bDaysRemaining
+      }
+      return new Date(b.createdAt) - new Date(a.createdAt)
+    }
+  })
 
   return filtered
 })
@@ -400,51 +450,35 @@ const loadJobs = async () => {
   try {
     loading.value = true
 
-    // Usar auth store en lugar de localStorage
-    if (!authStore.user) {
-      console.warn('No hay usuario autenticado en authStore')
-      loading.value = false
-      return
-    }
-
-    if (!authStore.accessToken) {
-      console.warn('No hay token de autenticación en authStore')
-      loading.value = false
+    // Verificar autenticación
+    if (!authStore.isAuthenticated) {
+      // Si no está autenticado, hacer logout y redirigir
+      authStore.logout()
+      notify({
+        message: 'Por seguridad, su sesión ha sido cerrada. Por favor, inicie sesión nuevamente.',
+        color: 'warning',
+        duration: 5000
+      })
+      router.push('/login')
       return
     }
 
     const email = authStore.user.email || ''
+    const url = `/user/published?email=${encodeURIComponent(email)}`
 
-    console.log('JobsManager - Email buscando:', email)
-    console.log('JobsManager - Token presente:', !!authStore.accessToken)
-    console.log('JobsManager - isAuthenticated:', authStore.isAuthenticated)
-
-    const url = `/api/user/published?email=${encodeURIComponent(email)}`
-    console.log('JobsManager - URL construida:', url)
-    console.log('JobsManager - Authorization header:', `Bearer ${authStore.accessToken?.substring(0, 30)}...`)
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`,
-        'Content-Type': 'application/json'
-      }
+    // Usar apiCall que maneja automáticamente el refresh de tokens
+    const response = await apiCall(url, {
+      method: 'GET'
     })
 
-    console.log('JobsManager - Response received, status:', response.status)
-    console.log('JobsManager - Response content-type:', response.headers.get('content-type'))
-
     const data = await response.json()
-    console.log('JobsManager - Data recibida:', data)
 
     if (!response.ok) {
-      console.error('JobsManager - Error response:', data)
       const errorMsg = data.message || 'Error al cargar trabajos publicados'
       throw new Error(errorMsg)
     }
 
     if (data.success && data.jobs) {
-      console.log(`JobsManager - ${data.jobs.length} trabajos encontrados`)
       // Mapear datos de la API al formato esperado
       jobs.value = data.jobs.map(job => ({
         id: job.id,
@@ -464,17 +498,20 @@ const loadJobs = async () => {
         planDuration: job.planDuration
       }))
     } else {
-      console.warn('JobsManager - Respuesta sin éxito:', data)
       throw new Error(data.message || 'Respuesta del servidor inválida')
     }
   } catch (err) {
-    console.error('Error en loadJobs:', err)
+    // Si es error de sesión expirada, el interceptor ya hizo logout
+    if (err.message.includes('sesión ha sido cerrada')) {
+      router.push('/login')
+      return
+    }
+
     notify({
       message: `Error: ${err.message}`,
       color: 'danger',
       duration: 5000
     })
-    // Mantener datos mock como fallback
   } finally {
     loading.value = false
   }
@@ -536,6 +573,12 @@ const calculateDaysRemaining = (expiryDateString) => {
   return days
 }
 
+const isJobExpired = (job) => {
+  if (!job.expiryDate) return false
+  const daysRemaining = calculateDaysRemaining(job.expiryDate)
+  return daysRemaining < 0
+}
+
 const formatPlanName = (planKey, planLabel, planPrice) => {
   // Determinar el nombre del plan
   let name = planLabel
@@ -573,11 +616,9 @@ const getPlanCssClass = (planKey) => {
 
 const viewJob = async (job) => {
   try {
-    // Llamar a get_job para traer datos completos
-    const response = await fetch(`/api/jobs/${job.id}/`, {
-      headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`
-      }
+    // Llamar a get_job para traer datos completos usando apiCall
+    const response = await apiCall(`/jobs/${job.id}/`, {
+      method: 'GET'
     })
 
     const data = await response.json()
@@ -589,11 +630,11 @@ const viewJob = async (job) => {
     // Usar los datos completos del endpoint get_job
     selectedJob.value = data.job
     showDetailModal.value = true
-    console.log('✅ Detalles completos del trabajo cargados:', data.job)
-    console.log('📷 Logo de empresa recibido:', data.job.companyLogo)
-    console.log('🏢 Nombre de empresa:', data.job.companyName)
   } catch (err) {
-    console.error('Error cargando detalles del trabajo:', err)
+    if (err.message.includes('sesión ha sido cerrada')) {
+      router.push('/login')
+      return
+    }
     notify({
       message: `Error al cargar detalles: ${err.message}`,
       color: 'danger'
@@ -602,12 +643,21 @@ const viewJob = async (job) => {
 }
 
 const editJob = async (job) => {
+  // Prevenir edición de anuncios expirados
+  if (isJobExpired(job)) {
+    notify({
+      message: 'No puedes editar un anuncio expirado.',
+      color: 'warning',
+      duration: 3000,
+      position: 'top-right'
+    })
+    return
+  }
+
   try {
-    // Cargar datos completos del job
-    const response = await fetch(`/api/jobs/${job.id}`, {
-      headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`
-      }
+    // Cargar datos completos del job usando apiCall
+    const response = await apiCall(`/jobs/${job.id}`, {
+      method: 'GET'
     })
 
     const data = await response.json()
@@ -630,7 +680,10 @@ const editJob = async (job) => {
     // Abrir modal
     showEditModal.value = true
   } catch (err) {
-    console.error('Error loading job for edit:', err)
+    if (err.message.includes('sesión ha sido cerrada')) {
+      router.push('/login')
+      return
+    }
     notify({
       message: `Error: ${err.message}`,
       color: 'danger',
@@ -641,6 +694,17 @@ const editJob = async (job) => {
 }
 
 const toggleJobStatus = async (job) => {
+  // Prevenir cambios de estado en anuncios expirados
+  if (isJobExpired(job)) {
+    notify({
+      message: 'No puedes cambiar el estado de un anuncio expirado.',
+      color: 'warning',
+      duration: 3000,
+      position: 'top-right'
+    })
+    return
+  }
+
   try {
     const newStatus = job.status === 'active' ? 'closed' : 'active'
 
@@ -656,10 +720,9 @@ const toggleJobStatus = async (job) => {
       return
     }
 
-    const response = await fetch(`/api/jobs/${job.id}/update`, {
+    const response = await apiCall(`/jobs/${job.id}/update`, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ status: newStatus })
@@ -684,7 +747,10 @@ const toggleJobStatus = async (job) => {
       closeable: true
     })
   } catch (err) {
-    console.error('Error updating job status:', err)
+    if (err.message.includes('sesión ha sido cerrada')) {
+      router.push('/login')
+      return
+    }
     notify({
       message: `Error: ${err.message}`,
       color: 'danger',
@@ -711,10 +777,9 @@ const confirmDelete = async () => {
   if (!deleteConfirmed.value || !jobToDelete.value) return
 
   try {
-    const response = await fetch(`/api/jobs/${jobToDelete.value.id}/delete`, {
+    const response = await apiCall(`/jobs/${jobToDelete.value.id}/delete`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`,
         'Content-Type': 'application/json'
       }
     })
@@ -737,7 +802,10 @@ const confirmDelete = async () => {
       closeable: true
     })
   } catch (err) {
-    console.error('Error deleting job:', err)
+    if (err.message.includes('sesión ha sido cerrada')) {
+      router.push('/login')
+      return
+    }
     notify({
       message: `Error: ${err.message}`,
       color: 'danger',
@@ -752,10 +820,9 @@ const saveEditedJob = async () => {
   if (!selectedJob.value) return
 
   try {
-    const response = await fetch(`/api/jobs/${selectedJob.value.id}/update`, {
+    const response = await apiCall(`/jobs/${selectedJob.value.id}/update`, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(editFormData.value)
@@ -790,7 +857,10 @@ const saveEditedJob = async () => {
       closeable: true
     })
   } catch (err) {
-    console.error('Error updating job:', err)
+    if (err.message.includes('sesión ha sido cerrada')) {
+      router.push('/login')
+      return
+    }
     notify({
       message: `Error: ${err.message}`,
       color: 'danger',
@@ -823,10 +893,9 @@ const deactivateJob = async () => {
       color: 'info'
     })
 
-    const response = await fetch(`/api/jobs/${selectedJob.value.id}/update`, {
+    const response = await apiCall(`/jobs/${selectedJob.value.id}/update`, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ status: 'closed' })
@@ -853,7 +922,10 @@ const deactivateJob = async () => {
 
     showDetailModal.value = false
   } catch (err) {
-    console.error('Error deactivating job:', err)
+    if (err.message.includes('sesión ha sido cerrada')) {
+      router.push('/login')
+      return
+    }
     notify({
       message: `Error: ${err.message}`,
       color: 'danger'
@@ -882,10 +954,9 @@ const activateJob = async () => {
       color: 'info'
     })
 
-    const response = await fetch(`/api/jobs/${selectedJob.value.id}/update`, {
+    const response = await apiCall(`/jobs/${selectedJob.value.id}/update`, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ status: 'active' })
@@ -912,7 +983,10 @@ const activateJob = async () => {
 
     showDetailModal.value = false
   } catch (err) {
-    console.error('Error activating job:', err)
+    if (err.message.includes('sesión ha sido cerrada')) {
+      router.push('/login')
+      return
+    }
     notify({
       message: `Error: ${err.message}`,
       color: 'danger'
@@ -1084,6 +1158,9 @@ const activateJob = async () => {
   font-size: 0.85rem;
   font-weight: 600;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .job-badge.pending {
@@ -1092,8 +1169,9 @@ const activateJob = async () => {
 }
 
 .job-badge.active {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .job-badge.closed {
@@ -1104,6 +1182,53 @@ const activateJob = async () => {
 .job-badge.draft {
   background: #f3e5f5;
   color: #6a1b9a;
+}
+
+.job-badge.expired {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: white;
+  border: 1px solid #fb923c;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
+}
+
+/* ========== SEPARADOR DE ANUNCIOS EXPIRADOS ========== */
+.expired-jobs-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  padding: 0 1rem;
+}
+
+.divider-line {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #f97316 50%, transparent 100%);
+  opacity: 0.3;
+}
+
+.divider-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border: 1px solid #fed7aa;
+  border-radius: 20px;
+  color: #ea580c;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.15);
+}
+
+.divider-label span {
+  color: #c2410c;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.85rem;
 }
 
 /* ========== JOB STATS ========== */
@@ -1332,6 +1457,21 @@ const activateJob = async () => {
 
 .action-btn.edit:hover {
   background: #059669;
+}
+
+.action-btn.edit.disabled,
+.action-btn.edit:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.action-btn.edit.disabled:hover,
+.action-btn.edit:disabled:hover {
+  transform: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: #e5e7eb;
 }
 
 /* Botón Eliminar - Rojo elegante */

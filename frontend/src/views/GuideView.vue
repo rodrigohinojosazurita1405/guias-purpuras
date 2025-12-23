@@ -64,17 +64,63 @@
           </div>
 
           <!-- Columna Derecha: Panel de Detalles -->
-          <div class="detail-column" :class="{ 'has-selection': selectedJob }">
+          <div class="detail-column" :class="{ 'has-selection': selectedJob || jobNotAvailable }">
             <!-- Overlay oscuro para móvil -->
             <div
-              v-if="selectedJob"
+              v-if="selectedJob || jobNotAvailable"
               class="modal-overlay"
               @click="closeJobDetail"
             ></div>
 
+            <!-- Mensaje de oferta no disponible -->
+            <div v-if="jobNotAvailable" class="job-not-available">
+              <!-- Mensaje cuando la oferta está expirada (con información detallada) -->
+              <template v-if="expiredJobInfo">
+                <va-icon name="schedule" size="large" color="#f97316" />
+                <h2 class="expired-title">Período de Postulación Finalizado</h2>
+
+                <div class="expired-job-details">
+                  <h3>{{ expiredJobInfo.title }}</h3>
+                  <p v-if="expiredJobInfo.company" class="company-name">
+                    <va-icon name="business" size="small" />
+                    {{ expiredJobInfo.company }}
+                  </p>
+                </div>
+
+                <div class="expired-message">
+                  <va-icon name="info" size="small" color="#7c3aed" />
+                  <p>{{ jobNotAvailableMessage }}</p>
+                </div>
+
+                <p class="help-text">
+                  Esta oferta ya no acepta nuevas postulaciones.
+                  Te invitamos a explorar otras oportunidades disponibles.
+                </p>
+
+                <va-button
+                  @click="$router.push('/guias/trabajos')"
+                  gradient
+                  icon="arrow_forward"
+                  icon-right
+                >
+                  Explorar Ofertas Activas
+                </va-button>
+              </template>
+
+              <!-- Mensaje genérico para otros errores (404, 403, etc.) -->
+              <template v-else>
+                <va-icon name="error_outline" size="large" color="#ef4444" />
+                <h2>Oferta No Encontrada</h2>
+                <p>{{ jobNotAvailableMessage }}</p>
+                <va-button @click="$router.push('/guias/trabajos')">
+                  Ver Otras Ofertas
+                </va-button>
+              </template>
+            </div>
+
             <!-- Panel solo visible si hay trabajo seleccionado -->
             <JobDetailPanel
-              v-if="selectedJob"
+              v-if="selectedJob && !jobNotAvailable"
               :listing="selectedJob"
               @close="closeJobDetail"
             />
@@ -176,6 +222,9 @@ export default {
 
       // Split View - Trabajo seleccionado
       selectedJob: null,
+      jobNotAvailable: false, // Flag para mostrar mensaje de oferta no disponible
+      jobNotAvailableMessage: '', // Mensaje personalizado
+      expiredJobInfo: null, // Información de oferta expirada
 
       // Datos dinámicos desde BD
       cities: [],
@@ -643,6 +692,9 @@ export default {
     selectJob(job) {
       // Seleccionar trabajo para mostrar en el panel de detalles
       this.selectedJob = job
+      this.jobNotAvailable = false // Reset flag
+      this.jobNotAvailableMessage = '' // Reset mensaje
+      this.expiredJobInfo = null // Reset info de expirado
 
       // En móvil, prevenir scroll del body
       if (window.innerWidth < 1024) {
@@ -650,10 +702,42 @@ export default {
       }
     },
 
+    async checkJobAvailability(jobId) {
+      // Verificar si un trabajo existe pero no está disponible (expirado/cerrado)
+      try {
+        const response = await fetch(`${this.baseURL}/api/jobs/${jobId}/`)
+        const data = await response.json()
+
+        if (response.status === 410) {
+          // 410 Gone - Oferta expirada/cerrada
+          this.jobNotAvailable = true
+          this.expiredJobInfo = {
+            title: data.jobTitle || 'Oferta laboral',
+            company: data.companyName || '',
+            expiryDate: data.expiryDate,
+            reason: data.reason
+          }
+          this.jobNotAvailableMessage = data.message || 'Esta oferta ya no está disponible.'
+        } else if (!response.ok) {
+          // Otro error (404, 403, etc.)
+          this.jobNotAvailable = true
+          this.expiredJobInfo = null
+          this.jobNotAvailableMessage = data.message || 'Esta oferta no fue encontrada.'
+        }
+      } catch (error) {
+        console.error('Error verificando disponibilidad del trabajo:', error)
+        this.jobNotAvailable = true
+        this.expiredJobInfo = null
+        this.jobNotAvailableMessage = 'No se pudo verificar la disponibilidad de esta oferta.'
+      }
+    },
+
     closeJobDetail() {
       // Cerrar el panel de detalles en móvil
       if (window.innerWidth < 1024) {
         this.selectedJob = null
+        this.jobNotAvailable = false
+        this.jobNotAvailableMessage = ''
         document.body.style.overflow = ''
       }
     },
@@ -1001,6 +1085,8 @@ export default {
         this.selectJob(job)
       } else {
         console.warn('[GuideView] No se encontró el trabajo con ID:', selectedId)
+        // Si no está en el listado, verificar si existe pero está expirado
+        await this.checkJobAvailability(selectedId)
       }
     }
 
@@ -1561,5 +1647,127 @@ export default {
     font-size: 0.8rem;
     padding: 0.4rem 0.8rem;
   }
+}
+
+/* ========== MENSAJE DE OFERTA NO DISPONIBLE ========== */
+.job-not-available {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin: 2rem;
+  min-height: 450px;
+  border: 1px solid #f0f0f0;
+}
+
+.job-not-available .va-icon {
+  margin-bottom: 1.5rem;
+  opacity: 0.9;
+}
+
+/* Título específico para ofertas expiradas */
+.job-not-available .expired-title {
+  font-size: 1.85rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 1.5rem 0;
+}
+
+/* Detalles de la oferta expirada */
+.expired-job-details {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid #f97316;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.1);
+}
+
+.expired-job-details h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.4;
+}
+
+.expired-job-details .company-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Mensaje de expiración */
+.expired-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: #f3f4f6;
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 1.25rem;
+  max-width: 500px;
+  width: 100%;
+}
+
+.expired-message p {
+  margin: 0;
+  color: #374151;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Texto de ayuda */
+.help-text {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin: 0 0 2rem 0;
+  max-width: 450px;
+  line-height: 1.6;
+}
+
+/* Título genérico para otros errores */
+.job-not-available h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 1rem 0;
+}
+
+.job-not-available p {
+  font-size: 1.125rem;
+  color: #666;
+  margin: 0 0 2rem 0;
+  max-width: 500px;
+}
+
+.job-not-available .va-button {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+
+.job-not-available .va-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 </style>
