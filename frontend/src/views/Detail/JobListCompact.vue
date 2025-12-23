@@ -28,7 +28,13 @@
     <div class="job-content">
       <!-- Header: Fecha + Badges -->
       <div class="job-header">
-        <span class="publish-date">{{ publishDate }}</span>
+        <div class="date-info">
+          <span class="publish-date">{{ publishDate }}</span>
+          <span v-if="daysRemaining !== null" class="expiry-date" :class="expiryClass">
+            <va-icon name="schedule" size="12px" />
+            {{ expiryText }}
+          </span>
+        </div>
         <div class="badges">
           <span v-if="listing.planType === 'impulso'" class="badge impulso">Patrocinado</span>
           <span v-else-if="listing.planType === 'purpura'" class="badge purpura">Destacado</span>
@@ -109,6 +115,40 @@ export default {
       return `Publicado hace ${months} meses`
     },
 
+    daysRemaining() {
+      if (!this.listing.expiryDate) return null
+
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      const expiryDate = new Date(this.listing.expiryDate)
+      expiryDate.setHours(0, 0, 0, 0)
+
+      const diff = expiryDate - today
+      const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
+
+      return days
+    },
+
+    expiryText() {
+      if (!this.listing.expiryDate) return ''
+
+      const expiryDate = new Date(this.listing.expiryDate)
+      const options = { day: '2-digit', month: 'short', year: 'numeric' }
+      const formattedDate = expiryDate.toLocaleDateString('es-ES', options)
+
+      return `Vence: ${formattedDate}`
+    },
+
+    expiryClass() {
+      if (this.daysRemaining === null) return ''
+
+      if (this.daysRemaining < 0) return 'expired'
+      if (this.daysRemaining <= 3) return 'urgent'
+      if (this.daysRemaining <= 7) return 'warning'
+      return 'normal'
+    },
+
     formattedSalary() {
       if (!this.listing.salary || this.listing.salary === 'A convenir') {
         return 'A convenir'
@@ -183,15 +223,68 @@ export default {
 .job-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 0.5rem;
   gap: 0.5rem;
+}
+
+.date-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .publish-date {
   font-size: 0.75rem;
   color: #6B7280;
   font-weight: 500;
+}
+
+.expiry-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  width: fit-content;
+  transition: all 0.2s ease;
+}
+
+.expiry-date.normal {
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.expiry-date.warning {
+  color: #7c3aed;
+  background: #f5f3ff;
+  border: 1px solid #c4b5fd;
+}
+
+.expiry-date.urgent {
+  color: #be123c;
+  background: #fff1f2;
+  border: 1px solid #fda4af;
+  animation: pulse-urgent 2s ease-in-out infinite;
+}
+
+.expiry-date.expired {
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  text-decoration: line-through;
+}
+
+@keyframes pulse-urgent {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(190, 18, 60, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(190, 18, 60, 0);
+  }
 }
 
 .badges {
@@ -300,8 +393,8 @@ export default {
 .company-logo-large img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  padding: 0.5rem;
+  object-fit: cover;
+  border-radius: 10px;
 }
 
 .company-logo-placeholder {

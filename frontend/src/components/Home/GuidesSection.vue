@@ -23,7 +23,7 @@
       <!-- Grid de Empleos - Estilo OLX -->
       <div v-if="!loading && displayedJobs.length > 0" class="jobs-grid">
         <div
-          v-for="job in displayedJobs.slice(0, 8)"
+          v-for="job in displayedJobs.slice(0, 16)"
           :key="job.id"
           class="job-card"
           @click="navigateToJob(job.id)"
@@ -75,6 +75,10 @@
           <!-- Footer -->
           <div class="card-footer">
             <span class="job-date">{{ formatDate(job.createdAt) }}</span>
+            <span v-if="job.expiryDate" class="expiry-date" :class="getExpiryClass(job.expiryDate)">
+              <va-icon name="schedule" size="12px" />
+              {{ formatExpiryDate(job.expiryDate) }}
+            </span>
           </div>
         </div>
       </div>
@@ -249,6 +253,41 @@ const goToAllJobs = () => {
   router.push('/guias/trabajos')
 }
 
+const formatExpiryDate = (expiryDateString) => {
+  if (!expiryDateString) return ''
+
+  const expiryDate = new Date(expiryDateString)
+  const options = { day: '2-digit', month: 'short', year: 'numeric' }
+  const formattedDate = expiryDate.toLocaleDateString('es-ES', options)
+
+  return `Vence: ${formattedDate}`
+}
+
+const getDaysRemaining = (expiryDateString) => {
+  if (!expiryDateString) return null
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const expiryDate = new Date(expiryDateString)
+  expiryDate.setHours(0, 0, 0, 0)
+
+  const diff = expiryDate - today
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
+
+  return days
+}
+
+const getExpiryClass = (expiryDateString) => {
+  const daysRemaining = getDaysRemaining(expiryDateString)
+
+  if (daysRemaining === null) return ''
+  if (daysRemaining < 0) return 'expired'
+  if (daysRemaining <= 3) return 'urgent'
+  if (daysRemaining <= 7) return 'warning'
+  return 'normal'
+}
+
 // ==========================================
 // LIFECYCLE
 // ==========================================
@@ -401,23 +440,25 @@ onMounted(async () => {
 }
 
 .company-logo {
-  width: 60px;
-  height: 60px;
-  min-width: 60px;
-  border-radius: 8px;
-  border: 1px solid #E5E7EB;
-  background: #F9FAFB;
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  border-radius: 12px;
+  border: 2px solid #E5E7EB;
+  background: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
 }
 
 .company-logo img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  padding: 0.5rem;
+  object-fit: cover;
+  border-radius: 10px;
 }
 
 .job-main-info {
@@ -476,11 +517,62 @@ onMounted(async () => {
   padding-top: 0.875rem;
   border-top: 1px solid #E5E7EB;
   margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .job-date {
   font-size: 0.75rem;
   color: #9CA3AF;
+}
+
+.expiry-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.expiry-date.normal {
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.expiry-date.warning {
+  color: #7c3aed;
+  background: #f5f3ff;
+  border: 1px solid #c4b5fd;
+}
+
+.expiry-date.urgent {
+  color: #be123c;
+  background: #fff1f2;
+  border: 1px solid #fda4af;
+  animation: pulse-urgent 2s ease-in-out infinite;
+}
+
+.expiry-date.expired {
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  text-decoration: line-through;
+}
+
+@keyframes pulse-urgent {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(190, 18, 60, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(190, 18, 60, 0);
+  }
 }
 
 /* Loading state */
@@ -585,9 +677,9 @@ onMounted(async () => {
   }
 
   .company-logo {
-    width: 64px;
-    height: 64px;
-    min-width: 64px;
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
   }
 
   .job-main-info {
@@ -639,9 +731,9 @@ onMounted(async () => {
   }
 
   .company-logo {
-    width: 56px;
-    height: 56px;
-    min-width: 56px;
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
   }
 
   .job-title {
