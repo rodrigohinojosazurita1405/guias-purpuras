@@ -97,7 +97,7 @@
               <span>Sueldo</span>
               <va-icon name="expand_more" size="small" />
             </button>
-            <div v-if="activeDropdown === 'salary'" class="dropdown-menu">
+            <div v-if="activeDropdown === 'salary'" class="dropdown-menu salary-dropdown">
               <div class="dropdown-content">
                 <div class="salary-inputs">
                   <input
@@ -105,7 +105,8 @@
                     type="number"
                     placeholder="Mínimo Bs"
                     class="salary-input"
-                    @input="emitFilters"
+                    @input="handleSalaryInput"
+                    @click.stop
                   />
                   <span class="separator">-</span>
                   <input
@@ -113,8 +114,17 @@
                     type="number"
                     placeholder="Máximo Bs"
                     class="salary-input"
-                    @input="emitFilters"
+                    @input="handleSalaryInput"
+                    @click.stop
                   />
+                </div>
+                <div class="salary-actions">
+                  <button class="apply-btn" @click="applySalaryFilter">
+                    Aplicar
+                  </button>
+                  <button class="clear-salary-btn" @click="clearSalaryFilter">
+                    Limpiar
+                  </button>
                 </div>
               </div>
             </div>
@@ -137,7 +147,7 @@
                     v-model="sidebarFilters.publishDate"
                     type="radio"
                     value="24h"
-                    @change="emitFilters"
+                    @change="applyDateFilter"
                   />
                   <span>Últimas 24 horas</span>
                 </label>
@@ -146,7 +156,7 @@
                     v-model="sidebarFilters.publishDate"
                     type="radio"
                     value="7d"
-                    @change="emitFilters"
+                    @change="applyDateFilter"
                   />
                   <span>Última semana</span>
                 </label>
@@ -155,9 +165,18 @@
                     v-model="sidebarFilters.publishDate"
                     type="radio"
                     value="30d"
-                    @change="emitFilters"
+                    @change="applyDateFilter"
                   />
                   <span>Último mes</span>
+                </label>
+                <label class="dropdown-option">
+                  <input
+                    v-model="sidebarFilters.publishDate"
+                    type="radio"
+                    value=""
+                    @change="applyDateFilter"
+                  />
+                  <span>Todas las fechas</span>
                 </label>
               </div>
             </div>
@@ -180,7 +199,7 @@
                     v-model="localFilters.category"
                     type="radio"
                     value=""
-                    @change="emitFilters"
+                    @change="applyCategoryFilter"
                   />
                   <span>Todas las categorías</span>
                 </label>
@@ -193,7 +212,7 @@
                     v-model="localFilters.category"
                     type="radio"
                     :value="cat"
-                    @change="emitFilters"
+                    @change="applyCategoryFilter"
                   />
                   <span>{{ cat }}</span>
                 </label>
@@ -218,7 +237,7 @@
                     v-model="localFilters.contractType"
                     type="radio"
                     value=""
-                    @change="emitFilters"
+                    @change="applyContractTypeFilter"
                   />
                   <span>Todos los tipos</span>
                 </label>
@@ -231,7 +250,7 @@
                     v-model="localFilters.contractType"
                     type="radio"
                     :value="ct"
-                    @change="emitFilters"
+                    @change="applyContractTypeFilter"
                   />
                   <span>{{ ct }}</span>
                 </label>
@@ -489,7 +508,51 @@ export default {
         ...this.localFilters,
         ...this.sidebarFilters
       })
-      // Cerrar dropdown después de seleccionar
+    },
+
+    handleSalaryInput() {
+      // No cerrar el dropdown ni emitir cambios mientras se escribe
+      // Solo validar que los valores sean coherentes
+      clearTimeout(this.salaryInputTimeout)
+    },
+
+    applySalaryFilter() {
+      // Validar que el mínimo no sea mayor que el máximo
+      if (this.sidebarFilters.salaryMin && this.sidebarFilters.salaryMax) {
+        if (this.sidebarFilters.salaryMin > this.sidebarFilters.salaryMax) {
+          this.notify({
+            message: 'El salario mínimo no puede ser mayor que el máximo',
+            color: 'warning',
+            duration: 3000
+          })
+          return
+        }
+      }
+
+      // Emitir filtros y cerrar dropdown
+      this.emitFilters()
+      this.activeDropdown = null
+    },
+
+    clearSalaryFilter() {
+      this.sidebarFilters.salaryMin = null
+      this.sidebarFilters.salaryMax = null
+      this.emitFilters()
+      this.activeDropdown = null
+    },
+
+    applyDateFilter() {
+      this.emitFilters()
+      this.activeDropdown = null
+    },
+
+    applyCategoryFilter() {
+      this.emitFilters()
+      this.activeDropdown = null
+    },
+
+    applyContractTypeFilter() {
+      this.emitFilters()
       this.activeDropdown = null
     },
 
@@ -969,20 +1032,26 @@ export default {
 }
 
 /* ========== SALARY INPUTS ========== */
+.salary-dropdown {
+  min-width: 280px;
+}
+
 .salary-inputs {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .salary-input {
   flex: 1;
   border: 1px solid #E5E7EB;
   border-radius: 6px;
-  padding: 0.5rem;
+  padding: 0.625rem;
   font-size: 0.875rem;
   outline: none;
+  transition: all 0.2s ease;
 }
 
 .salary-input:focus {
@@ -990,9 +1059,53 @@ export default {
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
 }
 
+.salary-input::placeholder {
+  color: #9CA3AF;
+}
+
 .separator {
   color: #9CA3AF;
   font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.salary-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 0.75rem 0.75rem 0.75rem;
+}
+
+.apply-btn,
+.clear-salary-btn {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.apply-btn {
+  background: #7C3AED;
+  color: white;
+}
+
+.apply-btn:hover {
+  background: #6D28D9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(124, 58, 237, 0.3);
+}
+
+.clear-salary-btn {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+.clear-salary-btn:hover {
+  background: #E5E7EB;
+  color: #374151;
 }
 
 /* ========== BOTÓN LIMPIAR FILTROS ========== */
@@ -1326,6 +1439,7 @@ export default {
   .salary-inputs {
     flex-direction: column !important;
     gap: 0.75rem !important;
+    padding: 1rem !important;
   }
 
   .salary-input {
@@ -1334,6 +1448,17 @@ export default {
 
   .separator {
     display: none !important;
+  }
+
+  .salary-actions {
+    flex-direction: column !important;
+    padding: 0 1rem 1rem 1rem !important;
+  }
+
+  .apply-btn,
+  .clear-salary-btn {
+    width: 100%;
+    padding: 0.75rem !important;
   }
 
   /* Backdrop oscuro para dropdowns en móvil */

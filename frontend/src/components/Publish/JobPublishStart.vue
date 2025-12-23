@@ -158,22 +158,28 @@ const jobTypes = [
     description: 'Jornada de media tiempo flexible'
   },
   {
-    id: 'Remoto',
-    name: 'Empleo Remoto',
-    icon: 'laptop',
-    description: 'Trabaja desde cualquier lugar'
+    id: 'Por Proyecto',
+    name: 'Por Proyecto',
+    icon: 'assignment',
+    description: 'Trabajo por proyecto o temporal'
   },
   {
     id: 'Freelance',
-    name: 'Freelance/Proyecto',
+    name: 'Freelance',
     icon: 'person_check',
-    description: 'Proyecto por encargo o duración fija'
+    description: 'Trabajo independiente por encargo'
   },
   {
-    id: 'Pasantías',
-    name: 'Pasantías/Prácticas',
+    id: 'Pasantia',
+    name: 'Pasantía/Práctica',
     icon: 'school',
-    description: 'Programas de formación y experiencia'
+    description: 'Programa de formación y experiencia'
+  },
+  {
+    id: 'Temporal',
+    name: 'Temporal',
+    icon: 'update',
+    description: 'Empleo por tiempo determinado'
   }
 ]
 
@@ -304,7 +310,7 @@ const proceedToWizard = () => {
 /* ========== JOB TYPES GRID ========== */
 .job-types-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.2rem;
   margin-bottom: 1.5rem;
 }

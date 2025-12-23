@@ -293,13 +293,26 @@ export default {
       if (this.category === 'trabajos' && this.topFilters.category) {
         console.log('🔍 Filtrando por categoría:', this.topFilters.category)
         console.log('📋 Total listings antes de filtrar:', results.length)
-        console.log('📋 Categorías disponibles:', [...new Set(results.map(l => l.jobCategory))])
 
         results = results.filter(listing => {
-          const match = listing.jobCategory === this.topFilters.category
-          if (match) {
-            console.log('✅ Match encontrado:', listing.title, '- Category:', listing.jobCategory)
+          // Normalizar para comparación (remover acentos y comparar en minúsculas)
+          const normalizeText = (text) => {
+            if (!text) return ''
+            return text
+              .toLowerCase()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .trim()
           }
+
+          const listingCategory = normalizeText(listing.jobCategory)
+          const filterCategory = normalizeText(this.topFilters.category)
+          const match = listingCategory === filterCategory
+
+          if (match) {
+            console.log(`✅ Match: "${listing.jobCategory}" (${listingCategory}) === "${this.topFilters.category}" (${filterCategory})`)
+          }
+
           return match
         })
 
@@ -308,9 +321,44 @@ export default {
 
       // Filtrar por tipo de contrato (trabajos)
       if (this.category === 'trabajos' && this.topFilters.contractType) {
-        results = results.filter(listing =>
-          listing.contractType === this.topFilters.contractType
-        )
+        console.log('🔍 Filtrando por tipo de contrato:', this.topFilters.contractType)
+        console.log('📋 Total listings antes de filtrar:', results.length)
+
+        results = results.filter(listing => {
+          // Normalizar para comparación (remover acentos, plurales y comparar en minúsculas)
+          const normalizeContractType = (text) => {
+            if (!text) return ''
+            let normalized = text
+              .toLowerCase()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '') // Remover acentos
+              .trim()
+
+            // Normalizar variaciones comunes
+            // "Pasantías" -> "pasantia"
+            if (normalized.endsWith('ias')) {
+              normalized = normalized.replace(/ias$/, 'ia')
+            }
+            // "Pasantes" -> "pasante"
+            if (normalized.endsWith('es') && !normalized.endsWith('tes')) {
+              normalized = normalized.slice(0, -1)
+            }
+
+            return normalized
+          }
+
+          const listingContractType = normalizeContractType(listing.contractType)
+          const filterContractType = normalizeContractType(this.topFilters.contractType)
+          const match = listingContractType === filterContractType
+
+          if (match) {
+            console.log(`✅ Match: "${listing.contractType}" (${listingContractType}) === "${this.topFilters.contractType}" (${filterContractType})`)
+          }
+
+          return match
+        })
+
+        console.log('📋 Total listings después de filtrar:', results.length)
       }
 
       // Filtrar por subcategoría (otros)
@@ -380,22 +428,35 @@ export default {
       // Filtrar por rango salarial
       if (this.sidebarFilters.salaryMin !== null || this.sidebarFilters.salaryMax !== null) {
         results = results.filter(listing => {
-          // Extraer el salario numérico del string (ej: "Bs 5,000 - 8,000")
+          // Si el salario es "A convenir", incluirlo siempre
           if (!listing.salary || listing.salary === 'A convenir') return true
 
-          const salaryMatch = listing.salary.match(/[\d,]+/g)
-          if (!salaryMatch) return true
+          // Intentar obtener el salario desde los campos directos del backend
+          let listingMin = listing.salaryMin
+          let listingMax = listing.salaryMax
 
-          // Obtener el salario mínimo y máximo del anuncio
-          const listingSalaries = salaryMatch.map(s => parseFloat(s.replace(/,/g, '')))
-          const listingMin = Math.min(...listingSalaries)
-          const listingMax = Math.max(...listingSalaries)
+          // Si no existen, extraer del string formateado
+          if (!listingMin || !listingMax) {
+            const salaryMatch = listing.salary.match(/[\d,]+/g)
+            if (!salaryMatch) return true
 
-          // Filtrar según los valores ingresados
+            const listingSalaries = salaryMatch.map(s => parseFloat(s.replace(/,/g, '')))
+            listingMin = Math.min(...listingSalaries)
+            listingMax = Math.max(...listingSalaries)
+          }
+
+          // Lógica de filtrado mejorada:
+          // Mostrar el anuncio si hay CUALQUIER superposición entre los rangos
           let matches = true
+
+          // Si el usuario especifica salario mínimo:
+          // Mostrar anuncios cuyo salario máximo sea >= al mínimo buscado
           if (this.sidebarFilters.salaryMin !== null) {
             matches = matches && listingMax >= this.sidebarFilters.salaryMin
           }
+
+          // Si el usuario especifica salario máximo:
+          // Mostrar anuncios cuyo salario mínimo sea <= al máximo buscado
           if (this.sidebarFilters.salaryMax !== null) {
             matches = matches && listingMin <= this.sidebarFilters.salaryMax
           }
