@@ -25,7 +25,7 @@ const DEFAULT_JOB_DATA = {
   salaryMin: null,
   salaryMax: null,
   salaryFixed: null,
-  benefits: '',
+  // benefits: '', // DEPRECADO: Se eliminó el campo beneficios - ahora se incluye en description (CKEditor)
   vacancies: 1,
   email: '',
   whatsapp: '',

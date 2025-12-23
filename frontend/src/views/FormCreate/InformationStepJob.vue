@@ -290,19 +290,6 @@
               size="small"
             />
           </div>
-
-          <!-- BENEFICIOS (COMPACTO) -->
-          <div class="form-row compact">
-            <label class="form-label">Beneficios (Opcional)</label>
-            <va-textarea
-              v-model="localFormData.benefits"
-              placeholder="Ej: Seguro de salud, bonos, capacitación..."
-              :min-rows="2"
-              counter
-              maxlength="300"
-              size="small"
-            />
-          </div>
         </div>
 
       </div>

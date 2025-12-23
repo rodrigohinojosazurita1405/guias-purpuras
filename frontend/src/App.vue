@@ -6,7 +6,28 @@
 </template>
 
 <script setup>
-// No hay lógica aquí, solo renderizamos las rutas
+import { onMounted, watch } from 'vue'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { useTokenRefresh } from '@/composables/useTokenRefresh'
+
+const authStore = useAuthStore()
+const { init, cleanup, startTokenRefresh, stopTokenRefresh } = useTokenRefresh()
+
+// Inicializar sistema de auto-refresh cuando el usuario está autenticado
+onMounted(() => {
+  if (authStore.isAuthenticated) {
+    init()
+  }
+})
+
+// Observar cambios en el estado de autenticación
+watch(() => authStore.isAuthenticated, (isAuth) => {
+  if (isAuth) {
+    startTokenRefresh()
+  } else {
+    stopTokenRefresh()
+  }
+})
 </script>
 
 <style>

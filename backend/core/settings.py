@@ -203,12 +203,21 @@ REST_FRAMEWORK = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': False,
+    # ===== TIEMPOS DE EXPIRACIÓN (Mejores Prácticas de Seguridad) =====
+    # Access Token: 15 minutos (corto por seguridad, se refresca automáticamente)
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    # Refresh Token: 1 día (sesión válida por 24 horas)
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+
+    # ===== ROTACIÓN Y BLACKLIST (Seguridad Mejorada) =====
+    # Rotar refresh token en cada uso (previene reutilización de tokens robados)
+    'ROTATE_REFRESH_TOKENS': True,
+    # Agregar tokens viejos al blacklist después de rotación
+    'BLACKLIST_AFTER_ROTATION': True,
+    # Actualizar last_login del usuario
     'UPDATE_LAST_LOGIN': True,
 
+    # ===== CONFIGURACIÓN DE FIRMA =====
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
     'VERIFYING_KEY': None,
@@ -218,6 +227,7 @@ SIMPLE_JWT = {
     'TOKEN_TYPE_CLAIM': 'token_type',
     'JTI_IN_BLACKLIST_CLAIM': 'jti',
 
+    # ===== TOKENS DESLIZANTES =====
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
@@ -250,8 +260,10 @@ JAZZMIN_SETTINGS = {
     # ========== TOP MENU LINKS ==========
     "topmenu_links": [
         {"name": "Inicio", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "Ver Sitio", "url": "/", "new_window": True},
-        {"name": "Soporte", "url": "https://github.com/anthropics/claude-code/issues", "new_window": True},
+        # URL del sitio frontend - DESARROLLO: localhost:5173
+        # PRODUCCIÓN: Cambiar a "https://guiaspurpuras.com.bo" cuando se despliegue
+        {"name": "Ver Sitio", "url": "http://localhost:5173/", "new_window": True},
+        # {"name": "Ver Sitio", "url": "https://guiaspurpuras.com.bo", "new_window": True},  # PRODUCCIÓN
         {"model": "auth_api.CustomUser"},
         {"app": "jobs"},
     ],
@@ -263,61 +275,64 @@ JAZZMIN_SETTINGS = {
     "hide_models": [],
 
     "icons": {
+        # ===== DJANGO ADMIN CORE =====
+        "admin": "fas fa-cogs",
+        "admin.LogEntry": "fas fa-clipboard-list",  # Registros de auditoría
+        "auth": "fas fa-lock",
+        "auth.Group": "fas fa-users-cog",
+        "auth.Permission": "fas fa-key",
+        "contenttypes": "fas fa-puzzle-piece",
+        "contenttypes.ContentType": "fas fa-cubes",
+        "sessions": "fas fa-clock",
+        "sessions.Session": "fas fa-user-clock",
+
         # ===== G_JOBS - GUÍAS DE TRABAJOS =====
-        "G_Jobs.jobs": "fas fa-briefcase",
-        "G_Jobs.jobs.Job": "fas fa-file-alt",
+        "jobs": "fas fa-briefcase",
+        "jobs.Job": "fas fa-file-alt",
 
         # ===== CATÁLOGOS DINÁMICOS =====
-        "G_Jobs.catalogs": "fas fa-database",
-        "G_Jobs.catalogs.JobCategory": "fas fa-tags",
-        "G_Jobs.catalogs.ContractType": "fas fa-file-contract",
-        "G_Jobs.catalogs.City": "fas fa-map-marker-alt",
+        "catalogs": "fas fa-database",
+        "catalogs.JobCategory": "fas fa-tags",
+        "catalogs.ContractType": "fas fa-file-contract",
+        "catalogs.City": "fas fa-map-marker-alt",
 
         # ===== PAGOS Y FACTURACIÓN =====
-        "G_Jobs.payments": "fas fa-credit-card",
-        "G_Jobs.payments.PlanOrder": "fas fa-receipt",
+        "payments": "fas fa-credit-card",
+        "payments.PlanOrder": "fas fa-receipt",
 
         # ===== MODERACIÓN =====
-        "G_Jobs.moderation": "fas fa-user-shield",
-        "G_Jobs.moderation.BlockedUser": "fas fa-user-slash",
-
-        # ===== DASHBOARD =====
-        "G_Jobs.dashboard": "fas fa-chart-line",
+        "moderation": "fas fa-user-shield",
+        "moderation.BlockedUser": "fas fa-user-slash",
 
         # ===== PLANES =====
-        "G_Jobs.plans": "fas fa-gem",
-        "G_Jobs.plans.Plan": "fas fa-crown",
+        "plans": "fas fa-gem",
+        "plans.Plan": "fas fa-crown",
 
         # ===== REPORTES =====
-        "G_Jobs.reports": "fas fa-chart-bar",
-        "G_Jobs.reports.DailyReport": "fas fa-calendar-day",
+        "reports": "fas fa-chart-bar",
+        "reports.DailyReport": "fas fa-calendar-day",
 
         # ===== PERFILES =====
         "profiles": "fas fa-users",
         "profiles.CompanyProfile": "fas fa-building",
         "profiles.UserProfile": "fas fa-user-circle",
 
-        # ===== REPORTES =====
-        "G_Jobs.reports": "fas fa-chart-line",
-        "G_Jobs.reports.DailyReport": "fas fa-calendar-day",
-
         # ===== AUDITORÍA =====
-        "G_Jobs.audit": "fas fa-shield-alt",
-        "G_Jobs.audit.AuditLog": "fas fa-history",
-        "G_Jobs.audit.AuditLogSummary": "fas fa-clipboard-list",
+        "audit": "fas fa-shield-alt",
+        "audit.AuditLog": "fas fa-history",
+        "audit.AuditLogSummary": "fas fa-clipboard-check",
 
         # ===== POSTULANTES Y APLICACIONES =====
-        "G_Jobs.applicants": "fas fa-user-friends",
-        "G_Jobs.applicants.ApplicantProfile": "fas fa-user-circle",
-        "G_Jobs.applicants.ApplicantCV": "fas fa-file-pdf",
-        "G_Jobs.applicants.JobApplication": "fas fa-paper-plane",
-        "G_Jobs.applicants.SavedJob": "fas fa-bookmark",
+        "applicants": "fas fa-user-friends",
+        "applicants.ApplicantProfile": "fas fa-id-card",
+        "applicants.ApplicantCV": "fas fa-file-pdf",
+        "applicants.JobApplication": "fas fa-paper-plane",
+        "applicants.SavedJob": "fas fa-bookmark",
 
         # ===== AUTENTICACIÓN =====
-        "auth": "fas fa-lock",
-        "auth.Group": "fas fa-users-cog",
         "auth_api": "fas fa-user-shield",
         "auth_api.CustomUser": "fas fa-user-tie",
+        "auth_api.AdminUser": "fas fa-user-secret",
 
         # ===== TOKEN BLACKLIST =====
         "token_blacklist": "fas fa-ban",

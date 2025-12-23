@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.html import format_html, strip_tags
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from .models import Job
@@ -9,6 +9,7 @@ from G_Jobs.moderation.models import BlockedUser
 from auth_api.models import CustomUser
 from datetime import datetime
 import json
+import re
 
 
 @admin.register(Job)
@@ -51,7 +52,8 @@ class JobAdmin(admin.ModelAdmin):
         'updatedAt',
         'payment_verification_summary',
         'job_analytics_display',
-        'proof_of_payment_preview'
+        'proof_of_payment_preview',
+        'description_preview'
     )
 
     # Acciones personalizadas
@@ -70,7 +72,7 @@ class JobAdmin(admin.ModelAdmin):
             'description': 'Gestión de comprobantes y verificación de pagos. Solo administradores pueden aprobar pagos.'
         }),
         ('Información Básica', {
-            'fields': ('id', 'title', 'companyName', 'companyAnonymous', 'description')
+            'fields': ('id', 'title', 'companyName', 'companyAnonymous', 'description_preview', 'description')
         }),
         ('Clasificación', {
             'fields': ('jobCategory', 'city', 'municipality', 'subcategory', 'contractType', 'modality')
@@ -310,6 +312,37 @@ class JobAdmin(admin.ModelAdmin):
             obj.proofOfPayment.url
         )
     proof_of_payment_preview.short_description = 'Vista Previa'
+
+    def description_preview(self, obj):
+        """Muestra un preview limpio de la descripción sin HTML"""
+        if not obj.description:
+            return format_html(
+                '<div style="background-color: #FEE2E2; padding: 12px; border-radius: 6px; '
+                'text-align: center; color: #991B1B;"><strong>Sin descripción</strong></div>'
+            )
+
+        # Remover todas las etiquetas HTML
+        clean_text = strip_tags(obj.description)
+
+        # Remover espacios en blanco excesivos
+        clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+
+        # Mostrar texto completo sin límite
+        preview_text = clean_text
+
+        return format_html(
+            '<div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; '
+            'border-left: 4px solid #7C3AED; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto; '
+            'max-height: 400px; overflow-y: auto;">'
+            '<p style="margin: 0; color: #374151; line-height: 1.6; font-size: 14px; white-space: pre-wrap;">{}</p>'
+            '<p style="margin: 12px 0 0 0; padding-top: 12px; border-top: 1px solid #E5E7EB; '
+            'color: #9CA3AF; font-size: 12px; font-style: italic;">'
+            'Total de caracteres: {}</p>'
+            '</div>',
+            preview_text,
+            len(clean_text)
+        )
+    description_preview.short_description = 'Vista Previa de Descripción (Sin HTML)'
 
     def payment_verification_summary(self, obj):
         """Resumen de la verificación de pago con estilos CSS"""

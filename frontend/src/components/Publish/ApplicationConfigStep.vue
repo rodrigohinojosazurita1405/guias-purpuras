@@ -368,17 +368,23 @@ const updateData = (key, value) => {
 const addQuestion = () => {
   const questions = props.modelValue.screeningQuestions || []
   if (questions.length < 5) {
+    const newQuestions = [
+      ...questions,
+      {
+        text: '',
+        type: 'text',
+        required: true,
+        optionsList: []
+      }
+    ]
+    console.log('✅ ApplicationConfigStep - Agregando pregunta:', {
+      totalAntes: questions.length,
+      totalDespues: newQuestions.length,
+      preguntas: newQuestions
+    })
     emit('update:modelValue', {
       ...props.modelValue,
-      screeningQuestions: [
-        ...questions,
-        {
-          text: '',
-          type: 'text',
-          required: true,
-          optionsList: []
-        }
-      ]
+      screeningQuestions: newQuestions
     })
   }
 }
@@ -398,6 +404,13 @@ const updateQuestion = (index, field, value) => {
     ...questions[index],
     [field]: value
   }
+  console.log('📝 ApplicationConfigStep - Actualizando pregunta:', {
+    index,
+    campo: field,
+    valor: value,
+    preguntaActualizada: questions[index],
+    todasLasPreguntas: questions
+  })
   emit('update:modelValue', {
     ...props.modelValue,
     screeningQuestions: questions
@@ -414,6 +427,12 @@ const getQuestionTypeLabel = (type) => {
 }
 
 const handleNext = () => {
+  console.log('🚀 ApplicationConfigStep - Botón Siguiente clickeado:', {
+    applicationType: props.modelValue.applicationType,
+    screeningQuestions: props.modelValue.screeningQuestions,
+    cantidadPreguntas: props.modelValue.screeningQuestions?.length || 0,
+    datosCompletos: props.modelValue
+  })
   if (validate()) {
     emit('next')
   }

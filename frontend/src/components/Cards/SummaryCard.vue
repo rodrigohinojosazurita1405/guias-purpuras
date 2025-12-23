@@ -261,10 +261,6 @@
               </template>
             </span>
           </div>
-          <div v-if="jobData.benefits" class="info-row full-width">
-            <span class="label">Beneficios:</span>
-            <p class="value description">{{ jobData.benefits }}</p>
-          </div>
           <div v-if="jobData.vacancies" class="info-row">
             <span class="label">Número de Vacantes:</span>
             <span class="value bold">{{ jobData.vacancies }} {{ jobData.vacancies === 1 ? 'vacante' : 'vacantes' }}</span>
@@ -300,14 +296,20 @@
             <span class="label">URL Externa:</span>
             <span class="value url">{{ jobData.externalApplicationUrl }}</span>
           </div>
-          <div v-if="jobData.screeningQuestions && jobData.screeningQuestions.length > 0" class="info-row full-width">
+          <!-- PREGUNTAS DE FILTRADO (solo para aplicación interna) -->
+          <div v-if="jobData.applicationType === 'internal'" class="info-row full-width">
             <span class="label">Preguntas de Filtrado:</span>
-            <div class="screening-list">
-              <div v-for="(q, idx) in jobData.screeningQuestions" :key="idx" class="screening-item">
-                <strong>{{ idx + 1 }}. {{ q.text }}</strong>
-                <span class="question-type">({{ getQuestionTypeLabel(q.type) }})</span>
+            <template v-if="jobData.screeningQuestions?.length">
+              <div class="screening-list">
+                <div v-for="(question, qIndex) in jobData.screeningQuestions" :key="qIndex" class="screening-item">
+                  <strong>{{ qIndex + 1 }}. {{ question.text }}</strong>
+                  <span class="question-type">({{ getQuestionTypeLabel(question.type) }})</span>
+                </div>
               </div>
-            </div>
+            </template>
+            <span v-else class="value text-muted" style="color: #94a3b8; font-style: italic;">
+              No se agregaron preguntas de filtrado
+            </span>
           </div>
         </div>
       </div>
@@ -511,21 +513,6 @@
              <div class="block-text job-description-html" v-html="jobData.description"></div>
             </section>
 
-
-            <!-- ===== BENEFICIOS ===== -->
-            <section v-if="jobData.benefits" class="content-block benefits-block">
-              <h2 class="block-title">
-                <va-icon name="card_giftcard" size="small" />
-                Beneficios
-              </h2>
-              <ul class="benefits-list">
-                <li v-for="(benefit, idx) in jobData.benefits.split('\n').filter(b => b.trim())" :key="idx" class="benefit-item">
-                  <va-icon name="check_circle" class="benefit-icon" />
-                  {{ benefit.trim() }}
-                </li>
-              </ul>
-            </section>
-
             <!-- ===== COMPENSACIÓN ===== -->
             <section class="content-block salary-block">
               <h2 class="block-title">
@@ -550,6 +537,24 @@
                     No especificado
                   </template>
                 </p>
+              </div>
+            </section>
+
+            <!-- ===== PREGUNTAS DE FILTRADO ===== -->
+            <section v-if="jobData.applicationType === 'internal' && jobData.screeningQuestions?.length" class="content-block screening-block">
+              <h2 class="block-title">
+                <va-icon name="quiz" size="small" />
+                Preguntas de Filtrado
+              </h2>
+              <div class="screening-list">
+                <div v-for="(question, qIndex) in jobData.screeningQuestions" :key="qIndex" class="screening-item">
+                  <div class="question-number">{{ qIndex + 1 }}.</div>
+                  <div class="question-content">
+                    <strong class="question-text">{{ question.text }}</strong>
+                    <span class="question-type">({{ getQuestionTypeLabel(question.type) }})</span>
+                    <span v-if="question.required" class="question-required">• Requerida</span>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -1019,6 +1024,16 @@ const getQuestionTypeLabel = (type) => {
   }
   return labels[type] || type
 }
+
+// ========== DEBUGGING PARA SCREENING QUESTIONS ==========
+watch(() => props.jobData, (newData) => {
+  console.log('📋 SummaryCard - jobData actualizado:', {
+    applicationType: newData?.applicationType,
+    screeningQuestions: newData?.screeningQuestions,
+    hasQuestions: newData?.screeningQuestions?.length > 0,
+    questionCount: newData?.screeningQuestions?.length || 0
+  })
+}, { deep: true, immediate: true })
 
 const getJobPlanName = (planKey) => {
   const normalizedKey = planKey?.toLowerCase()
@@ -2234,41 +2249,6 @@ watch(() => props.formData.coordinates, (newCoords) => {
   flex: 1;
 }
 
-/* ===== SECCIÓN BENEFICIOS ===== */
-.benefits-list {
-  list-style: none;
-  padding: 0;
-  margin: 1.25rem 0 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.benefit-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.8rem;
-  padding: 1rem 1.25rem;
-  background: #FAFBFF;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  color: #334155;
-  line-height: 1.6;
-  border-left: 3px solid #10B981;
-  transition: all 0.2s ease;
-}
-
-.benefit-item:hover {
-  background: #F0FDF4;
-}
-
-.benefit-icon {
-  color: #10B981;
-  font-size: 1.2rem;
-  flex-shrink: 0;
-  margin-right: 0.5rem;
-}
-
 .salary-container {
   margin-top: 1.25rem;
   display: flex;
@@ -3007,15 +2987,6 @@ watch(() => props.formData.coordinates, (newCoords) => {
     gap: 0.75rem;
   }
 
-  .benefits-list {
-    gap: 0.5rem;
-  }
-
-  .benefit-item {
-    padding: 0.85rem 1rem;
-    gap: 0.6rem;
-  }
-
   .salary-amount {
     font-size: 1.6rem;
     padding: 1.25rem;
@@ -3278,22 +3249,6 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
   .requirement-icon {
     font-size: 1.1rem;
-    margin-right: 0.3rem;
-  }
-
-  .benefits-list {
-    margin: 1rem 0 0 0;
-    gap: 0.5rem;
-  }
-
-  .benefit-item {
-    padding: 0.85rem 1rem;
-    gap: 0.6rem;
-    font-size: 0.9rem;
-  }
-
-  .benefit-icon {
-    font-size: 0.95rem;
     margin-right: 0.3rem;
   }
 
@@ -3759,6 +3714,71 @@ watch(() => props.formData.coordinates, (newCoords) => {
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: #334155;
+}
+
+/* ===== PREGUNTAS DE FILTRADO ===== */
+.screening-block {
+  background: #FEFCFF;
+}
+
+.screening-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.screening-item {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.65rem 0.85rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #F3E8FF;
+  transition: all 0.15s ease;
+  align-items: flex-start;
+}
+
+.screening-item:hover {
+  border-color: #E9D5FF;
+  background: #FEFCFF;
+}
+
+.question-number {
+  font-weight: 600;
+  color: #7C3AED;
+  font-size: 0.875rem;
+  min-width: 1.5rem;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.question-content {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.question-text {
+  color: #1E293B;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.question-type {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.question-required {
+  color: #7C3AED;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 </style>

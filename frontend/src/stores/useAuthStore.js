@@ -300,7 +300,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const refreshAccessToken = async () => {
     if (!refreshToken.value) {
-      return { success: false, error: 'No refresh token available' }
+      return { success: false, error: 'No refresh token available', shouldLogout: true }
     }
 
     try {
@@ -313,24 +313,32 @@ export const useAuthStore = defineStore('auth', () => {
       const data = await response.json()
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || 'Error refreshing token')
+        throw new Error(data.message || 'Token expirado')
       }
 
-      // Actualizar tokens
+      // Actualizar tokens (con rotación de refresh token del backend)
       accessToken.value = data.tokens.access
-      refreshToken.value = data.tokens.refresh
+      if (data.tokens.refresh) {
+        refreshToken.value = data.tokens.refresh
+      }
 
       // Guardar en localStorage
       localStorage.setItem('access_token', data.tokens.access)
-      localStorage.setItem('refresh_token', data.tokens.refresh)
+      if (data.tokens.refresh) {
+        localStorage.setItem('refresh_token', data.tokens.refresh)
+      }
 
       return { success: true }
 
     } catch (err) {
-      console.error('Refresh token error:', err)
       // Si el refresh falla, hacer logout
-      await logout()
-      return { success: false, error: err.message }
+      logout()
+      return {
+        success: false,
+        error: err.message,
+        shouldLogout: true,
+        message: 'Por seguridad, su sesión ha sido cerrada. Por favor, inicie sesión nuevamente.'
+      }
     }
   }
 
