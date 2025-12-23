@@ -16,14 +16,6 @@
       <!-- Action Buttons -->
       <div class="action-buttons">
         <va-button
-          color="purple"
-          :disabled="cvs.length >= maxCVs"
-          @click="showUploadModal = true"
-        >
-          <va-icon name="upload_file" />
-          Subir CV (PDF/DOC)
-        </va-button>
-        <va-button
           color="success"
           :disabled="cvs.length >= maxCVs"
           @click="showCreateModal = true"
@@ -120,62 +112,51 @@
       </div>
     </div>
 
-    <!-- Upload CV Modal -->
-    <va-modal
-      v-model="showUploadModal"
-      title="Subir CV"
-      size="medium"
-      @ok="uploadCV"
-      @cancel="cancelUpload"
-    >
-      <div class="modal-content">
-        <va-input
-          v-model="uploadData.name"
-          label="Nombre del CV"
-          placeholder="Ej: CV para Desarrollo Web"
-          class="mb-4"
-        />
-
-        <va-file-upload
-          v-model="uploadData.file"
-          type="single"
-          file-types=".pdf,.doc,.docx"
-          dropzone
-        >
-          Arrastra tu CV o haz click para seleccionar (PDF, DOC, DOCX)
-        </va-file-upload>
-
-        <div class="info-box">
-          <va-icon name="info" size="small" color="info" />
-          <span>Tamaño máximo: 5MB</span>
-        </div>
-      </div>
-    </va-modal>
-
     <!-- Create CV Modal -->
     <va-modal
       v-model="showCreateModal"
-      title="Crear CV"
       size="large"
       hide-default-actions
+      :max-height="'90vh'"
+      :overlay-opacity="0"
+      mobile-fullscreen
     >
-      <div class="modal-content">
-        <p class="modal-info">
-          El creador de CV en plataforma estará disponible próximamente.
-          Por ahora, puedes subir un CV existente en formato PDF o DOC.
-        </p>
-        <div class="modal-actions">
-          <va-button @click="showCreateModal = false">Cerrar</va-button>
-        </div>
+      <template #header>
+        <h2 class="modal-title">Crear CV Profesional</h2>
+      </template>
+
+      <div class="create-cv-modal-content">
+        <CreateCV v-model="cvFormData" />
       </div>
+
+      <template #footer>
+        <div class="modal-footer-buttons">
+          <va-button
+            color="danger"
+            preset="secondary"
+            @click="cancelCreateCV"
+          >
+            Cancelar
+          </va-button>
+          <va-button
+            color="success"
+            @click="saveCreatedCV"
+            :disabled="!isValidCV"
+          >
+            <va-icon name="save" />
+            Guardar CV
+          </va-button>
+        </div>
+      </template>
     </va-modal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useToast } from 'vuestic-ui'
+import CreateCV from '@/components/Process/CreateCV.vue'
 
 const authStore = useAuthStore()
 const { init: initToast } = useToast()
@@ -186,11 +167,42 @@ const maxCVs = 2
 // State
 const cvs = ref([])
 const isLoading = ref(false)
-const showUploadModal = ref(false)
 const showCreateModal = ref(false)
-const uploadData = ref({
-  name: '',
-  file: null
+const cvFormData = ref({
+  personalInfo: {
+    fullName: '',
+    phone: '',
+    email: '',
+    location: '',
+    linkedin: '',
+    portfolio: ''
+  },
+  professionalProfile: '',
+  education: [],
+  experience: [],
+  technicalSkills: [],
+  softSkills: [],
+  certifications: [],
+  languages: [],
+  projects: []
+})
+
+// DEBUG: Verificar si cvFormData se actualiza
+import { watch } from 'vue'
+watch(() => cvFormData.value.personalInfo, (newVal) => {
+  console.log('📝 PersonalInfo cambió:', newVal)
+}, { deep: true })
+
+// Computed
+const isValidCV = computed(() => {
+  const info = cvFormData.value?.personalInfo
+  if (!info) return false
+
+  return (
+    info.fullName?.trim().length > 0 &&
+    info.email?.trim().length > 0 &&
+    info.phone?.trim().length > 0
+  )
 })
 
 // Methods
@@ -198,7 +210,7 @@ const loadCVs = async () => {
   isLoading.value = true
 
   try {
-    const response = await fetch('/api/cvs/list/', {
+    const response = await fetch('http://localhost:8000/api/cvs/list/', {
       headers: {
         'Authorization': `Bearer ${authStore.accessToken}`
       }
@@ -222,10 +234,10 @@ const loadCVs = async () => {
   }
 }
 
-const uploadCV = async () => {
-  if (!uploadData.value.name || !uploadData.value.file) {
+const saveCreatedCV = async () => {
+  if (!isValidCV.value) {
     initToast({
-      message: 'Por favor completa todos los campos',
+      message: 'Por favor completa los campos obligatorios (Nombre, Email, Teléfono)',
       color: 'warning',
       duration: 3000
     })
@@ -233,35 +245,37 @@ const uploadCV = async () => {
   }
 
   try {
-    const formData = new FormData()
-    formData.append('cv_type', 'uploaded')
-    formData.append('name', uploadData.value.name)
-    formData.append('file', uploadData.value.file)
+    const cvName = `CV - ${cvFormData.value.personalInfo.fullName}`
 
-    const response = await fetch('/api/cvs/save/', {
+    const response = await fetch('http://localhost:8000/api/cvs/save/', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
       },
-      body: formData
+      body: JSON.stringify({
+        cv_type: 'created',
+        name: cvName,
+        cv_data: cvFormData.value
+      })
     })
 
     if (!response.ok) {
       const errorData = await response.json()
-      throw new Error(errorData.error || 'Error al subir CV')
+      throw new Error(errorData.error || 'Error al guardar CV')
     }
 
     initToast({
-      message: 'CV subido exitosamente',
+      message: 'CV creado exitosamente',
       color: 'success',
       duration: 3000
     })
 
-    showUploadModal.value = false
-    uploadData.value = { name: '', file: null }
+    showCreateModal.value = false
+    resetCVForm()
     await loadCVs()
   } catch (error) {
-    console.error('Error uploading CV:', error)
+    console.error('Error saving CV:', error)
     initToast({
       message: error.message,
       color: 'danger',
@@ -270,8 +284,32 @@ const uploadCV = async () => {
   }
 }
 
-const cancelUpload = () => {
-  uploadData.value = { name: '', file: null }
+const cancelCreateCV = () => {
+  if (confirm('¿Estás seguro? Se perderán todos los datos ingresados.')) {
+    showCreateModal.value = false
+    resetCVForm()
+  }
+}
+
+const resetCVForm = () => {
+  cvFormData.value = {
+    personalInfo: {
+      fullName: '',
+      phone: '',
+      email: '',
+      location: '',
+      linkedin: '',
+      portfolio: ''
+    },
+    professionalProfile: '',
+    education: [],
+    experience: [],
+    technicalSkills: [],
+    softSkills: [],
+    certifications: [],
+    languages: [],
+    projects: []
+  }
 }
 
 const deleteCV = async (cv) => {
@@ -280,7 +318,7 @@ const deleteCV = async (cv) => {
   }
 
   try {
-    const response = await fetch(`/api/cvs/${cv.id}/delete/`, {
+    const response = await fetch(`http://localhost:8000/api/cvs/${cv.id}/delete/`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${authStore.accessToken}`
@@ -504,15 +542,47 @@ onMounted(() => {
   color: #1976d2;
 }
 
-.modal-info {
-  color: #666;
-  margin-bottom: 20px;
+.modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
 }
 
-.modal-actions {
+.create-cv-modal-content {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 20px;
+  background: #ffffff;
+}
+
+.modal-footer-buttons {
   display: flex;
   justify-content: flex-end;
-  margin-top: 20px;
+  gap: 15px;
+  width: 100%;
+  padding: 15px 0;
+}
+
+/* FORZAR OVERLAY COMPLETAMENTE TRANSPARENTE - AGRESIVO */
+:deep(.va-modal__overlay),
+:deep(.va-backdrop),
+:deep([class*="overlay"]),
+:deep([class*="backdrop"]) {
+  background: transparent !important;
+  background-color: transparent !important;
+  opacity: 0 !important;
+  display: none !important;
+}
+
+:deep(.va-modal__container) {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+:deep(.va-modal) {
+  background: white !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
 }
 
 @media (max-width: 768px) {

@@ -6,6 +6,7 @@ from G_Jobs.catalogs import views as catalog_views
 from G_Jobs.payments import views as payment_views
 from G_Jobs.moderation import views as moderation_views
 from G_Jobs.dashboard import views as dashboard_views
+from G_Jobs.applicants import views as applicant_views
 
 app_name = 'jobs'
 
@@ -48,11 +49,11 @@ urlpatterns = [
     # Aplicar a un trabajo
     path('jobs/<str:job_id>/apply', views.apply_to_job, name='apply_to_job'),
 
-    # Listar aplicaciones de un trabajo
-    path('jobs/<str:job_id>/applications', views.list_applications, name='list_applications'),
+    # Listar aplicaciones de un trabajo (para reclutadores)
+    path('jobs/<str:job_id>/applications', applicant_views.get_job_applications, name='get_job_applications'),
 
-    # Actualizar estado de una aplicación
-    path('jobs/<str:job_id>/applications/<str:application_id>', views.update_application_status, name='update_application_status'),
+    # Actualizar estado de una aplicación (para reclutadores)
+    path('jobs/<str:job_id>/applications/<str:application_id>', applicant_views.update_application_status, name='update_application_status'),
 
     # ========== ENDPOINTS PARA ÓRDENES DE PLANES ========== - Ahora en payments app
     path('orders/me', payment_views.get_user_orders, name='get_user_orders'),

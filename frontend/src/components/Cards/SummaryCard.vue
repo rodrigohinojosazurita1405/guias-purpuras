@@ -191,10 +191,13 @@
             <span class="label">Empresa:</span>
             <span class="value">{{ jobData.companyAnonymous ? 'Empresa Confidencial' : jobData.companyName }}</span>
           </div>
-          <div v-if="jobData.description" class="info-row full-width">
-            <span class="label">Detalles del Empleo:</span>
-            <div class="value description" v-html="jobData.description"></div>
-          </div>
+          <section class="content-block description-block">
+            <h2 class="block-title">
+              <va-icon name="description" size="small" />
+              Descripción del Puesto
+            </h2>
+            <p class="block-text">{{ jobData.description }}</p>
+          </section>
         </div>
       </div>
 
@@ -505,7 +508,7 @@
                 <va-icon name="description" size="small" />
                 Descripción del Puesto
               </h2>
-              <p class="block-text">{{ jobData.description }}</p>
+             <div class="block-text job-description-html" v-html="jobData.description"></div>
             </section>
 
 
@@ -810,9 +813,9 @@
                     <div class="billing-alert">
                       <va-icon name="warning" size="small" color="warning" />
                       <div class="alert-content">
-                        <strong>Importante:</strong> Guías Púrpuras Bolivia no se hará responsable por errores en los datos de facturación ingresados por el usuario (Razón Social, NIT/CI, Complemento, Email, Celular).
-                        Verifica que todos los datos sean correctos antes de publicar, ya que estos se utilizarán para la emisión de facturas electrónicas según el SIN. Tienes un plazo de 24 horas para enviar estos datos.
-                        Los errores en estos campos son responsabilidad del usuario  no de la empresa.
+                        <strong>Importante:</strong> Guías Púrpuras Bolivia no se hará responsable por errores tipograficos o númericos en los datos de facturación ingresados por el usuario (Razón Social, NIT/CI, Complemento, Email, Celular).
+                        el, usuario tiene la obligación deverificar que todos los datos sean correctos antes de publicar el anuncio, ya que estos se utilizarán para la emisión de facturas electrónicas según el SIN. Una vez ingresado todos los datos y verificado el pago
+                        por nuestro equipo, le enviaremos su factura digital al medio solicitado por el usuario en un plazo máximo de 24 horas desde la aprobación del anuncio.
                       </div>
                     </div>
                   </div>
@@ -1891,8 +1894,9 @@ watch(() => props.formData.coordinates, (newCoords) => {
 .logo-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 11px;
+  padding: 0.5rem;
 }
 
 .company-logo-placeholder {
@@ -3688,4 +3692,73 @@ watch(() => props.formData.coordinates, (newCoords) => {
   color: #7C3AED;
   font-weight: 600;
 }
+/* Estilos para renderizar HTML de CKEditor */
+.job-description-html :deep(p) {
+  margin-bottom: 0.75rem;
+}
+
+.job-description-html :deep(strong) {
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.job-description-html :deep(em) {
+  font-style: italic;
+}
+
+.job-description-html :deep(s) {
+  text-decoration: line-through;
+}
+
+.job-description-html :deep(u) {
+  text-decoration: underline;
+}
+
+.job-description-html :deep(ul),
+.job-description-html :deep(ol) {
+  margin-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.job-description-html :deep(li) {
+  margin-bottom: 0.5rem;
+}
+
+.job-description-html :deep(blockquote) {
+  border-left: 4px solid #7C3AED;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #64748B;
+  background: #F5F3FF;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+}
+
+.job-description-html :deep(a) {
+  color: #7C3AED;
+  text-decoration: underline;
+}
+
+.job-description-html :deep(h1) {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #1E293B;
+}
+
+.job-description-html :deep(h2) {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #1E293B;
+}
+
+.job-description-html :deep(h3) {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #334155;
+}
+
 </style>

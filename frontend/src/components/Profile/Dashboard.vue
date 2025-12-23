@@ -230,6 +230,14 @@ import { useRouter, useRoute } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import { useAuthStore } from '@/stores/useAuthStore'
 
+// ========== PROPS ==========
+const props = defineProps({
+  activeSection: {
+    type: String,
+    default: 'home'
+  }
+})
+
 // ========== COMPOSABLES ==========
 const router = useRouter()
 const route = useRoute()
@@ -237,59 +245,29 @@ const authStore = useAuthStore()
 const { init: notify } = useToast()
 
 // ========== DATA ==========
-const activeSection = ref('home')
+// REMOVED: Usar el prop en lugar de un ref local
+// const activeSection = ref('home')
 const showChangePassword = ref(false)
 const showMenu = ref(false)
 const sidebarOpen = ref(false)
 
 // ========== LIFECYCLE ==========
-onMounted(() => {
-  updateActiveSection()
-})
+// REMOVED: updateActiveSection ya no es necesario porque activeSection viene del prop
+// onMounted(() => {
+//   updateActiveSection()
+// })
 
 watch(() => route.path, () => {
-  updateActiveSection()
+  // REMOVED: updateActiveSection() - el activeSection se maneja en DashboardView.vue
   sidebarOpen.value = false // Cerrar sidebar al cambiar de ruta
 })
 
 // ========== METHODS ==========
-const updateActiveSection = () => {
-  const path = route.path
-  if (path.includes('/profile')) {
-    activeSection.value = 'profile'
-  } else if (path.includes('/company')) {
-    activeSection.value = 'company'
-  } else if (path.includes('/publish')) {
-    activeSection.value = 'publish'
-  } else if (path.includes('/jobs-manager')) {
-    activeSection.value = 'jobs_manager'
-  } else if (path.includes('/jobs')) {
-    activeSection.value = 'jobs'
-  } else if (path.includes('/candidates')) {
-    activeSection.value = 'candidates'
-  } else if (path.includes('/cv')) {
-    activeSection.value = 'cv'
-  } else if (path.includes('/applications')) {
-    activeSection.value = 'applications'
-  } else if (path.includes('/messages')) {
-    activeSection.value = 'messages'
-  } else if (path.includes('/users')) {
-    activeSection.value = 'users'
-  } else if (path.includes('/history')) {
-    activeSection.value = 'history'
-  } else if (path.includes('/notifications')) {
-    activeSection.value = 'notifications'
-  } else if (path.includes('/blocked')) {
-    activeSection.value = 'blocked'
-  } else if (path.includes('/shortlisted')) {
-    activeSection.value = 'shortlisted'
-  } else {
-    activeSection.value = 'home'
-  }
-}
+// REMOVED: updateActiveSection() - ahora activeSection es un prop controlado por el padre
 
 const goToAlerts = () => {
-  activeSection.value = 'notifications'
+  // REMOVED: Ya no modificamos activeSection directamente (es prop del padre)
+  // El router.push() hará que DashboardView actualice activeSection
   router.push('/dashboard/notifications')
 }
 

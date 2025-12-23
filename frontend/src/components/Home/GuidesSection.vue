@@ -11,7 +11,7 @@
             a las vacantes de las empresas más destacadas del país.
           </p>
           <p class="section-subtitle">
-            {{ loading ? 'Cargando...' : `${displayedJobs.length} oportunidades activas hoy` }}
+            {{ loading ? 'Cargando...' : `${displayedJobs.length} brillantes oportunidades activas hoy` }}
           </p>
         </div>
         <button class="btn-see-all-top" @click="goToAllJobs">

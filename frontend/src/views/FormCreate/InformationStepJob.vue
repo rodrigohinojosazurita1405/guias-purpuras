@@ -1,8 +1,6 @@
 <!--
   ==========================================
-  INFORMATIONSTEPJOB.VUE - VERSIÓN SIMPLIFICADA
-  ✨ Formulario limpio sin acordeones
-  📝 Editor de texto rico para información del empleo
+  INFORMATIONSTEPJOB.VUE - CON CKEDITOR 5 WYSIWYG
   ==========================================
 -->
 <template>
@@ -162,45 +160,18 @@
         <!-- SEPARADOR VISUAL -->
         <div class="field-separator"></div>
 
-        <!-- GRUPO 2: EDITOR DE TEXTO CON TOOLBAR -->
+        <!-- GRUPO 2: CKEDITOR WYSIWYG -->
         <div class="field-group">
           <div class="form-row">
             <label class="form-label">Detalles del Empleo *</label>
-            <div class="editor-wrapper">
-              <div class="editor-toolbar">
-                <button type="button" @click="toggleBold" class="toolbar-btn" title="Negrita (Ctrl+B)">
-                  <strong>B</strong>
-                </button>
-                <button type="button" @click="toggleItalic" class="toolbar-btn" title="Itálica (Ctrl+I)">
-                  <em>I</em>
-                </button>
-                <button type="button" @click="toggleUnderline" class="toolbar-btn" title="Subrayado">
-                  <u>U</u>
-                </button>
-                <div class="toolbar-separator"></div>
-                <button type="button" @click="insertBulletList" class="toolbar-btn" title="Lista de puntos">
-                  <span class="bullet-icon">◦</span>
-                </button>
-                <button type="button" @click="insertNumberedList" class="toolbar-btn" title="Lista numerada">
-                  <span class="number-icon">1.</span>
-                </button>
-                <div class="toolbar-separator"></div>
-                <button type="button" @click="insertQuote" class="toolbar-btn" title="Cita/Bloque">
-                  <span class="quote-icon">❝</span>
-                </button>
+            <div class="editor-wrapper-ckeditor">
+              <div ref="editorContainer" class="ckeditor-container"></div>
+              <div class="editor-char-count">
+                {{ charCount }} / 2000 caracteres
+                <span v-if="charCount < 50" class="char-warning"> - Mínimo 50 caracteres</span>
+                <span v-else-if="charCount > 2000" class="char-error"> - Máximo excedido</span>
+                <span v-else class="char-success"> ✓</span>
               </div>
-              <textarea
-                v-model="localFormData.jobDetailsHtml"
-                placeholder="Cuéntale al candidato sobre el puesto:
-• Descripción del trabajo
-• Responsabilidades principales
-• Requisitos y habilidades necesarias
-• Experiencia requerida
-• Beneficios y oportunidades"
-                class="job-details-editor"
-                @keydown="handleKeyDown"
-              />
-              <div class="editor-char-count">{{ localFormData.jobDetailsHtml.length }} / 2000 caracteres</div>
             </div>
           </div>
         </div>
@@ -381,7 +352,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 
 // ========== PROPS Y EMITS ==========
 const props = defineProps({
@@ -393,96 +364,10 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'next', 'back'])
 
-// ========== EDITOR TOOLBAR METHODS ==========
-const toggleBold = () => {
-  insertFormatting('**', '**', 'Texto en negrita')
-}
-
-const toggleItalic = () => {
-  insertFormatting('*', '*', 'Texto en itálica')
-}
-
-const toggleUnderline = () => {
-  insertFormatting('__', '__', 'Texto subrayado')
-}
-
-const insertQuote = () => {
-  const textarea = document.querySelector('.job-details-editor')
-  if (textarea) {
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const beforeText = localFormData.value.jobDetailsHtml.substring(0, start)
-    const selectedText = localFormData.value.jobDetailsHtml.substring(start, end) || 'Cita importante'
-    const afterText = localFormData.value.jobDetailsHtml.substring(end)
-    localFormData.value.jobDetailsHtml = beforeText + '> ' + selectedText + '\n' + afterText
-    nextTick(() => {
-      textarea.selectionStart = textarea.selectionEnd = start + 2 + selectedText.length
-      textarea.focus()
-    })
-  }
-}
-
-const insertBulletList = () => {
-  const textarea = document.querySelector('.job-details-editor')
-  if (textarea) {
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const beforeText = localFormData.value.jobDetailsHtml.substring(0, start)
-    const selectedText = localFormData.value.jobDetailsHtml.substring(start, end) || 'Elemento'
-    const afterText = localFormData.value.jobDetailsHtml.substring(end)
-    localFormData.value.jobDetailsHtml = beforeText + '• ' + selectedText + '\n' + afterText
-    nextTick(() => {
-      textarea.selectionStart = textarea.selectionEnd = start + 2 + selectedText.length
-      textarea.focus()
-    })
-  }
-}
-
-const insertNumberedList = () => {
-  const textarea = document.querySelector('.job-details-editor')
-  if (textarea) {
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const beforeText = localFormData.value.jobDetailsHtml.substring(0, start)
-    const selectedText = localFormData.value.jobDetailsHtml.substring(start, end) || 'Elemento'
-    const afterText = localFormData.value.jobDetailsHtml.substring(end)
-    localFormData.value.jobDetailsHtml = beforeText + '1. ' + selectedText + '\n' + afterText
-    nextTick(() => {
-      textarea.selectionStart = textarea.selectionEnd = start + 3 + selectedText.length
-      textarea.focus()
-    })
-  }
-}
-
-const insertFormatting = (before, after, placeholder) => {
-  const textarea = document.querySelector('.job-details-editor')
-  if (textarea) {
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = localFormData.value.jobDetailsHtml.substring(start, end) || placeholder
-    const beforeText = localFormData.value.jobDetailsHtml.substring(0, start)
-    const afterText = localFormData.value.jobDetailsHtml.substring(end)
-    localFormData.value.jobDetailsHtml = beforeText + before + selectedText + after + afterText
-    nextTick(() => {
-      textarea.selectionStart = start + before.length
-      textarea.selectionEnd = start + before.length + selectedText.length
-      textarea.focus()
-    })
-  }
-}
-
-const handleKeyDown = (event) => {
-  // Optional: Add keyboard shortcuts
-  if (event.ctrlKey || event.metaKey) {
-    if (event.key === 'b') {
-      event.preventDefault()
-      toggleBold()
-    } else if (event.key === 'i') {
-      event.preventDefault()
-      toggleItalic()
-    }
-  }
-}
+// ========== CKEDITOR VARIABLES ==========
+const editorContainer = ref(null)
+let editorInstance = null
+const charCount = ref(0)
 
 // ========== FUNCIÓN HELPER PARA INICIALIZAR DATOS ==========
 const initializeFormData = (modelValue) => ({
@@ -506,7 +391,7 @@ const initializeFormData = (modelValue) => ({
 // ========== DATA LOCAL ==========
 const localFormData = ref(initializeFormData(props.modelValue))
 
-// ========== OPCIONES DE FORMULARIO (DINAMICAS) ==========
+// ========== OPCIONES DE FORMULARIO (DINÁMICAS) ==========
 const categoryOptions = ref([])
 const contractTypeOptions = ref([])
 const cityOptions = ref([])
@@ -519,13 +404,230 @@ const loadingCities = ref(true)
 const showErrorModal = ref(false)
 const validationErrors = ref([])
 
+// ========== INICIALIZAR CKEDITOR 5 ==========
+const initCKEditor = () => {
+  // Cargar CKEditor desde CDN - VERSIÓN SUPERBUILD con todos los plugins
+  if (!window.ClassicEditor) {
+    // Cargar CSS de CKEditor
+    const link = document.createElement('link')
+    link.href = 'https://cdn.ckeditor.com/ckeditor5/43.3.1/ckeditor5.css'
+    link.rel = 'stylesheet'
+    document.head.appendChild(link)
+    
+    // Cargar JS de CKEditor
+    const script = document.createElement('script')
+    script.src = 'https://cdn.ckeditor.com/ckeditor5/43.3.1/ckeditor5.umd.js'
+    script.type = 'module'
+    script.onload = () => {
+      // Esperar a que se cargue completamente
+      setTimeout(createEditor, 100)
+    }
+    document.head.appendChild(script)
+  } else {
+    createEditor()
+  }
+}
+
+const createEditor = async () => {
+  if (!editorContainer.value || editorInstance) return
+
+  try {
+    const {
+      ClassicEditor,
+      Essentials,
+      Bold,
+      Italic,
+      Underline,
+      Strikethrough,
+      Paragraph,
+      Heading,
+      List,
+      Link,
+      BlockQuote,
+      Indent,
+      IndentBlock,
+      Alignment,
+      Font,
+      Undo
+    } = window.CKEDITOR
+
+    const editor = await ClassicEditor.create(editorContainer.value, {
+      plugins: [
+        Essentials,
+        Bold,
+        Italic,
+        Underline,
+        Strikethrough,
+        Paragraph,
+        Heading,
+        List,
+        Link,
+        BlockQuote,
+        Indent,
+        IndentBlock,
+        Alignment,
+        Font,
+        Undo
+      ],
+      toolbar: {
+        items: [
+          'heading',
+          '|',
+          'fontSize',
+          'fontFamily',
+          'fontColor',
+          'fontBackgroundColor',
+          '|',
+          'bold',
+          'italic',
+          'underline',
+          'strikethrough',
+          '|',
+          'alignment',
+          '|',
+          'bulletedList',
+          'numberedList',
+          '|',
+          'outdent',
+          'indent',
+          '|',
+          'link',
+          'blockQuote',
+          '|',
+          'undo',
+          'redo'
+        ],
+        shouldNotGroupWhenFull: true
+      },
+      heading: {
+        options: [
+          { model: 'paragraph', title: 'Párrafo', class: 'ck-heading_paragraph' },
+          { model: 'heading1', view: 'h1', title: 'Título 1', class: 'ck-heading_heading1' },
+          { model: 'heading2', view: 'h2', title: 'Título 2', class: 'ck-heading_heading2' },
+          { model: 'heading3', view: 'h3', title: 'Título 3', class: 'ck-heading_heading3' }
+        ]
+      },
+      fontSize: {
+        options: [
+          'tiny',
+          'small',
+          'default',
+          'big',
+          'huge'
+        ]
+      },
+      fontFamily: {
+        options: [
+          'default',
+          'Arial, Helvetica, sans-serif',
+          'Georgia, serif',
+          'Courier New, Courier, monospace',
+          'Times New Roman, Times, serif'
+        ]
+      },
+      link: {
+        defaultProtocol: 'https://',
+        decorators: {
+          openInNewTab: {
+            mode: 'manual',
+            label: 'Abrir en nueva pestaña',
+            attributes: {
+              target: '_blank',
+              rel: 'noopener noreferrer'
+            }
+          }
+        }
+      },
+      placeholder: 'Cuéntale al candidato sobre el puesto: Descripción del trabajo, Responsabilidades principales, Requisitos y habilidades necesarias, Experiencia requerida, Beneficios y oportunidades'
+    })
+
+    editorInstance = editor
+
+    // Establecer contenido inicial
+    if (localFormData.value.jobDetailsHtml) {
+      editor.setData(localFormData.value.jobDetailsHtml)
+    }
+
+    // Actualizar contador y sincronizar cambios
+    editor.model.document.on('change:data', () => {
+      const data = editor.getData()
+      const textContent = getTextFromHtml(data)
+      charCount.value = textContent.length
+      localFormData.value.jobDetailsHtml = data
+    })
+
+    // Calcular contador inicial
+    const initialText = getTextFromHtml(editor.getData())
+    charCount.value = initialText.length
+
+    console.log('✅ CKEditor 5 Superbuild inicializado correctamente')
+  } catch (error) {
+    console.error('Error al inicializar CKEditor:', error)
+    // Fallback al método anterior si falla
+    initCKEditorClassic()
+  }
+}
+
+// Fallback al método clásico
+const initCKEditorClassic = () => {
+  if (!editorContainer.value || editorInstance) return
+
+  window.ClassicEditor
+    .create(editorContainer.value, {
+      placeholder: 'Cuéntale al candidato sobre el puesto: Descripción del trabajo, Responsabilidades principales, Requisitos y habilidades necesarias, Experiencia requerida, Beneficios y oportunidades',
+      toolbar: [
+        'heading', '|',
+        'bold', 'italic', 'underline', '|',
+        'bulletedList', 'numberedList', '|',
+        'outdent', 'indent', '|',
+        'link', 'blockQuote', '|',
+        'undo', 'redo'
+      ],
+      heading: {
+        options: [
+          { model: 'paragraph', title: 'Párrafo', class: 'ck-heading_paragraph' },
+          { model: 'heading2', view: 'h2', title: 'Título 2', class: 'ck-heading_heading2' },
+          { model: 'heading3', view: 'h3', title: 'Título 3', class: 'ck-heading_heading3' }
+        ]
+      }
+    })
+    .then(editor => {
+      editorInstance = editor
+
+      if (localFormData.value.jobDetailsHtml) {
+        editor.setData(localFormData.value.jobDetailsHtml)
+      }
+
+      editor.model.document.on('change:data', () => {
+        const data = editor.getData()
+        const textContent = getTextFromHtml(data)
+        charCount.value = textContent.length
+        localFormData.value.jobDetailsHtml = data
+      })
+
+      const initialText = getTextFromHtml(editor.getData())
+      charCount.value = initialText.length
+
+      console.log('✅ CKEditor 5 Classic (fallback) inicializado')
+    })
+    .catch(error => {
+      console.error('Error al inicializar CKEditor Classic:', error)
+    })
+}
+
+// Función para extraer texto plano del HTML
+const getTextFromHtml = (html) => {
+  const tmp = document.createElement('DIV')
+  tmp.innerHTML = html
+  return tmp.textContent || tmp.innerText || ''
+}
+
 // ========== WATCH PARA SINCRONIZACIÓN ==========
-// Watch para cambios internos del formulario - emite actualizaciones al parent
 watch(localFormData, (newValue) => {
   const cleanedValue = {
     ...props.modelValue,
     ...newValue,
-    description: newValue.jobDetailsHtml, // Mapear editor HTML a description
+    description: newValue.jobDetailsHtml,
     jobCategory: typeof newValue.jobCategory === 'object' ? newValue.jobCategory?.value : newValue.jobCategory,
     city: typeof newValue.city === 'object' ? newValue.city?.value : newValue.city,
     contractType: typeof newValue.contractType === 'object' ? newValue.contractType?.value : newValue.contractType
@@ -533,13 +635,14 @@ watch(localFormData, (newValue) => {
   emit('update:modelValue', cleanedValue)
 }, { deep: true })
 
-// Watch para sincronizar cuando vuelves atrás - carga datos guardados
 watch(() => [props.modelValue.description, props.modelValue.title, props.modelValue.jobDetailsHtml],
   (newVals) => {
     const [description] = newVals
-    // Si el description del store cambió pero jobDetailsHtml local no coincide, recargar
     if (description && description !== localFormData.value.jobDetailsHtml) {
       localFormData.value = initializeFormData(props.modelValue)
+      if (editorInstance) {
+        editorInstance.setData(description)
+      }
     }
   },
   { deep: true }
@@ -629,6 +732,22 @@ onMounted(() => {
     loadContractTypes(),
     loadCities()
   ])
+  
+  // Inicializar CKEditor
+  initCKEditor()
+})
+
+onBeforeUnmount(() => {
+  // Destruir instancia de CKEditor
+  if (editorInstance) {
+    editorInstance.destroy()
+      .then(() => {
+        console.log('✅ CKEditor destruido correctamente')
+      })
+      .catch(error => {
+        console.error('Error al destruir CKEditor:', error)
+      })
+  }
 })
 
 // ========== NAVEGACIÓN ==========
@@ -655,9 +774,13 @@ const validate = () => {
   }
 
   // Validar contenido de detalles del empleo
-  const jobDetailsLength = (localFormData.value.jobDetailsHtml || '').trim().length
+  const jobDetailsLength = charCount.value
   if (!localFormData.value.jobDetailsHtml || jobDetailsLength < 50) {
     errors.push(`La información del empleo debe tener al menos 50 caracteres (actualmente: ${jobDetailsLength})`)
+  }
+
+  if (jobDetailsLength > 2000) {
+    errors.push(`La información del empleo no puede exceder 2000 caracteres (actualmente: ${jobDetailsLength})`)
   }
 
   if (!localFormData.value.jobCategory) {
@@ -701,7 +824,7 @@ const validate = () => {
     return false
   }
 
-  console.log('✅ Validación exitosa - todos los campos obligatorios completo')
+  console.log('✅ Validación exitosa - todos los campos obligatorios completos')
   return true
 }
 
@@ -719,27 +842,17 @@ defineExpose({
   background: linear-gradient(135deg, #FAFBFF 0%, #F5F3FF 100%);
   min-height: 100vh;
   padding: 1.5rem;
+  position: relative;
+  overflow-x: hidden; /* Evitar que CKEditor se salga horizontalmente */
 }
 
-.step-header {
+.integrated-header {
   display: flex;
   align-items: center;
   gap: 2rem;
-  margin-bottom: 2.5rem;
-  max-width: 1160px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 2.5rem;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.15);
-  border-top: 4px solid transparent;
-  background-image:
-    linear-gradient(white, white),
-    linear-gradient(90deg, #7C3AED, #A855F7);
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  width: 100%;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #E9D5FF;
+  margin-bottom: 1rem;
 }
 
 .header-icon {
@@ -770,15 +883,6 @@ defineExpose({
   margin: 0.75rem 0 0 0;
   line-height: 1.6;
   font-weight: 500;
-}
-
-.integrated-header {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid #E9D5FF;
-  margin-bottom: 1rem;
 }
 
 .form-content {
@@ -817,23 +921,6 @@ defineExpose({
   border-radius: 12px 0 0 12px;
 }
 
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #1E293B;
-  margin: 0;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #E9D5FF;
-}
-
-.section-title va-icon {
-  color: #7C3AED;
-  font-size: 1.5rem;
-}
-
 .form-row {
   display: flex;
   flex-direction: column;
@@ -846,33 +933,10 @@ defineExpose({
   gap: 0.35rem;
 }
 
-.form-row-flex {
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-end;
-  margin-bottom: 0.3rem;
-}
-
-.form-row-flex.compact {
-  gap: 0.5rem;
-}
-
-.anonymous-inline-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 0.15rem;
-}
-
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.form-grid.compact-grid {
-  gap: 0.75rem;
   margin-bottom: 0.75rem;
 }
 
@@ -882,7 +946,6 @@ defineExpose({
   margin-bottom: 0.75rem;
 }
 
-/* ========== UNIFIED JOB SECTION STYLES ========== */
 .unified-job-section {
   gap: 1.25rem;
   padding: 1.75rem;
@@ -911,28 +974,164 @@ defineExpose({
   padding: 0;
 }
 
-.group-subtitle va-icon {
-  color: #7C3AED;
-}
-
-.basic-info-section {
-  gap: 0.75rem;
-}
-
-.form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
 .form-label {
   font-weight: 600;
   color: #1E293B;
   font-size: 0.9rem;
 }
 
-/* ========== INPUT UNIFORMITY - ALL INPUTS IDENTICAL ========== */
-/* Base sizing for all input elements */
+/* ========== CKEDITOR STYLES ========== */
+.editor-wrapper-ckeditor {
+  border: 2px solid #E2E8F0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s;
+  background: white;
+  position: relative;
+  z-index: 1; /* Mantener bajo para no superponer navbar */
+}
+
+.editor-wrapper-ckeditor:focus-within {
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.ckeditor-container {
+  min-height: 300px;
+  position: relative;
+  z-index: 1;
+}
+
+/* CKEditor 5 Toolbar Customization */
+:deep(.ck-toolbar) {
+  background: linear-gradient(135deg, #F9F5FF 0%, #F5EFFF 100%) !important;
+  border-bottom: 2px solid #E9D5FF !important;
+  padding: 0.75rem !important;
+  border-top-left-radius: 6px !important;
+  border-top-right-radius: 6px !important;
+}
+
+:deep(.ck-button) {
+  border-radius: 6px !important;
+  transition: all 0.2s !important;
+}
+
+:deep(.ck-button:hover) {
+  background: #EDE9FE !important;
+}
+
+:deep(.ck-button.ck-on) {
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%) !important;
+  color: white !important;
+}
+
+:deep(.ck-toolbar__separator) {
+  background: #E9D5FF !important;
+}
+
+/* CKEditor Content Area */
+:deep(.ck-editor__editable) {
+  min-height: 300px !important;
+  max-height: 500px !important;
+  padding: 1.5rem !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  color: #334155 !important;
+  border: none !important;
+}
+
+/* Placeholder visible y grande */
+:deep(.ck-placeholder)::before {
+  color: #9CA3AF !important;
+  opacity: 0.8 !important;
+  font-size: 15px !important;
+}
+
+:deep(.ck-editor__editable:focus) {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+:deep(.ck-editor__editable p) {
+  margin-bottom: 0.75rem;
+}
+
+:deep(.ck-editor__editable strong) {
+  font-weight: 700;
+  color: #1E293B;
+}
+
+:deep(.ck-editor__editable em) {
+  font-style: italic;
+}
+
+:deep(.ck-editor__editable ul),
+:deep(.ck-editor__editable ol) {
+  margin-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+:deep(.ck-editor__editable li) {
+  margin-bottom: 0.5rem;
+}
+
+:deep(.ck-editor__editable blockquote) {
+  border-left: 4px solid #7C3AED;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #64748B;
+}
+
+:deep(.ck-editor__editable h1) {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #1E293B;
+}
+
+:deep(.ck-editor__editable h2) {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: #1E293B;
+}
+
+:deep(.ck-editor__editable h3) {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #334155;
+}
+
+.editor-char-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  font-size: 0.85rem;
+  color: #64748B;
+}
+
+.char-warning {
+  color: #F59E0B;
+  font-weight: 600;
+}
+
+.char-error {
+  color: #DC2626;
+  font-weight: 600;
+}
+
+.char-success {
+  color: #10B981;
+  font-weight: 600;
+}
+
+/* ========== INPUT STYLES ========== */
 :deep(.va-input),
 :deep(.va-input__field),
 :deep(.va-textarea),
@@ -943,7 +1142,6 @@ defineExpose({
   font-size: 0.85rem !important;
 }
 
-/* VA-INPUT styling */
 :deep(.va-input) {
   background: white !important;
   color: #1E293B !important;
@@ -964,16 +1162,11 @@ defineExpose({
   opacity: 1 !important;
 }
 
-:deep(.va-input__field) {
-  --va-font-size: 1rem !important;
-}
-
 :deep(.va-input__field:focus) {
   border-color: #7C3AED !important;
   box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1) !important;
 }
 
-/* VA-TEXTAREA styling */
 :deep(.va-textarea) {
   height: auto !important;
   background: white !important;
@@ -990,16 +1183,6 @@ defineExpose({
   color: #1E293B !important;
 }
 
-:deep(.va-textarea__textarea::placeholder) {
-  font-size: 1rem !important;
-  opacity: 1 !important;
-}
-
-:deep(.va-textarea__textarea) {
-  --va-font-size: 1rem !important;
-}
-
-/* VA-SELECT styling */
 :deep(.va-select) {
   height: 32px !important;
   background: white !important;
@@ -1023,28 +1206,6 @@ defineExpose({
   box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1) !important;
 }
 
-/* Select placeholder text - make it larger and visible */
-:deep(.va-select__placeholder) {
-  font-size: 1rem !important;
-  opacity: 1 !important;
-  --va-font-size: 1rem !important;
-}
-
-:deep(.va-select__field .va-select__placeholder) {
-  font-size: 1rem !important;
-  --va-font-size: 1rem !important;
-}
-
-/* Select option text */
-:deep(.va-select__content) {
-  font-size: 0.85rem !important;
-}
-
-:deep(.va-select__option) {
-  font-size: 0.85rem !important;
-}
-
-/* VA-DATE-INPUT styling */
 :deep(.va-date-input) {
   height: 32px !important;
   background: white !important;
@@ -1068,12 +1229,6 @@ defineExpose({
   box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1) !important;
 }
 
-:deep(.va-date-input__field::placeholder) {
-  font-size: 0.9rem !important;
-  opacity: 1 !important;
-}
-
-/* Generic input and textarea fallback */
 input[type="text"],
 input[type="number"],
 input[type="email"],
@@ -1088,384 +1243,7 @@ textarea {
   color: #1E293B !important;
 }
 
-input::placeholder,
-textarea::placeholder {
-  font-size: 1rem !important;
-  opacity: 1 !important;
-}
-
-/* Additional Vuestic input element targeting */
-:deep(.va-input input),
-:deep(.va-textarea textarea),
-:deep(.va-select select),
-:deep(.va-date-input input) {
-  background: white !important;
-  color: #1E293B !important;
-}
-
-/* Target all wrapper containers */
-:deep(.va-input__container),
-:deep(.va-textarea__container),
-:deep(.va-select__container),
-:deep(.va-date-input__container) {
-  background: white !important;
-  color: #1E293B !important;
-}
-
-/* ========== VALIDATION ERROR MESSAGES ========== */
-:deep(.va-input__error-messages),
-:deep(.va-select__error-messages),
-:deep(.va-textarea__error-messages),
-:deep(.va-date-input__error-messages) {
-  font-size: 0.75rem !important;
-  color: #DC2626 !important;
-  margin-top: 0.35rem !important;
-  margin-bottom: 0 !important;
-  padding: 0 !important;
-  line-height: 1.2 !important;
-  display: block !important;
-  word-wrap: break-word !important;
-}
-
-:deep(.va-input__error-message),
-:deep(.va-select__error-message),
-:deep(.va-textarea__error-message),
-:deep(.va-date-input__error-message) {
-  font-size: 0.75rem !important;
-  color: #DC2626 !important;
-}
-
-.input-hint {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  font-size: 0.9rem;
-  color: #5B21B6;
-  padding: 0.75rem 1rem;
-  background: #F9F5FF;
-  border-radius: 8px;
-  border-left: 3px solid #7C3AED;
-  line-height: 1.5;
-  margin-top: 0.4rem;
-}
-
-.input-hint.compact-hint {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.85rem;
-  margin-top: 0.2rem;
-}
-
-.success-hint {
-  background: #F0FDF4;
-  color: #166534;
-  border-left-color: #16A34A;
-}
-
-.anonymous-switch-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: #F5F3FF;
-  border-radius: 8px;
-  border-left: 3px solid #DDD6FE;
-}
-
-.anonymous-switch-container.compact {
-  padding: 0.5rem;
-  gap: 0.25rem;
-  background: transparent;
-  border: none;
-}
-
-.anonymous-helper-text {
-  font-size: 0.85rem;
-  color: #5B21B6;
-  font-weight: 500;
-}
-
-.currency-symbol {
-  font-weight: 700;
-  color: #7C3AED;
-  padding: 0.5rem 0.75rem;
-  background: #E0E7FF;
-  border-radius: 6px;
-  font-size: 0.9rem;
-}
-
-.salary-tip {
-  display: flex;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  background: #FFFBEB;
-  border-left: 3px solid #FBBF24;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  color: #92400E;
-  line-height: 1.5;
-  align-items: flex-start;
-}
-
-.salary-options {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #E2E8F0;
-  margin-bottom: 1rem;
-}
-
-.salary-radio {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  font-weight: 500;
-  color: #1E293B;
-  padding: 0.5rem;
-  border-radius: 6px;
-  transition: background 0.2s;
-}
-
-.salary-radio:hover {
-  background: #F1F5F9;
-}
-
-.salary-inputs {
-  display: flex;
-  align-items: flex-end;
-  gap: 1rem;
-}
-
-.salary-separator {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #7C3AED;
-  padding-bottom: 0.5rem;
-}
-
-.vacancy-input-group {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.vacancy-btn {
-  width: 44px;
-  height: 44px;
-  border: 2px solid #E2E8F0;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 700;
-  color: #7C3AED;
-  font-size: 1.25rem;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.vacancy-btn:hover:not(:disabled) {
-  background: #F8FAFC;
-  border-color: #7C3AED;
-  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
-}
-
-.vacancy-btn:disabled {
-  color: #CBD5E1;
-  cursor: not-allowed;
-  border-color: #E2E8F0;
-}
-
-.vacancy-input {
-  width: 100px;
-  padding: 0.75rem;
-  border: 2px solid #E2E8F0;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 700;
-  text-align: center;
-  color: #7C3AED;
-  transition: all 0.2s;
-}
-
-.vacancy-input:focus {
-  outline: none;
-  border-color: #7C3AED;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-}
-
-/* ========== EDITOR STYLES ========== */
-.editor-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  overflow: hidden;
-  background: white;
-}
-
-.editor-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, #F9F5FF 0%, #F5EFFF 100%);
-  border-bottom: 2px solid #E9D5FF;
-  flex-wrap: wrap;
-  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.05);
-}
-
-.toolbar-btn {
-  padding: 0.6rem 0.85rem;
-  border: 1.5px solid #DDD6FE;
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  color: #5B21B6;
-  font-size: 0.95rem;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 3px rgba(124, 58, 237, 0.08);
-}
-
-.toolbar-btn:hover {
-  background: linear-gradient(135deg, #EDE9FE 0%, #F3E8FF 100%);
-  border-color: #7C3AED;
-  color: #7C3AED;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(124, 58, 237, 0.15);
-}
-
-.toolbar-btn:active {
-  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
-  color: white;
-  border-color: #7C3AED;
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.3);
-}
-
-.toolbar-separator {
-  width: 1.5px;
-  height: 28px;
-  background: linear-gradient(180deg, transparent, #E9D5FF, transparent);
-  margin: 0 0.5rem;
-}
-
-.bullet-icon {
-  font-size: 1.2rem;
-  line-height: 1;
-}
-
-.number-icon {
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.quote-icon {
-  font-size: 1.1rem;
-  opacity: 0.8;
-}
-
-.job-details-editor {
-  border: none !important;
-  padding: 1rem !important;
-  font-size: 0.95rem !important;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-  line-height: 1.6 !important;
-  color: #334155 !important;
-  min-height: 250px;
-  resize: vertical;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.job-details-editor::placeholder {
-  color: #9CA3AF !important;
-  opacity: 0.7 !important;
-  white-space: pre-line;
-}
-
-.job-details-editor:focus {
-  outline: none;
-}
-
-.editor-wrapper:has(.job-details-editor:focus) {
-  border-color: #7C3AED;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-}
-
-.editor-char-count {
-  font-size: 0.8rem;
-  color: #64748B;
-  text-align: right;
-  padding: 0 1rem 0.5rem 1rem;
-  background: white;
-}
-
-/* ========== BOTONES DE NAVEGACIÓN ========== */
-.navigation-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  padding-top: 2rem;
-  margin-top: 2rem;
-  border-top: 1px solid #E5E7EB;
-}
-
-.btn {
-  padding: 0.875rem 2rem;
-  border: none;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
-}
-
-.btn-secondary {
-  background: #F3F4F6;
-  color: #1F2937;
-  border: 2px solid #E5E7EB;
-  font-weight: 600;
-}
-
-.btn-secondary:hover {
-  background: #E5E7EB;
-  border-color: #D1D5DB;
-}
-
-.opacity-50 {
-  opacity: 0.5;
-}
-
-/* ========== COMPENSATION & VACANCIES COMPACT STYLES ========== */
-
+/* ========== COMPENSATION & VACANCIES ========== */
 .form-grid.compact-compensation-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1574,7 +1352,75 @@ textarea::placeholder {
   line-height: 1;
 }
 
-/* ========== MODAL DE ERRORES ========== */
+/* ========== NAVIGATION BUTTONS ========== */
+.navigation-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 2rem;
+  margin-top: 2rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+.btn {
+  padding: 0.875rem 2rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
+}
+
+.btn-secondary {
+  background: #F3F4F6;
+  color: #1F2937;
+  border: 2px solid #E5E7EB;
+  font-weight: 600;
+}
+
+.btn-secondary:hover {
+  background: #E5E7EB;
+  border-color: #D1D5DB;
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
+
+/* ========== ERROR MODAL ========== */
+/* Asegurar que el modal de errores esté por encima de CKEditor */
+:deep(.va-modal__overlay) {
+  z-index: 10500 !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+:deep(.va-modal__container) {
+  z-index: 10500 !important;
+}
+
+:deep(.va-modal__dialog) {
+  z-index: 10600 !important;
+}
+
+:deep(.va-modal__inner) {
+  z-index: 10700 !important;
+}
+
 .error-modal-content {
   text-align: center;
   padding: 1.5rem 1rem;
@@ -1646,21 +1492,11 @@ textarea::placeholder {
     padding: 1rem;
   }
 
-  .error-title {
-    font-size: 1.1rem;
-  }
-
-  .error-item {
-    font-size: 0.9rem;
-    padding: 0.6rem 0.8rem;
-  }
-
-  .step-header {
+  .integrated-header {
     flex-direction: column;
     text-align: center;
     gap: 0.75rem;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
+    padding-bottom: 1rem;
   }
 
   .header-icon {
@@ -1690,16 +1526,8 @@ textarea::placeholder {
     gap: 1rem;
   }
 
-  .section-title {
-    font-size: 1rem;
-  }
-
-  .salary-inputs {
-    flex-direction: column;
-  }
-
-  .salary-separator {
-    display: none;
+  .form-grid.grid-3col {
+    grid-template-columns: 1fr;
   }
 
   .navigation-buttons {
@@ -1718,11 +1546,6 @@ textarea::placeholder {
     padding: 0.75rem;
   }
 
-  .step-header {
-    padding: 1rem;
-    gap: 0.5rem;
-  }
-
   .header-icon {
     width: 48px;
     height: 48px;
@@ -1737,12 +1560,9 @@ textarea::placeholder {
     gap: 1rem;
   }
 
-  .section-title {
-    font-size: 0.95rem;
-  }
-
   .form-label {
     font-size: 0.9rem;
   }
+  
 }
 </style>

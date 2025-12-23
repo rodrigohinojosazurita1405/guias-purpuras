@@ -131,6 +131,18 @@
                 Contacto
               </router-link>
             </li>
+            <li>
+              <router-link to="/privacidad">
+                <va-icon name="privacy_tip" size="small" />
+                Políticas de privacidad
+              </router-link>
+            </li>
+            <li>
+              <router-link to="/terminos">
+                <va-icon name="description" size="small" />
+                Términos y Condiciones
+              </router-link>
+            </li>
           </ul>
         </div>
 

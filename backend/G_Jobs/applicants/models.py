@@ -173,7 +173,7 @@ class ApplicantCV(models.Model):
     )
 
     # Constante para límite de CVs
-    MAX_SAVED_CVS = 2
+    MAX_SAVED_CVS = 10  # Aumentado temporalmente para testing
 
     class Meta:
         verbose_name = "CV de Postulante"

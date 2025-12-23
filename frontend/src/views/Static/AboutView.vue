@@ -219,9 +219,7 @@
             <h4>Rodrigo Hinojosa Z.</h4>
             <p class="team-role">CEO & Fundador</p>
             <p class="team-bio">Nacido en la bella Ciudad de Cochabamba, titulado de la carrera
-              de Sistemas Informáticos, Mercadotecnia y Abogado de profesión, más de 12 años de amplia experiencia en Desarrollo
-              Frontend y Backend, experto en Marketing Digital y Trafficker Digital, me apasiona el Derecho por lo que 
-              soy experto en registro de Marcas, Derecho Civil, Corporativo y Penal. 
+              de Sistemas Informáticos, Mercadotecnia y Abogado de profesión. 
             </p>
           </div>
 
@@ -235,7 +233,7 @@
             </div>
             <h4>María E. Varquera S.</h4>
             <p class="team-role">Directora de Marketing y Comunicación</p>
-            <p class="team-bio">Nacida en la bella ciudad  de Cochabamba: Experta en diseño publicitario branding corporativo y atención al cliente</p>
+            <p class="team-bio">Nacida en la bella ciudad  de Cochabamba: Experta en diseño publicitario influencer gastronómico y experta en atención al cliente</p>
           </div>
         </div>
       </div>
@@ -251,7 +249,7 @@
           </div>
           <h2 class="section-title">Construido con tecnología de vanguardia</h2>
           <p class="section-subtitle">
-            Utilizamos tecnologias modernas acorde a nuestra época para garantizar velocidad, seguridad y escalabilidad
+            El Ecosistema digital Guías Purpuras utiliza tecnologias modernas acorde a nuestra época para garantizar velocidad, seguridad y escalabilidad.
           </p>
         </div>
 
@@ -384,32 +382,20 @@
 </template>
 
 <script setup>
+import { onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/components/Layout/MainLayout.vue'
 
 // ============================================
-// IMPORTAR IMÃGENES DEL EQUIPO E HISTORIA
+// IMPORTAR IMÁGENES DEL EQUIPO E HISTORIA
 // ============================================
 import historyImage from '@/assets/images/amarillas.png'
 import teamMember1 from '@/assets/images/ceo.jpg'
 import teamMember2 from '@/assets/images/creativo.png'
 
 // ============================================
-// IMPORTAR LOGOS DE TECNOLOGÃAS
+// IMPORTAR LOGOS DE TECNOLOGÍAS
 // ============================================
-// TODO: Coloca los logos de tecnologías en: frontend/src/assets/images/tech/
-// Descarga los logos en formato PNG o SVG desde: https://simpleicons.org
-// Nombres sugeridos para los archivos:
-// - vue.png (o vue.svg)
-// - vuestic.png
-// - javascript.png
-// - django.png
-// - python.png
-// - postgresql.png
-// - graphql.png
-// - django-rest.png
-// - git.png
-
 import vueLogoImg from '@/assets/images/tech/vue-svgrepo-com.svg'
 import javascriptLogoImg from '@/assets/images/tech/javascript-svgrepo-com.svg'
 import djangoLogoImg from '@/assets/images/tech/django-svgrepo-com.svg'
@@ -445,6 +431,54 @@ const goToPublish = () => {
 const goToHome = () => {
   router.push('/')
 }
+
+// ============================================
+// PROTECCIÓN ANTI-COPIA
+// ============================================
+const disableRightClick = (e) => {
+  e.preventDefault()
+  return false
+}
+
+const disableSelection = (e) => {
+  e.preventDefault()
+  return false
+}
+
+const disableCopy = (e) => {
+  e.preventDefault()
+  return false
+}
+
+const disableShortcuts = (e) => {
+  // Ctrl+C, Ctrl+A, Ctrl+U, F12, Ctrl+Shift+I
+  if (
+    (e.ctrlKey && (e.key === 'c' || e.key === 'C')) ||
+    (e.ctrlKey && (e.key === 'a' || e.key === 'A')) ||
+    (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
+    (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I')) ||
+    e.key === 'F12'
+  ) {
+    e.preventDefault()
+    return false
+  }
+}
+
+onMounted(() => {
+  // Activar protecciones
+  document.addEventListener('contextmenu', disableRightClick)
+  document.addEventListener('selectstart', disableSelection)
+  document.addEventListener('copy', disableCopy)
+  document.addEventListener('keydown', disableShortcuts)
+})
+
+onBeforeUnmount(() => {
+  // Limpiar event listeners
+  document.removeEventListener('contextmenu', disableRightClick)
+  document.removeEventListener('selectstart', disableSelection)
+  document.removeEventListener('copy', disableCopy)
+  document.removeEventListener('keydown', disableShortcuts)
+})
 </script>
 
 <style scoped>
@@ -1077,5 +1111,34 @@ const goToHome = () => {
   .tech-slider-wrapper::after {
     width: 80px;
   }
+  /* ==========================================
+   PROTECCIÓN ANTI-COPIA
+   ========================================== */
+.about-hero,
+.about-section,
+.about-cta {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Deshabilitar arrastre de texto e imágenes */
+.about-hero *,
+.about-section *,
+.about-cta * {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
+/* Proteger imágenes específicamente */
+.history-image,
+.team-image,
+.tech-logo {
+  pointer-events: none;
+}
 }
 </style>

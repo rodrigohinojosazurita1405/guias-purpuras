@@ -15,6 +15,8 @@ import ApplicationProcess from '@/components/Process/ApplicationProcess.vue'
 // ========== VIEWS ESTÁTICAS ==========
 import AboutView from '@/views/Static/AboutView.vue'
 import ContactPage from '@/views/Static/ContactPage.vue'
+import PrivacyPolicy from '@/views/Static/PrivacyPolicy.vue'
+import TermsConditions from '@/views/Static/TermsConditions.vue'
 
 // ========== VIEWS DE AUTENTICACIÓN ==========
 import LoginView from '@/views/Auth/LoginView.vue'
@@ -259,7 +261,18 @@ const routes = [
     component: ContactPage,
     meta: { title: 'Contacto' }
   },
-
+  {
+  path: '/privacidad',
+  name: 'PrivacyPolicy',
+  component: PrivacyPolicy,
+  meta: { title: 'Políticas de Privacidad' }
+  },
+  {
+    path: '/terminos',
+    name: 'TermsConditions',
+    component: TermsConditions,
+    meta: { title: 'Términos y Condiciones' }
+  },
   // ========== AUTENTICACIÓN ==========
   {
     path: '/login',

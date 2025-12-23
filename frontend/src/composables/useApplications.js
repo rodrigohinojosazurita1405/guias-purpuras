@@ -1,24 +1,26 @@
-import { ref, computed } from 'vue'
+import { ref, computed, triggerRef } from 'vue'
 import { useAuthStore } from '@/stores/useAuthStore'
+
+// ========== SHARED STATE (SINGLETON) ==========
+// Crear un estado compartido fuera de la función para que todas las instancias compartan los mismos datos
+const applications = ref([])
+const isLoading = ref(false)
+const error = ref(null)
+const isLoaded = ref(false)
 
 /**
  * Composable para gestionar aplicaciones del usuario
  * Soporta cargar todas las aplicaciones a trabajos del usuario
+ * SINGLETON: Todas las instancias comparten el mismo estado
  */
 export function useApplications() {
   const authStore = useAuthStore()
-
-  // ========== DATA ==========
-  const applications = ref([])
-  const isLoading = ref(false)
-  const error = ref(null)
-  const isLoaded = ref(false)
 
   // ========== COMPUTED ==========
   const totalApplications = computed(() => applications.value.length)
 
   const receivedCount = computed(
-    () => applications.value.filter(app => app.status === 'received').length
+    () => applications.value.filter(app => app.status === 'submitted').length
   )
 
   const reviewingCount = computed(
@@ -39,23 +41,22 @@ export function useApplications() {
    */
   const loadApplications = async () => {
     // Evitar cargas múltiples simultáneas
-    if (isLoading.value || isLoaded.value) {
+    if (isLoading.value) {
       return
     }
 
     isLoading.value = true
+    isLoaded.value = false
     error.value = null
 
     try {
       if (!authStore.user?.email && !authStore.accessToken) {
-        console.log('❌ Usuario no autenticado, no se pueden cargar aplicaciones')
         applications.value = []
         return
       }
 
       const email = authStore.user?.email
       if (!email) {
-        console.log('❌ Email no disponible')
         applications.value = []
         return
       }
@@ -63,84 +64,84 @@ export function useApplications() {
       const accessToken = authStore.accessToken || localStorage.getItem('access_token')
 
       if (!accessToken) {
-        console.warn('❌ No hay token de autenticación disponible')
         applications.value = []
         return
       }
 
-      console.log('📦 Cargando aplicaciones para:', email)
-
       // Obtener trabajos publicados por el usuario primero
+      const jobsUrl = `http://localhost:8000/api/user/published?email=${encodeURIComponent(email)}`
+
       const jobsResponse = await fetch(
-        `http://localhost:8000/api/user/published?email=${encodeURIComponent(email)}`,
+        jobsUrl,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
           },
-          timeout: 10000 // Timeout de 10 segundos
+          timeout: 10000
         }
       )
 
       if (!jobsResponse.ok) {
-        console.log('⚠️ Error al obtener trabajos publicados:', jobsResponse.status)
         applications.value = []
         return
       }
 
       const jobsData = await jobsResponse.json()
+
       if (!jobsData.success) {
-        console.log('⚠️ Respuesta sin success en trabajos publicados')
         applications.value = []
         return
       }
 
       if (!jobsData.jobs || jobsData.jobs.length === 0) {
-        console.log('📋 No hay trabajos publicados para este usuario')
         applications.value = []
+        isLoaded.value = true
         return
       }
-
-      console.log(`📋 Se encontraron ${jobsData.jobs.length} trabajos publicados`)
 
       // Ahora cargar las aplicaciones para cada trabajo
       let allApplications = []
 
       for (const job of jobsData.jobs) {
         try {
+          const appUrl = `http://localhost:8000/api/jobs/${job.id}/applications`
+
           const appResponse = await fetch(
-            `http://localhost:8000/api/jobs/${job.id}/applications`,
+            appUrl,
             {
               headers: {
                 'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
               },
-              timeout: 10000 // Timeout de 10 segundos
+              timeout: 10000
             }
           )
 
           if (appResponse.ok) {
             const appData = await appResponse.json()
+
             if (appData.success && appData.applications) {
-              console.log(`📨 Se encontraron ${appData.applications.length} aplicaciones para ${job.title}`)
-              // Añadir el título del job a cada aplicación
               const applicationsWithJob = appData.applications.map(app => ({
                 ...app,
                 jobTitle: job.title,
-                jobId: job.id
+                jobId: job.id,
+                companyProfile: job.companyProfile || null,
+                companyLogo: job.companyLogo || null,
+                companyName: job.companyName || null,
+                companyAnonymous: job.companyAnonymous || false
               }))
               allApplications = [...allApplications, ...applicationsWithJob]
             }
           }
         } catch (err) {
-          console.warn(`⚠️ Error cargando aplicaciones para trabajo ${job.id}:`, err.message)
+          // Silently continue on error
         }
       }
 
-      console.log(`✅ Total de aplicaciones cargadas: ${allApplications.length}`)
       applications.value = allApplications
+      triggerRef(applications)
     } catch (err) {
-      console.error('❌ Error cargando aplicaciones:', err)
       error.value = err.message
       applications.value = []
     } finally {

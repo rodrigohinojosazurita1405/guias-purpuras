@@ -225,4 +225,85 @@ button.btn-primary:hover,
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3) !important;
 }
+
+/* ==========================================
+   FIX Z-INDEX PARA MODALES Y CKEDITOR
+   ========================================== */
+/*
+  Jerarquía de z-index:
+  - Navbar: 1000 (típico)
+  - CKEditor base: 100-500 (no debe superponer navbar)
+  - CKEditor dropdowns: 1100 (justo por encima del navbar)
+  - Modales overlay: 10500
+  - Modales content: 10600+
+*/
+
+/* CKEditor - Mantener BAJO el navbar */
+.ck.ck-editor,
+.ck.ck-reset,
+.ck.ck-reset_all,
+.ck-body-wrapper {
+  z-index: 100 !important;
+  position: relative !important;
+}
+
+/* CKEditor Toolbar - Mantener contenido */
+.ck.ck-toolbar {
+  z-index: 200 !important;
+  position: relative !important;
+}
+
+/* CKEditor Editor Area */
+.ck-editor__editable,
+.ck-editor__main {
+  z-index: 150 !important;
+  position: relative !important;
+}
+
+/* CKEditor Dropdowns y Balloon Panels - Por encima del navbar pero BAJO los modales */
+.ck.ck-balloon-panel,
+.ck-dropdown__panel,
+.ck.ck-toolbar__items {
+  z-index: 1100 !important;
+  position: absolute !important;
+}
+
+/* CKEditor Color Picker y otros overlays especiales */
+.ck.ck-color-grid,
+.ck-color-picker-dropdown,
+.ck-color-selector {
+  z-index: 1150 !important;
+}
+
+/* Overlay/Backdrop de Vuestic Modal - MUY por encima de todo */
+.va-modal__overlay,
+.va-modal__container {
+  z-index: 10500 !important;
+}
+
+/* Modal content */
+.va-modal__dialog {
+  z-index: 10600 !important;
+}
+
+/* Asegurar que el overlay sea semi-transparente (no completamente oscuro) */
+.va-modal__overlay {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  opacity: 1 !important;
+}
+
+/* ==========================================
+   ESTILOS ADICIONALES PARA MODALES
+   ========================================== */
+/* Asegurar que el contenido del modal sea visible */
+.va-modal__inner {
+  position: relative;
+  z-index: 10700 !important;
+}
+
+/* Botones dentro de modales */
+.va-modal .va-button {
+  z-index: 10800 !important;
+}
+
 </style>

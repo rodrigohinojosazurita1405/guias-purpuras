@@ -78,6 +78,11 @@ def save_cv(request):
     }
     """
     try:
+        print(f"\n========== SAVE CV ==========")
+        print(f"User: {request.user.email}")
+        print(f"Content-Type: {request.content_type}")
+        print(f"Files: {request.FILES.keys() if request.FILES else 'None'}")
+        print(f"============================\n")
         # Verificar límite de CVs
         existing_cvs = ApplicantCV.objects.filter(
             applicant=request.user,
@@ -120,6 +125,12 @@ def save_cv(request):
                 file=file
             )
 
+        print(f"CV CREADO EXITOSAMENTE:")
+        print(f"  ID: {cv.id}")
+        print(f"  Nombre: {cv.name}")
+        print(f"  Tipo: {cv.cv_type}")
+        print(f"=============================\n")
+
         return JsonResponse({
             'success': True,
             'message': 'CV guardado exitosamente',
@@ -132,11 +143,16 @@ def save_cv(request):
         }, status=201)
 
     except ValidationError as e:
+        print(f"❌ ValidationError en save_cv: {str(e)}")
         return JsonResponse({
             'success': False,
             'error': str(e)
         }, status=400)
     except Exception as e:
+        print(f"❌ Exception en save_cv: {str(e)}")
+        print(f"   Tipo: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'error': f'Error al guardar CV: {str(e)}'
@@ -354,6 +370,12 @@ def apply_to_job(request, job_id):
     """
     try:
         data = json.loads(request.body)
+        print(f"\n========== APPLY TO JOB ==========")
+        print(f"Job ID: {job_id}")
+        print(f"User: {request.user.email}")
+        print(f"Request data: {data}")
+        print(f"CV ID recibido: {data.get('cv_id')}")
+        print(f"==================================\n")
 
         # Verificar que el trabajo existe y está activo
         job = get_object_or_404(Job, id=job_id, status='active')
@@ -362,12 +384,16 @@ def apply_to_job(request, job_id):
         cv_id = data.get('cv_id')
         cv = None
         if cv_id:
+            print(f"Buscando CV con ID: {cv_id}")
             cv = get_object_or_404(
                 ApplicantCV,
                 id=cv_id,
                 applicant=request.user,
                 is_deleted=False
             )
+            print(f"CV encontrado: {cv.name} (tipo: {cv.cv_type})")
+        else:
+            print("ADVERTENCIA: No se proporciono CV ID, la postulacion no tendra CV")
 
         # Crear la postulación
         application = JobApplication.objects.create(
@@ -803,4 +829,144 @@ def update_applicant_profile(request):
         return JsonResponse({
             'success': False,
             'error': f'Error al actualizar perfil: {str(e)}'
+        }, status=500)
+
+
+# ========== ENDPOINTS PARA RECLUTADORES ==========
+
+@csrf_exempt
+@require_authentication
+@require_http_methods(["GET"])
+def get_job_applications(request, job_id):
+    """
+    Obtener todas las postulaciones de un trabajo específico
+    Solo el dueño del trabajo puede ver sus postulaciones
+
+    URL: /api/jobs/<job_id>/applications
+    """
+    try:
+        # Verificar que el trabajo existe
+        job = get_object_or_404(Job, id=job_id)
+
+        # Verificar que el usuario es el dueño del trabajo
+        if job.email != request.user.email:
+            return JsonResponse({
+                'success': False,
+                'error': 'No tienes permiso para ver estas postulaciones'
+            }, status=403)
+
+        # Obtener todas las postulaciones del trabajo
+        applications = JobApplication.objects.filter(
+            job=job
+        ).select_related('applicant', 'cv').order_by('-applied_at')
+
+        # Serializar las postulaciones
+        applications_data = []
+        for app in applications:
+            # Obtener información del CV
+            cv_info = None
+            if app.cv:
+                cv_info = {
+                    'id': str(app.cv.id),
+                    'name': app.cv.name,
+                    'type': app.cv.cv_type,
+                    'file_url': app.cv.file.url if app.cv.file else None,
+                    'file_name': app.cv.name,
+                    'full_name': app.cv.cv_data.get('personalInfo', {}).get('fullName') if app.cv.cv_data else None,
+                    'cv_data': app.cv.cv_data if app.cv.cv_type == 'created' else None
+                }
+
+            # Obtener teléfono del perfil si existe
+            applicant_phone = None
+            try:
+                if hasattr(app.applicant, 'applicant_profile'):
+                    applicant_phone = app.applicant.applicant_profile.phone
+            except Exception:
+                pass
+
+            applications_data.append({
+                'id': str(app.id),
+                'applicantName': app.applicant.get_full_name() or app.applicant.email,
+                'applicantEmail': app.applicant.email,
+                'applicantPhone': applicant_phone,
+                'applicantWhatsapp': applicant_phone,
+                'cv': cv_info,
+                'coverLetter': app.cover_letter,
+                'status': app.status,
+                'recruiterNotes': app.employer_notes,
+                'createdAt': app.applied_at.isoformat(),
+                'viewedByEmployer': app.viewed_by_employer
+            })
+
+        return JsonResponse({
+            'success': True,
+            'applications': applications_data,
+            'total': len(applications_data)
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error al obtener postulaciones: {str(e)}'
+        }, status=500)
+
+
+@csrf_exempt
+@require_authentication
+@require_http_methods(["PATCH"])
+def update_application_status(request, job_id, application_id):
+    """
+    Actualizar el estado de una postulación
+
+    URL: /api/jobs/<job_id>/applications/<application_id>
+    Request Body: { "status": "reviewing|shortlisted|accepted|rejected", "recruiterNotes": "..." }
+    """
+    try:
+        # Verificar que el trabajo existe y es del usuario
+        job = get_object_or_404(Job, id=job_id, email=request.user.email)
+
+        # Verificar que la postulación existe y pertenece a este trabajo
+        application = get_object_or_404(
+            JobApplication,
+            id=application_id,
+            job=job
+        )
+
+        data = json.loads(request.body)
+
+        # Actualizar estado si se proporciona
+        if 'status' in data:
+            new_status = data['status']
+            valid_statuses = ['submitted', 'reviewing', 'shortlisted', 'interviewed', 'accepted', 'rejected', 'withdrawn']
+            if new_status not in valid_statuses:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Estado inválido. Debe ser uno de: {", ".join(valid_statuses)}'
+                }, status=400)
+            application.status = new_status
+
+        # Actualizar notas si se proporcionan
+        if 'recruiterNotes' in data:
+            application.employer_notes = data['recruiterNotes']
+
+        # Marcar como visto por el empleador
+        if not application.viewed_by_employer:
+            application.viewed_by_employer = True
+
+        application.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Postulación actualizada exitosamente',
+            'application': {
+                'id': str(application.id),
+                'status': application.status,
+                'recruiterNotes': application.employer_notes
+            }
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error al actualizar postulación: {str(e)}'
         }, status=500)

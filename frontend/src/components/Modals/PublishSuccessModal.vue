@@ -130,9 +130,24 @@ const publishAnother = async () => {
 </script>
 
 <style scoped>
+/* Fix z-index para modal de éxito */
+.success-modal :deep(.va-modal__overlay) {
+  z-index: 10500 !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
 .success-modal :deep(.va-modal__container) {
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  z-index: 10500 !important;
+}
+
+.success-modal :deep(.va-modal__dialog) {
+  z-index: 10600 !important;
+}
+
+.success-modal :deep(.va-modal__inner) {
+  z-index: 10700 !important;
 }
 
 .modal-header {

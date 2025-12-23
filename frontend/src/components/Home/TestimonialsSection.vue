@@ -64,7 +64,7 @@ const testimonials = ref([
     role: 'Propietario de Restaurante',
     city: 'La Paz',
     text: 'La plataforma es fácil de usar y el metodo de pago es seguro',
-    image: '/src/assets/testimonials/testimonial-1.jpg', // 👈 Reemplaza con tu imagen
+    image: '/src/assets/testimonials/testimonial1.png', // 👈 Reemplaza con tu imagen
     rating: 5
   },
   {
@@ -73,7 +73,7 @@ const testimonials = ref([
     role: 'Encargada de Recursos Humanos',
     city: 'Cochabamba',
     text: 'En menos de 15 días encontre el prospecto ideal para la empresa. El plan destacado vale cada boliviano invertido.',
-    image: '/src/assets/testimonials/testimonial-2.jpg', // 👈 Reemplaza con tu imagen
+    image: '/src/assets/testimonials/testimonial2.jpeg', // 👈 Reemplaza con tu imagen
     rating: 5
   },
   {
@@ -82,7 +82,7 @@ const testimonials = ref([
     role: 'Reclutador Senior',
     city: 'Santa Cruz',
     text: 'En una semana recibí más de 30 talentos reales. El plan Patrocinado funciona perfecto y la etiqueta "urgente le da un plus"',
-    image: '/src/assets/testimonials/testimonial-3.jpg', // 👈 Reemplaza con tu imagen
+    image: '/src/assets/testimonials/testimonial3.png', // 👈 Reemplaza con tu imagen
     rating: 5
   }
 ])
