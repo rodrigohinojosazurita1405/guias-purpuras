@@ -1,8 +1,25 @@
 <template>
   <div class="cv-manager">
     <div class="section-header">
-      <h1>Mis CVs</h1>
-      <p class="subtitle">Gestiona tus currículum vitae (máximo 2 CVs)</p>
+      <h1>Mis CVs Profesionales</h1>
+      <p class="subtitle">
+        Crea y gestiona hasta 2 currículums en <strong>formato Harvard</strong>,
+        el estándar preferido por reclutadores y empresas líderes.
+      </p>
+      <div class="info-badges">
+        <span class="info-badge">
+          <va-icon name="verified" size="16px" color="#10B981" />
+          Formato Profesional
+        </span>
+        <span class="info-badge">
+          <va-icon name="speed" size="16px" color="#7C3AED" />
+          Creación Rápida
+        </span>
+        <span class="info-badge">
+          <va-icon name="workspace_premium" size="16px" color="#F59E0B" />
+          Mayor Impacto
+        </span>
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -376,19 +393,66 @@ onMounted(() => {
 }
 
 .section-header {
-  margin-bottom: 30px;
+  margin-bottom: 32px;
+  text-align: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #F9F5FF 0%, #FFFFFF 100%);
+  border-radius: 16px;
+  border: 2px solid rgba(124, 58, 237, 0.1);
 }
 
 .section-header h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #333;
-  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 12px 0;
 }
 
 .subtitle {
-  color: #666;
-  margin: 0;
+  font-size: 16px;
+  color: #4b5563;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.subtitle strong {
+  color: #7C3AED;
+  font-weight: 700;
+}
+
+.info-badges {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: white;
+  border: 2px solid #E5E7EB;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.info-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(124, 58, 237, 0.15);
+  border-color: #7C3AED;
 }
 
 .loading-container {
@@ -717,6 +781,27 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .section-header {
+    padding: 20px 16px;
+  }
+
+  .section-header h1 {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .info-badges {
+    gap: 10px;
+  }
+
+  .info-badge {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
   .action-buttons {
     flex-direction: column;
   }
