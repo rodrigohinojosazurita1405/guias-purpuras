@@ -23,6 +23,7 @@ FASE 8: Sistema de Auditoría               ✅ 100% COMPLETADA
 FASE 9: Sistema de Reportes Diarios        ✅ 100% COMPLETADA
 FASE 10: CRUD dinámico de categorías       ✅ 100% COMPLETADA
 FASE 11: Admin Django mejorado             ✅ 100% COMPLETADA
+FASE 11.1: Mejoras UX/UI Admin + Frontend  ✅ 100% COMPLETADA
 
 
 ---
@@ -95,6 +96,53 @@ FASE 11: Admin Django mejorado             ✅ 100% COMPLETADA
 - ✅ Badge de verificación más sutil ("✓ Verificado" en lugar de "✓✓ VERIFICADO")
 - ✅ Tab "Verificación de Pago" como primer fieldset por defecto
 - ✅ Textos profesionales (removidos textos de desarrollo como "FASE 7.1")
+
+### ✅ FASE 11.1: Mejoras de UX/UI Admin y Frontend (100% COMPLETADA) - Diciembre 2024
+**Archivos:** `jobs/admin.py`, `PublishSuccessModal.vue`, `SummaryCard.vue`
+**Commit:** `a2a4931` - Mejorar interfaz del admin de Django para verificación de pagos
+
+#### Admin Django - Verificación de Pagos:
+- ✅ **Widget personalizado destacado para checkbox 'Pago verificado'**
+  - ✅ Diseño tipo tarjeta con fondo de color según estado
+  - ✅ Verde (#ECFDF5) si verificado / Amarillo (#FFFBEB) si pendiente
+  - ✅ Íconos SVG profesionales (check ✓ o reloj según estado)
+  - ✅ Tamaño compacto y discreto (14px 18px padding)
+  - ✅ Bordes sutiles (2px) y sombras suaves (0.15 opacity)
+  - ✅ Label descriptivo según estado con colores coordinados
+  - ✅ Checkbox escalado 1.3x para mejor visibilidad
+
+- ✅ **Mejoras en badges de lista de ofertas**
+  - ✅ Badge 'Estado de Pago' ahora sutil e igual a los demás
+  - ✅ Eliminados gradientes y sombras exageradas
+  - ✅ Etiquetas simplificadas: "Verificado", "Pendiente", "Sin Comprobante"
+  - ✅ Removido emoji 💰 del título de columna
+  - ✅ Reemplazados emojis por íconos SVG en badges:
+    - ✅ Aplicaciones: ícono SVG de usuarios (reemplaza 👥)
+    - ✅ Vistas: ícono SVG de ojo (reemplaza 👁️)
+    - ✅ Publicado: ícono SVG de calendario (reemplaza 📅)
+    - ✅ Plan: ícono SVG de estrella (reemplaza 💎)
+  - ✅ Mantenidos emojis en badge de vencimiento (🔴🟡🟢) - funcionan mejor que SVG
+  - ✅ Todos los badges ahora con estilo consistente y profesional
+
+#### Frontend - Modal de Éxito y SummaryCard:
+- ✅ **Modal de publicación exitosa más compacto**
+  - ✅ Tamaño reducido de 'large' a 'medium'
+  - ✅ Padding reducido de 30px a 20px (33% menor)
+  - ✅ Ícono de éxito de 70px (antes 100px)
+  - ✅ Título de 22px (antes 28px)
+  - ✅ Fuentes reducidas en 15-20%
+  - ✅ Márgenes y espaciados reducidos en 30-50%
+  - ✅ Sin pérdida de funcionalidad ni contenido
+
+- ✅ **SummaryCard responsive mejorado**
+  - ✅ Layout de header reorganizado a 3 columnas más compacto
+  - ✅ Badges responsivos con tamaños específicos por breakpoint
+  - ✅ Logo de empresa más grande en móvil (140px en 480px, 120px en 768px)
+  - ✅ Título y logo lado a lado en responsive
+  - ✅ Gap reducido en badges (0.2rem en móvil)
+  - ✅ Alineación a la izquierda en móvil
+  - ✅ Fuentes aumentadas para mejor legibilidad
+  - ✅ Color púrpura (#7C3AED) en label "Oferta laboral"
 
 ### ✅ FASE 7.3: Gestión de Anuncios (100% COMPLETADA)
 **Componente:** `JobsManager.vue`
@@ -266,23 +314,72 @@ interviewed → accepted:
 - ⏳ Contador de notificaciones no leídas en navbar
 - ⏳ Sistema de polling o WebSocket para tiempo real
 
-### 2. **FASE 7.8: Gestión de CVs en Dashboard Postulante** (ALTA PRIORIDAD)
+### 2. **FASE 7.8: Gestión de CVs en Dashboard Postulante** (🔴 CRÍTICO - EN PROGRESO 40%)
 **Descripción:** Permitir crear, editar, eliminar y gestionar CVs desde el dashboard del postulante
 
-**Tareas Pendientes:**
-- ⏳ Vista "Mis CVs" en dashboard postulante
-- ⏳ Botón "Crear Nuevo CV" que abra CV Builder
-- ⏳ Listado de CVs guardados (creados y subidos)
-- ⏳ Acciones por CV:
-  - Editar CV (abrir CV Builder con datos precargados)
-  - Eliminar CV (con confirmación)
-  - Descargar CV (para PDFs subidos)
-  - Vista previa CV
-  - Marcar como CV predeterminado
-- ⏳ Limite de 2 CVs máximo (según requerimiento CEO)
-- ⏳ Indicador de CV usado en postulaciones
-- ⏳ Backend: Endpoint `PUT /api/applicants/cv/{id}/` para editar CV
-- ⏳ Backend: Endpoint `DELETE /api/applicants/cv/{id}/` para eliminar CV
+**Tareas Completadas:**
+- ✅ Vista "Mis CVs" en dashboard postulante (`CVManager.vue`)
+- ✅ Botón "Crear CV en Plataforma" que abre modal con CV Builder
+- ✅ Listado de CVs guardados (creados y subidos) con grid responsivo
+- ✅ Límite de 2 CVs máximo validado (frontend y backend)
+- ✅ Warnings visuales cuando se alcanza el límite
+- ✅ Backend: Endpoint `POST /api/cvs/save/` - Guardar CV creado
+- ✅ Backend: Endpoint `GET /api/cvs/list/` - Listar CVs del usuario
+- ✅ Backend: Endpoint `DELETE /api/cvs/{id}/delete/` - Eliminar CV
+- ✅ Integración CreateCV.vue en modal (formato Harvard completo)
+- ✅ Validación de campos obligatorios (Nombre, Email, Teléfono)
+- ✅ Sistema de badges por tipo (Creado/Subido)
+- ✅ Metadata de CVs (creado, actualizado)
+- ✅ Fix de reactividad v-model entre CVManager ↔ CreateCV
+- ✅ Modal sin overlay oscuro (UX mejorada)
+
+**Tareas Pendientes (🔴 CRÍTICAS):**
+- 🔴 **CRUD Completo de CVs**:
+  - ⏳ Editar CV creado en plataforma (abrir CreateCV.vue con datos precargados)
+  - ⏳ Backend: Endpoint `PUT /api/cvs/{id}/update/` para actualizar CV
+  - ✅ Eliminar CV con confirmación (funcional pero UI mejorable)
+  - ⏳ Descargar CV en formato PDF (para CVs creados en plataforma)
+
+- 🔴 **Vista Previa HTML de CV Creado**:
+  - ⏳ Componente `CVPreview.vue` para renderizar CV en formato Harvard profesional
+  - ⏳ Diseño HTML/CSS profesional con estilos de CV (inspirado en Harvard)
+  - ⏳ Secciones: Datos personales, perfil, educación, experiencia, habilidades, certificaciones, idiomas, proyectos
+  - ⏳ Botón "Vista Previa" que abra modal con CV renderizado
+  - ⏳ Generación de PDF desde HTML (usar jsPDF o html2pdf.js)
+  - ⏳ Vista previa debe ser lo que vea el reclutador si el postulante elige CV del sistema
+
+- 🔴 **Mejoras Críticas de UX/UI**:
+  - ⏳ Rediseñar tarjeta de CV (`cv-card`) - actualmente muy básica
+  - ⏳ Agregar avatares o íconos más atractivos según tipo de CV
+  - ⏳ Animaciones suaves en hover y transiciones
+  - ⏳ Mejor visualización de metadata (fecha creación/actualización)
+  - ⏳ Badge de "CV Predeterminado" si se implementa esa funcionalidad
+  - ⏳ Indicador visual de "CV usado en X postulaciones"
+  - ⏳ Skeleton loaders mientras carga CVs
+  - ⏳ Empty state más atractivo con ilustración
+
+- 🔴 **Funcionalidades Adicionales Recomendadas**:
+  - ⏳ Marcar CV como predeterminado (se pre-selecciona al aplicar)
+  - ⏳ Duplicar CV (crear copia para modificar sin perder original)
+  - ⏳ Historial de versiones de CV (opcional, futuro)
+  - ⏳ Compartir CV vía link público (opcional, futuro)
+  - ⏳ Estadísticas: "Este CV fue usado en X postulaciones"
+  - ⏳ Vista comparativa lado a lado de 2 CVs
+  - ⏳ Sugerencias de IA para mejorar CV (futuro con OpenAI)
+
+- 🔴 **Integración con ApplicationModal**:
+  - ⏳ Al aplicar a trabajo, si usuario selecciona "Mis CVs":
+    - Debe poder elegir entre sus CVs guardados
+    - Si selecciona CV creado en plataforma → enviar vista previa HTML al reclutador
+    - Si selecciona CV subido (PDF) → enviar archivo PDF
+  - ⏳ Backend debe soportar `application.cv_preview_html` para CVs creados
+  - ⏳ CandidatesView debe mostrar vista previa HTML si existe, sino PDF
+
+- 🔴 **Validaciones y Seguridad**:
+  - ⏳ Validar que usuario no pueda eliminar CV si está siendo usado en postulación activa
+  - ⏳ Confirmar eliminación con mensaje: "Este CV está siendo usado en X postulaciones"
+  - ⏳ Sanitizar HTML de vista previa para evitar XSS
+  - ⏳ Rate limiting en creación de CVs (evitar spam)
 
 ### ✅ FASE 3: GuideView - Vista Split Mejorada (100% COMPLETADA) - Diciembre 2024
 **Componentes:** `GuideView.vue`, `JobListCompact.vue`, `JobDetailPanel.vue`
