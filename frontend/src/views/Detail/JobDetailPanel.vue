@@ -358,8 +358,12 @@ export default {
 
       // Verificar si expiró por fecha
       if (this.listing.expiryDate) {
-        const expiryDate = new Date(this.listing.expiryDate)
+        // Parsear como fecha local para evitar problemas de zona horaria
+        const [year, month, day] = this.listing.expiryDate.split('-')
+        const expiryDate = new Date(year, month - 1, day)
         const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        expiryDate.setHours(0, 0, 0, 0)
         if (expiryDate < today) {
           return 'Cerrado'
         }
@@ -380,10 +384,8 @@ export default {
 
     formatExpiryDate(dateStr) {
       if (!dateStr) return ''
-      const date = new Date(dateStr)
-      const day = date.getDate().toString().padStart(2, '0')
-      const month = (date.getMonth() + 1).toString().padStart(2, '0')
-      const year = date.getFullYear()
+      // Parsear como fecha local para evitar problemas de zona horaria
+      const [year, month, day] = dateStr.split('-')
       return `${day}/${month}/${year}`
     },
 

@@ -121,7 +121,9 @@ export default {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
 
-      const expiryDate = new Date(this.listing.expiryDate)
+      // Parsear como fecha local para evitar problemas de zona horaria
+      const [year, month, day] = this.listing.expiryDate.split('-')
+      const expiryDate = new Date(year, month - 1, day)
       expiryDate.setHours(0, 0, 0, 0)
 
       const diff = expiryDate - today
@@ -133,7 +135,9 @@ export default {
     expiryText() {
       if (!this.listing.expiryDate) return ''
 
-      const expiryDate = new Date(this.listing.expiryDate)
+      // Parsear como fecha local para evitar problemas de zona horaria
+      const [year, month, day] = this.listing.expiryDate.split('-')
+      const expiryDate = new Date(year, month - 1, day)
       const options = { day: '2-digit', month: 'short', year: 'numeric' }
       const formattedDate = expiryDate.toLocaleDateString('es-ES', options)
 
