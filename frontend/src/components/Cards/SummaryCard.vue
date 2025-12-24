@@ -387,121 +387,106 @@
               <div class="info-column">
                 <!-- Título del Puesto (Grande) -->
                 <div class="job-title-wrapper">
-                  <span class="job-title-label">Oferta laboral:</span>
+                  <span class="job-title-label">Oferta laboral</span>
                   <h1 class="job-title">{{ jobData.title }}</h1>
                 </div>
 
-                <!-- Grid de Información: 2 columnas bien definidas -->
-                <div class="info-grid">
-                  <!-- Columna 1: Izquierda -->
-                  <div class="info-column-left">
-                    <div class="info-item">
-                      <div class="info-content">
-                        <span class="info-label">
-                          <va-icon name="business" size="small" />
-                          Empresa:
-                        </span>
-                        <span class="info-value">
-                          {{ jobData.companyAnonymous ? 'Empresa Confidencial' : jobData.companyName }}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="info-item">
-                      <div class="info-content">
-                        <span class="info-label">
-                          <va-icon name="location_on" size="small" />
-                          Ubicación:
-                        </span>
-                        <span class="info-value">
-                          {{ jobData.municipality ? `${jobData.city} - ${jobData.municipality}` : jobData.city }}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="info-item">
-                      <div class="info-content">
-                        <span class="info-label">
-                          <va-icon name="category" size="small" />
-                          Categoría:
-                        </span>
-                        <span class="info-value">{{ jobData.jobCategory }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Columna 2: Derecha -->
-                  <div class="info-column-right">
-                    <div class="info-item">
-                      <div class="info-content">
-                        <span class="info-label">
-                          <va-icon name="work_history" size="small" />
-                          Contrato:
-                        </span>
-                        <span class="info-value">{{ jobData.contractType }}</span>
-                      </div>
-                    </div>
-
-                    <div class="info-item">
-                      <div class="info-content">
-                        <span class="info-label">
-                          <va-icon name="laptop" size="small" />
-                          Modalidad:
-                        </span>
-                        <span class="info-value">{{ getModalityValue(jobData.modality) }}</span>
-                      </div>
-                    </div>
-
-                    <div class="info-item">
-                      <div class="info-content">
-                        <span class="info-label">
-                          <va-icon name="calendar_today" size="small" />
-                          Vencimiento:
-                        </span>
-                        <span class="info-value" :class="{ 'expired-text': isExpired }">
-                          {{ isExpired ? 'CONVOCATORIA CERRADA' : formatDate(jobData.expiryDate) }}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="info-item">
-                      <div class="info-content">
-                        <span class="info-label">
-                          <va-icon name="how_to_reg" size="small" />
-                          Tipo de Aplicación:
-                        </span>
-                        <span class="info-value">
-                          <template v-if="jobData.applicationType === 'internal'">
-                            Interna
-                          </template>
-                          <template v-else-if="jobData.applicationType === 'external'">
-                            Externa
-                          </template>
-                          <template v-else>
-                            Ambas
-                          </template>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                <!-- Empresa destacada -->
+                <div class="company-name-section">
+                  <va-icon name="business" class="company-icon" />
+                  <span class="company-name-text">
+                    {{ jobData.companyAnonymous ? 'Empresa Confidencial' : jobData.companyName }}
+                  </span>
                 </div>
 
-                <!-- Email (si existe, spanning completo) -->
-                <div v-if="jobData.email" class="info-item email-item">
-                  <div class="info-content">
-                    <span class="info-label">
-                      <va-icon name="email" size="small" />
-                      Email:
-                    </span>
-                    <span class="info-value">
-                      <a :href="`mailto:${jobData.email}`" style="color: inherit; text-decoration: none;">{{ jobData.email }}</a>
-                    </span>
+                <!-- Grid de Información Compacto: 3 columnas -->
+                <div class="info-grid-compact">
+                  <div class="info-item-compact">
+                    <va-icon name="location_on" size="small" class="info-icon" />
+                    <div class="info-text">
+                      <span class="info-label-compact">Ubicación</span>
+                      <span class="info-value-compact">
+                        {{ jobData.municipality ? `${jobData.city}, ${jobData.municipality}` : jobData.city }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="info-item-compact">
+                    <va-icon name="work_history" size="small" class="info-icon" />
+                    <div class="info-text">
+                      <span class="info-label-compact">Contrato</span>
+                      <span class="info-value-compact">{{ jobData.contractType }}</span>
+                    </div>
+                  </div>
+
+                  <div class="info-item-compact">
+                    <va-icon name="laptop" size="small" class="info-icon" />
+                    <div class="info-text">
+                      <span class="info-label-compact">Modalidad</span>
+                      <span class="info-value-compact">{{ getModalityValue(jobData.modality) }}</span>
+                    </div>
+                  </div>
+
+                  <div class="info-item-compact">
+                    <va-icon name="category" size="small" class="info-icon" />
+                    <div class="info-text">
+                      <span class="info-label-compact">Categoría</span>
+                      <span class="info-value-compact">{{ jobData.jobCategory }}</span>
+                    </div>
+                  </div>
+
+                  <div class="info-item-compact">
+                    <va-icon name="calendar_today" size="small" class="info-icon" />
+                    <div class="info-text">
+                      <span class="info-label-compact">Vence</span>
+                      <span class="info-value-compact" :class="{ 'expired-text': isExpired }">
+                        {{ isExpired ? 'CERRADA' : formatDate(jobData.expiryDate) }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="info-item-compact">
+                    <va-icon name="how_to_reg" size="small" class="info-icon" />
+                    <div class="info-text">
+                      <span class="info-label-compact">Aplicación</span>
+                      <span class="info-value-compact">
+                        <template v-if="jobData.applicationType === 'internal'">
+                          Interna
+                        </template>
+                        <template v-else-if="jobData.applicationType === 'external'">
+                          Externa
+                        </template>
+                        <template v-else>
+                          Ambas
+                        </template>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div v-if="jobData.vacancies" class="info-item-compact">
+                    <va-icon name="groups" size="small" class="info-icon" />
+                    <div class="info-text">
+                      <span class="info-label-compact">Vacantes</span>
+                      <span class="info-value-compact">
+                        {{ jobData.vacancies }} {{ jobData.vacancies === 1 ? 'vacante' : 'vacantes' }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div v-if="jobData.publishedDate" class="info-item-compact">
+                    <va-icon name="schedule" size="small" class="info-icon" />
+                    <div class="info-text">
+                      <span class="info-label-compact">Publicado</span>
+                      <span class="info-value-compact">
+                        {{ formatPublishedDate(jobData.publishedDate) }}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <!-- COLUMNA 3: METADATA -->
-              <div class="metadata-column">
+              <!-- COLUMNA 3: METADATA - OCULTA (ya integrada en grid) -->
+              <div class="metadata-column" style="display: none;">
                 <div class="metadata-container">
                   <div v-if="jobData.vacancies" class="meta-item">
                     <va-icon name="person" size="small" />
@@ -1966,27 +1951,110 @@ watch(() => props.formData.coordinates, (newCoords) => {
 .job-title-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .job-title-label {
-  font-size: 2.2rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: #7C3AED;
-  letter-spacing: -0.3px;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
   margin: 0;
 }
 
 .job-title {
-  font-size: 2.2rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  color: #7C3AED;
+  color: #1F2937;
   margin: 0;
-  line-height: 1.2;
-  letter-spacing: -0.3px;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
 }
 
-/* GRID DE INFORMACIÓN - Layout optimizado */
+/* Empresa destacada */
+.company-name-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.company-icon {
+  color: #7C3AED;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.company-name-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  line-height: 1.4;
+}
+
+/* GRID DE INFORMACIÓN COMPACTO - Layout 3 columnas */
+.info-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem 1rem;
+}
+
+.info-item-compact {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background: #F9FAFB;
+  transition: all 0.2s ease;
+}
+
+.info-item-compact:hover {
+  background: #F3F4F6;
+  transform: translateY(-1px);
+}
+
+.info-icon {
+  color: #7C3AED;
+  font-size: 0.95rem;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
+.info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.info-label-compact {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.info-value-compact {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1F2937;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.info-value-compact.expired-text {
+  color: #DC2626;
+  font-weight: 700;
+}
+
+/* GRID DE INFORMACIÓN ANTIGUO - Mantener para compatibilidad */
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3166,11 +3234,37 @@ watch(() => props.formData.coordinates, (newCoords) => {
     font-weight: 700;
     line-height: 1.25;
     margin: 0.35rem 0 0 0;
-    color: #7C3AED;
+    color: #1F2937;
   }
 
   .info-column {
     gap: 0.4rem;
+  }
+
+  .company-name-section {
+    padding: 0.4rem 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .company-name-text {
+    font-size: 0.9rem;
+  }
+
+  .info-grid-compact {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem 0.75rem;
+  }
+
+  .info-item-compact {
+    padding: 0.4rem;
+  }
+
+  .info-label-compact {
+    font-size: 0.6rem;
+  }
+
+  .info-value-compact {
+    font-size: 0.8rem;
   }
 
   .info-grid {
