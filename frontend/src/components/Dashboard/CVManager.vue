@@ -46,10 +46,16 @@
           class="cv-card"
         >
           <div class="cv-header">
-            <div class="cv-type-badge">
+            <div class="cv-badges">
               <va-badge
-                :text="cv.cv_type === 'created' ? 'Creado' : 'Subido'"
-                :color="cv.cv_type === 'created' ? 'success' : 'info'"
+                v-if="isNewCV(cv)"
+                text="NUEVO"
+                color="#7C3AED"
+              />
+              <va-badge
+                v-else-if="isRecentlyUpdated(cv)"
+                text="ACTUALIZADO"
+                color="#10B981"
               />
             </div>
           </div>
@@ -62,7 +68,39 @@
                 :color="cv.cv_type === 'created' ? '#7C3AED' : '#3B82F6'"
               />
             </div>
-            <h3>{{ cv.name }}</h3>
+
+            <!-- Editable CV Name -->
+            <div class="cv-name-wrapper">
+              <h3
+                v-if="editingCVId !== cv.id"
+                class="cv-name"
+                @click="startEditingName(cv)"
+                :title="'Click para editar nombre'"
+              >
+                {{ cv.name }}
+                <va-icon name="edit" size="14px" class="edit-icon" />
+              </h3>
+              <div v-else class="cv-name-edit">
+                <input
+                  v-model="editingName"
+                  @blur="saveName(cv)"
+                  @keyup.enter="saveName(cv)"
+                  @keyup.esc="cancelEdit"
+                  class="cv-name-input"
+                  ref="nameInput"
+                  :placeholder="cv.name"
+                  autofocus
+                />
+                <div class="edit-actions">
+                  <button @click="saveName(cv)" class="save-name-btn" title="Guardar">
+                    <va-icon name="check" size="14px" />
+                  </button>
+                  <button @click="cancelEdit" class="cancel-name-btn" title="Cancelar">
+                    <va-icon name="close" size="14px" />
+                  </button>
+                </div>
+              </div>
+            </div>
 
             <div class="cv-meta">
               <div class="meta-item">
@@ -131,6 +169,8 @@ const maxCVs = 2
 // State
 const cvs = ref([])
 const isLoading = ref(false)
+const editingCVId = ref(null)
+const editingName = ref('')
 
 // Methods
 const loadCVs = async () => {
@@ -235,6 +275,91 @@ const previewCV = (cv) => {
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('es-BO', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+// Badge helper functions
+const isNewCV = (cv) => {
+  const createdDate = new Date(cv.created_at)
+  const now = new Date()
+  const hoursDiff = (now - createdDate) / (1000 * 60 * 60)
+
+  // Mostrar badge "NUEVO" si fue creado hace menos de 48 horas
+  return hoursDiff < 48
+}
+
+const isRecentlyUpdated = (cv) => {
+  // Solo mostrar si la fecha de actualización es diferente a la de creación
+  if (cv.updated_at === cv.created_at) return false
+
+  const updatedDate = new Date(cv.updated_at)
+  const now = new Date()
+  const hoursDiff = (now - updatedDate) / (1000 * 60 * 60)
+
+  // Mostrar badge "ACTUALIZADO" si fue modificado hace menos de 24 horas
+  return hoursDiff < 24
+}
+
+// Name editing functions
+const startEditingName = (cv) => {
+  editingCVId.value = cv.id
+  editingName.value = cv.name
+}
+
+const cancelEdit = () => {
+  editingCVId.value = null
+  editingName.value = ''
+}
+
+const saveName = async (cv) => {
+  const newName = editingName.value.trim()
+
+  if (!newName) {
+    initToast({
+      message: 'El nombre no puede estar vacío',
+      color: 'warning',
+      duration: 3000
+    })
+    return
+  }
+
+  if (newName === cv.name) {
+    cancelEdit()
+    return
+  }
+
+  try {
+    const response = await fetch(`http://localhost:8000/api/cvs/${cv.id}/update/`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: newName
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error('Error al actualizar nombre del CV')
+    }
+
+    initToast({
+      message: 'Nombre actualizado exitosamente',
+      color: 'success',
+      duration: 3000
+    })
+
+    // Actualizar el nombre localmente
+    cv.name = newName
+    cancelEdit()
+  } catch (error) {
+    console.error('Error updating CV name:', error)
+    initToast({
+      message: 'Error al actualizar nombre del CV',
+      color: 'danger',
+      duration: 3000
+    })
+  }
 }
 
 // Lifecycle
@@ -384,12 +509,14 @@ onMounted(() => {
 
 .cv-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: flex-start;
+  min-height: 32px;
 }
 
-.cv-type-badge {
-  flex: 1;
+.cv-badges {
+  display: flex;
+  gap: 8px;
 }
 
 .cv-body {
@@ -401,12 +528,110 @@ onMounted(() => {
   padding: 12px 0;
 }
 
-.cv-body h3 {
+.cv-name-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cv-name {
   font-size: 20px;
   font-weight: 700;
   color: #1f2937;
   margin: 0;
   line-height: 1.3;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.cv-name:hover {
+  background: #f3f4f6;
+  color: #7c3aed;
+}
+
+.cv-name .edit-icon {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.cv-name:hover .edit-icon {
+  opacity: 0.6;
+}
+
+.cv-name-edit {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.cv-name-input {
+  width: 100%;
+  max-width: 300px;
+  padding: 8px 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  border: 2px solid #7c3aed;
+  border-radius: 8px;
+  outline: none;
+  text-align: center;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  transition: all 0.2s ease;
+}
+
+.cv-name-input:focus {
+  border-color: #6d28d9;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.save-name-btn,
+.cancel-name-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-name-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.save-name-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+.cancel-name-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.cancel-name-btn:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
 }
 
 .cv-meta {
