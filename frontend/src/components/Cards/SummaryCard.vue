@@ -228,6 +228,10 @@
             <span class="value">{{ jobData.contractType }}</span>
           </div>
           <div class="info-row">
+            <span class="label">Modalidad:</span>
+            <span class="value">{{ jobData.modality || 'Presencial' }}</span>
+          </div>
+          <div class="info-row">
             <span class="label">Fecha de Vencimiento:</span>
             <span class="value">{{ jobData.expiryDate }}</span>
           </div>
@@ -435,6 +439,16 @@
                           Contrato:
                         </span>
                         <span class="info-value">{{ jobData.contractType }}</span>
+                      </div>
+                    </div>
+
+                    <div class="info-item">
+                      <div class="info-content">
+                        <span class="info-label">
+                          <va-icon name="laptop" size="small" />
+                          Modalidad:
+                        </span>
+                        <span class="info-value">{{ jobData.modality || 'Presencial' }}</span>
                       </div>
                     </div>
 

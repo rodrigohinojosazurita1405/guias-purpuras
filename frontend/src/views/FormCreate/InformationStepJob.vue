@@ -78,8 +78,8 @@
             </div>
           </div>
 
-          <!-- CATEGORÍA Y TIPO (GRID 2 COL) -->
-          <div class="form-grid">
+          <!-- CATEGORÍA, TIPO Y MODALIDAD (GRID 3 COL) -->
+          <div class="form-grid grid-3col">
             <div class="form-row compact">
               <label class="form-label">Categoría *</label>
               <va-select
@@ -106,6 +106,21 @@
               >
                 <template #prepend>
                   <va-icon name="schedule" color="purple" />
+                </template>
+              </va-select>
+            </div>
+
+            <div class="form-row compact">
+              <label class="form-label">Modalidad *</label>
+              <va-select
+                v-model="localFormData.modality"
+                :options="modalityOptions"
+                placeholder="Selecciona"
+                :rules="[(v) => !!v || 'La modalidad es requerida']"
+                size="small"
+              >
+                <template #prepend>
+                  <va-icon name="laptop" color="purple" />
                 </template>
               </va-select>
             </div>
@@ -366,6 +381,7 @@ const initializeFormData = (modelValue) => ({
   city: modelValue.city || '',
   municipality: modelValue.municipality || '',
   contractType: modelValue.contractType || '',
+  modality: modelValue.modality || 'presencial',
   expiryDate: modelValue.expiryDate || null,
   salaryType: modelValue.salaryType || 'range',
   salaryMin: modelValue.salaryMin || null,
@@ -382,6 +398,13 @@ const localFormData = ref(initializeFormData(props.modelValue))
 const categoryOptions = ref([])
 const contractTypeOptions = ref([])
 const cityOptions = ref([])
+
+// Opciones de modalidad (estáticas)
+const modalityOptions = [
+  { text: 'Presencial', value: 'presencial' },
+  { text: 'Remoto', value: 'remoto' },
+  { text: 'Híbrido', value: 'hibrido' }
+]
 
 const loadingCategories = ref(true)
 const loadingContractTypes = ref(true)
