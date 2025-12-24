@@ -129,7 +129,7 @@
             </div>
 
             <div class="form-row compact">
-              <label class="form-label">Fecha Vencimiento *</label>
+              <label class="form-label">Fecha límite postulación *</label>
               <va-date-input
                 v-model="localFormData.expiryDate"
                 placeholder="Selecciona"
@@ -160,12 +160,12 @@
         <!-- SEPARADOR VISUAL -->
         <div class="field-separator"></div>
 
-        <!-- GRUPO 2: CKEDITOR WYSIWYG -->
+        <!-- GRUPO 2: TINYMCE WYSIWYG -->
         <div class="field-group">
           <div class="form-row">
-            <label class="form-label">Detalles del Empleo *</label>
-            <div class="editor-wrapper-ckeditor">
-              <div ref="editorContainer" class="ckeditor-container"></div>
+            <label class="form-label">Detalles de la oferta Laboral *</label>
+            <div class="editor-wrapper">
+              <div ref="editorContainer" class="tinymce-container"></div>
               <div class="editor-char-count">
                 {{ charCount }} / 2000 caracteres
                 <span v-if="charCount < 50" class="char-warning"> - Mínimo 50 caracteres</span>
@@ -391,215 +391,68 @@ const loadingCities = ref(true)
 const showErrorModal = ref(false)
 const validationErrors = ref([])
 
-// ========== INICIALIZAR CKEDITOR 5 ==========
-const initCKEditor = () => {
-  // Cargar CKEditor desde CDN - VERSIÓN SUPERBUILD con todos los plugins
-  if (!window.ClassicEditor) {
-    // Cargar CSS de CKEditor
+// ========== INICIALIZAR QUILL EDITOR ==========
+const initQuill = () => {
+  // Cargar Quill desde CDN - 100% GRATUITO
+  if (!window.Quill) {
+    // Cargar CSS
     const link = document.createElement('link')
-    link.href = 'https://cdn.ckeditor.com/ckeditor5/43.3.1/ckeditor5.css'
+    link.href = 'https://cdn.quilljs.com/1.3.7/quill.snow.css'
     link.rel = 'stylesheet'
     document.head.appendChild(link)
-    
-    // Cargar JS de CKEditor
+
+    // Cargar JS
     const script = document.createElement('script')
-    script.src = 'https://cdn.ckeditor.com/ckeditor5/43.3.1/ckeditor5.umd.js'
-    script.type = 'module'
+    script.src = 'https://cdn.quilljs.com/1.3.7/quill.min.js'
     script.onload = () => {
-      // Esperar a que se cargue completamente
-      setTimeout(createEditor, 100)
+      setTimeout(createQuill, 100)
     }
     document.head.appendChild(script)
   } else {
-    createEditor()
+    createQuill()
   }
 }
 
-const createEditor = async () => {
+const createQuill = () => {
   if (!editorContainer.value || editorInstance) return
 
-  try {
-    const {
-      ClassicEditor,
-      Essentials,
-      Bold,
-      Italic,
-      Underline,
-      Strikethrough,
-      Paragraph,
-      Heading,
-      List,
-      Link,
-      BlockQuote,
-      Indent,
-      IndentBlock,
-      Alignment,
-      Font,
-      Undo
-    } = window.CKEDITOR
+  const toolbarOptions = [
+    [{ 'header': [false, 2, 3] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'indent': '-1'}, { 'indent': '+1' }],
+    ['blockquote', 'link'],
+    ['clean']
+  ]
 
-    const editor = await ClassicEditor.create(editorContainer.value, {
-      plugins: [
-        Essentials,
-        Bold,
-        Italic,
-        Underline,
-        Strikethrough,
-        Paragraph,
-        Heading,
-        List,
-        Link,
-        BlockQuote,
-        Indent,
-        IndentBlock,
-        Alignment,
-        Font,
-        Undo
-      ],
-      toolbar: {
-        items: [
-          'heading',
-          '|',
-          'fontSize',
-          'fontFamily',
-          'fontColor',
-          'fontBackgroundColor',
-          '|',
-          'bold',
-          'italic',
-          'underline',
-          'strikethrough',
-          '|',
-          'alignment',
-          '|',
-          'bulletedList',
-          'numberedList',
-          '|',
-          'outdent',
-          'indent',
-          '|',
-          'link',
-          'blockQuote',
-          '|',
-          'undo',
-          'redo'
-        ],
-        shouldNotGroupWhenFull: true
-      },
-      heading: {
-        options: [
-          { model: 'paragraph', title: 'Párrafo', class: 'ck-heading_paragraph' },
-          { model: 'heading1', view: 'h1', title: 'Título 1', class: 'ck-heading_heading1' },
-          { model: 'heading2', view: 'h2', title: 'Título 2', class: 'ck-heading_heading2' },
-          { model: 'heading3', view: 'h3', title: 'Título 3', class: 'ck-heading_heading3' }
-        ]
-      },
-      fontSize: {
-        options: [
-          'tiny',
-          'small',
-          'default',
-          'big',
-          'huge'
-        ]
-      },
-      fontFamily: {
-        options: [
-          'default',
-          'Arial, Helvetica, sans-serif',
-          'Georgia, serif',
-          'Courier New, Courier, monospace',
-          'Times New Roman, Times, serif'
-        ]
-      },
-      link: {
-        defaultProtocol: 'https://',
-        decorators: {
-          openInNewTab: {
-            mode: 'manual',
-            label: 'Abrir en nueva pestaña',
-            attributes: {
-              target: '_blank',
-              rel: 'noopener noreferrer'
-            }
-          }
-        }
-      },
-      placeholder: 'Cuéntale al candidato sobre el puesto: Descripción del trabajo, Responsabilidades principales, Requisitos y habilidades necesarias, Experiencia requerida, Beneficios y oportunidades'
-    })
-
-    editorInstance = editor
-
-    // Establecer contenido inicial
-    if (localFormData.value.jobDetailsHtml) {
-      editor.setData(localFormData.value.jobDetailsHtml)
+  editorInstance = new window.Quill(editorContainer.value, {
+    theme: 'snow',
+    placeholder: 'Cuéntale al candidato sobre el puesto: Descripción del trabajo, Responsabilidades principales, Requisitos y habilidades necesarias, Experiencia requerida, Beneficios y oportunidades',
+    modules: {
+      toolbar: toolbarOptions
     }
+  })
 
-    // Actualizar contador y sincronizar cambios
-    editor.model.document.on('change:data', () => {
-      const data = editor.getData()
-      const textContent = getTextFromHtml(data)
-      charCount.value = textContent.length
-      localFormData.value.jobDetailsHtml = data
-    })
-
-    // Calcular contador inicial
-    const initialText = getTextFromHtml(editor.getData())
-    charCount.value = initialText.length
-
-    console.log('✅ CKEditor 5 Superbuild inicializado correctamente')
-  } catch (error) {
-    console.error('Error al inicializar CKEditor:', error)
-    // Fallback al método anterior si falla
-    initCKEditorClassic()
+  // Establecer contenido inicial
+  if (localFormData.value.jobDetailsHtml) {
+    editorInstance.root.innerHTML = localFormData.value.jobDetailsHtml
   }
-}
 
-// Fallback al método clásico
-const initCKEditorClassic = () => {
-  if (!editorContainer.value || editorInstance) return
+  // Sincronizar cambios
+  editorInstance.on('text-change', () => {
+    const html = editorInstance.root.innerHTML
+    const textContent = getTextFromHtml(html)
+    charCount.value = textContent.length
+    localFormData.value.jobDetailsHtml = html
+  })
 
-  window.ClassicEditor
-    .create(editorContainer.value, {
-      placeholder: 'Cuéntale al candidato sobre el puesto: Descripción del trabajo, Responsabilidades principales, Requisitos y habilidades necesarias, Experiencia requerida, Beneficios y oportunidades',
-      toolbar: [
-        'heading', '|',
-        'bold', 'italic', 'underline', '|',
-        'bulletedList', 'numberedList', '|',
-        'outdent', 'indent', '|',
-        'link', 'blockQuote', '|',
-        'undo', 'redo'
-      ],
-      heading: {
-        options: [
-          { model: 'paragraph', title: 'Párrafo', class: 'ck-heading_paragraph' },
-          { model: 'heading2', view: 'h2', title: 'Título 2', class: 'ck-heading_heading2' },
-          { model: 'heading3', view: 'h3', title: 'Título 3', class: 'ck-heading_heading3' }
-        ]
-      }
-    })
-    .then(editor => {
-      editorInstance = editor
+  // Calcular contador inicial
+  setTimeout(() => {
+    const initialText = getTextFromHtml(editorInstance.root.innerHTML)
+    charCount.value = initialText.length
+  }, 100)
 
-      if (localFormData.value.jobDetailsHtml) {
-        editor.setData(localFormData.value.jobDetailsHtml)
-      }
-
-      editor.model.document.on('change:data', () => {
-        const data = editor.getData()
-        const textContent = getTextFromHtml(data)
-        charCount.value = textContent.length
-        localFormData.value.jobDetailsHtml = data
-      })
-
-      const initialText = getTextFromHtml(editor.getData())
-      charCount.value = initialText.length
-
-      console.log('✅ CKEditor 5 Classic (fallback) inicializado')
-    })
-    .catch(error => {
-      console.error('Error al inicializar CKEditor Classic:', error)
-    })
+  console.log('✅ Quill Editor inicializado correctamente')
 }
 
 // Función para extraer texto plano del HTML
@@ -627,8 +480,8 @@ watch(() => [props.modelValue.description, props.modelValue.title, props.modelVa
     const [description] = newVals
     if (description && description !== localFormData.value.jobDetailsHtml) {
       localFormData.value = initializeFormData(props.modelValue)
-      if (editorInstance) {
-        editorInstance.setData(description)
+      if (editorInstance && editorInstance.root) {
+        editorInstance.root.innerHTML = description
       }
     }
   },
@@ -720,20 +573,15 @@ onMounted(() => {
     loadCities()
   ])
   
-  // Inicializar CKEditor
-  initCKEditor()
+  // Inicializar Quill
+  initQuill()
 })
 
 onBeforeUnmount(() => {
-  // Destruir instancia de CKEditor
+  // Destruir instancia de Quill
   if (editorInstance) {
-    editorInstance.destroy()
-      .then(() => {
-        console.log('✅ CKEditor destruido correctamente')
-      })
-      .catch(error => {
-        console.error('Error al destruir CKEditor:', error)
-      })
+    editorInstance = null
+    console.log('✅ Quill destruido correctamente')
   }
 })
 
@@ -967,129 +815,62 @@ defineExpose({
   font-size: 0.9rem;
 }
 
-/* ========== CKEDITOR STYLES ========== */
-.editor-wrapper-ckeditor {
-  border: 2px solid #E2E8F0;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.3s;
-  background: white;
-  position: relative;
-  z-index: 1; /* Mantener bajo para no superponer navbar */
-}
-
-.editor-wrapper-ckeditor:focus-within {
-  border-color: #7C3AED;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-}
-
-.ckeditor-container {
-  min-height: 300px;
+/* ========== TINYMCE STYLES ========== */
+.editor-wrapper {
+  width: 100%;
   position: relative;
   z-index: 1;
 }
 
-/* CKEditor 5 Toolbar Customization */
-:deep(.ck-toolbar) {
+.tinymce-container {
+  width: 100%;
+  min-height: 300px;
+}
+
+/* Quill Editor - Fondo blanco */
+:deep(.ql-container) {
+  background: white !important;
+}
+
+:deep(.ql-editor) {
+  background: white !important;
+  min-height: 300px;
+}
+
+/* TinyMCE Toolbar - Personalización */
+:deep(.tox .tox-toolbar) {
   background: linear-gradient(135deg, #F9F5FF 0%, #F5EFFF 100%) !important;
   border-bottom: 2px solid #E9D5FF !important;
-  padding: 0.75rem !important;
-  border-top-left-radius: 6px !important;
-  border-top-right-radius: 6px !important;
 }
 
-:deep(.ck-button) {
+:deep(.tox .tox-tbtn) {
   border-radius: 6px !important;
-  transition: all 0.2s !important;
 }
 
-:deep(.ck-button:hover) {
+:deep(.tox .tox-tbtn:hover) {
   background: #EDE9FE !important;
 }
 
-:deep(.ck-button.ck-on) {
+:deep(.tox .tox-tbtn--enabled) {
   background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%) !important;
-  color: white !important;
 }
 
-:deep(.ck-toolbar__separator) {
-  background: #E9D5FF !important;
+:deep(.tox .tox-tbtn--enabled svg) {
+  fill: white !important;
 }
 
-/* CKEditor Content Area */
-:deep(.ck-editor__editable) {
-  min-height: 300px !important;
-  max-height: 500px !important;
-  padding: 1.5rem !important;
-  font-size: 15px !important;
-  line-height: 1.6 !important;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-  color: #334155 !important;
-  border: none !important;
+:deep(.tox-tinymce) {
+  border: 2px solid #E2E8F0 !important;
+  border-radius: 8px !important;
 }
 
-/* Placeholder visible y grande */
-:deep(.ck-placeholder)::before {
-  color: #9CA3AF !important;
-  opacity: 0.8 !important;
-  font-size: 15px !important;
+:deep(.tox-tinymce:focus-within) {
+  border-color: #7C3AED !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1) !important;
 }
 
-:deep(.ck-editor__editable:focus) {
-  box-shadow: none !important;
-  border: none !important;
-}
-
-:deep(.ck-editor__editable p) {
-  margin-bottom: 0.75rem;
-}
-
-:deep(.ck-editor__editable strong) {
-  font-weight: 700;
-  color: #1E293B;
-}
-
-:deep(.ck-editor__editable em) {
-  font-style: italic;
-}
-
-:deep(.ck-editor__editable ul),
-:deep(.ck-editor__editable ol) {
-  margin-left: 1.5rem;
-  margin-bottom: 0.75rem;
-}
-
-:deep(.ck-editor__editable li) {
-  margin-bottom: 0.5rem;
-}
-
-:deep(.ck-editor__editable blockquote) {
-  border-left: 4px solid #7C3AED;
-  padding-left: 1rem;
-  margin: 1rem 0;
-  font-style: italic;
-  color: #64748B;
-}
-
-:deep(.ck-editor__editable h1) {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  color: #1E293B;
-}
-
-:deep(.ck-editor__editable h2) {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  color: #1E293B;
-}
-
-:deep(.ck-editor__editable h3) {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #334155;
+:deep(.tox .tox-statusbar) {
+  display: none !important;
 }
 
 .editor-char-count {

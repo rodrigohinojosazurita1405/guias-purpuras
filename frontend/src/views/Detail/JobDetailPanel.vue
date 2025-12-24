@@ -110,6 +110,20 @@
           <span class="meta-item" v-if="listing.modality">
             <va-icon name="laptop" size="small" />
             {{ listing.modality }}
+          </span>
+          <span class="meta-item" v-if="listing.jobCategory">
+            <va-icon name="category" size="small" />
+            {{ listing.jobCategory }}
+          </span>
+          <span class="meta-item" v-if="listing.vacancies">
+            <va-icon name="groups" size="small" />
+            {{ listing.vacancies }} {{ listing.vacancies === 1 ? 'vacante' : 'vacantes' }}
+          </span>
+          <span class="meta-item" v-if="listing.expiryDate">
+            <va-icon name="event" size="small" />
+            Vence: {{ formatExpiryDate(listing.expiryDate) }}
+          </span>
+          <span class="meta-item">
             <span class="job-status-badge" :class="jobStatusClass">
               {{ jobStatusText }}
             </span>
@@ -131,17 +145,9 @@
     </section>
 
     <!-- Información adicional -->
-    <section class="detail-section" v-if="hasAdditionalInfo">
-      <h2 class="section-title">Detalles del empleo</h2>
+    <section class="detail-section" v-if="listing.schedule || listing.experienceLevel">
+      <h2 class="section-title">Detalles adicionales</h2>
       <div class="info-list">
-        <div class="info-row" v-if="listing.jobCategory">
-          <span class="info-label">Categoría:</span>
-          <span class="info-value">{{ listing.jobCategory }}</span>
-        </div>
-        <div class="info-row" v-if="listing.vacancies">
-          <span class="info-label">Vacantes:</span>
-          <span class="info-value">{{ listing.vacancies }}</span>
-        </div>
         <div class="info-row" v-if="listing.schedule">
           <span class="info-label">Horario:</span>
           <span class="info-value">{{ listing.schedule }}</span>
@@ -149,10 +155,6 @@
         <div class="info-row" v-if="listing.experienceLevel">
           <span class="info-label">Experiencia:</span>
           <span class="info-value">{{ listing.experienceLevel }}</span>
-        </div>
-        <div class="info-row" v-if="listing.expiryDate">
-          <span class="info-label">Vence:</span>
-          <span class="info-value">{{ formatExpiryDate(listing.expiryDate) }}</span>
         </div>
       </div>
     </section>
@@ -170,7 +172,7 @@
           <h2 class="section-title">Cómo postular</h2>
 
           <template v-if="listing.applicationType === 'external'">
-            <p class="application-note">Esta empresa recibe postulaciones en su propio sitio web.</p>
+            <p class="application-note">Esta empresa recibe postulaciones en su propio enlace externo.</p>
             <a :href="listing.externalApplicationUrl" target="_blank" class="btn-external">
               <va-icon name="open_in_new" size="small" />
               Ir al sitio de la empresa
@@ -344,16 +346,6 @@ export default {
       if (!this.listing || !this.listing.benefits) return []
       if (Array.isArray(this.listing.benefits)) return this.listing.benefits
       return this.listing.benefits.split('\n').filter(b => b.trim())
-    },
-
-    hasAdditionalInfo() {
-      return this.listing && (
-        this.listing.jobCategory ||
-        this.listing.vacancies ||
-        this.listing.schedule ||
-        this.listing.experienceLevel ||
-        this.listing.expiryDate
-      )
     },
 
     jobStatusText() {
@@ -1130,15 +1122,23 @@ export default {
   gap: 1rem;
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 2px solid #F3F4F6;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.5rem;
   font-size: 0.9375rem;
-  color: #4B5563;
+  color: #1F2937;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.meta-item va-icon,
+.meta-item .va-icon {
+  color: #7C3AED;
+  font-size: 1.125rem;
 }
 
 /* Badge de estado del trabajo */

@@ -314,33 +314,30 @@ class JobAdmin(admin.ModelAdmin):
     proof_of_payment_preview.short_description = 'Vista Previa'
 
     def description_preview(self, obj):
-        """Muestra un preview limpio de la descripción sin HTML"""
+        """Muestra un preview con HTML renderizado de la descripción"""
         if not obj.description:
             return format_html(
                 '<div style="background-color: #FEE2E2; padding: 12px; border-radius: 6px; '
                 'text-align: center; color: #991B1B;"><strong>Sin descripción</strong></div>'
             )
 
-        # Remover todas las etiquetas HTML
+        # Extraer texto plano para contar caracteres
         clean_text = strip_tags(obj.description)
-
-        # Remover espacios en blanco excesivos
         clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+        char_count = len(clean_text)
 
-        # Mostrar texto completo sin límite
-        preview_text = clean_text
-
+        # Renderizar HTML con estilos seguros
         return format_html(
             '<div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; '
-            'border-left: 4px solid #7C3AED; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto; '
-            'max-height: 400px; overflow-y: auto;">'
-            '<p style="margin: 0; color: #374151; line-height: 1.6; font-size: 14px; white-space: pre-wrap;">{}</p>'
+            'border-left: 4px solid #7C3AED; max-height: 400px; overflow-y: auto;">'
+            '<div style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto; '
+            'color: #374151; line-height: 1.6; font-size: 14px;">{}</div>'
             '<p style="margin: 12px 0 0 0; padding-top: 12px; border-top: 1px solid #E5E7EB; '
             'color: #9CA3AF; font-size: 12px; font-style: italic;">'
             'Total de caracteres: {}</p>'
             '</div>',
-            preview_text,
-            len(clean_text)
+            mark_safe(obj.description),
+            char_count
         )
     description_preview.short_description = 'Vista Previa de Descripción (Sin HTML)'
 

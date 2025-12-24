@@ -58,10 +58,36 @@
     <!-- Jobs List -->
     <div v-else-if="filteredJobs.length > 0" class="jobs-list">
       <div v-for="(job, index) in filteredJobs" :key="job.id">
-        <!-- Separador entre activos y expirados -->
+        <!-- Separador: Anuncios Recientes (inicio) -->
+        <div
+          v-if="index === 0 && !isJobExpired(job) && job.paymentVerified"
+          class="section-divider recent"
+        >
+          <div class="divider-line"></div>
+          <div class="divider-label">
+            <va-icon name="trending_up" size="small" color="#10b981" />
+            <span>Anuncios Recientes</span>
+          </div>
+          <div class="divider-line"></div>
+        </div>
+
+        <!-- Separador: Pendientes de Aprobación -->
+        <div
+          v-if="index > 0 && filteredJobs[index - 1].paymentVerified && !job.paymentVerified && !isJobExpired(job)"
+          class="section-divider pending"
+        >
+          <div class="divider-line"></div>
+          <div class="divider-label">
+            <va-icon name="pending" size="small" color="#f59e0b" />
+            <span>Pendientes de Aprobación</span>
+          </div>
+          <div class="divider-line"></div>
+        </div>
+
+        <!-- Separador: Anuncios Expirados -->
         <div
           v-if="index > 0 && !isJobExpired(filteredJobs[index - 1]) && isJobExpired(job)"
-          class="expired-jobs-divider"
+          class="section-divider expired"
         >
           <div class="divider-line"></div>
           <div class="divider-label">
@@ -402,37 +428,49 @@ const filteredJobs = computed(() => {
     )
   }
 
-  // Ordenar de forma inteligente
+  // Ordenar de forma inteligente con 3 grupos
   filtered.sort((a, b) => {
     const aExpired = isJobExpired(a)
     const bExpired = isJobExpired(b)
+    const aVerified = a.paymentVerified
+    const bVerified = b.paymentVerified
     const aDaysRemaining = calculateDaysRemaining(a.expiryDate)
     const bDaysRemaining = calculateDaysRemaining(b.expiryDate)
 
-    // 1. PRIORIDAD MÁXIMA: Separar activos de expirados (activos primero)
-    if (aExpired !== bExpired) {
-      return aExpired ? 1 : -1 // Expirados al final
+    // 1. PRIORIDAD MÁXIMA: Separar en 3 grupos
+    // Grupo 1: Anuncios Recientes (verificados y no expirados)
+    // Grupo 2: Pendientes de Aprobación (no verificados y no expirados)
+    // Grupo 3: Anuncios Expirados
+
+    const aGroup = aExpired ? 3 : (aVerified ? 1 : 2)
+    const bGroup = bExpired ? 3 : (bVerified ? 1 : 2)
+
+    if (aGroup !== bGroup) {
+      return aGroup - bGroup // Ordenar por grupo
     }
 
-    // 2. Si AMBOS están expirados, ordenar por fecha de expiración (más recientes primero)
+    // 2. Dentro del mismo grupo, aplicar orden específico
+
+    // Si AMBOS están expirados (Grupo 3)
     if (aExpired && bExpired) {
       return new Date(b.expiryDate) - new Date(a.expiryDate)
     }
 
-    // 3. Si AMBOS están activos, aplicar el orden seleccionado por el usuario
+    // Si AMBOS están en Grupo 1 o 2 (activos), aplicar el orden seleccionado
     if (sortBy.value === 'urgency') {
-      // Ordenar por urgencia (días restantes - MENOR a MAYOR)
+      // Ordenar por días restantes (menor a mayor = más urgente primero)
       return aDaysRemaining - bDaysRemaining
     } else if (sortBy.value === 'views') {
+      // Ordenar por vistas (mayor a menor)
       return b.views - a.views
     } else if (sortBy.value === 'applications') {
+      // Ordenar por aplicaciones (mayor a menor)
       return b.applications - a.applications
+    } else if (sortBy.value === 'recent') {
+      // Ordenar por fecha de creación (más recientes primero)
+      return new Date(b.createdAt) - new Date(a.createdAt)
     } else {
-      // Por defecto: ordenar por urgencia primero, luego por fecha de creación
-      // Esto asegura que los anuncios próximos a expirar siempre estén primero
-      if (aDaysRemaining !== bDaysRemaining) {
-        return aDaysRemaining - bDaysRemaining
-      }
+      // Fallback: ordenar por fecha de creación
       return new Date(b.createdAt) - new Date(a.createdAt)
     }
   })
@@ -554,7 +592,9 @@ const formatExactDateTime = (dateString) => {
 
 const formatExpiryDate = (dateString) => {
   if (!dateString) return 'Sin fecha'
-  const date = new Date(dateString)
+  // Parsear como fecha local para evitar problemas de zona horaria
+  const [year, month, day] = dateString.split('-')
+  const date = new Date(year, month - 1, day)
   return date.toLocaleDateString('es-ES', {
     day: '2-digit',
     month: '2-digit',
@@ -564,7 +604,9 @@ const formatExpiryDate = (dateString) => {
 
 const calculateDaysRemaining = (expiryDateString) => {
   if (!expiryDateString) return -1
-  const expiryDate = new Date(expiryDateString)
+  // Parsear como fecha local para evitar problemas de zona horaria
+  const [year, month, day] = expiryDateString.split('-')
+  const expiryDate = new Date(year, month - 1, day)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   expiryDate.setHours(0, 0, 0, 0)
@@ -1192,8 +1234,8 @@ const activateJob = async () => {
   box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
 }
 
-/* ========== SEPARADOR DE ANUNCIOS EXPIRADOS ========== */
-.expired-jobs-divider {
+/* ========== SEPARADORES DE SECCIONES ========== */
+.section-divider {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -1204,7 +1246,6 @@ const activateJob = async () => {
 .divider-line {
   flex: 1;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #f97316 50%, transparent 100%);
   opacity: 0.3;
 }
 
@@ -1213,22 +1254,63 @@ const activateJob = async () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1.25rem;
-  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
-  border: 1px solid #fed7aa;
   border-radius: 20px;
-  color: #ea580c;
   font-weight: 600;
   font-size: 0.9rem;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .divider-label span {
-  color: #c2410c;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: 0.85rem;
+}
+
+/* Estilo para Anuncios Recientes (verde) */
+.section-divider.recent .divider-line {
+  background: linear-gradient(90deg, transparent 0%, #10b981 50%, transparent 100%);
+}
+
+.section-divider.recent .divider-label {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border: 1px solid #6ee7b7;
+  color: #059669;
+}
+
+.section-divider.recent .divider-label span {
+  color: #047857;
+}
+
+/* Estilo para Pendientes de Aprobación (amarillo/naranja) */
+.section-divider.pending .divider-line {
+  background: linear-gradient(90deg, transparent 0%, #f59e0b 50%, transparent 100%);
+}
+
+.section-divider.pending .divider-label {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #fcd34d;
+  color: #d97706;
+}
+
+.section-divider.pending .divider-label span {
+  color: #b45309;
+}
+
+/* Estilo para Anuncios Expirados (rojo/naranja) */
+.section-divider.expired .divider-line {
+  background: linear-gradient(90deg, transparent 0%, #f97316 50%, transparent 100%);
+}
+
+.section-divider.expired .divider-label {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border: 1px solid #fed7aa;
+  color: #ea580c;
+}
+
+.section-divider.expired .divider-label span {
+  color: #c2410c;
 }
 
 /* ========== JOB STATS ========== */
