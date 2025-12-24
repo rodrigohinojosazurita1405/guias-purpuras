@@ -35,6 +35,7 @@ class JobAdmin(admin.ModelAdmin):
         'paymentVerified',
         'city',
         'contractType',
+        'modality',
         'salaryType',
         'createdAt',
         'applicationType',

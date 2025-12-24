@@ -352,6 +352,10 @@ const handleSubmit = async () => {
         formData.append(key, JSON.stringify(value))
         console.log('📋 billingData enviado:', value)
       }
+      // Para modality, si es un objeto extraer solo el valor
+      else if (key === 'modality' && value && typeof value === 'object' && value.value) {
+        formData.append(key, value.value)
+      }
       // Para booleanos, convertir explícitamente a string 'true' o 'false'
       else if (typeof value === 'boolean') {
         formData.append(key, value.toString())
