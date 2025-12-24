@@ -678,7 +678,7 @@ onMounted(async () => {
     editingCVId.value = cvId
 
     try {
-      const response = await fetch(`http://localhost:8000/api/cvs/${cvId}/detail/`, {
+      const response = await fetch(`http://localhost:8000/api/cvs/${cvId}/`, {
         headers: {
           'Authorization': `Bearer ${authStore.accessToken}`
         }
