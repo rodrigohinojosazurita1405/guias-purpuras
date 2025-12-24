@@ -10,7 +10,7 @@ import PublishView from '@/views/PublishView.vue'
 // JobDetailView eliminado - ahora se usa GuideView con split view
 
 // ========== VIEWS DE PROCESO ==========
-import ApplicationProcess from '@/components/Process/ApplicationProcess.vue'
+import ApplicationProcess from '@/components/ProcessCV/ApplicationProcess.vue'
 
 // ========== VIEWS ESTÁTICAS ==========
 import AboutView from '@/views/Static/AboutView.vue'
@@ -196,6 +196,16 @@ const routes = [
     }
   },
   {
+    path: '/dashboard/cv/builder',
+    name: 'CVBuilder',
+    component: () => import('@/components/ProcessCV/CVBuilderView.vue'),
+    meta: {
+      title: 'Crear CV - Guías Púrpuras',
+      requiresAuth: true,
+      requiredRole: 'applicant'
+    }
+  },
+  {
     path: '/dashboard/applications',
     name: 'DashboardApplications',
     component: () => import('@/views/DashboardView.vue'),
@@ -323,7 +333,7 @@ const router = createRouter({
 })
 
 // ========== NAVIGATION GUARDS ==========
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   // Actualizar título de la página
   if (to.meta.title) {
     document.title = to.meta.title
@@ -333,51 +343,52 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth) {
     const authStore = useAuthStore()
 
-    console.log(`🛡️ [GUARD] Ruta protegida: ${to.path}`)
-    console.log(`🛡️ [GUARD] isInitialized: ${authStore.isInitialized}`)
-    console.log(`🛡️ [GUARD] isAuthenticated: ${authStore.isAuthenticated}`)
-    console.log(`🛡️ [GUARD] user: ${authStore.user?.email || 'null'}`)
-    console.log(`🛡️ [GUARD] accessToken: ${authStore.accessToken ? '***' : 'null'}`)
-
     // Si NO está inicializado, reinicializar desde localStorage
-    // Esto es importante cuando se hace logout y luego se intenta acceder a ruta protegida
     if (!authStore.isInitialized) {
-      console.log(`🛡️ [GUARD] Store no inicializado, ejecutando initAuth()...`)
       authStore.initAuth()
+    }
 
-      // Después de initAuth(), chequear si está autenticado
-      if (!authStore.isAuthenticated) {
-        console.log(`🛡️ [GUARD] No autenticado después de initAuth(), redirigiendo a /login`)
+    // Si no está autenticado, redirigir a login
+    if (!authStore.isAuthenticated) {
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
+      return
+    }
+
+    // IMPORTANTE: Validar token intentando hacer refresh
+    // Esto detecta tokens expirados antes de entrar a rutas protegidas
+    try {
+      const refreshResult = await authStore.refreshAccessToken()
+
+      if (!refreshResult.success) {
+        // Token expirado y refresh falló - cerrar sesión
+        authStore.logout()
         next({
           path: '/login',
           query: { redirect: to.fullPath }
         })
         return
-      } else {
-        console.log(`🛡️ [GUARD] Autenticado después de initAuth(), permitiendo acceso`)
-        next()
-        return
       }
-    }
-
-    // Si ya está inicializado, solo verificar isAuthenticated
-    if (!authStore.isAuthenticated) {
-      console.log(`🛡️ [GUARD] No autenticado, redirigiendo a /login`)
+    } catch (error) {
+      // Error al validar token - cerrar sesión por seguridad
+      authStore.logout()
       next({
         path: '/login',
         query: { redirect: to.fullPath }
       })
-    } else {
-      // Verificar si la ruta requiere un rol específico
-      if (to.meta.requiredRole && authStore.user?.role !== to.meta.requiredRole) {
-        console.log(`🛡️ [GUARD] Rol insuficiente. Required: ${to.meta.requiredRole}, Current: ${authStore.user?.role}`)
-        // Redirigir al dashboard del usuario según su rol
-        next({ path: '/dashboard', query: { redirect: to.fullPath } })
-      } else {
-        console.log(`🛡️ [GUARD] Autenticado y con rol correcto, permitiendo acceso`)
-        next()
-      }
+      return
     }
+
+    // Verificar rol si es requerido
+    if (to.meta.requiredRole && authStore.user?.role !== to.meta.requiredRole) {
+      next({ path: '/dashboard', query: { redirect: to.fullPath } })
+      return
+    }
+
+    // Todo OK, permitir acceso
+    next()
   } else {
     next()
   }

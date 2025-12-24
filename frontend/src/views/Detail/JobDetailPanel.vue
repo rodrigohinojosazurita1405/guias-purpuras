@@ -175,7 +175,7 @@
             <p class="application-note">Esta empresa recibe postulaciones en su propio enlace externo.</p>
             <a :href="listing.externalApplicationUrl" target="_blank" class="btn-external">
               <va-icon name="open_in_new" size="small" />
-              Ir al sitio de la empresa
+              Ir al enlace de la empresa
             </a>
           </template>
 
@@ -275,7 +275,7 @@
 </template>
 
 <script>
-import ApplicationModal from '@/components/Process/ApplicationModal.vue'
+import ApplicationModal from '@/components/ProcessCV/ApplicationModal.vue'
 import ApplicationSuccessModal from '@/components/Modals/ApplicationSuccessModal.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 

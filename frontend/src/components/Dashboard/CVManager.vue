@@ -15,14 +15,14 @@
     <div v-else class="cv-content">
       <!-- Action Buttons -->
       <div class="action-buttons">
-        <va-button
-          color="success"
+        <button
+          class="create-cv-btn"
           :disabled="cvs.length >= maxCVs"
-          @click="showCreateModal = true"
+          @click="goToCreateCV"
         >
-          <va-icon name="add" />
+          <va-icon name="add_circle" size="20px" />
           Crear CV en Plataforma
-        </va-button>
+        </button>
       </div>
 
       <!-- CVs Limit Warning -->
@@ -52,22 +52,16 @@
                 :color="cv.cv_type === 'created' ? 'success' : 'info'"
               />
             </div>
-            <va-button
-              icon="delete"
-              preset="plain"
-              color="danger"
-              size="small"
-              @click="deleteCV(cv)"
-              title="Eliminar CV"
-            />
           </div>
 
           <div class="cv-body">
-            <va-icon
-              :name="cv.cv_type === 'created' ? 'article' : 'upload_file'"
-              size="3rem"
-              color="purple"
-            />
+            <div class="cv-icon-container">
+              <va-icon
+                :name="cv.cv_type === 'created' ? 'article' : 'upload_file'"
+                size="3.5rem"
+                :color="cv.cv_type === 'created' ? '#7C3AED' : '#3B82F6'"
+              />
+            </div>
             <h3>{{ cv.name }}</h3>
 
             <div class="cv-meta">
@@ -83,81 +77,51 @@
           </div>
 
           <div class="cv-footer">
-            <va-button
+            <button
               v-if="cv.cv_type === 'uploaded'"
-              size="small"
+              class="cv-action-btn download-btn"
               @click="downloadCV(cv)"
             >
-              <va-icon name="download" />
+              <va-icon name="download" size="16px" />
               Descargar
-            </va-button>
-            <va-button
+            </button>
+            <button
               v-else
-              size="small"
+              class="cv-action-btn edit-btn"
               @click="editCV(cv)"
             >
-              <va-icon name="edit" />
+              <va-icon name="edit" size="16px" />
               Editar
-            </va-button>
-            <va-button
-              size="small"
-              color="success"
+            </button>
+            <button
+              class="cv-action-btn preview-btn"
               @click="previewCV(cv)"
             >
-              <va-icon name="visibility" />
+              <va-icon name="visibility" size="16px" />
               Vista Previa
-            </va-button>
+            </button>
+            <button
+              class="cv-action-btn delete-btn"
+              @click="deleteCV(cv)"
+            >
+              <va-icon name="delete" size="16px" />
+              Eliminar
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Create CV Modal -->
-    <va-modal
-      v-model="showCreateModal"
-      size="large"
-      hide-default-actions
-      :max-height="'90vh'"
-      :overlay-opacity="0"
-      mobile-fullscreen
-    >
-      <template #header>
-        <h2 class="modal-title">Crear CV Profesional</h2>
-      </template>
-
-      <div class="create-cv-modal-content">
-        <CreateCV v-model="cvFormData" />
-      </div>
-
-      <template #footer>
-        <div class="modal-footer-buttons">
-          <va-button
-            color="danger"
-            preset="secondary"
-            @click="cancelCreateCV"
-          >
-            Cancelar
-          </va-button>
-          <va-button
-            color="success"
-            @click="saveCreatedCV"
-            :disabled="!isValidCV"
-          >
-            <va-icon name="save" />
-            Guardar CV
-          </va-button>
-        </div>
-      </template>
-    </va-modal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useToast } from 'vuestic-ui'
-import CreateCV from '@/components/Process/CreateCV.vue'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const { init: initToast } = useToast()
 
@@ -167,43 +131,6 @@ const maxCVs = 2
 // State
 const cvs = ref([])
 const isLoading = ref(false)
-const showCreateModal = ref(false)
-const cvFormData = ref({
-  personalInfo: {
-    fullName: '',
-    phone: '',
-    email: '',
-    location: '',
-    linkedin: '',
-    portfolio: ''
-  },
-  professionalProfile: '',
-  education: [],
-  experience: [],
-  technicalSkills: [],
-  softSkills: [],
-  certifications: [],
-  languages: [],
-  projects: []
-})
-
-// DEBUG: Verificar si cvFormData se actualiza
-import { watch } from 'vue'
-watch(() => cvFormData.value.personalInfo, (newVal) => {
-  console.log('📝 PersonalInfo cambió:', newVal)
-}, { deep: true })
-
-// Computed
-const isValidCV = computed(() => {
-  const info = cvFormData.value?.personalInfo
-  if (!info) return false
-
-  return (
-    info.fullName?.trim().length > 0 &&
-    info.email?.trim().length > 0 &&
-    info.phone?.trim().length > 0
-  )
-})
 
 // Methods
 const loadCVs = async () => {
@@ -231,84 +158,6 @@ const loadCVs = async () => {
     })
   } finally {
     isLoading.value = false
-  }
-}
-
-const saveCreatedCV = async () => {
-  if (!isValidCV.value) {
-    initToast({
-      message: 'Por favor completa los campos obligatorios (Nombre, Email, Teléfono)',
-      color: 'warning',
-      duration: 3000
-    })
-    return
-  }
-
-  try {
-    const cvName = `CV - ${cvFormData.value.personalInfo.fullName}`
-
-    const response = await fetch('http://localhost:8000/api/cvs/save/', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        cv_type: 'created',
-        name: cvName,
-        cv_data: cvFormData.value
-      })
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.error || 'Error al guardar CV')
-    }
-
-    initToast({
-      message: 'CV creado exitosamente',
-      color: 'success',
-      duration: 3000
-    })
-
-    showCreateModal.value = false
-    resetCVForm()
-    await loadCVs()
-  } catch (error) {
-    console.error('Error saving CV:', error)
-    initToast({
-      message: error.message,
-      color: 'danger',
-      duration: 3000
-    })
-  }
-}
-
-const cancelCreateCV = () => {
-  if (confirm('¿Estás seguro? Se perderán todos los datos ingresados.')) {
-    showCreateModal.value = false
-    resetCVForm()
-  }
-}
-
-const resetCVForm = () => {
-  cvFormData.value = {
-    personalInfo: {
-      fullName: '',
-      phone: '',
-      email: '',
-      location: '',
-      linkedin: '',
-      portfolio: ''
-    },
-    professionalProfile: '',
-    education: [],
-    experience: [],
-    technicalSkills: [],
-    softSkills: [],
-    certifications: [],
-    languages: [],
-    projects: []
   }
 }
 
@@ -360,11 +209,14 @@ const downloadCV = async (cv) => {
   window.open(cv.file, '_blank')
 }
 
+const goToCreateCV = () => {
+  router.push('/dashboard/cv/builder')
+}
+
 const editCV = (cv) => {
-  initToast({
-    message: 'Editor de CV próximamente disponible',
-    color: 'info',
-    duration: 3000
+  router.push({
+    path: '/dashboard/cv/builder',
+    query: { edit: cv.id }
   })
 }
 
@@ -426,7 +278,52 @@ onMounted(() => {
 .action-buttons {
   display: flex;
   gap: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.create-cv-btn {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border: none;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.create-cv-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6d28d9, #5b21b6);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+}
+
+.create-cv-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cv-icon-container {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.cv-card:hover .cv-icon-container {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.15);
 }
 
 .warning-message {
@@ -468,121 +365,130 @@ onMounted(() => {
 }
 
 .cv-card {
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 14px;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  transition: all 0.3s ease;
+  gap: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .cv-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  border-color: #7C3AED;
+  box-shadow: 0 12px 24px rgba(124, 58, 237, 0.15);
+  transform: translateY(-4px);
 }
 
 .cv-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+}
+
+.cv-type-badge {
+  flex: 1;
 }
 
 .cv-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: 14px;
   text-align: center;
+  padding: 12px 0;
 }
 
 .cv-body h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
   margin: 0;
+  line-height: 1.3;
 }
 
 .cv-meta {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
+  background: #f3f4f6;
+  padding: 12px 16px;
+  border-radius: 8px;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 13px;
-  color: #666;
+  color: #6b7280;
+  font-weight: 500;
 }
 
 .cv-footer {
   display: flex;
-  gap: 10px;
-  padding-top: 10px;
-  border-top: 1px solid #f0f0f0;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 2px solid #e5e7eb;
 }
 
-.modal-content {
-  padding: 20px 0;
-}
-
-.info-box {
+.cv-action-btn {
+  flex: 1;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  color: white;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 15px;
-  padding: 12px;
-  background-color: #e3f2fd;
-  border-radius: 6px;
-  font-size: 13px;
-  color: #1976d2;
+  justify-content: center;
+  gap: 6px;
 }
 
-.modal-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #333;
-  margin: 0;
+.edit-btn {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
 }
 
-.create-cv-modal-content {
-  max-height: 70vh;
-  overflow-y: auto;
-  padding: 20px;
-  background: #ffffff;
+.edit-btn:hover {
+  background: linear-gradient(135deg, #6d28d9, #5b21b6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
 }
 
-.modal-footer-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-  width: 100%;
-  padding: 15px 0;
+.preview-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
 }
 
-/* FORZAR OVERLAY COMPLETAMENTE TRANSPARENTE - AGRESIVO */
-:deep(.va-modal__overlay),
-:deep(.va-backdrop),
-:deep([class*="overlay"]),
-:deep([class*="backdrop"]) {
-  background: transparent !important;
-  background-color: transparent !important;
-  opacity: 0 !important;
-  display: none !important;
+.preview-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
 }
 
-:deep(.va-modal__container) {
-  background: transparent !important;
-  background-color: transparent !important;
+.download-btn {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
 }
 
-:deep(.va-modal) {
-  background: white !important;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+.download-btn:hover {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.delete-btn:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
 }
 
 @media (max-width: 768px) {
