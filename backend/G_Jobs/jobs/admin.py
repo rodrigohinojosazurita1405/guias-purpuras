@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html, strip_tags
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django import forms
 from .models import Job
 from G_Jobs.catalogs.models import JobCategory, ContractType, City
 from G_Jobs.payments.models import PlanOrder
@@ -12,8 +13,98 @@ import json
 import re
 
 
+class HighlightedCheckboxWidget(forms.CheckboxInput):
+    """Widget personalizado para checkbox de pago verificado con estilos destacados"""
+
+    def __init__(self, attrs=None):
+        default_attrs = {
+            'style': 'transform: scale(1.3); cursor: pointer;',
+            'class': 'payment-verified-checkbox'
+        }
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        checkbox_html = super().render(name, value, attrs, renderer)
+
+        # Determinar estilo según estado
+        if value:
+            container_style = (
+                'background: #ECFDF5; '
+                'border: 2px solid #10B981; '
+                'box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);'
+            )
+            label_text = 'Pago Verificado'
+            label_color = '#059669'
+            icon_svg = '''
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="10" cy="10" r="9" fill="#10B981" stroke="#059669" stroke-width="1.5"/>
+                    <path d="M6 10L9 13L14 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            '''
+        else:
+            container_style = (
+                'background: #FFFBEB; '
+                'border: 2px solid #F59E0B; '
+                'box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);'
+            )
+            label_text = 'Pendiente de Verificación'
+            label_color = '#D97706'
+            icon_svg = '''
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="10" cy="10" r="9" fill="#F59E0B" stroke="#D97706" stroke-width="1.5"/>
+                    <path d="M10 6V10L13 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            '''
+
+        wrapper_html = f'''
+        <div style="
+            {container_style}
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        ">
+            <div style="
+                display: flex;
+                align-items: center;
+                line-height: 1;
+            ">{icon_svg}</div>
+
+            <div style="flex: 1;">
+                <label style="
+                    display: block;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: {label_color};
+                    margin: 0;
+                ">{label_text}</label>
+            </div>
+
+            {checkbox_html}
+        </div>
+        '''
+
+        return mark_safe(wrapper_html)
+
+
+class JobAdminForm(forms.ModelForm):
+    """Form personalizado con widget destacado para paymentVerified"""
+
+    class Meta:
+        model = Job
+        fields = '__all__'
+        widgets = {
+            'paymentVerified': HighlightedCheckboxWidget(),
+        }
+
+
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
+    form = JobAdminForm
     # Lista mejorada con columnas importantes
     list_display = (
         'job_title_display',
@@ -158,16 +249,25 @@ class JobAdmin(admin.ModelAdmin):
     status_badge.short_description = 'Estado'
 
     def payment_badge(self, obj):
-        """Badge de estado de pago con colores tenues"""
+        """Badge de estado de pago con estilo sutil"""
         if obj.paymentVerified:
-            style = {'bg': '#D1FAE5', 'color': '#065F46'}  # Verde tenue
+            style = {
+                'bg': '#D1FAE5',
+                'color': '#065F46'
+            }
             label = 'Verificado'
         elif obj.proofOfPayment:
-            style = {'bg': '#FEF3C7', 'color': '#92400E'}  # Amarillo tenue
+            style = {
+                'bg': '#FEF3C7',
+                'color': '#92400E'
+            }
             label = 'Pendiente'
         else:
-            style = {'bg': '#FEE2E2', 'color': '#991B1B'}  # Rojo tenue
-            label = 'Sin pago'
+            style = {
+                'bg': '#FEE2E2',
+                'color': '#991B1B'
+            }
+            label = 'Sin Comprobante'
 
         return format_html(
             '<span style="background-color: {}; color: {}; padding: 3px 10px; '
@@ -175,7 +275,7 @@ class JobAdmin(admin.ModelAdmin):
             'display: inline-block;">{}</span>',
             style['bg'], style['color'], label
         )
-    payment_badge.short_description = 'Estado Pago'
+    payment_badge.short_description = 'Estado de Pago'
 
     def applications_count(self, obj):
         """Muestra el contador de aplicaciones con estilo tenue"""
@@ -183,7 +283,10 @@ class JobAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: #F3E8FF; color: #6B21A8; padding: 3px 10px; '
             'border-radius: 6px; font-weight: 600; font-size: 11px; '
-            'display: inline-block;">👥 {}</span>',
+            'display: inline-flex; align-items: center; gap: 4px;">'
+            '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">'
+            '<path d="M8 8c1.66 0 3-1.34 3-3S9.66 2 8 2 5 3.34 5 5s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V15h14v-1.5c0-2.33-4.67-3.5-7-3.5z"/>'
+            '</svg>{}</span>',
             count
         )
     applications_count.short_description = 'Aplicaciones'
@@ -194,7 +297,11 @@ class JobAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: #DBEAFE; color: #1E3A8A; padding: 3px 10px; '
             'border-radius: 6px; font-weight: 600; font-size: 11px; '
-            'display: inline-block;">👁️ {}</span>',
+            'display: inline-flex; align-items: center; gap: 4px;">'
+            '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">'
+            '<path d="M8 4C3 4 1 8 1 8s2 4 7 4 7-4 7-4-2-4-7-4zm0 6.5c-1.38 0-2.5-1.12-2.5-2.5S6.62 5.5 8 5.5s2.5 1.12 2.5 2.5S9.38 10.5 8 10.5z"/>'
+            '<circle cx="8" cy="8" r="1.5"/>'
+            '</svg>{}</span>',
             count
         )
     views_count.short_description = 'Vistas'
@@ -204,7 +311,10 @@ class JobAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: #D1FAE5; color: #065F46; padding: 3px 10px; '
             'border-radius: 6px; font-weight: 600; font-size: 11px; '
-            'display: inline-block;">📅 {}</span>',
+            'display: inline-flex; align-items: center; gap: 4px;">'
+            '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">'
+            '<path d="M14 2h-1V1h-2v1H5V1H3v1H2c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H2V7h12v7zm0-9H2V4h12v1z"/>'
+            '</svg>{}</span>',
             obj.createdAt.strftime('%d/%m/%Y')
         )
     created_date_display.short_description = 'Publicado'
@@ -235,7 +345,10 @@ class JobAdmin(admin.ModelAdmin):
         return format_html(
             '<span style="background-color: {}; color: {}; padding: 3px 10px; '
             'border-radius: 6px; font-weight: 600; font-size: 11px; '
-            'display: inline-block;">💎 {} ({})</span>',
+            'display: inline-flex; align-items: center; gap: 4px;">'
+            '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">'
+            '<path d="M8 1l2.5 5 5.5.5-4 4 1 5.5L8 13l-5 3 1-5.5-4-4 5.5-.5z"/>'
+            '</svg>{} ({})</span>',
             colors['bg'], colors['color'], label, duration
         )
     plan_display.short_description = 'Plan'

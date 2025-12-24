@@ -5,7 +5,7 @@
     :ok-text="null"
     :cancel-text="null"
     class="success-modal"
-    size="large"
+    size="medium"
   >
     <template #header>
       <div class="modal-header">
@@ -152,38 +152,38 @@ const publishAnother = async () => {
 
 .modal-header {
   text-align: center;
-  padding: 20px 0;
+  padding: 12px 0;
 }
 
 .modal-header h2 {
   color: #7c3aed;
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
   margin: 0;
 }
 
 .modal-content {
-  padding: 30px;
+  padding: 20px;
   text-align: center;
 }
 
 .success-icon {
-  width: 100px;
-  height: 100px;
+  width: 70px;
+  height: 70px;
   background-color: #10b981;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
+  margin: 0 auto 15px;
   animation: scaleIn 0.6s ease-out;
   position: relative;
 }
 
 .success-icon::after {
   content: '';
-  width: 35px;
-  height: 18px;
+  width: 28px;
+  height: 14px;
   border: 3px solid white;
   border-top: none;
   border-right: none;
@@ -203,38 +203,39 @@ const publishAnother = async () => {
 
 .success-message h3 {
   color: #1a1a1a;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 600;
-  margin: 0 0 15px 0;
+  margin: 0 0 10px 0;
 }
 
 .status-info {
   color: #7c3aed;
   font-weight: 500;
-  margin: 10px 0;
-  padding: 10px;
+  margin: 8px 0;
+  padding: 8px 10px;
   background-color: #f9f5ff;
-  border-radius: 8px;
+  border-radius: 6px;
   border-left: 3px solid #7c3aed;
+  font-size: 13px;
 }
 
 .info-text {
   color: #666;
-  margin: 15px 0;
-  font-size: 14px;
+  margin: 10px 0;
+  font-size: 13px;
 }
 
 .job-info {
   background-color: #f5f5f5;
-  border-radius: 8px;
-  padding: 15px;
-  margin: 20px 0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 12px 0;
   text-align: left;
 }
 
 .info-item {
-  padding: 8px 0;
-  font-size: 14px;
+  padding: 5px 0;
+  font-size: 13px;
   color: #333;
   border-bottom: 1px solid #e0e0e0;
 }
@@ -245,18 +246,19 @@ const publishAnother = async () => {
 
 .actions-container {
   display: flex;
-  gap: 15px;
-  margin: 30px 0;
+  gap: 10px;
+  margin: 15px 0 10px 0;
   justify-content: center;
 }
 
 .btn-primary {
   background-color: #7c3aed;
   color: white;
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: 600;
-  padding: 12px 30px !important;
+  padding: 10px 24px !important;
   transition: all 0.3s ease;
+  font-size: 14px;
 }
 
 .btn-primary:hover {
@@ -268,10 +270,11 @@ const publishAnother = async () => {
 .btn-secondary {
   color: #7c3aed;
   border: 2px solid #7c3aed;
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: 600;
-  padding: 10px 30px !important;
+  padding: 8px 24px !important;
   transition: all 0.3s ease;
+  font-size: 14px;
 }
 
 .btn-secondary:hover {
@@ -281,26 +284,26 @@ const publishAnother = async () => {
 }
 
 .tips-container {
-  margin-top: 30px;
-  padding-top: 20px;
+  margin-top: 15px;
+  padding-top: 12px;
   border-top: 1px solid #e0e0e0;
 }
 
 .tip {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  margin: 10px 0;
+  gap: 10px;
+  padding: 8px 10px;
+  margin: 6px 0;
   background-color: #f0f9ff;
-  border-radius: 8px;
+  border-radius: 6px;
   text-align: left;
   color: #0c4a6e;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .tip-icon {
-  font-size: 18px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
