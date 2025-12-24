@@ -229,7 +229,7 @@
           </div>
           <div class="info-row">
             <span class="label">Modalidad:</span>
-            <span class="value">{{ jobData.modality || 'Presencial' }}</span>
+            <span class="value">{{ getModalityValue(jobData.modality) }}</span>
           </div>
           <div class="info-row">
             <span class="label">Fecha de Vencimiento:</span>
@@ -448,7 +448,7 @@
                           <va-icon name="laptop" size="small" />
                           Modalidad:
                         </span>
-                        <span class="info-value">{{ jobData.modality || 'Presencial' }}</span>
+                        <span class="info-value">{{ getModalityValue(jobData.modality) }}</span>
                       </div>
                     </div>
 
@@ -522,7 +522,7 @@
             <section class="content-block description-block">
               <h2 class="block-title">
                 <va-icon name="description" size="small" />
-                Descripción del Puesto
+                Descripción del Puesto Laboral
               </h2>
              <div class="block-text job-description-html" v-html="jobData.description"></div>
             </section>
@@ -976,6 +976,21 @@ const getPlanName = (plan) => {
     top: 'Plan TOP'
   }
   return plans[plan] || plan
+}
+
+// Obtener el valor de modalidad (puede venir como objeto o string)
+const getModalityValue = (modality) => {
+  if (!modality) return 'Presencial'
+  // Si es un objeto de va-select, extraer el valor
+  if (typeof modality === 'object' && modality.value) {
+    return modality.value
+  }
+  // Si es un objeto de va-select con text, extraer el text
+  if (typeof modality === 'object' && modality.text) {
+    return modality.text
+  }
+  // Si ya es un string, devolverlo directamente
+  return modality
 }
 
 const getPlanIcon = (plan) => {
