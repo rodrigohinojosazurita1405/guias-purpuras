@@ -3,6 +3,7 @@ from django.utils.html import format_html, strip_tags
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django import forms
+from django.utils import timezone
 from .models import Job
 from G_Jobs.catalogs.models import JobCategory, ContractType, City
 from G_Jobs.payments.models import PlanOrder
@@ -308,6 +309,8 @@ class JobAdmin(admin.ModelAdmin):
 
     def created_date_display(self, obj):
         """Muestra la fecha de creación con estilo tenue"""
+        # Convertir a zona horaria local (America/La_Paz)
+        local_date = timezone.localtime(obj.createdAt)
         return format_html(
             '<span style="background-color: #D1FAE5; color: #065F46; padding: 3px 10px; '
             'border-radius: 6px; font-weight: 600; font-size: 11px; '
@@ -315,7 +318,7 @@ class JobAdmin(admin.ModelAdmin):
             '<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">'
             '<path d="M14 2h-1V1h-2v1H5V1H3v1H2c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H2V7h12v7zm0-9H2V4h12v1z"/>'
             '</svg>{}</span>',
-            obj.createdAt.strftime('%d/%m/%Y')
+            local_date.strftime('%d/%m/%Y')
         )
     created_date_display.short_description = 'Publicado'
 
@@ -403,9 +406,11 @@ class JobAdmin(admin.ModelAdmin):
 
     def job_analytics_display(self, obj):
         """Muestra analíticas del trabajo"""
+        # Convertir a zona horaria local (America/La_Paz)
+        local_date = timezone.localtime(obj.createdAt)
         return (
             f'Vistas: {obj.views}, Aplicaciones: {obj.applications}, '
-            f'Publicado: {obj.createdAt.strftime("%d/%m/%Y")}'
+            f'Publicado: {local_date.strftime("%d/%m/%Y")}'
         )
     job_analytics_display.short_description = 'Analíticas'
 
