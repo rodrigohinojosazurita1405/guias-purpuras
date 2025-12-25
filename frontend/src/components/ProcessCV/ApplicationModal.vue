@@ -112,14 +112,14 @@
           >
             <div class="cv-card-header">
               <va-icon
-                :name="cv.type === 'file' ? 'description' : 'article'"
+                :name="cv.cv_type === 'uploaded' ? 'description' : 'article'"
                 size="large"
                 :color="selectedSavedCV?.id === cv.id ? '#7C3AED' : '#6B7280'"
               />
               <div class="cv-card-info">
-                <h4>{{ cv.full_name || cv.file_name }}</h4>
+                <h4>{{ cv.name }}</h4>
                 <p class="cv-meta">
-                  <span>{{ cv.type === 'file' ? 'Archivo subido' : 'CV creado' }}</span>
+                  <span>{{ cv.cv_type === 'uploaded' ? 'Archivo subido' : 'CV creado' }}</span>
                   <span>•</span>
                   <span>{{ formatDate(cv.created_at) }}</span>
                 </p>
