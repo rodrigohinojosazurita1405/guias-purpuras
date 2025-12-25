@@ -290,13 +290,12 @@ const formatDate = (dateString) => {
 
 /**
  * Formatear fecha de vencimiento (dd/mm/yyyy)
+ * Parsear como fecha local para evitar problemas de zona horaria
  */
 const formatExpiryDate = (dateStr) => {
   if (!dateStr) return ''
-  const date = new Date(dateStr)
-  const day = date.getDate().toString().padStart(2, '0')
-  const month = (date.getMonth() + 1).toString().padStart(2, '0')
-  const year = date.getFullYear()
+  // Parsear como fecha local para evitar problemas de zona horaria
+  const [year, month, day] = dateStr.split('-')
   return `${day}/${month}/${year}`
 }
 
