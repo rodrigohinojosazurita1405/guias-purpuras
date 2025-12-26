@@ -453,14 +453,61 @@ def forgot_password(request):
         # Verificar si el usuario existe
         try:
             user = CustomUser.objects.get(email=email)
-            # En una aplicación real, aquí se enviaría un email con un link de reseteo
-            # Por ahora, simplemente confirmamos que el email existe
+
+            # Importar modelo de token
+            from auth_api.models import PasswordResetToken
+            from django.core.mail import send_mail
+            from django.conf import settings
+
+            # Crear token de recuperación
+            reset_token = PasswordResetToken.create_for_user(user)
+
+            # Construir URL de reset (cambia según entorno)
+            if settings.DEBUG:
+                # Localhost
+                reset_url = f"http://localhost:5173/reset-password/{reset_token.token}"
+            else:
+                # Producción - usar variable de entorno
+                frontend_url = settings.FRONTEND_URL
+                reset_url = f"{frontend_url}/reset-password/{reset_token.token}"
+
+            # Preparar email
+            subject = 'Recuperación de Contraseña - Guías Púrpuras'
+            message = f"""
+Hola {user.get_full_name() or user.username},
+
+Recibimos una solicitud para restablecer tu contraseña en Guías Púrpuras.
+
+Haz clic en el siguiente enlace para crear una nueva contraseña:
+{reset_url}
+
+Este enlace es válido por 1 hora.
+
+Si no solicitaste este cambio, puedes ignorar este correo.
+
+Saludos,
+Equipo de Guías Púrpuras Bolivia
+            """
+
+            # Enviar email
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+
+            print(f'✓ Email de recuperación enviado a {email}')
+            print(f'Token: {reset_token.token}')
+            print(f'URL: {reset_url}')
+
             return JsonResponse({
                 'success': True,
                 'message': 'Si el email existe en nuestros registros, recibirás instrucciones de recuperación.'
             }, status=200)
 
-        except User.DoesNotExist:
+        except CustomUser.DoesNotExist:
             # Por seguridad, no revelamos si el email existe o no
             # Retornamos el mismo mensaje de éxito
             return JsonResponse({
@@ -476,6 +523,88 @@ def forgot_password(request):
 
     except Exception as e:
         print(f'Error en forgot-password: {str(e)}')
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def reset_password(request):
+    """
+    Endpoint para restablecer la contraseña
+    POST /api/auth/reset-password
+
+    Body:
+    {
+        "token": "token_value",
+        "password": "new_password"
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        token_str = data.get('token', '').strip()
+        new_password = data.get('password', '').strip()
+
+        if not token_str:
+            return JsonResponse({
+                'success': False,
+                'message': 'Token es requerido'
+            }, status=400)
+
+        if not new_password or len(new_password) < 6:
+            return JsonResponse({
+                'success': False,
+                'message': 'La contraseña debe tener al menos 6 caracteres'
+            }, status=400)
+
+        # Buscar token
+        from auth_api.models import PasswordResetToken
+
+        try:
+            reset_token = PasswordResetToken.objects.get(token=token_str)
+        except PasswordResetToken.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Token inválido o expirado'
+            }, status=400)
+
+        # Verificar si el token es válido
+        if not reset_token.is_valid():
+            return JsonResponse({
+                'success': False,
+                'message': 'Token inválido o expirado'
+            }, status=400)
+
+        # Cambiar contraseña
+        user = reset_token.user
+        user.set_password(new_password)
+        user.save()
+
+        # Marcar token como usado
+        reset_token.used = True
+        reset_token.save()
+
+        print(f'✓ Contraseña restablecida para {user.email}')
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Contraseña restablecida exitosamente'
+        }, status=200)
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Error: formato JSON inválido'
+        }, status=400)
+
+    except Exception as e:
+        print(f'Error en reset-password: {str(e)}')
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'message': f'Error: {str(e)}'

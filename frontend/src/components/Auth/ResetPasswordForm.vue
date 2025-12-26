@@ -1,7 +1,7 @@
 <template>
-  <div class="login-container">
+  <div class="reset-password-container">
     <!-- Lado izquierdo: Formulario -->
-    <div class="login-left">
+    <div class="reset-password-left">
       <!-- Back Button -->
       <button @click="goHome" class="btn-back" type="button" title="Volver al inicio">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -11,49 +11,19 @@
 
       <div class="form-wrapper">
         <!-- Logo y Header -->
-        <div class="login-header">
+        <div class="reset-password-header">
           <div class="logo-circle">
             <img src="@/assets/guiaspurpuras.ico" alt="Guías Púrpuras" class="logo-img" />
           </div>
-          <h1>¡Bienvenido de nuevo!</h1>
-          <p class="subtitle">Continúa tu búsqueda laboral en:</p>
-          <h2 class="brand-title">
-            Guías Púrpuras Bolivia
-            <img src="@/assets/bolivia.webp" alt="Bolivia" class="bolivia-flag" />
-          </h2>
+          <h1>Restablecer Contraseña</h1>
+          <p>Ingresa tu nueva contraseña</p>
         </div>
 
         <!-- Formulario -->
-        <form @submit.prevent="handleLogin" class="login-form">
-          <!-- Email Input -->
-          <div class="form-group">
-            <label for="email" class="form-label">Correo Electrónico</label>
-            <div class="input-wrapper">
-              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
-                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-              </svg>
-              <input
-                id="email"
-                v-model="formData.email"
-                type="email"
-                class="form-input"
-                :class="{ 'input-error': validationErrors.email }"
-                placeholder="tu@email.com"
-                required
-                :disabled="isLoading"
-                @blur="validateEmail"
-              />
-              <span v-if="validationErrors.email" class="input-error-text">{{ validationErrors.email }}</span>
-            </div>
-          </div>
-
+        <form @submit.prevent="handleResetPassword" class="reset-form">
           <!-- Password Input -->
           <div class="form-group">
-            <div class="label-row">
-              <label for="password" class="form-label">Contraseña</label>
-              <router-link to="/forgot-password" class="forgot-link">Olvidaste la contraseña?</router-link>
-            </div>
+            <label for="password" class="form-label">Nueva Contraseña</label>
             <div class="input-wrapper">
               <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -65,14 +35,14 @@
                 :type="showPassword ? 'text' : 'password'"
                 class="form-input"
                 :class="{ 'input-error': validationErrors.password }"
-                placeholder="Tu contraseña"
+                placeholder="Tu nueva contraseña"
                 required
                 :disabled="isLoading"
                 @blur="validatePassword"
               />
               <button
                 type="button"
-                class="password-toggle"
+                class="toggle-password"
                 @click="showPassword = !showPassword"
                 :disabled="isLoading"
               >
@@ -85,17 +55,65 @@
                   <line x1="1" y1="1" x2="23" y2="23"></line>
                 </svg>
               </button>
-              <span v-if="validationErrors.password" class="input-error-text">{{ validationErrors.password }}</span>
             </div>
+            <span v-if="validationErrors.password" class="input-error-text">{{ validationErrors.password }}</span>
           </div>
+
+          <!-- Confirm Password Input -->
+          <div class="form-group">
+            <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <input
+                id="confirmPassword"
+                v-model="formData.confirmPassword"
+                :type="showConfirmPassword ? 'text' : 'password'"
+                class="form-input"
+                :class="{ 'input-error': validationErrors.confirmPassword }"
+                placeholder="Confirma tu nueva contraseña"
+                required
+                :disabled="isLoading"
+                @blur="validateConfirmPassword"
+              />
+              <button
+                type="button"
+                class="toggle-password"
+                @click="showConfirmPassword = !showConfirmPassword"
+                :disabled="isLoading"
+              >
+                <svg v-if="!showConfirmPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+              </button>
+            </div>
+            <span v-if="validationErrors.confirmPassword" class="input-error-text">{{ validationErrors.confirmPassword }}</span>
+          </div>
+
+          <!-- Success Message -->
+          <transition name="slide-down">
+            <div v-if="successMessage" class="success-banner">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              {{ successMessage }}
+            </div>
+          </transition>
 
           <!-- Error Message -->
           <transition name="slide-down">
             <div v-if="errorMessage" class="error-banner">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
               </svg>
               {{ errorMessage }}
             </div>
@@ -104,88 +122,84 @@
           <!-- Submit Button -->
           <button
             type="submit"
-            class="btn-login"
+            class="btn-submit"
             :disabled="isLoading || !isFormValid"
             :class="{ 'btn-loading': isLoading }"
           >
             <svg v-if="isLoading" class="spinner" viewBox="0 0 50 50">
               <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
             </svg>
-            <span>{{ isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}</span>
+            <span>{{ isLoading ? 'Restableciendo...' : 'Restablecer Contraseña' }}</span>
           </button>
         </form>
 
-        <!-- Register Link -->
-        <div class="signup-section">
-          <p class="signup-text">¿No tienes una cuenta?</p>
-          <router-link to="/register" class="btn-signup">
-            Crear cuenta nueva
+        <!-- Login Link -->
+        <div class="login-section">
+          <p class="login-text">¿Ya restableciste tu contraseña?</p>
+          <router-link to="/login" class="btn-login-link">
+            Iniciar Sesión
           </router-link>
         </div>
       </div>
     </div>
 
     <!-- Lado derecho: Panel de marca -->
-    <div class="login-right">
+    <div class="reset-password-right">
       <div class="brand-overlay"></div>
       <div class="brand-content">
         <div class="brand-badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
           </svg>
-          <span>Plataforma #1 en Bolivia</span>
+          <span>Seguridad Garantizada</span>
         </div>
 
-        <h2>Tu próxima oportunidad laboral te espera</h2>
+        <h2>Crea una contraseña segura</h2>
         <p class="brand-description">
-          Conectamos talento con las mejores empresas de Bolivia. Más de 1,500 ofertas activas esperando por ti.
+          Asegúrate de usar una contraseña única y fuerte para proteger tu cuenta.
         </p>
 
         <div class="features-grid">
           <div class="feature-item">
             <div class="feature-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 11l3 3L22 4"></path>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
               </svg>
             </div>
             <div class="feature-text">
-              <h3>Ofertas Verificadas</h3>
-              <p>Solo empresas reales y confiables</p>
+              <h3>Mínimo 6 caracteres</h3>
+              <p>Asegúrate de usar al menos 6 caracteres</p>
             </div>
           </div>
 
           <div class="feature-item">
             <div class="feature-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
             </div>
             <div class="feature-text">
-              <h3>Actualizaciones Diarias</h3>
-              <p>Nuevas oportunidades cada día</p>
+              <h3>Combina caracteres</h3>
+              <p>Usa letras, números y símbolos</p>
             </div>
           </div>
 
           <div class="feature-item">
             <div class="feature-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
             </div>
             <div class="feature-text">
-              <h3>Red de Contactos</h3>
-              <p>Conecta con profesionales</p>
+              <h3>Contraseña única</h3>
+              <p>No uses la misma contraseña de otros sitios</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Footer en el panel derecho -->
       <div class="brand-footer">
         <p>{{ currentYear }} © Guías Púrpuras. Todos los derechos reservados.</p>
       </div>
@@ -194,42 +208,48 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/useAuthStore'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
-const authStore = useAuthStore()
+const route = useRoute()
 
 // Estado del formulario
 const formData = ref({
-  email: '',
   password: '',
-  rememberMe: false
+  confirmPassword: ''
 })
 
 const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 const errorMessage = ref('')
+const successMessage = ref('')
 const isLoading = ref(false)
 const validationErrors = ref({
-  email: '',
-  password: ''
+  password: '',
+  confirmPassword: ''
+})
+
+const token = ref('')
+
+// Obtener token de la URL
+onMounted(() => {
+  token.value = route.params.token || ''
+  if (!token.value) {
+    errorMessage.value = 'Token inválido. Por favor solicita un nuevo enlace de recuperación.'
+  }
 })
 
 // Validaciones
 const isFormValid = computed(() => {
-  return formData.value.email && formData.value.password && !validationErrors.value.email
+  return (
+    formData.value.password &&
+    formData.value.confirmPassword &&
+    !validationErrors.value.password &&
+    !validationErrors.value.confirmPassword &&
+    token.value
+  )
 })
-
-const validateEmail = () => {
-  if (!formData.value.email) {
-    validationErrors.value.email = 'El correo es requerido'
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.value.email)) {
-    validationErrors.value.email = 'Correo inválido'
-  } else {
-    validationErrors.value.email = ''
-  }
-}
 
 const validatePassword = () => {
   if (!formData.value.password) {
@@ -239,12 +259,27 @@ const validatePassword = () => {
   } else {
     validationErrors.value.password = ''
   }
+  // Re-validar confirmación si ya tiene valor
+  if (formData.value.confirmPassword) {
+    validateConfirmPassword()
+  }
 }
 
-const handleLogin = async () => {
+const validateConfirmPassword = () => {
+  if (!formData.value.confirmPassword) {
+    validationErrors.value.confirmPassword = 'Confirma tu contraseña'
+  } else if (formData.value.password !== formData.value.confirmPassword) {
+    validationErrors.value.confirmPassword = 'Las contraseñas no coinciden'
+  } else {
+    validationErrors.value.confirmPassword = ''
+  }
+}
+
+const handleResetPassword = async () => {
   errorMessage.value = ''
-  validateEmail()
+  successMessage.value = ''
   validatePassword()
+  validateConfirmPassword()
 
   if (!isFormValid.value) {
     return
@@ -253,33 +288,30 @@ const handleLogin = async () => {
   isLoading.value = true
 
   try {
-    const result = await authStore.login(formData.value.email, formData.value.password)
+    const response = await fetch('http://localhost:8000/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: token.value,
+        password: formData.value.password
+      })
+    })
 
-    if (result.success) {
-      // Si marcó "Recordarme", extender sesión (opcional)
-      if (formData.value.rememberMe) {
-        localStorage.setItem('rememberMe', 'true')
-      }
+    const data = await response.json()
 
-      // Verificar si hay una URL de redirección guardada
-      const redirectUrl = sessionStorage.getItem('redirectAfterLogin')
-      sessionStorage.removeItem('redirectAfterLogin')
-
-      // Redirigir inteligentemente
-      setTimeout(() => {
-        if (redirectUrl) {
-          router.push(redirectUrl)
-        } else if (authStore.user?.role === 'company') {
-          router.push('/dashboard/jobs-manager')
-        } else {
-          router.push('/dashboard/profile')
-        }
-      }, 500)
-    } else {
-      errorMessage.value = result.error || 'Error al iniciar sesión'
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Error al restablecer contraseña')
     }
+
+    successMessage.value = data.message || 'Contraseña restablecida exitosamente'
+
+    // Redirigir al login después de un delay
+    setTimeout(() => {
+      router.push('/login')
+    }, 2000)
+
   } catch (error) {
-    errorMessage.value = 'Error de conexión. Intenta nuevamente.'
+    errorMessage.value = error.message || 'Error de conexión. Intenta nuevamente.'
   } finally {
     isLoading.value = false
   }
@@ -293,23 +325,25 @@ const currentYear = new Date().getFullYear()
 </script>
 
 <style scoped>
-/* Contenedor principal con grid de 2 columnas */
-.login-container {
+/* ========== LAYOUT PRINCIPAL ========== */
+.reset-password-container {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  background: white;
 }
 
 /* ========== LADO IZQUIERDO: FORMULARIO ========== */
-.login-left {
-  background: white;
+.reset-password-left {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 3rem 2rem;
   position: relative;
+  background: white;
 }
 
+/* Back Button */
 .btn-back {
   position: absolute;
   top: 2rem;
@@ -318,19 +352,25 @@ const currentYear = new Date().getFullYear()
   height: 40px;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
   color: #6b7280;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  border-radius: 10px;
+  padding: 0;
+  z-index: 10;
 }
 
 .btn-back:hover {
-  background: #f9fafb;
-  border-color: #7c3aed;
   color: #7c3aed;
+  border-color: #7c3aed;
+  background: #f9fafb;
+}
+
+.btn-back:active {
+  transform: scale(0.95);
 }
 
 .btn-back svg {
@@ -343,7 +383,7 @@ const currentYear = new Date().getFullYear()
   max-width: 440px;
 }
 
-.login-header {
+.reset-password-header {
   margin-bottom: 2.5rem;
   text-align: center;
 }
@@ -367,57 +407,26 @@ const currentYear = new Date().getFullYear()
   object-fit: contain;
 }
 
-.login-header h1 {
-  font-size: 1.875rem;
+.reset-password-header h1 {
+  font-size: 2rem;
   font-weight: 700;
   color: #111827;
   margin: 0 0 0.75rem 0;
   letter-spacing: -0.03em;
 }
 
-.login-header .subtitle {
+.reset-password-header p {
   color: #6b7280;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.6;
-  margin: 0 0 0.625rem 0;
+  margin: 0;
   max-width: 360px;
   margin-left: auto;
   margin-right: auto;
 }
 
-.login-header .brand-title {
-  font-size: 1.625rem;
-  font-weight: 700;
-  margin: 0 0 1.5rem 0;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.bolivia-flag {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-  animation: gentle-float 3s ease-in-out infinite;
-}
-
-@keyframes gentle-float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
-}
-
 /* Formulario */
-.login-form {
+.reset-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -429,28 +438,10 @@ const currentYear = new Date().getFullYear()
   gap: 0.625rem;
 }
 
-.label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .form-label {
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
-}
-
-.forgot-link {
-  font-size: 0.875rem;
-  color: #7c3aed;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.forgot-link:hover {
-  color: #6d28d9;
 }
 
 .input-wrapper {
@@ -469,8 +460,29 @@ const currentYear = new Date().getFullYear()
   pointer-events: none;
 }
 
+.toggle-password {
+  position: absolute;
+  right: 1rem;
+  top: 0.875rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: color 0.2s ease;
+}
+
+.toggle-password:hover {
+  color: #7c3aed;
+}
+
+.toggle-password svg {
+  width: 18px;
+  height: 18px;
+}
+
 .form-input {
-  padding: 0.875rem 1rem 0.875rem 2.875rem;
+  padding: 0.875rem 2.875rem 0.875rem 2.875rem;
   border: 1.5px solid #e5e7eb;
   border-radius: 10px;
   font-size: 0.9375rem;
@@ -503,7 +515,7 @@ const currentYear = new Date().getFullYear()
 }
 
 .form-input.input-error:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08);
 }
 
 .input-error-text {
@@ -512,36 +524,30 @@ const currentYear = new Date().getFullYear()
   margin-top: 0.25rem;
 }
 
-.password-toggle {
-  position: absolute;
-  right: 1rem;
-  top: 0.75rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #9ca3af;
-  padding: 0.25rem;
+/* Success banner */
+.success-banner {
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 10px;
+  font-size: 0.875rem;
   display: flex;
   align-items: center;
-  transition: color 0.2s ease;
+  gap: 0.75rem;
 }
 
-.password-toggle:hover {
-  color: #7c3aed;
-}
-
-.password-toggle svg {
+.success-banner svg {
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
 }
 
 /* Error banner */
 .error-banner {
-  padding: 0.75rem 1rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border-radius: 10px;
   font-size: 0.875rem;
   display: flex;
   align-items: center;
@@ -549,8 +555,8 @@ const currentYear = new Date().getFullYear()
 }
 
 .error-banner svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 }
 
@@ -564,7 +570,7 @@ const currentYear = new Date().getFullYear()
 }
 
 /* Botón principal */
-.btn-login {
+.btn-submit {
   padding: 0.875rem 1.5rem;
   background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
   color: white;
@@ -582,17 +588,17 @@ const currentYear = new Date().getFullYear()
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
 }
 
-.btn-login:hover:not(:disabled) {
+.btn-submit:hover:not(:disabled) {
   background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35);
 }
 
-.btn-login:active:not(:disabled) {
+.btn-submit:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.btn-login:disabled {
+.btn-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -609,21 +615,21 @@ const currentYear = new Date().getFullYear()
   to { transform: rotate(360deg); }
 }
 
-/* Sección de registro */
-.signup-section {
+/* Sección de login */
+.login-section {
   margin-top: 2rem;
   padding-top: 2rem;
   border-top: 1px solid #e5e7eb;
   text-align: center;
 }
 
-.signup-text {
+.login-text {
   font-size: 0.9375rem;
   color: #6b7280;
   margin: 0 0 1rem 0;
 }
 
-.btn-signup {
+.btn-login-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -640,18 +646,18 @@ const currentYear = new Date().getFullYear()
   min-height: 48px;
 }
 
-.btn-signup:hover {
+.btn-login-link:hover {
   background: #f3e8ff;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
 }
 
-.btn-signup:active {
+.btn-login-link:active {
   transform: translateY(0);
 }
 
 /* ========== LADO DERECHO: PANEL DE MARCA ========== */
-.login-right {
+.reset-password-right {
   background-image: url('@/assets/images/bg2.jpg');
   background-size: cover;
   background-position: center;
@@ -775,29 +781,20 @@ const currentYear = new Date().getFullYear()
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1024px) {
-  .login-container {
+  .reset-password-container {
     grid-template-columns: 1fr;
   }
 
-  .login-right {
+  .reset-password-right {
     display: none;
   }
 
-  .login-left {
+  .reset-password-left {
     padding: 2rem 1.5rem;
-  }
-
-  .btn-back {
-    top: 1.5rem;
-    left: 1.5rem;
   }
 }
 
-@media (max-width: 640px) {
-  .login-left {
-    padding: 1.5rem 1rem;
-  }
-
+@media (max-width: 500px) {
   .btn-back {
     top: 1rem;
     left: 1rem;
@@ -805,15 +802,15 @@ const currentYear = new Date().getFullYear()
     height: 36px;
   }
 
-  .form-wrapper {
-    max-width: 100%;
+  .reset-password-left {
+    padding: 1.5rem 1rem;
   }
 
-  .login-header h1 {
+  .reset-password-header h1 {
     font-size: 1.5rem;
   }
 
-  .login-header p {
+  .reset-password-header p {
     font-size: 0.875rem;
   }
 }

@@ -83,7 +83,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -264,7 +264,6 @@ JAZZMIN_SETTINGS = {
         # PRODUCCIÓN: Cambiar a "https://guiaspurpuras.com.bo" cuando se despliegue
         {"name": "Ver Sitio", "url": "http://localhost:5173/", "new_window": True},
         # {"name": "Ver Sitio", "url": "https://guiaspurpuras.com.bo", "new_window": True},  # PRODUCCIÓN
-        {"model": "auth_api.CustomUser"},
         {"app": "jobs"},
     ],
 
@@ -369,7 +368,7 @@ JAZZMIN_SETTINGS = {
 
 JAZZMIN_UI_TWEAKS = {
     # ===== TEMA GENERAL =====
-    "theme": "flatly",  # Tema por defecto Jazzmin
+    "theme": "pulse",  # Tema Pulse - Bootstrap theme
 
     # ===== NAVBAR (Barra superior) =====
     "navbar": "navbar-dark",  # Navbar oscuro por defecto
@@ -400,4 +399,60 @@ JAZZMIN_UI_TWEAKS = {
     # ===== ACTIONS (Botones de acción) =====
     "actions_sticky_top": True,
 }
+
+
+# ============================================================================
+# EMAIL CONFIGURATION - Sistema de Recuperación de Contraseña
+# ============================================================================
+
+import os
+
+# ========== DESARROLLO (LOCALHOST) ==========
+# En localhost, los emails se muestran en la consola del servidor (terminal)
+# Esto es perfecto para desarrollo y testing
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'noreply@guiaspurpuras.com'
+    print("[EMAIL] Modo desarrollo - Emails se mostraran en consola")
+
+# ========== PRODUCCIÓN (RENDER) ==========
+# En producción necesitarás configurar variables de entorno en Render
+# Ve a tu dashboard de Render → Settings → Environment Variables
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+    # ⚠️ IMPORTANTE: Configurar estas variables de entorno en Render:
+    #
+    # 1. EMAIL_HOST - Ejemplo para Gmail: 'smtp.gmail.com'
+    # 2. EMAIL_PORT - Puerto SMTP (587 para TLS, 465 para SSL)
+    # 3. EMAIL_HOST_USER - Tu email completo (ejemplo: tuempresa@gmail.com)
+    # 4. EMAIL_HOST_PASSWORD - App password de Gmail o contraseña del servicio
+    # 5. DEFAULT_FROM_EMAIL - Email que aparecerá como remitente
+    # 6. FRONTEND_URL - URL de tu frontend en producción (ejemplo: https://tuapp.vercel.app)
+    #
+    # Para Gmail:
+    # - Ve a https://myaccount.google.com/security
+    # - Habilita "Verificación en 2 pasos"
+    # - Luego ve a "Contraseñas de aplicaciones"
+    # - Genera una contraseña para "Correo" y úsala en EMAIL_HOST_PASSWORD
+    #
+    # Alternativas a Gmail:
+    # - SendGrid (https://sendgrid.com) - 100 emails gratis/día
+    # - Mailgun (https://www.mailgun.com) - 5,000 emails gratis/mes
+    # - AWS SES (https://aws.amazon.com/ses/) - Muy económico
+
+    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@guiaspurpuras.com')
+
+    # URL del frontend en producción (para los enlaces de recuperación)
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://tuapp.vercel.app')
+
+    print(f"[EMAIL] Modo produccion - Usando {EMAIL_HOST}:{EMAIL_PORT}")
+
+# Email para desarrollo local (siempre se configura)
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@guiaspurpuras.com')
 

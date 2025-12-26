@@ -22,6 +22,7 @@ import TermsConditions from '@/views/Static/TermsConditions.vue'
 import LoginView from '@/views/Auth/LoginView.vue'
 import RegisterView from '@/views/Auth/RegisterView.vue'
 import ForgotPasswordView from '@/views/Auth/ForgotPasswordView.vue'
+import ResetPasswordView from '@/views/Auth/ResetPasswordView.vue'
 
 const routes = [
   // ========== HOME - SOLO TRABAJOS ==========
@@ -308,6 +309,15 @@ const routes = [
     component: ForgotPasswordView,
     meta: {
       title: 'Recuperar Contraseña - Guías Púrpuras',
+      requiresAuth: false
+    }
+  },
+  {
+    path: '/reset-password/:token',
+    name: 'ResetPassword',
+    component: ResetPasswordView,
+    meta: {
+      title: 'Restablecer Contraseña - Guías Púrpuras',
       requiresAuth: false
     }
   },

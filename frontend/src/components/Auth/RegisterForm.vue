@@ -1,85 +1,67 @@
 <template>
   <div class="register-container">
-    <!-- Gradiente animado de fondo -->
-    <div class="gradient-bg"></div>
-    <div class="gradient-blob blob-1"></div>
-    <div class="gradient-blob blob-2"></div>
+    <!-- Lado izquierdo: Formulario -->
+    <div class="register-left">
+      <!-- Back Button -->
+      <button @click="goHome" class="btn-back" type="button" title="Volver al inicio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </button>
 
-    <!-- Partículas flotantes -->
-    <div class="particles-container">
-      <div class="particle particle-1"></div>
-      <div class="particle particle-2"></div>
-      <div class="particle particle-3"></div>
-      <div class="particle particle-4"></div>
-      <div class="particle particle-5"></div>
-      <div class="particle particle-6"></div>
-      <div class="particle particle-7"></div>
-      <div class="particle particle-8"></div>
-      <div class="particle particle-9"></div>
-      <div class="particle particle-10"></div>
-      <div class="particle particle-11"></div>
-      <div class="particle particle-12"></div>
-    </div>
-
-    <!-- Esferas rebotando -->
-    <div class="bounce-spheres-container">
-      <div class="bounce-sphere bounce-sphere-1"></div>
-      <div class="bounce-sphere bounce-sphere-2"></div>
-      <div class="bounce-sphere bounce-sphere-3"></div>
-      <div class="bounce-sphere bounce-sphere-4"></div>
-    </div>
-
-    <!-- Estrellas fugaces -->
-    <div class="meteors-container">
-      <div class="meteor meteor-1"></div>
-      <div class="meteor meteor-2"></div>
-      <div class="meteor meteor-3"></div>
-      <div class="meteor meteor-4"></div>
-    </div>
-
-    <div class="register-content">
-      <!-- Card principal -->
-      <div class="register-card">
-        <!-- Back Button -->
-        <button @click="goHome" class="btn-back" type="button" title="Volver al inicio">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-        </button>
-
-        <!-- Header -->
+      <div class="form-wrapper">
+        <!-- Logo y Header -->
         <div class="register-header">
           <div class="logo-circle">
             <img src="@/assets/guiaspurpuras.ico" alt="Guías Púrpuras" class="logo-img" />
           </div>
-          <h1>Crea tu Cuenta</h1>
-          <p>Únete a la comunidad de Guías Púrpuras</p>
-        </div>
-
-        <!-- Progress indicator -->
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
+          <h1>¡Crea tu cuenta gratis!</h1>
+          <p>Comienza tu viaje hacia nuevas oportunidades laborales en:</p>
+          <h2 class="brand-title">
+            Guías Púrpuras Bolivia
+            <img src="@/assets/bolivia.webp" alt="Bolivia" class="bolivia-flag" />
+          </h2>
         </div>
 
         <!-- Formulario -->
         <form @submit.prevent="handleRegister" class="register-form">
+          <!-- Role Selection (Movido arriba) -->
+          <div class="form-group">
+            <label for="role" class="form-label">¿Quién eres?</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <select
+                id="role"
+                v-model="formData.role"
+                class="form-input"
+                required
+                :disabled="isLoading"
+              >
+                <option value="">Selecciona tu rol...</option>
+                <option value="applicant">Postulante - Busco empleo</option>
+                <option value="company">Empresa - Busco talento</option>
+              </select>
+            </div>
+          </div>
+
           <!-- Name Input -->
           <div class="form-group">
-            <label for="name" class="form-label">
-              <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <label for="name" class="form-label">{{ nameLabel }}</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
-              Nombre Completo
-            </label>
-            <div class="input-wrapper">
               <input
                 id="name"
                 v-model="formData.name"
                 type="text"
                 class="form-input"
                 :class="{ 'input-error': validationErrors.name }"
-                placeholder="Juan Pérez"
+                :placeholder="namePlaceholder"
                 required
                 :disabled="isLoading"
                 @blur="validateName"
@@ -90,21 +72,19 @@
 
           <!-- Email Input -->
           <div class="form-group">
-            <label for="email" class="form-label">
-              <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <label for="email" class="form-label">{{ emailLabel }}</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="2" y="4" width="20" height="16" rx="2"></rect>
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
               </svg>
-              Correo Electrónico
-            </label>
-            <div class="input-wrapper">
               <input
                 id="email"
                 v-model="formData.email"
                 type="email"
                 class="form-input"
                 :class="{ 'input-error': validationErrors.email }"
-                placeholder="tu@email.com"
+                :placeholder="emailPlaceholder"
                 required
                 :disabled="isLoading"
                 @blur="validateEmail"
@@ -113,63 +93,14 @@
             </div>
           </div>
 
-          <!-- Role Selection (Postulante o Empresa) -->
-          <div class="form-group">
-            <label for="role" class="form-label">
-              <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-                <path d="M22 7c0-1.657-1.343-3-3-3s-3 1.343-3 3"></path>
-              </svg>
-              ¿Quién eres?
-            </label>
-            <div class="input-wrapper role-wrapper">
-              <select
-                id="role"
-                v-model="formData.role"
-                class="form-input role-select"
-                required
-                :disabled="isLoading"
-              >
-                <option value="">Selecciona tu rol...</option>
-                <option value="applicant">Postulante - Busco oportunidades de empleo</option>
-                <option value="company">Empresa - Busco talento para mi equipo</option>
-              </select>
-              <!-- Icon que cambia según el rol seleccionado - IZQUIERDA -->
-              <svg v-if="!formData.role" class="role-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-              <!-- Icon para Postulante -->
-              <svg v-else-if="formData.role === 'applicant'" class="role-icon active" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-              <!-- Icon para Empresa -->
-              <svg v-else-if="formData.role === 'company'" class="role-icon active" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                <path d="M16 11h4"></path>
-                <path d="M16 15h4"></path>
-                <path d="M6 11h.01"></path>
-                <path d="M6 15h.01"></path>
-              </svg>
-              <!-- Icon dropdown - DERECHA -->
-              <svg class="select-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </div>
-          </div>
-
           <!-- Password Input -->
           <div class="form-group">
-            <label for="password" class="form-label">
-              <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <label for="password" class="form-label">Contraseña</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
-              Contraseña
-            </label>
-            <div class="input-wrapper">
               <input
                 id="password"
                 v-model="formData.password"
@@ -216,13 +147,11 @@
 
           <!-- Confirm Password Input -->
           <div class="form-group">
-            <label for="confirmPassword" class="form-label">
-              <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
-              Confirmar Contraseña
-            </label>
-            <div class="input-wrapper">
               <input
                 id="confirmPassword"
                 v-model="formData.confirmPassword"
@@ -268,7 +197,7 @@
           <!-- Terms & Conditions -->
           <label class="checkbox-label">
             <input type="checkbox" v-model="acceptTerms" :disabled="isLoading" required />
-            <span>Acepto los <router-link to="/terms">términos y condiciones</router-link></span>
+            <span>Acepto los <router-link to="/terminos">términos y condiciones</router-link></span>
           </label>
 
           <!-- Submit Button -->
@@ -284,10 +213,96 @@
             <span>{{ isLoading ? 'Creando cuenta...' : 'Crear Cuenta' }}</span>
           </button>
         </form>
+
+        <!-- Login Link -->
+        <div class="login-section">
+          <p class="login-text">¿Ya tienes una cuenta?</p>
+          <router-link to="/login" class="btn-login-link">
+            Iniciar sesión
+          </router-link>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lado derecho: Panel de marca -->
+    <div class="register-right">
+      <div class="brand-overlay"></div>
+      <div class="brand-content">
+        <div class="brand-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>100% Gratis para Postulantes</span>
+        </div>
+
+        <h2>Únete a la comunidad laboral más grande de Bolivia</h2>
+        <p class="brand-description">
+          Miles de profesionales y empresas ya confían en Guías Púrpuras para encontrar las mejores oportunidades.
+        </p>
+
+        <div class="features-grid">
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <polyline points="17 11 19 13 23 9"></polyline>
+              </svg>
+            </div>
+            <div class="feature-text">
+              <h3>Perfil Profesional</h3>
+              <p>Crea tu perfil y destaca tus habilidades</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </div>
+            <div class="feature-text">
+              <h3>Postula Fácilmente</h3>
+              <p>Aplica a empleos con un solo clic</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </div>
+            <div class="feature-text">
+              <h3>Notificaciones</h3>
+              <p>Recibe alertas de nuevas ofertas</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-banner">
+          <div class="stat-item">
+            <span class="stat-number">1,500+</span>
+            <span class="stat-label">Empleos</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number">500+</span>
+            <span class="stat-label">Empresas</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-number">3,000+</span>
+            <span class="stat-label">Usuarios</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Footer -->
-      <div class="auth-footer">
+      <div class="brand-footer">
         <p>{{ currentYear }} © Guías Púrpuras. Todos los derechos reservados.</p>
       </div>
     </div>
@@ -308,7 +323,7 @@ const formData = ref({
   email: '',
   password: '',
   confirmPassword: '',
-  role: 'applicant'  // 'applicant' (postulante) o 'company' (empresa)
+  role: ''
 })
 
 const showPassword = ref(false)
@@ -339,14 +354,21 @@ const isFormValid = computed(() => {
   )
 })
 
-const progressPercentage = computed(() => {
-  let filled = 0
-  if (formData.value.name) filled++
-  if (formData.value.email) filled++
-  if (formData.value.role) filled++
-  if (formData.value.password && passwordStrength.value.level !== 'weak') filled++
-  if (formData.value.confirmPassword && formData.value.password === formData.value.confirmPassword) filled++
-  return (filled / 5) * 100
+// Labels dinámicos según el rol
+const nameLabel = computed(() => {
+  return formData.value.role === 'company' ? 'Nombre de la Empresa' : 'Nombre Completo'
+})
+
+const namePlaceholder = computed(() => {
+  return formData.value.role === 'company' ? 'Ej: Empresa S.A.' : 'Juan Pérez'
+})
+
+const emailLabel = computed(() => {
+  return formData.value.role === 'company' ? 'Correo Electrónico de la Empresa' : 'Correo Electrónico'
+})
+
+const emailPlaceholder = computed(() => {
+  return formData.value.role === 'company' ? 'contacto@empresa.com' : 'tu@email.com'
 })
 
 // Indicador de fortaleza de contraseña
@@ -410,7 +432,7 @@ const validatePassword = () => {
 const validateConfirmPassword = () => {
   if (!formData.value.confirmPassword) {
     validationErrors.value.confirmPassword = 'Debes confirmar la contraseña'
-  } else if (formData.value.password !== formData.value.confirmPassword) {
+  } else if (formData.value.password.trim() !== formData.value.confirmPassword.trim()) {
     validationErrors.value.confirmPassword = 'Las contraseñas no coinciden'
   } else {
     validationErrors.value.confirmPassword = ''
@@ -467,605 +489,45 @@ const currentYear = new Date().getFullYear()
 </script>
 
 <style scoped>
-/* Contenedor principal */
+/* Contenedor principal con grid de 2 columnas */
 .register-container {
   min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* ========== LADO IZQUIERDO: FORMULARIO ========== */
+.register-left {
+  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 3rem 2rem;
   position: relative;
-  overflow: hidden;
-  background: #0f0c29;
-}
-
-/* Gradiente animado de fondo - Efecto dinámico */
-.gradient-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    -45deg,
-    #0f0c29 0%,
-    #1a1847 25%,
-    #302b63 50%,
-    #2a1f5e 75%,
-    #24243e 100%
-  );
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
-  z-index: 0;
-}
-
-/* Blobs animados con efecto de pulsación */
-.gradient-blob {
-  position: absolute;
-  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-  opacity: 0.25;
-  mix-blend-mode: screen;
-  filter: blur(40px);
-  z-index: 1;
-}
-
-.blob-1 {
-  width: 500px;
-  height: 500px;
-  background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 50%, #c084fc 100%);
-  top: -150px;
-  left: -150px;
-  animation: blobFloat1 20s ease-in-out infinite;
-  box-shadow: 0 0 100px rgba(124, 58, 237, 0.4);
-}
-
-.blob-2 {
-  width: 450px;
-  height: 450px;
-  background: linear-gradient(135deg, #6d28d9 0%, #a78bfa 100%);
-  bottom: -200px;
-  right: -150px;
-  animation: blobFloat2 25s ease-in-out infinite;
-  box-shadow: 0 0 80px rgba(109, 40, 217, 0.3);
-}
-
-/* Blob adicional para más dimensionalidad */
-.gradient-blob::after {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at 30% 50%, rgba(124, 58, 237, 0.2), transparent 70%);
-  border-radius: inherit;
-  animation: pulse 4s ease-in-out infinite;
-}
-
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-@keyframes blobFloat1 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  25% {
-    transform: translate(50px, -80px) scale(1.05);
-  }
-  50% {
-    transform: translate(-30px, 40px) scale(0.95);
-  }
-  75% {
-    transform: translate(100px, -50px) scale(1.08);
-  }
-}
-
-@keyframes blobFloat2 {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  25% {
-    transform: translate(-60px, 80px) scale(0.95);
-  }
-  50% {
-    transform: translate(40px, -60px) scale(1.08);
-  }
-  75% {
-    transform: translate(-80px, 30px) scale(1.02);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.2;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.4;
-    transform: scale(1.1);
-  }
-}
-
-/* Partículas flotantes - Destellos fluidos */
-.particles-container {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 2;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.particle {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(124, 58, 237, 0.5));
-  box-shadow: 0 0 30px rgba(124, 58, 237, 0.8), 0 0 60px rgba(167, 139, 250, 0.4);
-  filter: blur(0.5px);
-}
-
-.particle-1 {
-  width: 12px;
-  height: 12px;
-  top: 15%;
-  left: 10%;
-  animation: floatParticle 20s ease-in-out infinite;
-}
-
-.particle-2 {
-  width: 16px;
-  height: 16px;
-  top: 25%;
-  left: 85%;
-  animation: floatParticle 25s ease-in-out infinite reverse;
-  animation-delay: 2s;
-}
-
-.particle-3 {
-  width: 10px;
-  height: 10px;
-  top: 45%;
-  left: 20%;
-  animation: floatParticle 22s ease-in-out infinite;
-  animation-delay: 4s;
-}
-
-.particle-4 {
-  width: 14px;
-  height: 14px;
-  top: 60%;
-  left: 90%;
-  animation: floatParticle 28s ease-in-out infinite reverse;
-  animation-delay: 1s;
-}
-
-.particle-5 {
-  width: 12px;
-  height: 12px;
-  top: 75%;
-  left: 15%;
-  animation: floatParticle 24s ease-in-out infinite;
-  animation-delay: 3s;
-}
-
-.particle-6 {
-  width: 16px;
-  height: 16px;
-  top: 35%;
-  left: 75%;
-  animation: floatParticle 26s ease-in-out infinite reverse;
-  animation-delay: 5s;
-}
-
-.particle-7 {
-  width: 10px;
-  height: 10px;
-  top: 55%;
-  left: 25%;
-  animation: floatParticle 21s ease-in-out infinite;
-  animation-delay: 2.5s;
-}
-
-.particle-8 {
-  width: 14px;
-  height: 14px;
-  top: 20%;
-  left: 70%;
-  animation: floatParticle 27s ease-in-out infinite reverse;
-  animation-delay: 4.5s;
-}
-
-.particle-9 {
-  width: 12px;
-  height: 12px;
-  top: 70%;
-  left: 50%;
-  animation: floatParticle 23s ease-in-out infinite;
-  animation-delay: 1.5s;
-}
-
-.particle-10 {
-  width: 14px;
-  height: 14px;
-  top: 40%;
-  left: 40%;
-  animation: floatParticle 29s ease-in-out infinite reverse;
-  animation-delay: 3.5s;
-}
-
-.particle-11 {
-  width: 10px;
-  height: 10px;
-  top: 80%;
-  left: 80%;
-  animation: floatParticle 25s ease-in-out infinite;
-  animation-delay: 0s;
-}
-
-.particle-12 {
-  width: 16px;
-  height: 16px;
-  top: 50%;
-  left: 5%;
-  animation: floatParticle 26s ease-in-out infinite reverse;
-  animation-delay: 2s;
-}
-
-@keyframes floatParticle {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  50% {
-    transform: translate(100px, -150px) scale(1.5);
-    opacity: 0.8;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translate(50px, -300px) scale(0.5);
-    opacity: 0;
-  }
-}
-
-/* Esferas rebotando */
-.bounce-spheres-container {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 1.5;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.bounce-sphere {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, rgba(167, 139, 250, 0.6), rgba(124, 58, 237, 0.2));
-  box-shadow:
-    0 0 40px rgba(167, 139, 250, 0.5),
-    inset -2px -2px 5px rgba(0, 0, 0, 0.2),
-    inset 2px 2px 5px rgba(255, 255, 255, 0.1);
-  filter: blur(0.3px);
-  border: 1px solid rgba(167, 139, 250, 0.3);
-}
-
-.bounce-sphere-1 {
-  width: 40px;
-  height: 40px;
-  bottom: -50px;
-  left: 15%;
-  animation: bounce1 4s ease-in-out infinite;
-}
-
-.bounce-sphere-2 {
-  width: 50px;
-  height: 50px;
-  bottom: -60px;
-  right: 20%;
-  animation: bounce2 5s ease-in-out infinite;
-  animation-delay: 0.5s;
-}
-
-.bounce-sphere-3 {
-  width: 35px;
-  height: 35px;
-  bottom: -40px;
-  left: 50%;
-  animation: bounce3 4.5s ease-in-out infinite;
-  animation-delay: 1s;
-}
-
-.bounce-sphere-4 {
-  width: 45px;
-  height: 45px;
-  bottom: -55px;
-  left: 75%;
-  animation: bounce1 5.5s ease-in-out infinite;
-  animation-delay: 0.3s;
-}
-
-@keyframes bounce1 {
-  0% {
-    transform: translateY(0) scaleY(1);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  25% {
-    transform: translateY(-300px) scaleY(1);
-  }
-  50% {
-    transform: translateY(-80px) scaleY(0.8);
-  }
-  75% {
-    transform: translateY(-200px) scaleY(1);
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(0) scaleY(1);
-    opacity: 0;
-  }
-}
-
-@keyframes bounce2 {
-  0% {
-    transform: translateY(0) scaleY(1);
-    opacity: 0;
-  }
-  8% {
-    opacity: 1;
-  }
-  20% {
-    transform: translateY(-350px) scaleY(1);
-  }
-  45% {
-    transform: translateY(-100px) scaleY(0.75);
-  }
-  70% {
-    transform: translateY(-220px) scaleY(1);
-  }
-  92% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(0) scaleY(1);
-    opacity: 0;
-  }
-}
-
-@keyframes bounce3 {
-  0% {
-    transform: translateY(0) scaleY(1);
-    opacity: 0;
-  }
-  12% {
-    opacity: 1;
-  }
-  28% {
-    transform: translateY(-320px) scaleY(1);
-  }
-  52% {
-    transform: translateY(-90px) scaleY(0.8);
-  }
-  78% {
-    transform: translateY(-210px) scaleY(1);
-  }
-  88% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(0) scaleY(1);
-    opacity: 0;
-  }
-}
-
-/* Estrellas fugaces (Shooting Stars) */
-.meteors-container {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 3;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.meteor {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at 20% 20%, rgba(255, 255, 255, 0.9), rgba(167, 139, 250, 0.6), transparent);
-  box-shadow:
-    0 0 30px rgba(167, 139, 250, 0.6),
-    0 0 60px rgba(124, 58, 237, 0.3),
-    inset 0 0 15px rgba(255, 255, 255, 0.4);
-  filter: blur(0.5px);
-}
-
-.meteor::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(167, 139, 250, 0.4), transparent 70%);
-  border-radius: 50%;
-  animation: shootingGlow 2s ease-out infinite;
-}
-
-.meteor-1 {
-  width: 8px;
-  height: 8px;
-  top: 15%;
-  left: 15%;
-  animation: shootingStar 4s ease-in infinite;
-  animation-delay: 0s;
-}
-
-.meteor-2 {
-  width: 6px;
-  height: 6px;
-  top: 30%;
-  left: 85%;
-  animation: shootingStar 4.5s ease-in infinite;
-  animation-delay: 1.2s;
-}
-
-.meteor-3 {
-  width: 7px;
-  height: 7px;
-  top: 55%;
-  left: 10%;
-  animation: shootingStar 4.2s ease-in infinite;
-  animation-delay: 2.4s;
-}
-
-.meteor-4 {
-  width: 6px;
-  height: 6px;
-  top: 70%;
-  left: 80%;
-  animation: shootingStar 4.8s ease-in infinite;
-  animation-delay: 0.6s;
-}
-
-@keyframes shootingStar {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0) scale(0.5);
-  }
-  5% {
-    opacity: 1;
-    transform: translate(0, 0) scale(1);
-  }
-  85% {
-    opacity: 0.8;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(150px, -200px) scale(0.2);
-  }
-}
-
-@keyframes shootingGlow {
-  0% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(2);
-  }
-}
-
-/* Contenido principal */
-.register-content {
-  position: relative;
-  z-index: 20;
-  width: 100%;
-  max-width: 460px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-/* Card principal */
-.register-card {
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 20px;
-  box-shadow:
-    0 8px 32px 0 rgba(124, 58, 237, 0.25),
-    0 20px 60px rgba(109, 40, 217, 0.15),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
-  padding: 48px 40px;
-  backdrop-filter: blur(10px);
-  border: 1.5px solid rgba(124, 58, 237, 0.2);
-  animation: slideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-  max-height: 90vh;
   overflow-y: auto;
-  position: relative;
-  overflow: visible;
 }
 
-.register-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  z-index: -1;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-
-/* Back Button */
 .btn-back {
   position: absolute;
-  top: 16px;
-  left: 16px;
-  width: 36px;
-  height: 36px;
-  background: none;
-  border: none;
-  color: #999;
+  top: 2rem;
+  left: 2rem;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #6b7280;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-  border-radius: 6px;
-  padding: 0;
-  z-index: 10;
+  transition: all 0.2s ease;
 }
 
 .btn-back:hover {
+  background: #f9fafb;
+  border-color: #7c3aed;
   color: #7c3aed;
-  background: rgba(124, 58, 237, 0.1);
-}
-
-.btn-back:active {
-  transform: scale(0.95);
 }
 
 .btn-back svg {
@@ -1073,101 +535,101 @@ const currentYear = new Date().getFullYear()
   height: 20px;
 }
 
-/* Header */
+.form-wrapper {
+  width: 100%;
+  max-width: 440px;
+}
+
 .register-header {
+  margin-bottom: 2.5rem;
   text-align: center;
-  margin-bottom: 24px;
 }
 
 .logo-circle {
-  width: 70px;
-  height: 70px;
-  margin: 0 auto 20px;
-  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-  border-radius: 50%;
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3);
+  margin: 0 auto 1.75rem auto;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.1);
 }
 
 .logo-img {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   object-fit: contain;
 }
 
-@keyframes popIn {
-  0% {
-    transform: scale(0);
-  }
-  70% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
+.register-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.03em;
 }
 
-.register-header h1 {
-  font-size: 28px;
+.register-header h2.brand-title {
+  font-size: 1.5rem;
   font-weight: 700;
-  color: #1a1a2e;
-  margin: 0 0 8px 0;
-  letter-spacing: -0.5px;
+  margin: 0 0 1rem 0;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.bolivia-flag {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  animation: gentle-float 3s ease-in-out infinite;
+}
+
+@keyframes gentle-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
 }
 
 .register-header p {
-  color: #666;
-  font-size: 14px;
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.6;
   margin: 0;
-}
-
-/* Progress bar */
-.progress-bar {
-  height: 4px;
-  background: #f0f0f0;
-  border-radius: 2px;
-  margin-bottom: 24px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #5700f8 0%, #6d03d8 100%);
-  transition: width 0.3s ease;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Formulario */
 .register-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1.25rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.625rem;
 }
 
 .form-label {
-  font-size: 13px;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: #333;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.label-icon {
-  width: 16px;
-  height: 16px;
-  color: #667eea;
+  color: #374151;
 }
 
 .input-wrapper {
@@ -1176,67 +638,79 @@ const currentYear = new Date().getFullYear()
   flex-direction: column;
 }
 
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  top: 0.875rem;
+  width: 18px;
+  height: 18px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
 .form-input {
-  padding: 12px 16px;
-  padding-right: 40px;
-  border: 2px solid #e8e8e8;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 0.875rem 1rem 0.875rem 2.875rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.9375rem;
   font-family: inherit;
-  transition: all 0.3s ease;
-  background: #f9f9f9;
+  transition: all 0.2s ease;
+  background: #fafafa;
+  color: #111827;
+  min-height: 48px;
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #7c3aed;
   background: white;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
 }
 
 .form-input:disabled {
-  background-color: #f0f0f0;
-  color: #999;
+  background-color: #f3f4f6;
+  color: #9ca3af;
   cursor: not-allowed;
 }
 
 .form-input.input-error {
-  border-color: #ff6b6b;
+  border-color: #ef4444;
 }
 
 .form-input.input-error:focus {
-  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .input-error-text {
-  font-size: 12px;
-  color: #ff6b6b;
-  margin-top: 4px;
-  animation: shake 0.3s ease-in-out;
+  font-size: 0.8125rem;
+  color: #ef4444;
+  margin-top: 0.25rem;
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+select.form-input {
+  cursor: pointer;
 }
 
 .password-toggle {
   position: absolute;
-  right: 12px;
-  top: 12px;
+  right: 1rem;
+  top: 0.75rem;
   background: none;
   border: none;
   cursor: pointer;
-  color: #999;
-  padding: 4px;
+  color: #9ca3af;
+  padding: 0.25rem;
   display: flex;
   align-items: center;
   transition: color 0.2s ease;
 }
 
 .password-toggle:hover {
-  color: #667eea;
+  color: #7c3aed;
 }
 
 .password-toggle svg {
@@ -1246,10 +720,10 @@ const currentYear = new Date().getFullYear()
 
 /* Password strength */
 .password-strength {
-  margin-top: 8px;
+  margin-top: 0.5rem;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.75rem;
 }
 
 .strength-bar {
@@ -1266,47 +740,47 @@ const currentYear = new Date().getFullYear()
 }
 
 .strength-fill.weak {
-  background: #ff6b6b;
+  background: #ef4444;
 }
 
 .strength-fill.medium {
-  background: #ffd93d;
+  background: #f59e0b;
 }
 
 .strength-fill.strong {
-  background: #6bcf7f;
+  background: #10b981;
 }
 
 .strength-text {
-  font-size: 11px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .strength-text.weak {
-  color: #ff6b6b;
+  color: #ef4444;
 }
 
 .strength-text.medium {
-  color: #ffd93d;
+  color: #f59e0b;
 }
 
 .strength-text.strong {
-  color: #6bcf7f;
+  color: #10b981;
 }
 
-/* Mensajes de error */
+/* Error banner */
 .error-banner {
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
-  color: white;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 0.875rem;
   display: flex;
   align-items: center;
-  gap: 10px;
-  animation: slideDown 0.3s ease-out;
+  gap: 0.75rem;
 }
 
 .error-banner svg {
@@ -1315,39 +789,36 @@ const currentYear = new Date().getFullYear()
   flex-shrink: 0;
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.slide-down-enter-active, .slide-down-leave-active {
+  transition: all 0.3s ease;
 }
 
-/* Checkbox para términos */
+.slide-down-enter-from, .slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* Checkbox */
 .checkbox-label {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 12px;
-  color: #555;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.875rem;
+  color: #6b7280;
   cursor: pointer;
-  margin-top: 8px;
+  padding: 0.5rem 0;
 }
 
 .checkbox-label input {
-  width: 16px;
-  height: 16px;
-  margin-top: 2px;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
-  accent-color: #667eea;
+  accent-color: #7c3aed;
   flex-shrink: 0;
 }
 
 .checkbox-label a {
-  color: #667eea;
+  color: #7c3aed;
   text-decoration: none;
   font-weight: 600;
 }
@@ -1358,26 +829,28 @@ const currentYear = new Date().getFullYear()
 
 /* Botón principal */
 .btn-register {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
   color: white;
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 600;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  margin-top: 12px;
+  gap: 0.5rem;
+  min-height: 52px;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
 }
 
 .btn-register:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.35);
 }
 
 .btn-register:active:not(:disabled) {
@@ -1387,6 +860,7 @@ const currentYear = new Date().getFullYear()
 .btn-register:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 .spinner {
@@ -1400,107 +874,252 @@ const currentYear = new Date().getFullYear()
   to { transform: rotate(360deg); }
 }
 
-
-/* Footer */
-.auth-footer {
+/* Sección de login */
+.login-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
   text-align: center;
-  padding: 24px 0;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
 }
 
-.auth-footer p {
-  margin: 0;
+.login-text {
+  font-size: 0.9375rem;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
 }
 
-/* Role Select Styles */
-.role-wrapper {
-  position: relative;
+.btn-login-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  color: #7c3aed;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border: 2px solid #7c3aed;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  min-height: 48px;
+}
+
+.btn-login-link:hover {
+  background: #f3e8ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+}
+
+.btn-login-link:active {
+  transform: translateY(0);
+}
+
+/* ========== LADO DERECHO: PANEL DE MARCA ========== */
+.register-right {
+  background-image: url('@/assets/images/bg1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   flex-direction: column;
-}
-
-.role-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  color: #999;
-  pointer-events: none;
-  transition: color 0.3s ease;
-  z-index: 5;
-}
-
-.role-icon.active {
-  color: #667eea;
-}
-
-.role-select {
-  appearance: none;
-  padding-left: 44px !important;
-  padding-right: 40px !important;
-  cursor: pointer;
-  width: 100%;
+  justify-content: space-between;
+  padding: 3rem 3rem 2rem 3rem;
+  color: white;
   position: relative;
+  overflow: hidden;
+}
+
+.brand-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(81, 0, 135, 0.92) 0%, rgba(61, 0, 102, 0.95) 100%);
   z-index: 1;
 }
 
-.role-select:focus {
-  outline: none;
-  border-color: #667eea;
-  background: white;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+.brand-content {
+  position: relative;
+  z-index: 2;
 }
 
-.select-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  color: #667eea;
-  pointer-events: none;
-  z-index: 5;
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 50px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Responsive */
-@media (max-width: 500px) {
-  .register-content {
-    padding: 16px;
+.brand-badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.brand-content h2 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 1.25rem 0;
+  letter-spacing: -0.03em;
+}
+
+.brand-description {
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 2.5rem 0;
+}
+
+.features-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.feature-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.feature-icon svg {
+  width: 24px;
+  height: 24px;
+  color: #fbbf24;
+}
+
+.feature-text h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: white;
+}
+
+.feature-text p {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.stats-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fbbf24;
+  margin: 0;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.brand-footer {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.brand-footer p {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .register-container {
+    grid-template-columns: 1fr;
+  }
+
+  .register-right {
+    display: none;
+  }
+
+  .register-left {
+    padding: 2rem 1.5rem;
+  }
+
+  .btn-back {
+    top: 1.5rem;
+    left: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .register-left {
+    padding: 1.5rem 1rem;
+  }
+
+  .btn-back {
+    top: 1rem;
+    left: 1rem;
+    width: 36px;
+    height: 36px;
+  }
+
+  .form-wrapper {
     max-width: 100%;
   }
 
-  .register-card {
-    padding: 32px 24px;
-  }
-
   .register-header h1 {
-    font-size: 24px;
+    font-size: 1.5rem;
   }
 
-  .blob-1, .blob-2 {
-    opacity: 0.15;
+  .register-header p {
+    font-size: 0.875rem;
   }
-}
-
-/* Scrollbar personalizado */
-.register-card::-webkit-scrollbar {
-  width: 6px;
-}
-
-.register-card::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.register-card::-webkit-scrollbar-thumb {
-  background: #ddd;
-  border-radius: 3px;
-}
-
-.register-card::-webkit-scrollbar-thumb:hover {
-  background: #bbb;
 }
 </style>

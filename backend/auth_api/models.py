@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
+from datetime import timedelta
+import secrets
 
 
 class CustomUser(AbstractUser):
@@ -57,3 +60,65 @@ class AdminUser(CustomUser):
         proxy = True
         verbose_name = 'Administrador del Sistema'
         verbose_name_plural = 'Administradores del Sistema'
+
+
+class PasswordResetToken(models.Model):
+    """
+    Modelo para almacenar tokens de recuperación de contraseña
+    Los tokens son válidos por 1 hora
+    """
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='password_reset_tokens',
+        verbose_name='Usuario'
+    )
+    token = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='Token'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Fecha de Creación'
+    )
+    expires_at = models.DateTimeField(
+        verbose_name='Fecha de Expiración'
+    )
+    used = models.BooleanField(
+        default=False,
+        verbose_name='Usado'
+    )
+
+    class Meta:
+        verbose_name = 'Token de Recuperación de Contraseña'
+        verbose_name_plural = 'Tokens de Recuperación de Contraseña'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Token para {self.user.email} - {'Usado' if self.used else 'Activo'}"
+
+    def is_valid(self):
+        """Verifica si el token es válido (no usado y no expirado)"""
+        return not self.used and timezone.now() < self.expires_at
+
+    @staticmethod
+    def generate_token():
+        """Genera un token seguro y único"""
+        return secrets.token_urlsafe(32)
+
+    @staticmethod
+    def create_for_user(user):
+        """Crea un nuevo token de recuperación para un usuario"""
+        # Invalidar tokens anteriores
+        PasswordResetToken.objects.filter(user=user, used=False).update(used=True)
+
+        # Crear nuevo token
+        token = PasswordResetToken.generate_token()
+        expires_at = timezone.now() + timedelta(hours=1)
+
+        return PasswordResetToken.objects.create(
+            user=user,
+            token=token,
+            expires_at=expires_at
+        )

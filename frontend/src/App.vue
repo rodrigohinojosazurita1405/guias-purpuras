@@ -118,6 +118,26 @@ body {
 /* ==========================================
    TRANSICIONES DE RUTA
    ========================================== */
+/* Transición suave entre páginas */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.page-enter-from {
+  opacity: 0;
+}
+
+.page-leave-to {
+  opacity: 0;
+}
+
+.page-enter-to,
+.page-leave-from {
+  opacity: 1;
+}
+
+/* Transición fade simple para casos específicos */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
