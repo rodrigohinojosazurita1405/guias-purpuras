@@ -98,8 +98,10 @@ FASE 11.1: Mejoras UX/UI Admin + Frontend  ✅ 100% COMPLETADA
 - ✅ Textos profesionales (removidos textos de desarrollo como "FASE 7.1")
 
 ### ✅ FASE 11.1: Mejoras de UX/UI Admin y Frontend (100% COMPLETADA) - Diciembre 2024
-**Archivos:** `jobs/admin.py`, `PublishSuccessModal.vue`, `SummaryCard.vue`
-**Commit:** `a2a4931` - Mejorar interfaz del admin de Django para verificación de pagos
+**Archivos:** `jobs/admin.py`, `PublishSuccessModal.vue`, `SummaryCard.vue`, `InformationStepJob.vue`, `PublishView.vue`
+**Commits:**
+- `a2a4931` - Mejorar interfaz del admin de Django para verificación de pagos
+- `49d530d` - Mejoras en editor Quill y UI del formulario de publicación
 
 #### Admin Django - Verificación de Pagos:
 - ✅ **Widget personalizado destacado para checkbox 'Pago verificado'**
@@ -143,6 +145,29 @@ FASE 11.1: Mejoras UX/UI Admin + Frontend  ✅ 100% COMPLETADA
   - ✅ Alineación a la izquierda en móvil
   - ✅ Fuentes aumentadas para mejor legibilidad
   - ✅ Color púrpura (#7C3AED) en label "Oferta laboral"
+  - ✅ **Badges limpios sin iconos** (Destacado, Urgente, Patrocinado)
+  - ✅ **Badges más compactos en desktop** (0.4rem padding, font 0.7rem)
+  - ✅ **Headers H1-H6 neutralizados** en descripción de trabajo (forzados a <p>)
+
+#### Frontend - Editor Quill y Formulario:
+- ✅ **InformationStepJob.vue - Editor Quill mejorado**
+  - ✅ **Conversión automática H1-H6 → <p>** en evento `text-change`
+  - ✅ Filtro de expresiones regulares para limpiar headers del HTML
+  - ✅ CSS neutralizador de headers en editor (font-size 1rem, peso normal)
+  - ✅ Restricción de formatos permitidos (sin 'header' en array)
+  - ✅ Consistencia visual entre editor, resumen y Django admin
+
+- ✅ **PublishView.vue - Modal de confirmación "Limpiar borrador"**
+  - ✅ Reemplazo de `confirm()` nativo por VaModal personalizado
+  - ✅ Sin efecto blur (fondo semi-transparente limpio)
+  - ✅ Ancho máximo 450px en desktop (compacto y centrado)
+  - ✅ Diseño responsive optimizado para móvil
+  - ✅ Botones apilados verticalmente en móvil (fácil de usar)
+  - ✅ Botón principal primero en móvil ("Sí, limpiar" arriba)
+  - ✅ Mensaje personalizado sin referencias a localhost
+
+- ✅ **jobs/views.py - Limpieza de código**
+  - ✅ Eliminados prints de debug en endpoint de categorías dinámicas
 
 ### ✅ FASE 7.3: Gestión de Anuncios (100% COMPLETADA)
 **Componente:** `JobsManager.vue`
@@ -314,7 +339,7 @@ interviewed → accepted:
 - ⏳ Contador de notificaciones no leídas en navbar
 - ⏳ Sistema de polling o WebSocket para tiempo real
 
-### 2. **FASE 7.8: Gestión de CVs en Dashboard Postulante** (🔴 CRÍTICO - EN PROGRESO 40%)
+### 2. **FASE 7.8: Gestión de CVs en Dashboard Postulante** (🔴 CRÍTICO - EN PROGRESO 85%)
 **Descripción:** Permitir crear, editar, eliminar y gestionar CVs desde el dashboard del postulante
 
 **Tareas Completadas:**
@@ -326,18 +351,39 @@ interviewed → accepted:
 - ✅ Backend: Endpoint `POST /api/cvs/save/` - Guardar CV creado
 - ✅ Backend: Endpoint `GET /api/cvs/list/` - Listar CVs del usuario
 - ✅ Backend: Endpoint `DELETE /api/cvs/{id}/delete/` - Eliminar CV
+- ✅ Backend: Endpoint `PATCH /api/cvs/{id}/update/` - Actualizar CV completo
+- ✅ Backend: Endpoint `GET /api/cvs/{id}/` - Obtener detalle de CV para edición
 - ✅ Integración CreateCV.vue en modal (formato Harvard completo)
 - ✅ Validación de campos obligatorios (Nombre, Email, Teléfono)
-- ✅ Sistema de badges por tipo (Creado/Subido)
+- ✅ Sistema de badges temporales inteligentes:
+  - ✅ Badge "NUEVO" (morado) para CVs creados hace menos de 48 horas
+  - ✅ Badge "ACTUALIZADO" (verde) para CVs modificados hace menos de 24 horas
+  - ✅ Badges desaparecen automáticamente después del tiempo establecido
 - ✅ Metadata de CVs (creado, actualizado)
 - ✅ Fix de reactividad v-model entre CVManager ↔ CreateCV
 - ✅ Modal sin overlay oscuro (UX mejorada)
+- ✅ **CRUD Completo de CVs**:
+  - ✅ Editar CV creado en plataforma (wizard con datos precargados vía query param)
+  - ✅ Componente `CVBuilderView.vue` - Wizard de 6 pasos para crear/editar CV
+  - ✅ Componente `CVStepsIndicator.vue` - Indicador visual de progreso (estilo PublishStepsIndicator)
+  - ✅ Eliminar CV con confirmación
+  - ✅ Navegación dedicada en `/dashboard/cv/builder`
+  - ✅ Edición inline del nombre del CV (click-to-edit con Enter/Esc)
+  - ✅ Reorganización de archivos a carpeta `ProcessCV/`
+  - ✅ Sincronización completa frontend-backend verificada
+  - ✅ Corrección de ruta de endpoint de detalle de CV
+- ✅ **Mejoras de UX/UI**:
+  - ✅ Header mejorado con información del formato Harvard
+  - ✅ Título con gradiente: "Mis CVs Profesionales"
+  - ✅ Descripción ampliada sobre ventajas del formato Harvard
+  - ✅ 3 badges informativos: "Formato Profesional", "Creación Rápida", "Mayor Impacto"
+  - ✅ Diseño moderno con fondo degradado y bordes sutiles
+  - ✅ Tarjetas de CV rediseñadas con mejor jerarquía visual
+  - ✅ Edición inline de nombres con iconos y feedback visual
+  - ✅ Responsive design completo (mobile-first)
 
 **Tareas Pendientes (🔴 CRÍTICAS):**
-- 🔴 **CRUD Completo de CVs**:
-  - ⏳ Editar CV creado en plataforma (abrir CreateCV.vue con datos precargados)
-  - ⏳ Backend: Endpoint `PUT /api/cvs/{id}/update/` para actualizar CV
-  - ✅ Eliminar CV con confirmación (funcional pero UI mejorable)
+- 🔴 **Vista Previa y Descarga de CV**:
   - ⏳ Descargar CV en formato PDF (para CVs creados en plataforma)
 
 - 🔴 **Vista Previa HTML de CV Creado**:
