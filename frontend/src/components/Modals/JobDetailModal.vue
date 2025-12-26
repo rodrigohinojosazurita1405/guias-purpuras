@@ -14,14 +14,21 @@
       <div class="modal-body">
         <!-- Company Header with Logo -->
         <div class="company-header">
-          <img
-            v-if="job.companyLogo"
-            :src="job.companyLogo"
-            :alt="job.companyName"
-            class="company-logo"
-          />
-          <div v-else class="company-logo-placeholder">
-            <va-icon name="business" />
+          <!-- Solo mostrar logo si NO es anónimo -->
+          <template v-if="!job.companyAnonymous">
+            <img
+              v-if="job.companyLogo"
+              :src="job.companyLogo"
+              :alt="job.companyName"
+              class="company-logo"
+            />
+            <div v-else class="company-logo-placeholder">
+              <va-icon name="business" />
+            </div>
+          </template>
+          <!-- Si es anónimo, mostrar ícono de empresa genérico -->
+          <div v-else class="company-logo-placeholder anonymous">
+            <va-icon name="domain" />
           </div>
           <div class="company-info-header">
             <h2 class="company-name">{{ job.companyName }}</h2>
@@ -103,7 +110,7 @@
           <div class="info-grid">
             <div class="info-item full-width">
               <span class="label">Descripción:</span>
-              <p class="value description">{{ job.description || 'Sin descripción' }}</p>
+              <p class="value description">{{ stripHTML(job.description) || 'Sin descripción' }}</p>
             </div>
             <div class="info-item">
               <span class="label">Tipo de Aplicación:</span>
@@ -129,9 +136,9 @@
             <div class="info-item full-width">
               <span class="label">Preguntas de Filtrado:</span>
               <div class="value">
-                <template v-if="job.screeningQuestions && Array.isArray(job.screeningQuestions) && job.screeningQuestions.filter(q => q && q.trim()).length > 0">
+                <template v-if="getScreeningQuestions(job.screeningQuestions).length > 0">
                   <ul class="screening-questions">
-                    <li v-for="(question, index) in job.screeningQuestions.filter(q => q && q.trim())" :key="index">{{ question }}</li>
+                    <li v-for="(question, index) in getScreeningQuestions(job.screeningQuestions)" :key="index">{{ question }}</li>
                   </ul>
                 </template>
                 <span v-else class="no-data">No se realizaron preguntas de filtrado para este anuncio</span>
@@ -146,11 +153,11 @@
           <div class="info-grid">
             <div class="info-item full-width" v-if="job.requirements">
               <span class="label">Requisitos:</span>
-              <p class="value description">{{ job.requirements }}</p>
+              <p class="value description">{{ stripHTML(job.requirements) }}</p>
             </div>
             <div class="info-item full-width" v-if="job.experience">
               <span class="label">Experiencia:</span>
-              <p class="value description">{{ job.experience }}</p>
+              <p class="value description">{{ stripHTML(job.experience) }}</p>
             </div>
             <div class="info-item" v-if="job.education">
               <span class="label">Formación:</span>
@@ -162,11 +169,11 @@
             </div>
             <div class="info-item full-width" v-if="job.technicalSkills">
               <span class="label">Habilidades Técnicas:</span>
-              <p class="value description">{{ job.technicalSkills }}</p>
+              <p class="value description">{{ stripHTML(job.technicalSkills) }}</p>
             </div>
             <div class="info-item full-width" v-if="job.softSkills">
               <span class="label">Habilidades Blandas:</span>
-              <p class="value description">{{ job.softSkills }}</p>
+              <p class="value description">{{ stripHTML(job.softSkills) }}</p>
             </div>
           </div>
         </div>
@@ -177,7 +184,7 @@
           <div class="info-grid">
             <div class="info-item full-width" v-if="job.benefits">
               <span class="label">Beneficios:</span>
-              <p class="value description">{{ job.benefits }}</p>
+              <p class="value description">{{ stripHTML(job.benefits) }}</p>
             </div>
             <div class="info-item" v-if="job.whatsapp">
               <span class="label">WhatsApp:</span>
@@ -186,41 +193,6 @@
             <div class="info-item" v-if="job.website">
               <span class="label">Sitio Web:</span>
               <span class="value"><a :href="job.website" target="_blank">{{ job.website }}</a></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="info-section">
-          <h3>Estadísticas</h3>
-          <div class="stats-grid">
-            <div class="stat">
-              <va-icon name="visibility" />
-              <div>
-                <span class="stat-value">{{ job.views || 0 }}</span>
-                <span class="stat-label">Vistas</span>
-              </div>
-            </div>
-            <div class="stat">
-              <va-icon name="people" />
-              <div>
-                <span class="stat-value">{{ job.applications || 0 }}</span>
-                <span class="stat-label">Aplicaciones</span>
-              </div>
-            </div>
-            <div class="stat">
-              <va-icon name="access_time" />
-              <div>
-                <span class="stat-value">{{ formatExactDateTime(job.createdAt) }}</span>
-                <span class="stat-label">Fecha de Publicación</span>
-              </div>
-            </div>
-            <div class="stat">
-              <va-icon name="info" />
-              <div>
-                <span class="stat-value">{{ job.status }}</span>
-                <span class="stat-label">Estado</span>
-              </div>
             </div>
           </div>
         </div>
@@ -255,16 +227,94 @@ const close = () => {
 }
 
 const formatExactDateTime = (dateString) => {
+  if (!dateString) return 'N/A'
+
+  // Crear fecha en UTC y ajustar a Bolivia (UTC-4)
   const date = new Date(dateString)
-  return date.toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  }) + ' ' + date.toLocaleTimeString('es-ES', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  })
+  const boliviaOffset = -4 * 60 // Bolivia es UTC-4
+  const localOffset = date.getTimezoneOffset() // Offset del navegador en minutos
+  const totalOffset = boliviaOffset - localOffset
+
+  // Crear nueva fecha ajustada
+  const boliviaDate = new Date(date.getTime() + totalOffset * 60 * 1000)
+
+  const day = String(boliviaDate.getDate()).padStart(2, '0')
+  const month = String(boliviaDate.getMonth() + 1).padStart(2, '0')
+  const year = boliviaDate.getFullYear()
+  const hours = String(boliviaDate.getHours()).padStart(2, '0')
+  const minutes = String(boliviaDate.getMinutes()).padStart(2, '0')
+  const seconds = String(boliviaDate.getSeconds()).padStart(2, '0')
+
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`
+}
+
+const stripHTML = (html) => {
+  if (!html) return ''
+  // Crear un elemento temporal para extraer solo el texto
+  const tmp = document.createElement('DIV')
+  tmp.innerHTML = html
+  return tmp.textContent || tmp.innerText || ''
+}
+
+const getScreeningQuestions = (questions) => {
+  console.log('DEBUG - screeningQuestions raw:', questions)
+  console.log('DEBUG - type:', typeof questions)
+
+  if (!questions) return []
+
+  // Si ya es un array de objetos con propiedad 'text'
+  if (Array.isArray(questions)) {
+    const result = questions
+      .map(q => {
+        console.log('DEBUG - processing item:', q, 'type:', typeof q)
+        // Si es un objeto con propiedad text, extraerla
+        if (typeof q === 'object' && q.text) {
+          return q.text
+        }
+        // Si es un string simple, devolverlo
+        if (typeof q === 'string' && q.trim()) {
+          return q.trim()
+        }
+        return null
+      })
+      .filter(q => q)
+    console.log('DEBUG - final result:', result)
+    return result
+  }
+
+  // Si es un string, intentar parsearlo como JSON
+  if (typeof questions === 'string') {
+    console.log('DEBUG - trying to parse string')
+    try {
+      const parsed = JSON.parse(questions)
+      console.log('DEBUG - parsed successfully:', parsed)
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map(q => {
+            if (typeof q === 'object' && q.text) {
+              return q.text
+            }
+            if (typeof q === 'string' && q.trim()) {
+              return q.trim()
+            }
+            return null
+          })
+          .filter(q => q)
+      }
+    } catch (e) {
+      console.log('DEBUG - parse failed, trying regex:', e)
+      // Si falla el parse, intentar extraer preguntas con regex
+      // Buscar patrones como "text":"..."
+      const textMatches = questions.matchAll(/"text"\s*:\s*"([^"]+)"/g)
+      const extractedQuestions = Array.from(textMatches).map(match => match[1])
+      console.log('DEBUG - regex extracted:', extractedQuestions)
+      if (extractedQuestions.length > 0) {
+        return extractedQuestions
+      }
+    }
+  }
+
+  return []
 }
 </script>
 
@@ -432,6 +482,12 @@ const formatExactDateTime = (dateString) => {
   flex-shrink: 0;
 }
 
+.company-logo-placeholder.anonymous {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  color: #6b7280;
+}
+
 .company-info-header {
   flex: 1;
 }
@@ -539,42 +595,6 @@ const formatExactDateTime = (dateString) => {
   color: #9CA3AF;
   font-style: italic;
   font-size: 0.95rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-}
-
-.stat {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: #F3F4F6;
-  border-radius: 8px;
-}
-
-.stat svg {
-  width: 24px;
-  height: 24px;
-  color: #6B7280;
-  flex-shrink: 0;
-}
-
-.stat-value {
-  display: block;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1F2937;
-}
-
-.stat-label {
-  display: block;
-  font-size: 0.8rem;
-  color: #6B7280;
-  margin-top: 0.25rem;
 }
 
 .modal-footer {

@@ -82,10 +82,32 @@ class Job(models.Model):
             ('active', 'Activo'),
             ('paused', 'Pausado'),
             ('closed', 'Cerrado'),
-            ('draft', 'Borrador')
+            ('draft', 'Borrador'),
+            ('rejected', 'Rechazado')
         ],
         default='pending',
         verbose_name="Estado"
+    )
+
+    # Rechazo (para anuncios que violan políticas)
+    rejectionReason = models.TextField(
+        blank=True,
+        verbose_name="Motivo de Rechazo",
+        help_text="Razón por la cual el anuncio fue rechazado (violación de políticas, contenido inapropiado, etc.)"
+    )
+    rejectedAt = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de Rechazo"
+    )
+    rejectedBy = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={'is_superuser': True},
+        related_name='rejected_jobs',
+        verbose_name="Rechazado por"
     )
 
     # Email del publicador

@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.html import format_html, strip_tags
 from django.urls import reverse
 from django.utils.safestring import mark_safe
@@ -114,10 +114,10 @@ class JobAdmin(admin.ModelAdmin):
         'status_badge',
         'payment_badge',
         'plan_display',
+        'created_date_display',
         'expiry_countdown',
         'applications_count',
-        'views_count',
-        'created_date_display'
+        'views_count'
     )
 
     # Filtros avanzados
@@ -146,7 +146,10 @@ class JobAdmin(admin.ModelAdmin):
         'payment_verification_summary',
         'job_analytics_display',
         'proof_of_payment_preview',
-        'description_preview'
+        'description_preview',
+        'rejection_info_display',
+        'rejectedAt',
+        'rejectedBy'
     )
 
     # Acciones personalizadas
@@ -155,7 +158,9 @@ class JobAdmin(admin.ModelAdmin):
         'mark_as_closed',
         'verify_payment_action',
         'reject_payment_action',
-        'delete_jobs_with_audit'
+        'reject_jobs_for_policy_violation',
+        'soft_delete_jobs',
+        'restore_deleted_jobs'
     ]
 
     fieldsets = (
@@ -184,6 +189,11 @@ class JobAdmin(admin.ModelAdmin):
         }),
         ('Plan y Estado', {
             'fields': ('selectedPlan', 'status', 'views')
+        }),
+        ('Información de Rechazo', {
+            'fields': ('rejection_info_display', 'rejectedAt', 'rejectedBy'),
+            'classes': ('collapse',),
+            'description': 'Detalles sobre el rechazo del anuncio por violación de políticas'
         }),
         ('Timestamps', {
             'fields': ('createdAt', 'updatedAt'),
@@ -230,13 +240,15 @@ class JobAdmin(admin.ModelAdmin):
             'pending': {'bg': '#FEF3C7', 'color': '#92400E'},    # Amarillo tenue
             'active': {'bg': '#D1FAE5', 'color': '#065F46'},     # Verde tenue
             'closed': {'bg': '#FEE2E2', 'color': '#991B1B'},     # Rojo tenue
-            'draft': {'bg': '#E5E7EB', 'color': '#374151'}       # Gris tenue
+            'draft': {'bg': '#E5E7EB', 'color': '#374151'},      # Gris tenue
+            'rejected': {'bg': '#FEE2E2', 'color': '#7F1D1D'}    # Rojo oscuro para rechazado
         }
         status_labels = {
             'pending': 'Pendiente',
             'active': 'Activa',
             'closed': 'Cerrada',
-            'draft': 'Borrador'
+            'draft': 'Borrador',
+            'rejected': 'Rechazado'
         }
         style = status_styles.get(obj.status, status_styles['draft'])
         label = status_labels.get(obj.status, obj.status.capitalize())
@@ -460,6 +472,47 @@ class JobAdmin(admin.ModelAdmin):
         )
     description_preview.short_description = 'Vista Previa de Descripción (Sin HTML)'
 
+    def rejection_info_display(self, obj):
+        """Muestra información detallada del rechazo con formato visual"""
+        if not obj.rejectionReason:
+            return format_html(
+                '<div style="background-color: #F3F4F6; padding: 12px; border-radius: 6px; '
+                'text-align: center; color: #6B7280;"><strong>Este anuncio no ha sido rechazado</strong></div>'
+            )
+
+        # Formatear la fecha de rechazo
+        rejection_date = ''
+        if obj.rejectedAt:
+            local_date = timezone.localtime(obj.rejectedAt)
+            rejection_date = local_date.strftime("%d/%m/%Y a las %H:%M")
+
+        # Obtener quién rechazó
+        rejected_by = 'Sistema'
+        if obj.rejectedBy:
+            rejected_by = f"{obj.rejectedBy.get_full_name() or obj.rejectedBy.email}"
+
+        # El motivo ya viene con saltos de línea, white-space: pre-wrap los respetará
+        return format_html(
+            '<div style="background-color: #FEF2F2; padding: 16px; border-radius: 8px; '
+            'border-left: 4px solid #DC2626; color: #7F1D1D; max-width: 600px;">'
+            '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">'
+            '<span style="font-size: 20px;">⛔</span>'
+            '<strong style="font-size: 15px;">Anuncio Rechazado por Violación de Políticas</strong>'
+            '</div>'
+            '<div style="background-color: white; padding: 12px; border-radius: 6px; margin-bottom: 12px;">'
+            '<div style="font-size: 13px; line-height: 1.8; color: #991B1B; white-space: pre-wrap; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', sans-serif;">{}</div>'
+            '</div>'
+            '<div style="font-size: 12px; color: #991B1B; opacity: 0.8;">'
+            '<div><strong>Rechazado por:</strong> {}</div>'
+            '<div><strong>Fecha:</strong> {}</div>'
+            '</div>'
+            '</div>',
+            obj.rejectionReason,
+            rejected_by,
+            rejection_date
+        )
+    rejection_info_display.short_description = 'Motivo de Rechazo'
+
     def payment_verification_summary(self, obj):
         """Resumen de la verificación de pago con estilos CSS"""
         if not obj.proofOfPayment:
@@ -548,8 +601,7 @@ class JobAdmin(admin.ModelAdmin):
             job._audit_request = request
             job.save()
             updated += 1
-        from django.contrib.admin import messages as admin_messages
-        self.message_user(request, f'✓ {updated} pago(s) VERIFICADO(s) y anuncio(s) ACTIVADO(s) exitosamente', admin_messages.SUCCESS)
+        self.message_user(request, f'✓ {updated} pago(s) VERIFICADO(s) y anuncio(s) ACTIVADO(s) exitosamente', messages.SUCCESS)
     verify_payment_action.short_description = '✓ VERIFICAR pagos y ACTIVAR anuncios'
 
     def reject_payment_action(self, request, queryset):
@@ -563,28 +615,190 @@ class JobAdmin(admin.ModelAdmin):
             job._audit_request = request
             job.save()
             updated += 1
-        from django.contrib.admin import messages as admin_messages
-        self.message_user(request, f'✗ {updated} pago(s) RECHAZADO(s)', admin_messages.WARNING)
+        self.message_user(request, f'✗ {updated} pago(s) RECHAZADO(s)', messages.WARNING)
     reject_payment_action.short_description = '✗ RECHAZAR pagos seleccionados'
 
-    def delete_jobs_with_audit(self, request, queryset):
-        """Acción: Eliminar ofertas de trabajo con registro de auditoría"""
-        count = queryset.count()
+    def soft_delete_jobs(self, request, queryset):
+        """Acción: Eliminación lógica (soft delete) de ofertas de trabajo"""
+        from django.utils import timezone
+        count = 0
 
         for job in queryset:
-            # Crear log de auditoría antes de eliminar
-            JobAuditLog.objects.create(
-                job=job,
-                action='deleted',
-                userEmail=request.user.email,
-                notes=f'Oferta de trabajo eliminada desde panel de administración por {request.user.email}'
-            )
-            # Eliminar la oferta
-            job.delete()
+            if not job.isDeleted:
+                job.isDeleted = True
+                job.deletedAt = timezone.now()
+                job.status = 'closed'  # Cerrar automáticamente
+                job._audit_user = request.user
+                job._audit_request = request
+                job.save()
+                count += 1
 
-        from django.contrib.admin import messages as admin_messages
-        self.message_user(request, f'✓ {count} oferta(s) de trabajo ELIMINADA(s) con registro de auditoría', admin_messages.SUCCESS)
-    delete_jobs_with_audit.short_description = '🗑️ Eliminar ofertas (con auditoría)'
+        if count > 0:
+            self.message_user(
+                request,
+                f'🗑️ {count} oferta(s) marcada(s) como ELIMINADA(s) (soft delete). Los datos se conservan en la base de datos.',
+                messages.SUCCESS
+            )
+        else:
+            self.message_user(
+                request,
+                'Las ofertas seleccionadas ya estaban eliminadas.',
+                messages.WARNING
+            )
+    soft_delete_jobs.short_description = '🗑️ Marcar como ELIMINADAS (soft delete - recuperable)'
+
+    def restore_deleted_jobs(self, request, queryset):
+        """Acción: Restaurar ofertas eliminadas (soft delete)"""
+        count = 0
+
+        for job in queryset:
+            if job.isDeleted:
+                job.isDeleted = False
+                job.deletedAt = None
+                job._audit_user = request.user
+                job._audit_request = request
+                job.save()
+                count += 1
+
+        if count > 0:
+            self.message_user(
+                request,
+                f'♻️ {count} oferta(s) RESTAURADA(s) exitosamente.',
+                messages.SUCCESS
+            )
+        else:
+            self.message_user(
+                request,
+                'Las ofertas seleccionadas no estaban eliminadas.',
+                messages.WARNING
+            )
+    restore_deleted_jobs.short_description = '♻️ RESTAURAR ofertas eliminadas'
+
+    def reject_jobs_for_policy_violation(self, request, queryset):
+        """
+        Acción: Rechazar anuncios por violación de políticas
+        Permite rechazar trabajos que violen términos y condiciones
+        (trata, tráfico, prostitución, pornografía infantil, etc.)
+        """
+        from django.utils import timezone
+        from django import forms
+        from django.shortcuts import render
+        from django.contrib.admin.helpers import ActionForm
+
+        # Formulario personalizado para ingresar el motivo de rechazo
+        class RejectJobForm(forms.Form):
+            rejection_reason = forms.ChoiceField(
+                label='Motivo de Rechazo',
+                choices=[
+                    ('', '--- Seleccione un motivo ---'),
+                    ('trata_trafico', 'Trata y Tráfico de Personas'),
+                    ('explotacion_sexual', 'Explotación Sexual / Prostitución'),
+                    ('pornografia_infantil', 'Pornografía Infantil / Explotación de Menores'),
+                    ('trabajo_forzoso', 'Trabajo Forzoso / Condiciones de Esclavitud'),
+                    ('actividades_ilicitas', 'Actividades Ilícitas (narcotráfico, fraude, etc.)'),
+                    ('discriminacion', 'Discriminación y Vulneración de Derechos'),
+                    ('contenido_ofensivo', 'Contenido Ofensivo o Inapropiado'),
+                    ('informacion_falsa', 'Información Falsa o Engañosa'),
+                    ('otro', 'Otro (especificar en notas adicionales)')
+                ],
+                required=True,
+                widget=forms.Select(attrs={'style': 'width: 100%; padding: 8px; border-radius: 4px;'})
+            )
+            additional_notes = forms.CharField(
+                label='Notas Adicionales',
+                required=False,
+                widget=forms.Textarea(attrs={
+                    'rows': 4,
+                    'style': 'width: 100%; padding: 8px; border-radius: 4px;',
+                    'placeholder': 'Agregue detalles adicionales sobre el motivo de rechazo (opcional)'
+                })
+            )
+
+        # Si el formulario ha sido enviado
+        if 'apply' in request.POST:
+            form = RejectJobForm(request.POST)
+            if form.is_valid():
+                rejection_reason_code = form.cleaned_data['rejection_reason']
+                additional_notes = form.cleaned_data['additional_notes']
+
+                # Mapear códigos a texto legible
+                reason_map = {
+                    'trata_trafico': 'Trata y Tráfico de Personas',
+                    'explotacion_sexual': 'Explotación Sexual / Prostitución',
+                    'pornografia_infantil': 'Pornografía Infantil / Explotación de Menores',
+                    'trabajo_forzoso': 'Trabajo Forzoso / Condiciones de Esclavitud',
+                    'actividades_ilicitas': 'Actividades Ilícitas (narcotráfico, fraude, etc.)',
+                    'discriminacion': 'Discriminación y Vulneración de Derechos',
+                    'contenido_ofensivo': 'Contenido Ofensivo o Inapropiado',
+                    'informacion_falsa': 'Información Falsa o Engañosa',
+                    'otro': 'Otro'
+                }
+
+                rejection_text = reason_map.get(rejection_reason_code, rejection_reason_code)
+
+                # Construir el motivo completo
+                full_reason = f"{rejection_text}"
+                if additional_notes:
+                    full_reason += f"\n\nNotas adicionales:\n{additional_notes}"
+
+                count = 0
+                for job in queryset:
+                    if job.status != 'rejected':
+                        job.status = 'rejected'
+                        job.rejectionReason = full_reason
+                        job.rejectedAt = timezone.now()
+                        job.rejectedBy = request.user
+                        job.save()
+                        count += 1
+
+                self.message_user(
+                    request,
+                    f'⛔ {count} anuncio(s) RECHAZADO(S) por violación de políticas. '
+                    f'El empleador será notificado y dirigido a los términos y condiciones.',
+                    messages.WARNING
+                )
+                return None
+
+        # Mostrar formulario
+        form = RejectJobForm()
+        context = {
+            'title': 'Rechazar Anuncios por Violación de Políticas',
+            'form': form,
+            'queryset': queryset,
+            'opts': self.model._meta,
+            'action_checkbox_name': '_selected_action',
+            'selected_jobs': queryset,
+        }
+        return render(request, 'admin/reject_jobs_form.html', context)
+
+    reject_jobs_for_policy_violation.short_description = '⛔ RECHAZAR anuncios por violación de políticas'
+
+    def get_actions(self, request):
+        """Deshabilitar la eliminación física por defecto de Django"""
+        actions = super().get_actions(request)
+        # Remover la acción de eliminación física por seguridad
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    # def delete_jobs_with_audit(self, request, queryset):
+    #     """Acción: Eliminar ofertas de trabajo con registro de auditoría"""
+    #     # DESHABILITADO: JobAuditLog no existe, se usa sistema de auditoría general
+    #     count = queryset.count()
+    #
+    #     for job in queryset:
+    #         # Crear log de auditoría antes de eliminar
+    #         JobAuditLog.objects.create(
+    #             job=job,
+    #             action='deleted',
+    #             userEmail=request.user.email,
+    #             notes=f'Oferta de trabajo eliminada desde panel de administración por {request.user.email}'
+    #         )
+    #         # Eliminar la oferta
+    #         job.delete()
+    #
+    #     self.message_user(request, f'✓ {count} oferta(s) de trabajo ELIMINADA(s) con registro de auditoría', messages.SUCCESS)
+    # delete_jobs_with_audit.short_description = '🗑️ Eliminar ofertas (con auditoría)'
 
 
 # @admin.register(Application)

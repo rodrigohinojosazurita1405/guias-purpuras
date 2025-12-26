@@ -1,0 +1,200 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .reject-jobs-container {
+        max-width: 800px;
+        margin: 30px auto;
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .reject-header {
+        border-bottom: 3px solid #dc3545;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+    }
+
+    .reject-header h1 {
+        color: #dc3545;
+        font-size: 24px;
+        margin: 0 0 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .reject-header p {
+        color: #666;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .warning-box {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        margin-bottom: 25px;
+        border-radius: 4px;
+    }
+
+    .warning-box strong {
+        display: block;
+        color: #856404;
+        margin-bottom: 8px;
+        font-size: 16px;
+    }
+
+    .warning-box ul {
+        margin: 8px 0 0 20px;
+        color: #856404;
+    }
+
+    .warning-box li {
+        margin-bottom: 5px;
+    }
+
+    .selected-jobs {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 15px;
+        margin-bottom: 25px;
+        border-radius: 4px;
+    }
+
+    .selected-jobs h3 {
+        margin: 0 0 10px 0;
+        font-size: 16px;
+        color: #495057;
+    }
+
+    .selected-jobs ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+
+    .selected-jobs li {
+        margin-bottom: 5px;
+        color: #495057;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .form-group .required::after {
+        content: " *";
+        color: #dc3545;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .btn {
+        padding: 10px 24px;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reject-jobs-container">
+    <div class="reject-header">
+        <h1>
+            <span>⛔</span>
+            Rechazar Anuncios por Violación de Políticas
+        </h1>
+        <p>Esta acción marcará los anuncios seleccionados como rechazados y notificará a los empleadores.</p>
+    </div>
+
+    <div class="warning-box">
+        <strong>⚠️ ADVERTENCIA: Acción de Moderación</strong>
+        <p>Está a punto de rechazar anuncios por violación de las políticas de la plataforma. Esta acción:</p>
+        <ul>
+            <li>Cambiará el estado del anuncio a "Rechazado"</li>
+            <li>El empleador recibirá una notificación con el motivo del rechazo</li>
+            <li>El anuncio será redirigido a los términos y condiciones</li>
+            <li>Se registrará quién rechazó el anuncio y cuándo</li>
+        </ul>
+    </div>
+
+    <div class="selected-jobs">
+        <h3>📋 Anuncios Seleccionados ({{ queryset.count }})</h3>
+        <ul>
+            {% for job in queryset %}
+            <li><strong>{{ job.title }}</strong> - {{ job.companyName }} (ID: {{ job.id }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <input type="hidden" name="action" value="reject_jobs_for_policy_violation">
+        {% for job in queryset %}
+        <input type="hidden" name="_selected_action" value="{{ job.pk }}">
+        {% endfor %}
+
+        <div class="form-group">
+            <label for="id_rejection_reason" class="required">Motivo de Rechazo</label>
+            {{ form.rejection_reason }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_additional_notes">Notas Adicionales (Opcional)</label>
+            {{ form.additional_notes }}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" name="apply" class="btn btn-danger">
+                ⛔ Rechazar Anuncios
+            </button>
+            <a href="{% url 'admin:jobs_job_changelist' %}" class="btn btn-secondary">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

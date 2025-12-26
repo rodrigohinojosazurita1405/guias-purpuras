@@ -76,16 +76,46 @@
           <li>Violar la legislación boliviana vigente, incluyendo pero no limitándose a leyes sobre protección de datos, propiedad intelectual, comercio electrónico y telecomunicaciones.</li>
         </ul>
 
-        <h3>3.4 Contenido Generado por Usuarios</h3>
+        <h3>3.4 Contenido Prohibido y Actividades Ilegales</h3>
         <p>
-          Los usuarios que publiquen contenido en la plataforma (anuncios, comentarios, mensajes, etc.) son 
-          los únicos responsables de dicho contenido. Al publicar contenido, el usuario declara y garantiza 
-          que posee todos los derechos necesarios y que el contenido no infringe derechos de terceros ni 
+          Guías Púrpuras tiene <strong>TOLERANCIA CERO</strong> con respecto a publicaciones o actividades que
+          involucren delitos graves. Queda <strong>ESTRICTAMENTE PROHIBIDO</strong> publicar anuncios, contenido
+          o realizar cualquier actividad relacionada con:
+        </p>
+        <ul>
+          <li><strong>Trata y Tráfico de Personas:</strong> Cualquier forma de reclutamiento, transporte, transferencia, acogida o recepción de personas con fines de explotación, trabajo forzoso, servidumbre o prácticas similares a la esclavitud.</li>
+          <li><strong>Explotación Sexual Comercial:</strong> Prostitución, proxenetismo, rufianería, o cualquier forma de explotación sexual de personas, incluyendo el ofrecimiento de servicios sexuales bajo cualquier modalidad o denominación.</li>
+          <li><strong>Pornografía Infantil y Explotación de Menores:</strong> Producción, distribución, publicación, promoción o posesión de material pornográfico que involucre a menores de edad, así como cualquier forma de abuso, explotación sexual o corrupción de menores.</li>
+          <li><strong>Trabajos Forzosos o en Condiciones de Esclavitud:</strong> Ofertas laborales que impliquen explotación laboral, trabajos forzados, condiciones inhumanas, retención de documentos, o cualquier práctica que vulnere la dignidad y derechos fundamentales de las personas.</li>
+          <li><strong>Actividades Ilícitas:</strong> Narcotráfico, venta de sustancias controladas, tráfico de armas, lavado de dinero, estafas, fraudes, o cualquier actividad tipificada como delito en la legislación boliviana.</li>
+          <li><strong>Discriminación y Vulneración de Derechos:</strong> Ofertas laborales que discriminen por razones de género, raza, religión, orientación sexual, identidad de género, discapacidad, edad, origen étnico o cualquier otra condición protegida por la legislación boliviana.</li>
+        </ul>
+        <p>
+          <strong>CONSECUENCIAS:</strong> Cualquier usuario que publique contenido o realice actividades
+          relacionadas con las prohibiciones anteriores será:
+        </p>
+        <ul>
+          <li>Bloqueado permanentemente de la plataforma sin previo aviso.</li>
+          <li>Reportado inmediatamente a las autoridades competentes (Policía Nacional, Ministerio Público, FELCC, FELCV, DNA, entre otras).</li>
+          <li>Sujeto a acciones legales civiles y penales conforme al Código Penal boliviano y demás legislación aplicable.</li>
+          <li>Su información personal, datos de contacto y evidencia del contenido publicado serán remitidos a las autoridades para la investigación correspondiente.</li>
+        </ul>
+        <p>
+          Guías Púrpuras colabora activamente con las autoridades bolivianas en la prevención y denuncia de
+          delitos. Nos reservamos el derecho de preservar toda la información y evidencia relacionada con
+          actividades sospechosas o ilegales para su entrega a las autoridades competentes.
+        </p>
+
+        <h3>3.5 Contenido Generado por Usuarios</h3>
+        <p>
+          Los usuarios que publiquen contenido en la plataforma (anuncios, comentarios, mensajes, etc.) son
+          los únicos responsables de dicho contenido. Al publicar contenido, el usuario declara y garantiza
+          que posee todos los derechos necesarios y que el contenido no infringe derechos de terceros ni
           viola la legislación aplicable.
         </p>
         <p>
-          Guías Púrpuras se reserva el derecho de revisar, moderar, editar o eliminar cualquier contenido 
-          que considere inapropiado, ilegal o que viole estos Términos y Condiciones, sin previo aviso y 
+          Guías Púrpuras se reserva el derecho de revisar, moderar, editar o eliminar cualquier contenido
+          que considere inapropiado, ilegal o que viole estos Términos y Condiciones, sin previo aviso y
           sin responsabilidad alguna.
         </p>
       </section>

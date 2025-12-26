@@ -1139,7 +1139,11 @@ def get_user_published_jobs(request):
                 'planPrice': plan_price,
                 'planDuration': plan_duration,
                 'city': str(job.city) if job.city else '',
-                'modality': str(job.modality) if job.modality else ''
+                'modality': str(job.modality) if job.modality else '',
+                # Campos de rechazo
+                'rejectionReason': str(job.rejectionReason) if job.rejectionReason else None,
+                'rejectedAt': str(job.rejectedAt.isoformat()) if job.rejectedAt else None,
+                'rejectedBy': str(job.rejectedBy.email) if job.rejectedBy else None
             }
             jobs_list.append(job_dict)
 
