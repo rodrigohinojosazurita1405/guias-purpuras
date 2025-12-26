@@ -6,13 +6,56 @@
         preset="plain"
         size="small"
         icon="refresh"
-        color="warning"
-        @click="clearDraft"
+        @click="showClearConfirm = true"
         title="Limpiar borrador y empezar de nuevo"
+        class="clear-btn"
       >
         Limpiar
       </va-button>
     </div>
+
+    <!-- MODAL DE CONFIRMACIÓN PARA LIMPIAR BORRADOR -->
+    <va-modal
+      v-model="showClearConfirm"
+      size="small"
+      hide-default-actions
+      :mobile-fullscreen="false"
+    >
+      <template #header>
+        <div class="modal-title">
+          <va-icon name="warning" color="warning" size="1.5rem" />
+          <span>Confirmar acción</span>
+        </div>
+      </template>
+
+      <div class="modal-content">
+        <p class="modal-message">
+          ¿Estás seguro de que deseas limpiar el borrador?
+        </p>
+        <p class="modal-warning">
+          Todos los cambios no guardados se perderán y deberás comenzar desde el inicio.
+        </p>
+      </div>
+
+      <template #footer>
+        <div class="modal-actions">
+          <va-button
+            preset="secondary"
+            @click="showClearConfirm = false"
+            class="btn-cancel"
+          >
+            Cancelar
+          </va-button>
+          <va-button
+            color="danger"
+            @click="confirmClearDraft"
+            class="btn-confirm"
+          >
+            Sí, limpiar
+          </va-button>
+        </div>
+      </template>
+    </va-modal>
 
     <!-- INDICADOR VISUAL DE PASOS -->
     <PublishStepsIndicator
@@ -109,6 +152,9 @@ const informationStepRef = ref(null)
 // Estado del modal de éxito
 const showSuccessModal = ref(false)
 const publishedJob = ref(null)
+
+// Estado del modal de confirmación para limpiar borrador
+const showClearConfirm = ref(false)
 
 // ========== CARGAR BORRADOR Y OBTENER EMPRESA ==========
 onMounted(async () => {
@@ -499,16 +545,15 @@ const goHome = () => {
   router.push('/')
 }
 
-// Limpiar borrador manualmente
-const clearDraft = () => {
-  if (confirm('¿Estás seguro de que deseas limpiar el borrador? Los cambios no guardados se perderán.')) {
-    publishStore.resetForm()
-    notify({
-      message: 'Borrador limpiado. Iniciando de nuevo.',
-      color: 'info',
-      duration: 2000
-    })
-  }
+// Limpiar borrador manualmente (confirmación)
+const confirmClearDraft = () => {
+  publishStore.resetForm()
+  showClearConfirm.value = false
+  notify({
+    message: 'Borrador limpiado exitosamente.',
+    color: 'success',
+    duration: 2000
+  })
 }
 </script>
 
@@ -519,19 +564,41 @@ const clearDraft = () => {
   top: 80px;
   right: 20px;
   z-index: 100;
-  padding: 0.5rem;
-  background: rgba(94, 4, 154, 0.95);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  
 }
 
-.clear-draft-btn :deep(.va-button) {
+.clear-btn {
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%) !important;
+  color: white !important;
+  padding: 0.6rem 1.2rem !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4) !important;
+  backdrop-filter: blur(10px);
   text-transform: uppercase;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.5px;
+  transition: all 0.3s ease !important;
+  border: none !important;
+}
+
+.clear-btn:hover {
+  background: linear-gradient(135deg, #6D28D9 0%, #9333EA 100%) !important;
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.5) !important;
+  transform: translateY(-2px);
+}
+
+.clear-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4) !important;
+}
+
+.clear-draft-btn :deep(.va-button__content) {
+  color: white !important;
+}
+
+.clear-draft-btn :deep(.va-icon) {
+  color: white !important;
+  margin-right: 0.35rem;
 }
 
 @media (max-width: 768px) {
@@ -539,6 +606,115 @@ const clearDraft = () => {
     top: 70px;
     right: 10px;
     padding: 0.35rem;
+  }
+}
+
+/* MODAL DE CONFIRMACIÓN */
+:deep(.va-modal__container) {
+  backdrop-filter: none !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+:deep(.va-modal__dialog) {
+  border-radius: 16px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+  max-width: 450px !important;
+  width: 100% !important;
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.modal-title span {
+  flex: 1;
+}
+
+.modal-content {
+  padding: 1rem 0;
+}
+
+.modal-message {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.modal-warning {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.modal-actions .va-button {
+  min-width: 100px;
+  flex: 1;
+  max-width: 150px;
+}
+
+/* RESPONSIVE MÓVIL */
+@media (max-width: 640px) {
+  :deep(.va-modal__dialog) {
+    margin: 1rem !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+
+  .modal-title {
+    font-size: 1rem;
+    gap: 0.5rem;
+  }
+
+  .modal-title .va-icon {
+    font-size: 1.25rem !important;
+  }
+
+  .modal-content {
+    padding: 0.75rem 0;
+  }
+
+  .modal-message {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-warning {
+    font-size: 0.85rem;
+  }
+
+  .modal-actions {
+    gap: 0.5rem;
+    flex-direction: column;
+  }
+
+  .modal-actions .va-button {
+    width: 100%;
+    max-width: 100%;
+    min-width: 100%;
+  }
+
+  .btn-cancel {
+    order: 2;
+  }
+
+  .btn-confirm {
+    order: 1;
   }
 }
 </style>

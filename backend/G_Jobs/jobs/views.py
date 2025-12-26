@@ -2290,9 +2290,10 @@ def get_job_categories_dynamic(request):
     """
     try:
         from G_Jobs.catalogs.models import JobCategory
-        
-        categories = JobCategory.objects.filter(is_active=True).order_by('order', 'name')
-        
+
+        # Obtener todas las categorías activas
+        categories = JobCategory.objects.filter(is_active=True)
+
         data = [
             {
                 'text': cat.name,
@@ -2302,11 +2303,14 @@ def get_job_categories_dynamic(request):
             }
             for cat in categories
         ]
-        
+
+        # Ordenar alfabéticamente la lista resultante por el campo 'text'
+        data_sorted = sorted(data, key=lambda x: x['text'])
+
         return JsonResponse({
             'success': True,
-            'categories': data,
-            'count': len(data)
+            'categories': data_sorted,
+            'count': len(data_sorted)
         })
     except Exception as e:
         return JsonResponse({

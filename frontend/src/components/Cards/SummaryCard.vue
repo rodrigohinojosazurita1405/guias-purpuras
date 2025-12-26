@@ -364,7 +364,6 @@
             <!-- TOP: BADGES EN LÍNEA HORIZONTAL -->
             <div v-if="planBadges.length > 0" class="badges-top-row">
               <span v-for="planBadge in planBadges" :key="planBadge" class="badge" :class="`badge-${getBadgeClass(planBadge)}`">
-                <va-icon v-if="getBadgeIcon(planBadge)" :name="getBadgeIcon(planBadge)" size="small" class="badge-icon" />
                 {{ planBadge }}
               </span>
             </div>
@@ -2113,16 +2112,16 @@ watch(() => props.formData.coordinates, (newCoords) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  padding: 0.65rem 1.25rem;
-  border-radius: 10px;
-  font-size: 0.85rem;
+  gap: 0.25rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   border: none;
   transition: all 0.2s ease;
-  min-width: 140px;
+  min-width: 100px;
   text-align: center;
 }
 
@@ -3862,25 +3861,20 @@ watch(() => props.formData.coordinates, (newCoords) => {
   text-decoration: underline;
 }
 
-.job-description-html :deep(h1) {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  color: #1E293B;
-}
-
-.job-description-html :deep(h2) {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  color: #1E293B;
-}
-
-.job-description-html :deep(h3) {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #334155;
+/* Neutralizar headers - forzar estilo de párrafo normal (como en Quill editor) */
+.job-description-html :deep(h1),
+.job-description-html :deep(h2),
+.job-description-html :deep(h3),
+.job-description-html :deep(h4),
+.job-description-html :deep(h5),
+.job-description-html :deep(h6) {
+  font-size: 1rem !important;
+  font-weight: normal !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.5 !important;
+  color: #475569 !important;
+  margin-bottom: 0.75rem !important;
 }
 
 /* ===== PREGUNTAS DE FILTRADO ===== */

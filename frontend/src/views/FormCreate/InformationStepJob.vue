@@ -205,7 +205,7 @@
         <div class="field-group">
           <h4 class="group-subtitle">
             <va-icon name="attach_money" size="1rem" />
-            Compensación y Vacantes
+            Compensación Económica y Vacantes Disponibles
           </h4>
 
           <!-- GRID COMPACTO: VACANTES + TIPO SALARIO -->
@@ -447,7 +447,6 @@ const createQuill = () => {
   if (!editorContainer.value || editorInstance) return
 
   const toolbarOptions = [
-    [{ 'header': [false, 2, 3] }],
     ['bold', 'italic', 'underline', 'strike'],
     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
     [{ 'indent': '-1'}, { 'indent': '+1' }],
@@ -460,7 +459,8 @@ const createQuill = () => {
     placeholder: 'Cuéntale al candidato sobre el puesto: Descripción del trabajo, Responsabilidades principales, Requisitos y habilidades necesarias, Experiencia requerida, Beneficios y oportunidades',
     modules: {
       toolbar: toolbarOptions
-    }
+    },
+    formats: ['bold', 'italic', 'underline', 'strike', 'list', 'indent', 'blockquote', 'link']
   })
 
   // Establecer contenido inicial
@@ -468,9 +468,14 @@ const createQuill = () => {
     editorInstance.root.innerHTML = localFormData.value.jobDetailsHtml
   }
 
-  // Sincronizar cambios
+  // Sincronizar cambios y limpiar headers H1-H6
   editorInstance.on('text-change', () => {
-    const html = editorInstance.root.innerHTML
+    let html = editorInstance.root.innerHTML
+
+    // Convertir todas las etiquetas H1-H6 a párrafos <p>
+    html = html.replace(/<h[1-6]([^>]*)>/gi, '<p$1>')
+    html = html.replace(/<\/h[1-6]>/gi, '</p>')
+
     const textContent = getTextFromHtml(html)
     charCount.value = textContent.length
     localFormData.value.jobDetailsHtml = html
@@ -804,18 +809,6 @@ defineExpose({
   background: linear-gradient(135deg, #FAFBFF 0%, #F7F6FF 100%);
   border-radius: 12px;
   border: 1px solid #E9D5FF;
-  position: relative;
-}
-
-.form-section::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: linear-gradient(180deg, #7C3AED 0%, #A855F7 100%);
-  border-radius: 12px 0 0 12px;
 }
 
 .form-row {
@@ -897,6 +890,20 @@ defineExpose({
 :deep(.ql-editor) {
   background: white !important;
   min-height: 300px;
+}
+
+/* Neutralizar headers en Quill - forzar estilo de párrafo normal */
+:deep(.ql-editor h1),
+:deep(.ql-editor h2),
+:deep(.ql-editor h3),
+:deep(.ql-editor h4),
+:deep(.ql-editor h5),
+:deep(.ql-editor h6) {
+  font-size: 1rem !important;
+  font-weight: normal !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.5 !important;
 }
 
 /* TinyMCE Toolbar - Personalización */
