@@ -774,6 +774,7 @@ const currentYear = new Date().getFullYear()
 }
 
 /* ========== RESPONSIVE ========== */
+/* Tablets y pantallas medianas */
 @media (max-width: 1024px) {
   .login-container {
     grid-template-columns: 1fr;
@@ -793,6 +794,7 @@ const currentYear = new Date().getFullYear()
   }
 }
 
+/* Móviles grandes (hasta 640px) */
 @media (max-width: 640px) {
   .login-left {
     padding: 1.5rem 1rem;
@@ -801,20 +803,127 @@ const currentYear = new Date().getFullYear()
   .btn-back {
     top: 1rem;
     left: 1rem;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
   }
 
   .form-wrapper {
     max-width: 100%;
   }
 
-  .login-header h1 {
-    font-size: 1.5rem;
+  .login-header {
+    margin-bottom: 2rem;
   }
 
-  .login-header p {
+  .logo-circle {
+    width: 60px;
+    height: 60px;
+  }
+
+  .logo-img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .login-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .login-header .subtitle {
     font-size: 0.875rem;
+  }
+
+  .login-header .brand-title {
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .bolivia-flag {
+    width: 22px;
+    height: 22px;
+  }
+
+  .login-form {
+    gap: 1.25rem;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+  }
+
+  .form-input {
+    font-size: 16px !important; /* Previene zoom en iOS */
+    min-height: 48px; /* Mejor área táctil */
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+  }
+
+  .input-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .btn-toggle-password {
+    width: 40px;
+    height: 40px;
+  }
+
+  .btn-toggle-password svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .btn-primary {
+    min-height: 48px;
+    font-size: 1rem;
+    padding: 0.875rem 1.5rem;
+  }
+
+  .forgot-password-link {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+  }
+
+  .divider-text {
+    font-size: 0.8125rem;
+  }
+
+  .btn-register {
+    min-height: 48px;
+    font-size: 0.9375rem;
+  }
+}
+
+/* Móviles pequeños (hasta 375px) */
+@media (max-width: 375px) {
+  .login-left {
+    padding: 1rem 0.875rem;
+  }
+
+  .login-header h1 {
+    font-size: 1.375rem;
+  }
+
+  .login-header .brand-title {
+    font-size: 1.125rem;
+    gap: 0.375rem;
+  }
+
+  .bolivia-flag {
+    width: 20px;
+    height: 20px;
+  }
+
+  .login-form {
+    gap: 1rem;
+  }
+
+  .form-input {
+    padding: 0.625rem 0.875rem 0.625rem 2.5rem;
+  }
+
+  .input-icon {
+    left: 0.875rem;
   }
 }
 </style>

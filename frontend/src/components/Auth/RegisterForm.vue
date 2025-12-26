@@ -1079,6 +1079,7 @@ select.form-input {
 }
 
 /* ========== RESPONSIVE ========== */
+/* Tablets y pantallas medianas */
 @media (max-width: 1024px) {
   .register-container {
     grid-template-columns: 1fr;
@@ -1098,6 +1099,7 @@ select.form-input {
   }
 }
 
+/* Móviles grandes (hasta 640px) */
 @media (max-width: 640px) {
   .register-left {
     padding: 1.5rem 1rem;
@@ -1106,20 +1108,144 @@ select.form-input {
   .btn-back {
     top: 1rem;
     left: 1rem;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
   }
 
   .form-wrapper {
     max-width: 100%;
   }
 
+  .register-header {
+    margin-bottom: 2rem;
+  }
+
+  .logo-circle {
+    width: 60px;
+    height: 60px;
+  }
+
+  .logo-img {
+    width: 36px;
+    height: 36px;
+  }
+
   .register-header h1 {
     font-size: 1.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .register-header p {
     font-size: 0.875rem;
+  }
+
+  .register-header .brand-title {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .bolivia-flag {
+    width: 22px;
+    height: 22px;
+  }
+
+  .register-form {
+    gap: 1.25rem;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+  }
+
+  .form-input, select.form-input {
+    font-size: 16px !important; /* Previene zoom en iOS */
+    min-height: 48px; /* Mejor área táctil */
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+  }
+
+  .input-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .btn-toggle-password {
+    width: 40px;
+    height: 40px;
+  }
+
+  .btn-toggle-password svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .password-strength-bar {
+    height: 3px;
+  }
+
+  .password-strength-text {
+    font-size: 0.75rem;
+  }
+
+  .btn-primary {
+    min-height: 48px;
+    font-size: 1rem;
+    padding: 0.875rem 1.5rem;
+  }
+
+  .checkbox-label {
+    font-size: 0.8125rem;
+    padding: 0.625rem 0;
+  }
+
+  .checkbox-label input {
+    width: 20px;
+    height: 20px;
+  }
+
+  .divider-text {
+    font-size: 0.8125rem;
+  }
+
+  .btn-login {
+    min-height: 48px;
+    font-size: 0.9375rem;
+  }
+}
+
+/* Móviles pequeños (hasta 375px) */
+@media (max-width: 375px) {
+  .register-left {
+    padding: 1rem 0.875rem;
+  }
+
+  .register-header h1 {
+    font-size: 1.375rem;
+  }
+
+  .register-header .brand-title {
+    font-size: 1.125rem;
+    gap: 0.375rem;
+  }
+
+  .bolivia-flag {
+    width: 20px;
+    height: 20px;
+  }
+
+  .register-form {
+    gap: 1rem;
+  }
+
+  .form-input, select.form-input {
+    padding: 0.625rem 0.875rem 0.625rem 2.5rem;
+  }
+
+  .input-icon {
+    left: 0.875rem;
+  }
+
+  .checkbox-label {
+    font-size: 0.75rem;
   }
 }
 </style>

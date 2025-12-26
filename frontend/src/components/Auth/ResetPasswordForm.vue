@@ -780,6 +780,7 @@ const currentYear = new Date().getFullYear()
 }
 
 /* ========== RESPONSIVE ========== */
+/* Tablets y pantallas medianas */
 @media (max-width: 1024px) {
   .reset-password-container {
     grid-template-columns: 1fr;
@@ -792,26 +793,113 @@ const currentYear = new Date().getFullYear()
   .reset-password-left {
     padding: 2rem 1.5rem;
   }
+
+  .btn-back {
+    top: 1.5rem;
+    left: 1.5rem;
+  }
 }
 
-@media (max-width: 500px) {
-  .btn-back {
-    top: 1rem;
-    left: 1rem;
-    width: 36px;
-    height: 36px;
-  }
-
+/* Móviles grandes (hasta 640px) */
+@media (max-width: 640px) {
   .reset-password-left {
     padding: 1.5rem 1rem;
   }
 
+  .btn-back {
+    top: 1rem;
+    left: 1rem;
+    width: 40px;
+    height: 40px;
+  }
+
+  .form-wrapper {
+    max-width: 100%;
+  }
+
+  .reset-password-header {
+    margin-bottom: 2rem;
+  }
+
+  .logo-circle {
+    width: 60px;
+    height: 60px;
+  }
+
+  .logo-img {
+    width: 36px;
+    height: 36px;
+  }
+
   .reset-password-header h1 {
     font-size: 1.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .reset-password-header p {
     font-size: 0.875rem;
+  }
+
+  .reset-password-form {
+    gap: 1.25rem;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+  }
+
+  .form-input {
+    font-size: 16px !important; /* Previene zoom en iOS */
+    min-height: 48px; /* Mejor área táctil */
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+  }
+
+  .input-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .btn-toggle-password {
+    width: 40px;
+    height: 40px;
+  }
+
+  .btn-toggle-password svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .btn-primary {
+    min-height: 48px;
+    font-size: 1rem;
+    padding: 0.875rem 1.5rem;
+  }
+}
+
+/* Móviles pequeños (hasta 375px) */
+@media (max-width: 375px) {
+  .reset-password-left {
+    padding: 1rem 0.875rem;
+  }
+
+  .reset-password-header h1 {
+    font-size: 1.375rem;
+  }
+
+  .reset-password-header p {
+    font-size: 0.8125rem;
+  }
+
+  .reset-password-form {
+    gap: 1rem;
+  }
+
+  .form-input {
+    padding: 0.625rem 0.875rem 0.625rem 2.5rem;
+  }
+
+  .input-icon {
+    left: 0.875rem;
   }
 }
 </style>
