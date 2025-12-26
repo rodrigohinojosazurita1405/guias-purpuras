@@ -192,8 +192,7 @@ const cities = [
   { id: 'Tarija', name: 'Tarija' },
   { id: 'Chuquisaca', name: 'Chuquisaca' },
   { id: 'Beni', name: 'Beni' },
-  { id: 'Pando', name: 'Pando' },
-  { id: 'Remoto', name: 'Remoto (En línea)' }
+  { id: 'Pando', name: 'Pando' }
 ]
 
 // ========== COMPUTED ==========

@@ -15,7 +15,7 @@
           <va-icon name="work" size="2rem" style="color: white;" />
         </div>
         <div>
-          <h2 class="step-title">Información del Trabajo</h2>
+          <h2 class="step-title">Información detallada del Trabajo</h2>
           <p class="step-subtitle">
             Completa los detalles principales de la oferta laboral de forma simple y directa
           </p>
@@ -29,7 +29,7 @@
           <!-- TÍTULO Y EMPRESA (GRID 2 COL) -->
           <div class="form-grid">
             <div class="form-row compact">
-              <label class="form-label">Título *</label>
+              <label class="form-label">Título del puesto laboral *</label>
               <va-input
                 v-model="localFormData.title"
                 placeholder="Ej: Administrador de empresas"
@@ -66,14 +66,18 @@
                     <va-icon name="business" color="purple" />
                   </template>
                 </va-input>
-                <!-- ANÓNIMO (INLINE) -->
-                <va-switch
-                  v-model="localFormData.companyAnonymous"
-                  label="Anónimo"
-                  color="warning"
-                  size="small"
-                  style="margin-top: 0.35rem;"
-                />
+                <!-- ANÓNIMO (INLINE) - Mini Switch Custom -->
+                <div class="anonymous-switch-wrapper">
+                  <label class="custom-switch">
+                    <input
+                      type="checkbox"
+                      v-model="localFormData.companyAnonymous"
+                      class="switch-checkbox"
+                    />
+                    <span class="switch-slider"></span>
+                  </label>
+                  <span class="switch-label">Anónimo</span>
+                </div>
               </div>
             </div>
           </div>
@@ -81,13 +85,16 @@
           <!-- CATEGORÍA, TIPO Y MODALIDAD (GRID 3 COL) -->
           <div class="form-grid grid-3col">
             <div class="form-row compact">
-              <label class="form-label">Categoría *</label>
+              <label class="form-label">Categoría del anuncio *</label>
               <va-select
                 v-model="localFormData.jobCategory"
                 :options="categoryOptions"
                 placeholder="Selecciona"
                 :rules="[(v) => !!v || 'La categoría es requerida']"
                 size="small"
+                searchable
+                highlight-matched-text
+                :max-visible-options="6"
               >
                 <template #prepend>
                   <va-icon name="category" color="purple" />
@@ -126,7 +133,7 @@
             </div>
           </div>
 
-          <!-- CIUDAD, FECHA, PROVINCIA (GRID 3 COL) -->
+          <!-- CIUDAD, PROVINCIA, FECHA (GRID 3 COL) -->
           <div class="form-grid grid-3col">
             <div class="form-row compact">
               <label class="form-label">Ciudad *</label>
@@ -144,6 +151,19 @@
             </div>
 
             <div class="form-row compact">
+              <label class="form-label">Provincia / Municipio</label>
+              <va-input
+                v-model="localFormData.municipality"
+                placeholder="Opcional"
+                size="small"
+              >
+                <template #prepend>
+                  <va-icon name="place" color="purple" />
+                </template>
+              </va-input>
+            </div>
+
+            <div class="form-row compact">
               <label class="form-label">Fecha límite postulación *</label>
               <va-date-input
                 v-model="localFormData.expiryDate"
@@ -155,19 +175,6 @@
                   <va-icon name="event" color="purple" />
                 </template>
               </va-date-input>
-            </div>
-
-            <div class="form-row compact">
-              <label class="form-label">Provincia / Municipio</label>
-              <va-input
-                v-model="localFormData.municipality"
-                placeholder="Opcional"
-                size="small"
-              >
-                <template #prepend>
-                  <va-icon name="place" color="purple" />
-                </template>
-              </va-input>
             </div>
           </div>
         </div>
@@ -354,7 +361,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 
 // ========== PROPS Y EMITS ==========
 const props = defineProps({
@@ -483,7 +490,42 @@ const getTextFromHtml = (html) => {
   return tmp.textContent || tmp.innerText || ''
 }
 
+// Función para convertir texto a Title Case
+const toTitleCase = (str) => {
+  if (!str) return ''
+
+  // Palabras que deben permanecer en minúsculas (excepto al inicio)
+  const smallWords = ['de', 'del', 'la', 'el', 'los', 'las', 'y', 'e', 'o', 'u', 'en', 'a', 'al', 'con', 'por', 'para']
+
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map((word, index) => {
+      // Primera palabra siempre con mayúscula
+      if (index === 0) {
+        return word.charAt(0).toUpperCase() + word.slice(1)
+      }
+      // Palabras pequeñas en minúsculas (excepto la primera)
+      if (smallWords.includes(word)) {
+        return word
+      }
+      // Resto con mayúscula inicial
+      return word.charAt(0).toUpperCase() + word.slice(1)
+    })
+    .join(' ')
+}
+
 // ========== WATCH PARA SINCRONIZACIÓN ==========
+// Convertir título a Title Case automáticamente
+watch(() => localFormData.value.title, (newTitle) => {
+  if (newTitle && newTitle !== toTitleCase(newTitle)) {
+    // Usar nextTick para evitar loops infinitos
+    nextTick(() => {
+      localFormData.value.title = toTitleCase(newTitle)
+    })
+  }
+})
+
 watch(localFormData, (newValue) => {
   const cleanedValue = {
     ...props.modelValue,
@@ -532,7 +574,11 @@ const updateVacancies = (value) => {
 const loadJobCategories = async () => {
   try {
     loadingCategories.value = true
-    const response = await fetch('http://localhost:8000/api/jobs/categories-dynamic')
+    // Agregar timestamp para evitar caché del navegador
+    const timestamp = new Date().getTime()
+    const response = await fetch(`http://localhost:8000/api/jobs/categories-dynamic?_t=${timestamp}`, {
+      cache: 'no-store'
+    })
     const data = await response.json()
 
     if (data.success && data.categories) {
@@ -990,6 +1036,25 @@ defineExpose({
   box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1) !important;
 }
 
+/* Fix: Dropdown del select debe mostrar desde el inicio, no desde el final */
+:deep(.va-select-dropdown) {
+  scroll-behavior: auto !important;
+}
+
+:deep(.va-select-dropdown__content) {
+  scroll-behavior: auto !important;
+}
+
+:deep(.va-dropdown__content) {
+  max-height: 300px !important;
+  overflow-y: auto !important;
+}
+
+/* Asegurar que cuando se abra el dropdown, inicie en la posición top */
+:deep(.va-select-option-list) {
+  scroll-behavior: auto !important;
+}
+
 :deep(.va-date-input) {
   height: 32px !important;
   background: white !important;
@@ -1347,6 +1412,109 @@ textarea {
   .form-label {
     font-size: 0.9rem;
   }
-  
+
+}
+
+/* ========== MINI SWITCH CUSTOM (ESTILO TOPSEARCHBAR) ========== */
+.anonymous-switch-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.custom-switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.switch-checkbox {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #CBD5E1;
+  border-radius: 18px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.switch-slider::before {
+  content: '';
+  position: absolute;
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estado ACTIVADO - Púrpura hermoso */
+.switch-checkbox:checked + .switch-slider {
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
+}
+
+.switch-checkbox:checked + .switch-slider::before {
+  transform: translateX(14px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Hover */
+.custom-switch:hover .switch-slider {
+  background: #94A3B8;
+}
+
+.custom-switch:hover .switch-checkbox:checked + .switch-slider {
+  background: linear-gradient(135deg, #6D28D9 0%, #9333EA 100%);
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.5);
+}
+
+/* Animación de pulso cuando se activa */
+.switch-checkbox:checked + .switch-slider::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  background: rgba(124, 58, 237, 0.3);
+  animation: pulse-purple 0.6s ease-out;
+}
+
+@keyframes pulse-purple {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.switch-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #64748B;
+  user-select: none;
+}
+
+.switch-checkbox:checked ~ .switch-label {
+  color: #7C3AED;
+  font-weight: 600;
 }
 </style>

@@ -59,7 +59,8 @@ def get_job_categories_dynamic(request):
     GET /api/jobs/categories-dynamic
     """
     try:
-        categories = JobCategory.objects.filter(is_active=True).order_by('order', 'name')
+        # Obtener todas las categorías activas (sin ordenar por 'order')
+        categories = JobCategory.objects.filter(is_active=True)
 
         data = [
             {
@@ -71,10 +72,13 @@ def get_job_categories_dynamic(request):
             for cat in categories
         ]
 
+        # Ordenar alfabéticamente por el campo 'text' usando Python
+        data_sorted = sorted(data, key=lambda x: x['text'])
+
         return JsonResponse({
             'success': True,
-            'categories': data,
-            'count': len(data)
+            'categories': data_sorted,
+            'count': len(data_sorted)
         })
     except Exception as e:
         return JsonResponse({
