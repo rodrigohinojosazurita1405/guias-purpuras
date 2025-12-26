@@ -1054,10 +1054,11 @@ select.form-input {
 
 .stat-label {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #FFFFFF;
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: 500;
 }
 
 .stat-divider {
