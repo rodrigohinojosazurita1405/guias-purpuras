@@ -641,11 +641,13 @@ const currentYear = new Date().getFullYear()
 .input-icon {
   position: absolute;
   left: 1rem;
-  top: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
   width: 18px;
   height: 18px;
   color: #9ca3af;
   pointer-events: none;
+  z-index: 1;
 }
 
 .form-input {

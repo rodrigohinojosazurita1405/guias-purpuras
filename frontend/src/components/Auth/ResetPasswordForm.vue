@@ -453,23 +453,27 @@ const currentYear = new Date().getFullYear()
 .input-icon {
   position: absolute;
   left: 1rem;
-  top: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
   width: 18px;
   height: 18px;
   color: #9ca3af;
   pointer-events: none;
+  z-index: 1;
 }
 
 .toggle-password {
   position: absolute;
   right: 1rem;
-  top: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
   color: #9ca3af;
   transition: color 0.2s ease;
+  z-index: 1;
 }
 
 .toggle-password:hover {
