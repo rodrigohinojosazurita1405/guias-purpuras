@@ -202,7 +202,7 @@
                 <input
                   :value="question.text"
                   type="text"
-                  placeholder="Ej: ¿Cuáles son tus idiomas?"
+                  placeholder="Ej: ¿Tiene licencia de conducir?"
                   class="form-input"
                   @input="updateQuestion(index, 'text', $event.target.value)"
                 />

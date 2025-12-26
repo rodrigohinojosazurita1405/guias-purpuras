@@ -867,7 +867,7 @@ defineExpose({
 .form-label {
   font-weight: 600;
   color: #1E293B;
-  font-size: 0.9rem;
+  font-size: 0.95rem;;
 }
 
 /* ========== TINYMCE STYLES ========== */

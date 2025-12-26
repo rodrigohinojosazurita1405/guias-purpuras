@@ -2,7 +2,7 @@
   <div class="terms-container">
     <div class="terms-header">
       <h1>Términos y Condiciones de Uso</h1>
-      <p class="last-updated">Última actualización: Diciembre de 2024</p>
+      <p class="last-updated">Última actualización: 24/Diciembre/2025</p>
     </div>
 
     <div class="terms-content">
@@ -13,11 +13,11 @@
           <strong>guiaspurpuras.com.bo</strong>, cuyo responsable es:
         </p>
         <ul>
-          <li><strong>Razón Social:</strong> Rodrigo Hinojosa Zurita</li>
+          <li><strong>Razón Social:</strong> Rodrigo Hinojosa Z.</li>
           <li><strong>NIT:</strong> 8012570</li>
           <li><strong>Domicilio Comercial:</strong> Calle Ladislao Cabrera entre 16 de Julio y Antezana, Oficina 11, Ciudad de Cochabamba, Bolivia</li>
-          <li><strong>Correo Electrónico:</strong> contacto@guiaspurpuras.com.bo</li>
-          <li><strong>Teléfono:</strong> +591 [número de contacto]</li>
+          <li><strong>Correo Electrónico:</strong> info@guiaspurpuras.com.bo</li>
+          
         </ul>
       </section>
 
@@ -78,7 +78,7 @@
 
         <h3>3.4 Contenido Prohibido y Actividades Ilegales</h3>
         <p>
-          Guías Púrpuras tiene <strong>TOLERANCIA CERO</strong> con respecto a publicaciones o actividades que
+          Guías Púrpuras Bolivia tiene <strong>TOLERANCIA CERO</strong> con respecto a publicaciones o actividades que
           involucren delitos graves. Queda <strong>ESTRICTAMENTE PROHIBIDO</strong> publicar anuncios, contenido
           o realizar cualquier actividad relacionada con:
         </p>
@@ -87,8 +87,8 @@
           <li><strong>Explotación Sexual Comercial:</strong> Prostitución, proxenetismo, rufianería, o cualquier forma de explotación sexual de personas, incluyendo el ofrecimiento de servicios sexuales bajo cualquier modalidad o denominación.</li>
           <li><strong>Pornografía Infantil y Explotación de Menores:</strong> Producción, distribución, publicación, promoción o posesión de material pornográfico que involucre a menores de edad, así como cualquier forma de abuso, explotación sexual o corrupción de menores.</li>
           <li><strong>Trabajos Forzosos o en Condiciones de Esclavitud:</strong> Ofertas laborales que impliquen explotación laboral, trabajos forzados, condiciones inhumanas, retención de documentos, o cualquier práctica que vulnere la dignidad y derechos fundamentales de las personas.</li>
-          <li><strong>Actividades Ilícitas:</strong> Narcotráfico, venta de sustancias controladas, tráfico de armas, lavado de dinero, estafas, fraudes, o cualquier actividad tipificada como delito en la legislación boliviana.</li>
-          <li><strong>Discriminación y Vulneración de Derechos:</strong> Ofertas laborales que discriminen por razones de género, raza, religión, orientación sexual, identidad de género, discapacidad, edad, origen étnico o cualquier otra condición protegida por la legislación boliviana.</li>
+          <li><strong>Actividades Ilícitas:</strong> Narcotráfico, venta de sustancias controladas, tráfico de armas, lavado de dinero, estafas, fraudes, o cualquier actividad tipificada como delito en la legislación Boliviana.</li>
+          <li><strong>Discriminación y Vulneración de Derechos:</strong> Ofertas laborales que discriminen por razones de género, raza, religión, orientación sexual, identidad de género, discapacidad, edad, origen étnico o cualquier otra condición protegida por la legislación Boliviana.</li>
         </ul>
         <p>
           <strong>CONSECUENCIAS:</strong> Cualquier usuario que publique contenido o realice actividades
@@ -96,12 +96,12 @@
         </p>
         <ul>
           <li>Bloqueado permanentemente de la plataforma sin previo aviso.</li>
-          <li>Reportado inmediatamente a las autoridades competentes (Policía Nacional, Ministerio Público, FELCC, FELCV, DNA, entre otras).</li>
-          <li>Sujeto a acciones legales civiles y penales conforme al Código Penal boliviano y demás legislación aplicable.</li>
+          <li>Reportado inmediatamente a las autoridades competentes (Policía Nacional, Ministerio Público, FELCC, FELCV, La Defensoría de la Niñez y Adolescencia (DNA), entre otras).</li>
+          <li>Sujeto a acciones legales civiles y penales conforme al Código Penal Boliviano y demás legislación aplicable.</li>
           <li>Su información personal, datos de contacto y evidencia del contenido publicado serán remitidos a las autoridades para la investigación correspondiente.</li>
         </ul>
         <p>
-          Guías Púrpuras colabora activamente con las autoridades bolivianas en la prevención y denuncia de
+          Guías Púrpuras Bolivia colabora activamente con las autoridades Bolivianas en la prevención y denuncia de
           delitos. Nos reservamos el derecho de preservar toda la información y evidencia relacionada con
           actividades sospechosas o ilegales para su entrega a las autoridades competentes.
         </p>
@@ -169,11 +169,11 @@
         <p>
           Todos los elementos que conforman la plataforma <strong>guiaspurpuras.com.bo</strong>, incluyendo 
           pero no limitándose a software, código fuente, diseño gráfico, logotipos, marcas, nombres comerciales, 
-          textos, imágenes, videos, bases de datos, estructura de navegación y demás contenidos, son propiedad 
-          exclusiva de Rodrigo Hinojosa Zurita o de sus legítimos licenciantes.
+          textos, imágenes, videos, bases de datos, estructura de navegación redes sociales y demás contenidos, son propiedad 
+          exclusiva de Rodrigo Hinojosa Z.
         </p>
         <p>
-          Estos elementos están protegidos por la legislación boliviana e internacional en materia de propiedad 
+          Estos elementos están protegidos por la legislación Boliviana e internacional en materia de propiedad 
           intelectual, incluyendo pero no limitándose a la Ley de Derechos de Autor boliviana, tratados 
           internacionales y convenios sobre propiedad intelectual.
         </p>

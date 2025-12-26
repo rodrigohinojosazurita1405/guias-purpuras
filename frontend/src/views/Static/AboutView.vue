@@ -368,7 +368,7 @@
             </div>
             <div class="cta-feature">
               <va-icon name="check_circle" />
-              <span>100% Intuitivo</span>
+              <span>App 100% Boliviana</span>
             </div>
             <div class="cta-feature">
               <va-icon name="check_circle" />

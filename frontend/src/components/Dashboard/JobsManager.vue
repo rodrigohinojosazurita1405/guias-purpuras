@@ -73,7 +73,7 @@
 
         <!-- Separador: Pendientes de Aprobación -->
         <div
-          v-if="index > 0 && filteredJobs[index - 1].paymentVerified && !job.paymentVerified && !isJobExpired(job)"
+          v-if="index > 0 && filteredJobs[index - 1].paymentVerified && !job.paymentVerified && !isJobExpired(job) && job.status !== 'rejected'"
           class="section-divider pending"
         >
           <div class="divider-line"></div>
@@ -84,9 +84,22 @@
           <div class="divider-line"></div>
         </div>
 
+        <!-- Separador: Anuncios Rechazados -->
+        <div
+          v-if="index > 0 && filteredJobs[index - 1].status !== 'rejected' && job.status === 'rejected'"
+          class="section-divider rejected"
+        >
+          <div class="divider-line"></div>
+          <div class="divider-label">
+            <va-icon name="block" size="small" color="#dc2626" />
+            <span>Anuncios Rechazados</span>
+          </div>
+          <div class="divider-line"></div>
+        </div>
+
         <!-- Separador: Anuncios Expirados -->
         <div
-          v-if="index > 0 && !isJobExpired(filteredJobs[index - 1]) && isJobExpired(job)"
+          v-if="index > 0 && !isJobExpired(filteredJobs[index - 1]) && isJobExpired(job) && job.status !== 'rejected'"
           class="section-divider expired"
         >
           <div class="divider-line"></div>
@@ -106,8 +119,34 @@
           </div>
           <div class="job-badge" :class="isJobExpired(job) ? 'expired' : job.status">
             <va-icon v-if="isJobExpired(job)" name="event_busy" size="small" />
+            <va-icon v-else-if="job.status === 'rejected'" name="block" size="small" />
             {{ isJobExpired(job) ? 'Expirado' : statusLabel(job.status) }}
           </div>
+        </div>
+
+        <!-- Rejection Warning Alert -->
+        <div v-if="job.status === 'rejected'" class="rejection-alert">
+          <div class="rejection-header">
+            <va-icon name="block" size="24px" color="#dc2626" />
+            <h4>Anuncio Rechazado por Incumplir Nuestras Normas</h4>
+          </div>
+
+          <div v-if="job.rejectionReason" class="rejection-main-reason">
+            <p class="reason-text">{{ job.rejectionReason }}</p>
+          </div>
+
+          <p class="rejection-message">
+            Su anuncio viola nuestros
+            <router-link to="/terminos" class="terms-link" target="_blank">
+              Términos y Condiciones
+            </router-link>, específicamente la sección 3.4 sobre "Contenido Prohibido y Actividades Ilegales".
+          </p>
+
+          <p class="rejection-footer">
+            Si considera que esto es un error, por favor contacte con
+            <a href="mailto:contacto@guiaspurpuras.com.bo" class="support-link">Soporte Técnico</a>
+            para solicitar una revisión.
+          </p>
         </div>
 
         <!-- Card Stats -->
@@ -169,17 +208,17 @@
         <div class="job-actions">
           <!-- Toggle Switch Activar/Desactivar -->
           <div class="toggle-container">
-            <label class="toggle-label" :class="{ 'disabled': isJobExpired(job) || (!job.paymentVerified && job.status !== 'active') }">
+            <label class="toggle-label" :class="{ 'disabled': isJobExpired(job) || job.status === 'rejected' || (!job.paymentVerified && job.status !== 'active') }">
               <input
                 type="checkbox"
                 :checked="job.status === 'active'"
                 @change="toggleJobStatus(job)"
-                :disabled="isJobExpired(job) || (!job.paymentVerified && job.status !== 'active')"
+                :disabled="isJobExpired(job) || job.status === 'rejected' || (!job.paymentVerified && job.status !== 'active')"
                 class="toggle-input"
               />
               <span class="toggle-slider"></span>
               <span class="toggle-text">
-                {{ isJobExpired(job) ? 'Expirado' : (job.status === 'active' ? 'Activo' : 'Inactivo') }}
+                {{ job.status === 'rejected' ? 'Rechazado' : (isJobExpired(job) ? 'Expirado' : (job.status === 'active' ? 'Activo' : 'Inactivo')) }}
               </span>
             </label>
           </div>
@@ -437,13 +476,23 @@ const filteredJobs = computed(() => {
     const aDaysRemaining = calculateDaysRemaining(a.expiryDate)
     const bDaysRemaining = calculateDaysRemaining(b.expiryDate)
 
-    // 1. PRIORIDAD MÁXIMA: Separar en 3 grupos
+    // 1. PRIORIDAD MÁXIMA: Separar en 4 grupos
     // Grupo 1: Anuncios Recientes (verificados y no expirados)
     // Grupo 2: Pendientes de Aprobación (no verificados y no expirados)
-    // Grupo 3: Anuncios Expirados
+    // Grupo 3: Anuncios Rechazados
+    // Grupo 4: Anuncios Expirados
 
-    const aGroup = aExpired ? 3 : (aVerified ? 1 : 2)
-    const bGroup = bExpired ? 3 : (bVerified ? 1 : 2)
+    const aRejected = a.status === 'rejected'
+    const bRejected = b.status === 'rejected'
+
+    let aGroup, bGroup
+    if (aRejected) aGroup = 3
+    else if (aExpired) aGroup = 4
+    else aGroup = aVerified ? 1 : 2
+
+    if (bRejected) bGroup = 3
+    else if (bExpired) bGroup = 4
+    else bGroup = bVerified ? 1 : 2
 
     if (aGroup !== bGroup) {
       return aGroup - bGroup // Ordenar por grupo
@@ -560,7 +609,8 @@ const statusLabel = (status) => {
     pending: '⏳ Pendiente',
     active: '✓ Activo',
     closed: '✕ Cerrado',
-    draft: '✎ Borrador'
+    draft: '✎ Borrador',
+    rejected: 'Rechazado'
   }
   return labels[status] || status
 }
@@ -1226,6 +1276,14 @@ const activateJob = async () => {
   color: #6a1b9a;
 }
 
+.job-badge.rejected {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  color: white;
+  border: 1px solid #ef4444;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+}
+
 .job-badge.expired {
   background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
   color: white;
@@ -1311,6 +1369,97 @@ const activateJob = async () => {
 
 .section-divider.expired .divider-label span {
   color: #c2410c;
+}
+
+/* Estilo para Anuncios Rechazados (rojo intenso) */
+.section-divider.rejected .divider-line {
+  background: linear-gradient(90deg, transparent 0%, #dc2626 50%, transparent 100%);
+}
+
+.section-divider.rejected .divider-label {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+}
+
+.section-divider.rejected .divider-label span {
+  color: #991b1b;
+}
+
+/* ========== REJECTION ALERT ========== */
+.rejection-alert {
+  background: #fef2f2;
+  padding: 1.25rem;
+}
+
+.rejection-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.rejection-header h4 {
+  margin: 0;
+  color: #dc2626;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.rejection-message {
+  color: #7f1d1d;
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.rejection-message .terms-link {
+  color: #dc2626;
+  font-weight: 600;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.rejection-message .terms-link:hover {
+  color: #991b1b;
+}
+
+/* Motivo principal del rechazo - Prominente */
+.rejection-main-reason {
+  background: white;
+  border: 2px solid #dc2626;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 0.75rem 0;
+}
+
+.rejection-main-reason .reason-text {
+  margin: 0;
+  color: #991b1b;
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+.rejection-footer {
+  margin: 0.75rem 0 0 0;
+  font-size: 0.85rem;
+  color: #7f1d1d;
+}
+
+.rejection-footer .support-link {
+  color: #dc2626;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid #dc2626;
+  transition: all 0.2s;
+}
+
+.rejection-footer .support-link:hover {
+  color: #991b1b;
+  border-bottom-color: #991b1b;
 }
 
 /* ========== JOB STATS ========== */

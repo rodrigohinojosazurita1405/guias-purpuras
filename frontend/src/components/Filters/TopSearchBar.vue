@@ -39,14 +39,13 @@
 
         <!-- Input 2: Ciudad -->
         <div class="search-input-wrapper secondary">
-          <va-icon name="place" class="input-icon" />
+          <va-icon name="public" class="input-icon" />
           <select
             v-model="localFilters.city"
             class="search-select"
-            :disabled="useGeolocation"
             @change="handleCityChange"
           >
-            <option value="">{{ useGeolocation ? searchStore.displayCity : 'Ciudad o Departamento' }}</option>
+            <option value="">Toda Bolivia</option>
             <option
               v-for="city in cities"
               :key="city"
@@ -259,39 +258,8 @@
           </div>
         </template>
 
-        <!-- Ubicación y Contador de Resultados -->
+        <!-- Contador de Resultados -->
         <div class="results-info-inline">
-          <!-- Switch de Geolocalización -->
-          <div class="location-toggle-wrapper">
-            <label class="location-switch">
-              <input
-                type="checkbox"
-                v-model="useGeolocation"
-                @change="handleLocationToggle"
-                class="switch-checkbox"
-              />
-              <span class="switch-slider"></span>
-            </label>
-          </div>
-
-          <div class="location-display">
-            <p class="location-prefix">Mostrando anuncios {{ useGeolocation ? 'para' : 'en' }}:</p>
-            <va-icon
-              :name="searchStore.isLoadingLocation ? 'refresh' : 'location_on'"
-              :class="['location-icon', { spinning: searchStore.isLoadingLocation }]"
-              size="small"
-            />
-            <span class="location-text">{{ useGeolocation ? searchStore.displayCity : 'Toda Bolivia' }}</span>
-            <button
-              v-if="!searchStore.isLoadingLocation && useGeolocation"
-              @click="openLocationModal"
-              class="change-btn"
-              title="Cambiar ubicación"
-            >
-              cambiar
-            </button>
-          </div>
-          <span class="divider">|</span>
           <span class="results-count">{{ resultsCount }} resultado{{ resultsCount !== 1 ? 's' : '' }}</span>
         </div>
 
@@ -317,51 +285,6 @@
       </button>
     </div>
 
-    <!-- Modal para cambiar ubicación -->
-    <va-modal
-      v-model="showLocationModal"
-      title="Cambiar ubicación"
-      size="small"
-      :hide-default-actions="true"
-      class="location-modal"
-    >
-      <div class="location-modal-content">
-        <p class="modal-description">
-          Selecciona tu ciudad para ver anuncios relevantes cerca de ti
-        </p>
-
-        <va-select
-          v-model="selectedCityOption"
-          :options="cityOptions"
-          label="Ciudad"
-          placeholder="Selecciona una ciudad"
-          class="city-select"
-        >
-          <template #prepend>
-            <va-icon name="location_city" />
-          </template>
-        </va-select>
-
-        <div class="modal-actions">
-          <va-button
-            @click="detectLocationManual"
-            preset="secondary"
-            :loading="searchStore.isLoadingLocation"
-          >
-            <va-icon name="my_location" />
-            Detectar automáticamente
-          </va-button>
-
-          <va-button
-            @click="saveLocation"
-            color="primary"
-            :disabled="!selectedCityOption"
-          >
-            Guardar
-          </va-button>
-        </div>
-      </div>
-    </va-modal>
   </div>
 </template>
 
@@ -430,12 +353,7 @@ export default {
       // Scroll de filtros
       showScrollButtons: false,
       canScrollLeft: false,
-      canScrollRight: false,
-      // Modal de ubicación
-      showLocationModal: false,
-      selectedCityOption: null,
-      // Switch de geolocalización
-      useGeolocation: true // Activado por defecto
+      canScrollRight: false
     }
   },
 
@@ -462,21 +380,6 @@ export default {
         this.sidebarFilters.salaryMax ||
         this.sidebarFilters.education
       )
-    },
-
-    cityOptions() {
-      return [
-        { value: '', text: 'Toda Bolivia' },
-        { value: 'la-paz', text: 'La Paz' },
-        { value: 'cochabamba', text: 'Cochabamba' },
-        { value: 'santa-cruz', text: 'Santa Cruz' },
-        { value: 'oruro', text: 'Oruro' },
-        { value: 'potosi', text: 'Potosí' },
-        { value: 'tarija', text: 'Tarija' },
-        { value: 'chuquisaca', text: 'Chuquisaca (Sucre)' },
-        { value: 'beni', text: 'Beni' },
-        { value: 'pando', text: 'Pando' }
-      ]
     }
   },
 
@@ -613,133 +516,10 @@ export default {
       if (this.showScrollButtons) {
         this.handleFiltersScroll()
       }
-    },
-
-    // Métodos del modal de ubicación
-    openLocationModal() {
-      // Inicializar con la ciudad actual del store
-      const currentCity = this.searchStore.selectedCity
-      this.selectedCityOption = this.cityOptions.find(c => c.value === currentCity) || this.cityOptions[0]
-      this.showLocationModal = true
-    },
-
-    async detectLocationManual() {
-      const detectedCity = await this.searchStore.resetLocation()
-
-      if (detectedCity) {
-        // Actualizar el option seleccionado en el modal
-        this.selectedCityOption = this.cityOptions.find(c => c.value === detectedCity) || this.cityOptions[0]
-
-        this.notify({
-          message: `Ubicación detectada: ${this.searchStore.displayCity}`,
-          color: 'success',
-          duration: 3000
-        })
-
-        this.showLocationModal = false
-
-        // Actualizar filtros locales y emitir
-        this.localFilters.city = detectedCity
-        this.emitFilters()
-      } else {
-        this.notify({
-          message: 'No se pudo detectar tu ubicación. Por favor selecciona manualmente.',
-          color: 'warning',
-          duration: 4000
-        })
-      }
-    },
-
-    saveLocation() {
-      if (!this.selectedCityOption) return
-
-      // Actualizar el store con la ciudad seleccionada usando el método correcto
-      this.searchStore.setSelectedCity(this.selectedCityOption.value)
-
-      this.notify({
-        message: `Ubicación actualizada: ${this.selectedCityOption.text}`,
-        color: 'success',
-        duration: 2500
-      })
-
-      this.showLocationModal = false
-
-      // Actualizar filtros locales y emitir cambios
-      this.localFilters.city = this.selectedCityOption.value
-      this.emitFilters()
-    },
-
-    // Toggle de geolocalización
-    handleLocationToggle() {
-      // Guardar preferencia en localStorage
-      localStorage.setItem('useGeolocation', this.useGeolocation)
-
-      if (this.useGeolocation) {
-        // Activar: usar ciudad detectada automáticamente
-        this.localFilters.city = this.searchStore.selectedCity
-        this.notify({
-          message: `Filtrado por ubicación: ${this.searchStore.displayCity}`,
-          color: 'success',
-          duration: 2500
-        })
-      } else {
-        // Desactivar: limpiar filtro (Todo Bolivia) y permitir selección manual
-        this.localFilters.city = ''
-        this.notify({
-          message: 'Geolocalización desactivada. Puedes elegir una ciudad manualmente',
-          color: 'info',
-          duration: 3000
-        })
-      }
-
-      // Emitir cambios
-      this.emitFilters()
     }
   },
 
-  async mounted() {
-    // 🎯 LÓGICA CORREGIDA: Detectar ubicación automáticamente al inicio
-    const savedPreference = localStorage.getItem('useGeolocation')
-
-    // Si NO hay preferencia guardada, activar por defecto y detectar ubicación
-    if (savedPreference === null) {
-      this.useGeolocation = true
-      // Detectar ubicación automáticamente
-      const detectedCity = await this.searchStore.detectUserLocation()
-      console.log('🔍 [TopSearchBar] Ciudad detectada:', detectedCity)
-      console.log('🔍 [TopSearchBar] Store selectedCity:', this.searchStore.selectedCity)
-
-      if (detectedCity || this.searchStore.selectedCity) {
-        this.localFilters.city = detectedCity || this.searchStore.selectedCity
-        console.log('✅ [TopSearchBar] Aplicando filtro de ciudad:', this.localFilters.city)
-        // ⚠️ IMPORTANTE: Emitir filtros para aplicar la ciudad detectada
-        this.$nextTick(() => {
-          this.emitFilters()
-        })
-      }
-    }
-    // Si hay preferencia guardada, respetarla
-    else {
-      this.useGeolocation = savedPreference === 'true'
-      console.log('🔍 [TopSearchBar] useGeolocation cargado:', this.useGeolocation)
-
-      if (this.useGeolocation) {
-        // Detectar ubicación si no hay una guardada
-        if (!this.searchStore.selectedCity) {
-          const detectedCity = await this.searchStore.detectUserLocation()
-          this.localFilters.city = detectedCity || this.searchStore.selectedCity
-        } else {
-          this.localFilters.city = this.searchStore.selectedCity
-        }
-
-        console.log('✅ [TopSearchBar] Ciudad aplicada:', this.localFilters.city)
-        // ⚠️ IMPORTANTE: Emitir filtros para aplicar la ciudad
-        this.$nextTick(() => {
-          this.emitFilters()
-        })
-      }
-    }
-
+  mounted() {
     // Cerrar dropdowns al hacer click fuera
     this.closeDropdownListener = (e) => {
       if (!e.target.closest('.filter-dropdown')) {
@@ -1108,154 +888,12 @@ export default {
   color: #374151;
 }
 
-/* ========== BOTÓN LIMPIAR FILTROS ========== */
-/* ========== CONTADOR DE RESULTADOS INLINE ========== */
+/* ========== CONTADOR DE RESULTADOS ========== */
 .results-info-inline {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-left: 1rem;
-  padding: 0 0.5rem;
-}
-
-/* ========== SWITCH DE GEOLOCALIZACIÓN (ESTILO FACEBOOK) ========== */
-.location-toggle-wrapper {
-  display: flex;
-  align-items: center;
-}
-
-.location-switch {
-  position: relative;
-  display: inline-block;
-  width: 32px;
-  height: 18px;
-  cursor: pointer;
-}
-
-.switch-checkbox {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.switch-slider {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 18px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.switch-slider::before {
-  content: '';
-  position: absolute;
-  height: 14px;
-  width: 14px;
-  left: 2px;
-  bottom: 2px;
-  background: white;
-  border-radius: 50%;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Estado ACTIVADO - Verde esmeralda */
-.switch-checkbox:checked + .switch-slider {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-}
-
-.switch-checkbox:checked + .switch-slider::before {
-  transform: translateX(14px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-}
-
-/* Hover */
-.location-switch:hover .switch-slider {
-  background: rgba(255, 255, 255, 0.4);
-}
-
-.location-switch:hover .switch-checkbox:checked + .switch-slider {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.5);
-}
-
-/* Animación de pulso cuando se activa */
-.switch-checkbox:checked + .switch-slider::after {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 18px;
-  background: rgba(16, 185, 129, 0.3);
-  animation: pulse-green 0.6s ease-out;
-}
-
-@keyframes pulse-green {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1.4);
-    opacity: 0;
-  }
-}
-
-/* Ubicación - Estilo TopBar */
-.location-display {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: white;
-}
-
-.location-prefix {
-  margin: 0;
-  font-weight: 500;
-  opacity: 0.9;
-}
-
-.location-icon {
-  color: rgb(253, 197, 0);
-  transition: transform 0.3s ease;
-}
-
-.location-icon.spinning {
-  animation: spin 1s linear infinite;
-}
-
-.location-text {
-  font-weight: 600;
-  color: white;
-}
-
-.change-btn {
-  background: none;
-  border: none;
-  color: rgb(253, 197, 0);
-  cursor: pointer;
-  font-size: 0.85rem;
-  text-decoration: underline;
-  padding: 0;
-  transition: all 0.2s;
-  font-weight: 500;
-}
-
-.change-btn:hover {
-  color: rgb(230, 180, 0);
-  text-decoration: none;
-}
-
-.divider {
-  color: rgba(255, 255, 255, 0.4);
-  font-weight: 300;
-  font-size: 1.1rem;
+  margin-left: auto;
+  padding: 0 0.75rem;
 }
 
 .results-count {
@@ -1263,41 +901,6 @@ export default {
   color: white;
   font-weight: 600;
   white-space: nowrap;
-}
-
-/* Modal de ubicación */
-.location-modal-content {
-  padding: 1rem 0;
-}
-
-.modal-description {
-  color: #6B7280;
-  font-size: 0.95rem;
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
-}
-
-.city-select {
-  margin-bottom: 1.5rem;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-
-.spinning-icon {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .clear-filters-btn {
@@ -1483,46 +1086,9 @@ export default {
     }
   }
 
-  /* Compactar ubicación en móvil */
-  .location-prefix {
-    display: none;
-  }
-
-  .location-display {
-    font-size: 0.8rem;
-    gap: 0.375rem;
-  }
-
-  .location-text {
-    font-size: 0.85rem;
-  }
-
-  .change-btn {
-    font-size: 0.75rem;
-  }
-
+  /* Contador de resultados más pequeño en móvil */
   .results-count {
     font-size: 0.85rem;
-  }
-
-  .divider {
-    font-size: 1rem;
-    margin: 0 0.5rem;
-  }
-
-  /* Switch más pequeño en móvil */
-  .location-switch {
-    width: 28px;
-    height: 16px;
-  }
-
-  .switch-slider::before {
-    height: 12px;
-    width: 12px;
-  }
-
-  .switch-checkbox:checked + .switch-slider::before {
-    transform: translateX(12px);
   }
 }
 </style>

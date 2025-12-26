@@ -13,6 +13,16 @@
         :class="{ active: currentBgIndex === 1 }"
         :style="{ backgroundImage: 'url(' + bg2 + ')' }"
       ></div>
+        <div
+        class="bg-image bg-image-3"
+        :class="{ active: currentBgIndex === 2 }"
+        :style="{ backgroundImage: 'url(' + bg3 + ')' }"
+      ></div>
+       <div
+        class="bg-image bg-image-4"
+        :class="{ active: currentBgIndex === 3 }"
+        :style="{ backgroundImage: 'url(' + bg4 + ')' }"
+      ></div>
     </div>
 
     <!-- Contenedor principal con grid -->
@@ -62,15 +72,11 @@
 
             <!-- Selector de ciudad -->
             <div class="input-group location-group">
-              <va-icon
-                :name="searchStore.isLoadingLocation ? 'refresh' : 'location_on'"
-                :class="['input-icon', { spinning: searchStore.isLoadingLocation }]"
-              />
+              <va-icon name="public" class="input-icon" />
               <select
                 v-model="searchStore.selectedCity"
                 class="search-input location-select"
                 @change="onCityChange"
-                :disabled="searchStore.isLoadingLocation"
               >
                 <option value="">Toda Bolivia</option>
                 <option value="la-paz">La Paz</option>
@@ -83,22 +89,12 @@
                 <option value="beni">Beni</option>
                 <option value="pando">Pando</option>
               </select>
-
-              <!-- Badge pequeño de auto-detección -->
-              <span
-                v-if="searchStore.userDetectedCity && searchStore.locationMethod !== 'manual'"
-                class="auto-badge"
-                title="Ciudad detectada automáticamente"
-              >
-                <va-icon name="my_location" size="12px" />
-              </span>
             </div>
 
             <!-- Botón de búsqueda -->
             <button
               @click="handleSearch"
               class="search-btn"
-              :disabled="searchStore.isLoadingLocation"
             >
               <va-icon name="search" size="20px" />
               <span>Buscar empleos</span>
@@ -190,6 +186,8 @@ import { useSearchStore } from '@/stores/useSearchStore'
 import axios from 'axios'
 import bg1 from '@/assets/hero/bg1.jpg'
 import bg2 from '@/assets/hero/bg2.jpg'
+import bg3 from '@/assets/hero/bg3.jpg'
+import bg4 from '@/assets/hero/bg4.jpg'
 
 const router = useRouter()
 const searchStore = useSearchStore()
@@ -202,7 +200,7 @@ let bgInterval = null
 
 const startBackgroundRotation = () => {
   bgInterval = setInterval(() => {
-    currentBgIndex.value = (currentBgIndex.value + 1) % 2
+    currentBgIndex.value = (currentBgIndex.value + 1) % 4
   }, 8000) // Cambia cada 8 segundos
 }
 
@@ -480,15 +478,6 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
-.input-icon.spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
 .search-input {
   flex: 1;
   border: none;
@@ -524,22 +513,6 @@ onUnmounted(() => {
   color: #1F2937;
 }
 
-.location-select:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.auto-badge {
-  position: absolute;
-  right: 1rem;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem;
-  background: var(--color-purple);
-  border-radius: 50%;
-  color: white;
-}
-
 /* Botón de búsqueda */
 .search-btn {
   display: flex;
@@ -559,19 +532,14 @@ onUnmounted(() => {
   box-shadow: 0 4px 12px rgba(253, 197, 0, 0.3);
 }
 
-.search-btn:hover:not(:disabled) {
+.search-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(253, 197, 0, 0.5);
   background: linear-gradient(135deg, var(--color-yellow-primary) 0%, var(--color-yellow-light) 100%);
 }
 
-.search-btn:active:not(:disabled) {
+.search-btn:active {
   transform: translateY(0);
-}
-
-.search-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 /* ==========================================

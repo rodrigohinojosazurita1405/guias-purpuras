@@ -124,7 +124,7 @@
           </router-link>
 
           <router-link to="/guias/trabajos" class="mobile-link" @click="closeMobileMenu" exact-active-class="active">
-            <span>Empleos</span>
+            <span>Trabajos</span>
           </router-link>
 
           <router-link to="/nosotros" class="mobile-link" @click="closeMobileMenu" exact-active-class="active">
