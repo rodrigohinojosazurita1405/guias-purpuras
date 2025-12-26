@@ -120,6 +120,29 @@ class JobAdmin(admin.ModelAdmin):
         'views_count'
     )
 
+    def get_queryset(self, request):
+        """
+        Personalizar queryset para que trabajos expirados aparezcan al final.
+        Ordena por: no expirados primero, luego por fecha de creación descendente.
+        """
+        from django.db.models import Case, When, Value, BooleanField
+
+        qs = super().get_queryset(request)
+        now = timezone.now()
+
+        # Crear campo calculado: is_expired
+        # True si expiryDate < now, False en caso contrario
+        qs = qs.annotate(
+            is_expired=Case(
+                When(expiryDate__lt=now, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField()
+            )
+        )
+
+        # Ordenar: primero los no expirados (is_expired=False), luego por fecha de creación
+        return qs.order_by('is_expired', '-createdAt')
+
     # Filtros avanzados
     list_filter = (
         'isDeleted',
