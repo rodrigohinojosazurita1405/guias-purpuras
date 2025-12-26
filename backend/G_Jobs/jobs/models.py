@@ -1,11 +1,21 @@
 from django.db import models
 from django.conf import settings
 import uuid
+from datetime import datetime
 
 
 def generate_job_id():
     """Genera un ID único para el trabajo"""
     return str(uuid.uuid4())[:8]
+
+
+def payment_proof_upload_path(instance, filename):
+    """
+    Genera la ruta de almacenamiento para comprobantes de pago
+    Formato: payment_proofs/YYYY/MM/filename
+    """
+    now = datetime.now()
+    return f'payment_proofs/{now.year}/{now.month:02d}/{filename}'
 
 
 class Job(models.Model):
@@ -152,7 +162,7 @@ class Job(models.Model):
 
     # Información de Verificación de Pago (FASE 7.1)
     proofOfPayment = models.ImageField(
-        upload_to='payment_proofs/',
+        upload_to=payment_proof_upload_path,
         null=True,
         blank=False,
         verbose_name="Comprobante de pago"

@@ -160,7 +160,8 @@ class JobAdmin(admin.ModelAdmin):
         'reject_payment_action',
         'reject_jobs_for_policy_violation',
         'soft_delete_jobs',
-        'restore_deleted_jobs'
+        'restore_deleted_jobs',
+        'delete_old_payment_proofs'
     ]
 
     fieldsets = (
@@ -772,6 +773,172 @@ class JobAdmin(admin.ModelAdmin):
         return render(request, 'admin/reject_jobs_form.html', context)
 
     reject_jobs_for_policy_violation.short_description = '⛔ RECHAZAR anuncios por violación de políticas'
+
+    def delete_old_payment_proofs(self, request, queryset):
+        """
+        Acción: Eliminar comprobantes de pago antiguos
+        Permite seleccionar cuántos meses atrás eliminar (1, 2, 3, 6, 12 meses)
+        Muestra resumen de espacio a liberar y meses a eliminar
+        """
+        import os
+        import shutil
+        from django import forms
+        from django.shortcuts import render
+        from datetime import datetime
+        from dateutil.relativedelta import relativedelta
+        from django.conf import settings
+        from django.db import transaction
+
+        # Formulario para seleccionar período
+        class DeleteProofsForm(forms.Form):
+            months_ago = forms.ChoiceField(
+                label='Eliminar comprobantes de hace',
+                choices=[
+                    ('1', '1 mes atrás'),
+                    ('2', '2 meses atrás'),
+                    ('3', '3 meses atrás'),
+                    ('6', '6 meses atrás'),
+                    ('12', '12 meses atrás'),
+                ],
+                required=True,
+                widget=forms.Select(attrs={'style': 'width: 100%; padding: 8px; border-radius: 4px;'})
+            )
+
+        # Si el formulario ha sido enviado
+        if 'apply' in request.POST:
+            form = DeleteProofsForm(request.POST)
+            if form.is_valid():
+                months_ago = int(form.cleaned_data['months_ago'])
+
+                # Calcular fecha límite (no eliminar mes actual ni anterior)
+                today = datetime.now()
+                current_month = today.replace(day=1)
+                previous_month = current_month - relativedelta(months=1)
+                cutoff_date = current_month - relativedelta(months=months_ago)
+
+                # Validación: No permitir eliminar mes actual ni anterior
+                if cutoff_date >= previous_month:
+                    self.message_user(
+                        request,
+                        '⚠️ Error: No se puede eliminar el mes actual ni el anterior por seguridad.',
+                        messages.ERROR
+                    )
+                    return None
+
+                # Directorio base de comprobantes
+                base_dir = os.path.join(settings.MEDIA_ROOT, 'payment_proofs')
+
+                if not os.path.exists(base_dir):
+                    self.message_user(
+                        request,
+                        '⚠️ No existe el directorio de comprobantes de pago.',
+                        messages.WARNING
+                    )
+                    return None
+
+                deleted_folders = []
+                deleted_files_count = 0
+                space_freed = 0
+
+                try:
+                    with transaction.atomic():
+                        # Iterar por años y meses en el directorio
+                        for year_folder in os.listdir(base_dir):
+                            year_path = os.path.join(base_dir, year_folder)
+                            if not os.path.isdir(year_path) or not year_folder.isdigit():
+                                continue
+
+                            for month_folder in os.listdir(year_path):
+                                month_path = os.path.join(year_path, month_folder)
+                                if not os.path.isdir(month_path) or not month_folder.isdigit():
+                                    continue
+
+                                # Crear fecha del folder
+                                try:
+                                    folder_date = datetime(int(year_folder), int(month_folder), 1)
+                                except ValueError:
+                                    continue
+
+                                # Si el folder es anterior al cutoff, eliminarlo
+                                if folder_date < cutoff_date:
+                                    # Contar archivos y tamaño antes de eliminar
+                                    for root, dirs, files in os.walk(month_path):
+                                        for file in files:
+                                            file_path = os.path.join(root, file)
+                                            try:
+                                                space_freed += os.path.getsize(file_path)
+                                                deleted_files_count += 1
+                                            except OSError:
+                                                pass
+
+                                    # Eliminar carpeta físicamente
+                                    shutil.rmtree(month_path)
+                                    deleted_folders.append(f"{year_folder}/{month_folder}")
+
+                                    # Actualizar BD: poner proofOfPayment en null para jobs de ese mes
+                                    Job.objects.filter(
+                                        proofOfPayment__startswith=f'payment_proofs/{year_folder}/{month_folder}/'
+                                    ).update(proofOfPayment='')
+
+                        # Convertir bytes a MB
+                        space_freed_mb = space_freed / (1024 * 1024)
+
+                        # Registrar en logs
+                        from G_Jobs.audit.models import AuditLog
+                        AuditLog.objects.create(
+                            user=request.user,
+                            action='delete_payment_proofs',
+                            model_name='Job',
+                            details={
+                                'months_ago': months_ago,
+                                'deleted_folders': deleted_folders,
+                                'files_deleted': deleted_files_count,
+                                'space_freed_mb': round(space_freed_mb, 2)
+                            },
+                            ip_address=request.META.get('REMOTE_ADDR', '')
+                        )
+
+                        self.message_user(
+                            request,
+                            f'✅ Comprobantes eliminados exitosamente: {deleted_files_count} archivos, '
+                            f'{round(space_freed_mb, 2)} MB liberados. '
+                            f'Meses eliminados: {", ".join(deleted_folders)}',
+                            messages.SUCCESS
+                        )
+
+                except Exception as e:
+                    self.message_user(
+                        request,
+                        f'❌ Error al eliminar comprobantes: {str(e)}',
+                        messages.ERROR
+                    )
+
+                return None
+
+        # Mostrar formulario de confirmación
+        form = DeleteProofsForm()
+
+        # Calcular información para preview
+        today = datetime.now()
+        preview_data = []
+
+        for months in [1, 2, 3, 6, 12]:
+            cutoff = today.replace(day=1) - relativedelta(months=months)
+            preview_data.append({
+                'months': months,
+                'cutoff_date': cutoff.strftime('%B %Y')
+            })
+
+        context = {
+            'title': 'Eliminar Comprobantes de Pago Antiguos',
+            'form': form,
+            'opts': self.model._meta,
+            'preview_data': preview_data,
+            'current_month': today.strftime('%B %Y'),
+        }
+        return render(request, 'admin/delete_payment_proofs_form.html', context)
+
+    delete_old_payment_proofs.short_description = '🗑️ Eliminar Comprobantes Antiguos'
 
     def get_actions(self, request):
         """Deshabilitar la eliminación física por defecto de Django"""
