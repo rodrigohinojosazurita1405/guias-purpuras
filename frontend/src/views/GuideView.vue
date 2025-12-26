@@ -127,22 +127,6 @@
           </div>
         </div>
 
-        <!-- VISTA GRID (Para otras categorías o móvil) -->
-        <div v-else class="listings-grid">
-          <JobCard
-            v-for="listing in paginatedListings"
-            :key="listing.id"
-            :listing="listing"
-          />
-
-          <!-- Estado vacío -->
-          <div v-if="filteredListings.length === 0" class="empty-state">
-            <va-icon name="search_off" size="4rem" color="#CCC" />
-            <h3>No se encontraron resultados</h3>
-            <p>Intenta ajustar los filtros de búsqueda</p>
-          </div>
-        </div>
-
       </div>
     </section>
 
@@ -158,7 +142,6 @@
 
 import MainLayout from '@/components/Layout/MainLayout.vue'
 import TopSearchBar from '@/components/Filters/TopSearchBar.vue'
-import JobCard from '@/components/Cards/JobCard.vue'
 import JobListCompact from '@/views/Detail/JobListCompact.vue'
 import JobDetailPanel from '@/views/Detail/JobDetailPanel.vue'
 import ListingCard from '@/components/Cards/ListingCard.vue'
@@ -171,7 +154,6 @@ export default {
   components: {
     MainLayout,
     TopSearchBar,
-    JobCard,
     JobListCompact,
     JobDetailPanel,
     ListingCard

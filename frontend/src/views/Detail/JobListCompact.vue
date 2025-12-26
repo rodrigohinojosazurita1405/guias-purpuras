@@ -95,7 +95,7 @@ export default {
 
       // Casos especiales
       if (days === 0) return 'Publicado hoy'
-      if (days === 1) return 'Publicado hace 1 día'
+      if (days === 1) return 'Publicado ayer'
 
       // Días recientes (menos de una semana)
       if (days < 7) {

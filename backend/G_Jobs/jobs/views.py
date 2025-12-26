@@ -568,7 +568,7 @@ def list_jobs(request):
     """
     Endpoint para listar todas las ofertas de trabajo
     GET /api/jobs/
-    Formato optimizado para JobCard component
+    Formato optimizado para JobListCompact y GuidesSection components
     Solo muestra trabajos ACTIVOS y con PAGO VERIFICADO
     """
     try:

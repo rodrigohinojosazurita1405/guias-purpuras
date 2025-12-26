@@ -215,14 +215,20 @@ const formatSalary = (job) => {
 }
 
 const formatDate = (dateString) => {
+  // Parsear la fecha y calcular días completos usando solo las fechas (sin horas)
   const date = new Date(dateString)
   const now = new Date()
-  const diffTime = Math.abs(now - date)
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-  if (diffDays === 0 || diffDays === 1) return 'Hoy'
-  if (diffDays === 2) return 'Ayer'
-  if (diffDays < 7) return `Hace ${diffDays - 1} días`
+  // Resetear horas para comparar solo fechas
+  now.setHours(0, 0, 0, 0)
+  date.setHours(0, 0, 0, 0)
+
+  const diffTime = now - date
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return 'Hoy'
+  if (diffDays === 1) return 'Ayer'
+  if (diffDays < 7) return `Hace ${diffDays} días`
   if (diffDays < 30) {
     const weeks = Math.floor(diffDays / 7)
     return `Hace ${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`
@@ -234,8 +240,13 @@ const formatDate = (dateString) => {
 const isNew = (dateString) => {
   const date = new Date(dateString)
   const now = new Date()
-  const diffTime = Math.abs(now - date)
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  // Resetear horas para comparar solo fechas
+  now.setHours(0, 0, 0, 0)
+  date.setHours(0, 0, 0, 0)
+
+  const diffTime = now - date
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
   return diffDays <= 3 // Consideramos "nuevo" si tiene 3 días o menos
 }
 
