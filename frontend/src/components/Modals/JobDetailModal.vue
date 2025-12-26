@@ -257,16 +257,12 @@ const stripHTML = (html) => {
 }
 
 const getScreeningQuestions = (questions) => {
-  console.log('DEBUG - screeningQuestions raw:', questions)
-  console.log('DEBUG - type:', typeof questions)
-
   if (!questions) return []
 
   // Si ya es un array de objetos con propiedad 'text'
   if (Array.isArray(questions)) {
     const result = questions
       .map(q => {
-        console.log('DEBUG - processing item:', q, 'type:', typeof q)
         // Si es un objeto con propiedad text, extraerla
         if (typeof q === 'object' && q.text) {
           return q.text
@@ -278,16 +274,13 @@ const getScreeningQuestions = (questions) => {
         return null
       })
       .filter(q => q)
-    console.log('DEBUG - final result:', result)
     return result
   }
 
   // Si es un string, intentar parsearlo como JSON
   if (typeof questions === 'string') {
-    console.log('DEBUG - trying to parse string')
     try {
       const parsed = JSON.parse(questions)
-      console.log('DEBUG - parsed successfully:', parsed)
       if (Array.isArray(parsed)) {
         return parsed
           .map(q => {
@@ -302,12 +295,10 @@ const getScreeningQuestions = (questions) => {
           .filter(q => q)
       }
     } catch (e) {
-      console.log('DEBUG - parse failed, trying regex:', e)
       // Si falla el parse, intentar extraer preguntas con regex
       // Buscar patrones como "text":"..."
       const textMatches = questions.matchAll(/"text"\s*:\s*"([^"]+)"/g)
       const extractedQuestions = Array.from(textMatches).map(match => match[1])
-      console.log('DEBUG - regex extracted:', extractedQuestions)
       if (extractedQuestions.length > 0) {
         return extractedQuestions
       }

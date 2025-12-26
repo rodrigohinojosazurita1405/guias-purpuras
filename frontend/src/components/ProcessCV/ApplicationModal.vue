@@ -254,7 +254,6 @@ const loadSavedCVs = async () => {
       }
     }
   } catch (error) {
-    console.log('Backend de CVs no disponible aún')
     savedCVs.value = []
     activeTab.value = 'upload'
   } finally {
@@ -301,14 +300,9 @@ const formatExpiryDate = (dateStr) => {
 
 // Sincronizar internalOpen con el prop externo
 watch(() => props.modelValue, (newValue) => {
-  console.log('👁️ [MODAL WATCH] props.modelValue cambió a:', newValue)
-  console.log('📱 [MODAL] isMobile:', isMobile.value)
-  console.log('🪟 [MODAL] Window size:', window.innerWidth, 'x', window.innerHeight)
-
   internalOpen.value = newValue
 
   if (newValue) {
-    console.log('✅ [MODAL] Modal abierto, cargando CVs...')
     allowClose.value = false // Bloquear cierre automático
     loadSavedCVs() // Esta función ajustará el tab inicial automáticamente
 
@@ -320,8 +314,6 @@ watch(() => props.modelValue, (newValue) => {
       document.body.style.width = '100%'
     }
   } else {
-    console.log('❌ [MODAL] Modal cerrado')
-
     // Restaurar scroll del body
     document.body.classList.remove('modal-open')
     document.body.style.overflow = ''
@@ -332,11 +324,8 @@ watch(() => props.modelValue, (newValue) => {
 
 // Sincronizar internalOpen de vuelta al padre
 watch(internalOpen, (newValue) => {
-  console.log('🔄 [MODAL] internalOpen cambió a:', newValue)
-
   // Si intenta cerrarse pero no está permitido, reabrir
   if (!newValue && !allowClose.value && props.modelValue) {
-    console.log('⚠️ [MODAL] Cierre automático bloqueado, reabriendo...')
     // Usar nextTick para evitar loop
     setTimeout(() => {
       internalOpen.value = true
@@ -345,12 +334,10 @@ watch(internalOpen, (newValue) => {
   }
 
   // Emitir el cambio al padre
-  console.log('📤 [MODAL] Emitiendo update:modelValue al padre:', newValue)
   emit('update:modelValue', newValue)
 
   // Resetear datos cuando se cierra legítimamente
   if (!newValue) {
-    console.log('🧹 [MODAL] Reseteando datos del modal')
     resetModalData()
   }
 })
@@ -374,14 +361,12 @@ const canSubmit = computed(() => {
 })
 
 const handleClose = () => {
-  console.log('🚪 [MODAL] handleClose - Usuario cerró el modal')
   allowClose.value = true // Permitir cierre
   internalOpen.value = false
 }
 
 const handleOverlayClick = () => {
   // No hacer nada - bloqueamos el cierre al hacer click fuera
-  console.log('🚫 [MODAL] Click en overlay bloqueado')
 }
 
 const handleSubmit = () => {
@@ -414,7 +399,6 @@ const handleSubmit = () => {
     coverLetter: activeTab.value === 'upload' ? coverLetter.value : null
   }
 
-  console.log('📤 [MODAL] Enviando postulación:', applicationData)
   emit('submit', applicationData)
   handleClose()
 }

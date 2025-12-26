@@ -474,8 +474,6 @@ const createQuill = () => {
     const initialText = getTextFromHtml(editorInstance.root.innerHTML)
     charCount.value = initialText.length
   }, 100)
-
-  console.log('✅ Quill Editor inicializado correctamente')
 }
 
 // Función para extraer texto plano del HTML
@@ -539,7 +537,6 @@ const loadJobCategories = async () => {
 
     if (data.success && data.categories) {
       categoryOptions.value = data.categories
-      console.log(`✅ ${data.count} categorías cargadas dinámicamente`)
     } else {
       console.error('Error loading categories:', data.message)
     }
@@ -558,7 +555,6 @@ const loadContractTypes = async () => {
 
     if (data.success && data.contractTypes) {
       contractTypeOptions.value = data.contractTypes
-      console.log(`✅ ${data.count} tipos de contrato cargados dinámicamente`)
     } else {
       console.error('Error loading contract types:', data.message)
     }
@@ -577,7 +573,6 @@ const loadCities = async () => {
 
     if (data.success && data.cities) {
       cityOptions.value = data.cities
-      console.log(`✅ ${data.count} ciudades cargadas dinámicamente`)
     } else {
       console.error('Error loading cities:', data.message)
     }
@@ -604,7 +599,6 @@ onBeforeUnmount(() => {
   // Destruir instancia de Quill
   if (editorInstance) {
     editorInstance = null
-    console.log('✅ Quill destruido correctamente')
   }
 })
 
@@ -682,7 +676,6 @@ const validate = () => {
     return false
   }
 
-  console.log('✅ Validación exitosa - todos los campos obligatorios completos')
   return true
 }
 

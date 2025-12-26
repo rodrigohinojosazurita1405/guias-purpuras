@@ -109,8 +109,6 @@ onMounted(async () => {
   // ¡IMPORTANTE! NO volver a llamar initAuth() aquí
   // Ya se ejecutó en main.js al startup
   // initAuth() solo debe ejecutarse UNA VEZ
-  console.log('📋 DashboardView mounted - authStore.isInitialized:', authStore.isInitialized)
-  console.log('📋 DashboardView mounted - authStore.isAuthenticated:', authStore.isAuthenticated)
 
   // Luego cargar el perfil del usuario
   await loadUserProfile()
@@ -123,17 +121,11 @@ onMounted(async () => {
 })
 
 // Observar cambios en la ruta
-watch(() => route.path, (newPath, oldPath) => {
-  console.log('🔵 [WATCH route.path] Cambio detectado')
-  console.log('🔵 [WATCH route.path] oldPath:', oldPath)
-  console.log('🔵 [WATCH route.path] newPath:', newPath)
+watch(() => route.path, () => {
   initializeFromRoute()
 })
 
-watch(() => route.query.tab, (newTab, oldTab) => {
-  console.log('🔵 [WATCH route.query.tab] Cambio detectado')
-  console.log('🔵 [WATCH route.query.tab] oldTab:', oldTab)
-  console.log('🔵 [WATCH route.query.tab] newTab:', newTab)
+watch(() => route.query.tab, () => {
   initializeFromRoute()
 })
 
@@ -146,31 +138,21 @@ watch(() => activeSection.value, async (newSection) => {
 
 // ========== METHODS ==========
 const initializeFromRoute = () => {
-  console.log('🔵 [DashboardView] initializeFromRoute llamado')
-  console.log('🔵 [DashboardView] route.path:', route.path)
-  console.log('🔵 [DashboardView] route.query.tab:', route.query.tab)
-
   // Soportar tanto /dashboard?tab=profile como /dashboard/profile
   let tab = route.query.tab || 'home'
 
   // Si la ruta es /dashboard/profile, /dashboard/company, etc.
   if (route.path.includes('/dashboard/')) {
     const pathParts = route.path.split('/')
-    console.log('🔵 [DashboardView] pathParts:', pathParts)
     let section = pathParts[pathParts.length - 1]
-    console.log('🔵 [DashboardView] section extraída:', section)
     if (section && section !== 'dashboard') {
       // Convertir guiones a guiones bajos (jobs-manager -> jobs_manager)
       section = section.replace(/-/g, '_')
-      console.log('🔵 [DashboardView] section después de replace:', section)
       tab = section
     }
   }
 
-  console.log('🔵 [DashboardView] tab FINAL:', tab)
-  console.log('🔵 [DashboardView] Asignando activeSection.value =', tab)
   activeSection.value = tab
-  console.log('🔵 [DashboardView] activeSection.value después de asignar:', activeSection.value)
 }
 
 const loadUserProfile = async () => {

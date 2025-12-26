@@ -390,13 +390,8 @@ export default {
     },
 
     async applyToJob() {
-      console.log('🎯 [CLICK] applyToJob called')
-      console.log('📱 [DEVICE] Window width:', window.innerWidth)
-      console.log('🔐 [AUTH] isAuthenticated:', this.authStore.isAuthenticated)
-
       // Validar autenticación
       if (!this.authStore.isAuthenticated) {
-        console.log('⚠️ [AUTH] Usuario no autenticado, redirigiendo a login')
         this.$vaToast.init({
           message: 'Debes iniciar sesión para postular a esta oferta',
           color: 'warning',
@@ -412,7 +407,6 @@ export default {
 
       // Validar que el usuario sea postulante (no empresa)
       if (this.authStore.user?.role === 'company') {
-        console.log('⚠️ [AUTH] Usuario es empresa, no puede postular')
         this.$vaToast.init({
           message: 'Solo los postulantes pueden aplicar a ofertas. Cambia a una cuenta de postulante.',
           color: 'danger',
@@ -421,9 +415,6 @@ export default {
         })
         return
       }
-
-      console.log('✅ [MODAL] Abriendo modal, applicationType:', this.listing.applicationType)
-      console.log('🔍 [MODAL] showApplicationModal ANTES:', this.showApplicationModal)
 
       // Proceder según el tipo de aplicación
       if (this.listing.applicationType === 'internal') {
@@ -440,12 +431,6 @@ export default {
         }
 
         this.showApplicationModal = true
-        console.log('✅ [MODAL] showApplicationModal DESPUÉS:', this.showApplicationModal)
-
-        // Forzar actualización en el siguiente tick
-        this.$nextTick(() => {
-          console.log('🔄 [MODAL] nextTick - showApplicationModal:', this.showApplicationModal)
-        })
       } else if (this.listing.applicationType === 'external') {
         window.open(this.listing.externalApplicationUrl, '_blank')
       } else if (this.listing.applicationType === 'email') {
@@ -562,8 +547,6 @@ export default {
 
         const result = await response.json()
 
-        console.log('Application submitted successfully:', result)
-
         // Cerrar el modal de postulación
         this.showApplicationModal = false
 
@@ -641,8 +624,6 @@ export default {
           duration: 3000,
           position: 'top-right'
         })
-
-        console.log('CV saved successfully:', result)
 
       } catch (error) {
         console.error('Error saving CV:', error)
@@ -729,9 +710,6 @@ export default {
         const endpoint = this.isJobSaved ? '/api/saved-jobs/unsave/' : '/api/saved-jobs/save/'
         const method = this.isJobSaved ? 'DELETE' : 'POST'
 
-        console.log(`🔐 Enviando ${method} a ${endpoint}`)
-        console.log(`🎫 Token: ${this.authStore.accessToken.substring(0, 20)}...`)
-
         const response = await fetch(endpoint, {
           method: method,
           headers: {
@@ -785,7 +763,6 @@ export default {
 
       // Verificar que tengamos un token válido
       if (!this.authStore.accessToken) {
-        console.warn('⚠️ No hay accessToken disponible')
         this.isJobSaved = false
         return
       }
@@ -802,7 +779,6 @@ export default {
           const data = await response.json()
           this.isJobSaved = data.is_saved || false
         } else if (response.status === 401) {
-          console.warn('⚠️ Token no válido o expirado, refrescando...')
           // Token podría haber expirado, intentar refrescar
           await this.authStore.refreshTokens()
         }

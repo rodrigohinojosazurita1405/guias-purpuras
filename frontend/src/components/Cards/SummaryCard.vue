@@ -462,31 +462,11 @@
                       </span>
                     </div>
                   </div>
-
-                  <div v-if="jobData.vacancies" class="info-item-compact">
-                    <va-icon name="groups" size="small" class="info-icon" />
-                    <div class="info-text">
-                      <span class="info-label-compact">Vacantes</span>
-                      <span class="info-value-compact">
-                        {{ jobData.vacancies }} {{ jobData.vacancies === 1 ? 'vacante' : 'vacantes' }}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div v-if="jobData.publishedDate" class="info-item-compact">
-                    <va-icon name="schedule" size="small" class="info-icon" />
-                    <div class="info-text">
-                      <span class="info-label-compact">Publicado</span>
-                      <span class="info-value-compact">
-                        {{ formatPublishedDate(jobData.publishedDate) }}
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </div>
 
-              <!-- COLUMNA 3: METADATA - OCULTA (ya integrada en grid) -->
-              <div class="metadata-column" style="display: none;">
+              <!-- COLUMNA 3: METADATA -->
+              <div class="metadata-column">
                 <div class="metadata-container">
                   <div v-if="jobData.vacancies" class="meta-item">
                     <va-icon name="person" size="small" />
@@ -1039,16 +1019,6 @@ const getQuestionTypeLabel = (type) => {
   return labels[type] || type
 }
 
-// ========== DEBUGGING PARA SCREENING QUESTIONS ==========
-watch(() => props.jobData, (newData) => {
-  console.log('📋 SummaryCard - jobData actualizado:', {
-    applicationType: newData?.applicationType,
-    screeningQuestions: newData?.screeningQuestions,
-    hasQuestions: newData?.screeningQuestions?.length > 0,
-    questionCount: newData?.screeningQuestions?.length || 0
-  })
-}, { deep: true, immediate: true })
-
 const getJobPlanName = (planKey) => {
   const normalizedKey = planKey?.toLowerCase()
   const planInfo = PAYMENT_CONFIG.getPlanInfo(normalizedKey)
@@ -1147,7 +1117,6 @@ const handleProofUpload = (event) => {
 
   // FASE 7.1: Almacenar el archivo en la store para envío al backend
   publishStore.setProofOfPaymentFile(file)
-  console.log('📎 Archivo de comprobante almacenado:', file.name)
 }
 
 // Limpiar carga de comprobante
@@ -1158,7 +1127,6 @@ const clearProofUpload = () => {
   }
   // FASE 7.1: Limpiar el archivo de la store
   publishStore.setProofOfPaymentFile(null)
-  console.log('🗑️ Archivo de comprobante eliminado')
 }
 
 // Copiar referencia de pago al portapapeles
@@ -1177,7 +1145,6 @@ watch(billingData, (newBillingData) => {
     publishStore.setJobData({
       billingData: { ...newBillingData }
     })
-    console.log('📋 Datos de facturación actualizados:', newBillingData)
   }
 }, { deep: true })
 
@@ -1201,13 +1168,11 @@ watch(isContributor, (newValue) => {
     publishStore.setJobData({
       billingData: null
     })
-    console.log('🗑️ Datos de facturación limpiados (no es contribuyente)')
   } else {
     // Cuando se marca el checkbox, sincronizar datos actuales (aunque estén vacíos)
     publishStore.setJobData({
       billingData: { ...billingData.value }
     })
-    console.log('✅ Checkbox marcado - billingData sincronizado:', billingData.value)
   }
 })
 
@@ -1216,7 +1181,6 @@ watch(sendByEmail, (newValue) => {
   if (!newValue) {
     // Limpiar el campo de email si se desmarca
     billingData.value.invoiceEmail = ''
-    console.log('✓ Campo invoiceEmail limpiado (checkbox desmarcado)')
   }
 })
 
@@ -1225,7 +1189,6 @@ watch(sendByWhatsApp, (newValue) => {
   if (!newValue) {
     // Limpiar el campo de whatsapp si se desmarca
     billingData.value.whatsapp = ''
-    console.log('✓ Campo whatsapp limpiado (checkbox desmarcado)')
   }
 })
 
@@ -1956,9 +1919,9 @@ watch(() => props.formData.coordinates, (newCoords) => {
 }
 
 .job-title-label {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: #9CA3AF;
+  color: #7C3AED;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   margin: 0;
@@ -2033,7 +1996,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
 }
 
 .info-label-compact {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: #9CA3AF;
   text-transform: uppercase;
@@ -2042,10 +2005,10 @@ watch(() => props.formData.coordinates, (newCoords) => {
 }
 
 .info-value-compact {
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #1F2937;
-  line-height: 1.3;
+  line-height: 1.35;
   word-break: break-word;
 }
 
@@ -2150,7 +2113,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   padding: 0.65rem 1.25rem;
   border-radius: 10px;
   font-size: 0.85rem;
@@ -3019,15 +2982,19 @@ watch(() => props.formData.coordinates, (newCoords) => {
     justify-content: flex-start;
   }
 
+  .company-logo-container {
+    justify-content: flex-start;
+  }
+
   .company-logo {
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
   }
 
   .company-logo-placeholder {
-    width: 80px;
-    height: 80px;
-    font-size: 2rem;
+    width: 120px;
+    height: 120px;
+    font-size: 3rem;
   }
 
   .company-name {
@@ -3064,7 +3031,18 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .badges-top-row {
-    gap: 0.5rem;
+    gap: 0.4rem;
+  }
+
+  .badge,
+  .badge-basic,
+  .badge-featured,
+  .badge-sponsored,
+  .badge-urgent {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.6rem !important;
+    min-width: auto !important;
+    gap: 0.2rem !important;
   }
 
   .job-content {
@@ -3178,34 +3156,58 @@ watch(() => props.formData.coordinates, (newCoords) => {
   }
 
   .header-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+    grid-template-columns: 140px 1fr;
+    gap: 1rem;
     align-items: flex-start;
   }
 
   .logo-column {
     padding-top: 0;
     margin-bottom: 0;
+    order: 1;
+  }
+
+  .info-column {
+    order: 2;
+    gap: 0.5rem;
+  }
+
+  .metadata-column {
+    order: 3;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #E5E7EB;
+  }
+
+  .metadata-container {
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
   }
 
   .company-logo-container {
-    width: 100%;
+    width: auto;
     justify-content: flex-start;
+    margin-bottom: 0;
   }
 
   .company-logo {
-    width: 120px;
-    height: 120px;
+    width: 140px;
+    height: 140px;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
     border: 2px solid #E5E7EB;
     flex-shrink: 0;
   }
 
   .company-logo-placeholder {
-    width: 120px;
-    height: 120px;
-    font-size: 3rem;
+    width: 140px;
+    height: 140px;
+    font-size: 3.5rem;
     border-radius: 12px;
     border: 2px solid #E5E7EB;
     display: flex;
@@ -3214,57 +3216,99 @@ watch(() => props.formData.coordinates, (newCoords) => {
     background: #F9FAFB;
   }
 
-  .company-name {
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: #2D2D2D;
+  .job-title-wrapper {
+    text-align: left;
+    margin-bottom: 0.5rem;
   }
 
   .job-title-label {
     font-size: 0.7rem;
     font-weight: 700;
-    color: #9CA3AF;
+    color: #7C3AED;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-top: 0.5rem;
   }
 
   .job-title {
-    font-size: 1.35rem;
+    font-size: 1.25rem;
     font-weight: 700;
     line-height: 1.25;
-    margin: 0.35rem 0 0 0;
+    margin: 0.25rem 0 0 0;
     color: #1F2937;
   }
 
-  .info-column {
-    gap: 0.4rem;
-  }
-
   .company-name-section {
-    padding: 0.4rem 0;
-    margin-bottom: 0.5rem;
+    padding: 0.5rem 0;
+    margin-bottom: 0.75rem;
+    justify-content: flex-start;
+    border-bottom: 1px solid #E5E7EB;
   }
 
   .company-name-text {
-    font-size: 0.9rem;
+    font-size: 1rem;
+    text-align: left;
   }
 
   .info-grid-compact {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem 0.75rem;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
   }
 
   .info-item-compact {
-    padding: 0.4rem;
+    padding: 0.5rem 0.6rem;
   }
 
   .info-label-compact {
-    font-size: 0.6rem;
+    font-size: 0.65rem;
   }
 
   .info-value-compact {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
+  }
+
+  .badges-top-row {
+    gap: 0.25rem !important;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .badges-top-row .badge,
+  .badge,
+  .badge-basic,
+  .badge-featured,
+  .badge-sponsored,
+  .badge-urgent {
+    padding: 0.15rem 0.35rem !important;
+    font-size: 0.5rem !important;
+    font-weight: 600 !important;
+    border-radius: 3px !important;
+    line-height: 1 !important;
+    letter-spacing: 0.01em !important;
+    white-space: nowrap !important;
+    min-width: auto !important;
+    max-width: none !important;
+    gap: 0.2rem !important;
+    text-transform: uppercase !important;
+    border-width: 1px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .badges-top-row .badge-icon,
+  .badge-icon,
+  .badge .va-icon,
+  .badge :deep(.va-icon) {
+    font-size: 0.6rem !important;
+    width: 0.6rem !important;
+    height: 0.6rem !important;
+    margin-right: 0.15rem !important;
+  }
+
+  /* Forzar tamaño de ícono dentro de badge */
+  .badges-top-row :deep(.va-icon),
+  .badge :deep(.va-icon__content) {
+    font-size: 0.6rem !important;
+    width: 0.6rem !important;
+    height: 0.6rem !important;
   }
 
   .info-grid {

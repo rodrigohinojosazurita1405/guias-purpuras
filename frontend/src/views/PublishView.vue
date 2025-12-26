@@ -118,7 +118,6 @@ onMounted(async () => {
   if (jobId) {
     // Modo edición: cargar datos del anuncio existente
     try {
-      console.log('📋 Cargando anuncio para editar:', jobId)
       const response = await fetch(`/api/jobs/${jobId}/`, {
         headers: {
           'Authorization': `Bearer ${authStore.accessToken}`
@@ -262,16 +261,10 @@ const previousStep = () => {
 
 // ========== HANDLERS ==========
 const handleFormData = (data) => {
-  console.log('Datos del formulario inicial:', data)
   publishStore.setJobData(data)
 }
 
 const proceedToWizard = () => {
-  console.log('Procediendo al wizard...')
-  console.log('Datos guardados:', {
-    contractType: publishStore.jobData.contractType,
-    city: publishStore.jobData.city
-  })
   publishStore.setCurrentStep(1)
   scrollToTop()
 }
@@ -279,7 +272,6 @@ const proceedToWizard = () => {
 const handleSubmit = async () => {
   // ========== VALIDACIÓN PREVIA ==========
   if (!authStore.isAuthenticated || !authStore.accessToken) {
-    console.warn('⚠️ Usuario no autenticado')
     notify({
       message: 'Debes iniciar sesión para publicar un trabajo',
       color: 'warning',
@@ -316,18 +308,6 @@ const handleSubmit = async () => {
 
   try {
     isSubmitting.value = true
-    console.log('📝 Iniciando publicación...')
-    console.log('Usuario:', authStore.user?.email)
-    console.log('Datos:', {
-      title,
-      city,
-      company: publishStore.jobData.companyName,
-      plan: publishStore.jobData.selectedPlan
-    })
-    console.log('🔍 Verificación de archivo:', {
-      proofOfPaymentFile: publishStore.proofOfPaymentFile?.name || 'NO DEFINIDO',
-      fileExists: !!publishStore.proofOfPaymentFile
-    })
 
     // Preparar datos como FormData para permitir envío de archivo (FASE 7.1)
     const formData = new FormData()
@@ -350,7 +330,6 @@ const handleSubmit = async () => {
       // Para billingData (es objeto), convertir a JSON
       else if (key === 'billingData' && value && typeof value === 'object') {
         formData.append(key, JSON.stringify(value))
-        console.log('📋 billingData enviado:', value)
       }
       // Para modality, si es un objeto extraer solo el valor
       else if (key === 'modality' && value && typeof value === 'object' && value.value) {
@@ -371,10 +350,7 @@ const handleSubmit = async () => {
     // FASE 7.1: Agregar archivo de comprobante de pago si existe
     if (publishStore.proofOfPaymentFile) {
       formData.append('proofOfPayment', publishStore.proofOfPaymentFile)
-      console.log('📎 Archivo de pago adjunto:', publishStore.proofOfPaymentFile.name)
     }
-
-    console.log('📤 Enviando a http://localhost:8000/api/jobs/publish...')
 
     // Llamar al endpoint backend con autenticación
     const controller = new AbortController()
@@ -391,7 +367,6 @@ const handleSubmit = async () => {
     })
 
     clearTimeout(timeoutId)
-    console.log(`📥 Response status: ${response.status}`)
 
     // Parsear respuesta
     let result
@@ -478,11 +453,6 @@ const handleSubmit = async () => {
       return
     }
 
-    console.log('✅ Publicación exitosa:')
-    console.log('   ID:', result.id)
-    console.log('   Creado en:', result.createdAt)
-    console.log('   Mensaje:', result.message)
-
     // Guardar datos del job publicado para mostrar en el modal
     publishedJob.value = {
       id: result.id,
@@ -498,8 +468,6 @@ const handleSubmit = async () => {
 
   } catch (error) {
     console.error('❌ Error de conexión:', error)
-    console.error('Tipo de error:', error.name)
-    console.error('Mensaje:', error.message)
 
     // Diferenciar tipos de error
     if (error.name === 'AbortError') {

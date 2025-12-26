@@ -258,12 +258,9 @@ export default {
       // 🎯 Si hay parámetro 'selected', mostrar SOLO ese trabajo
       const selectedId = this.$route.query.selected
       if (selectedId) {
-        console.log('🎯 [filteredListings] Detectado parámetro selected:', selectedId)
-        console.log('🎯 [filteredListings] Total trabajos disponibles:', results.length)
         // Comparar como string porque los IDs pueden ser UUIDs alfanuméricos
         const selectedJob = results.find(job => String(job.id) === String(selectedId))
         if (selectedJob) {
-          console.log('✅ [filteredListings] Trabajo encontrado:', selectedJob.title, '- Retornando array con 1 elemento')
           return [selectedJob]
         } else {
           console.warn('⚠️ [filteredListings] Trabajo NO encontrado con ID:', selectedId, '- Mostrando todos')
@@ -273,9 +270,6 @@ export default {
 
       // Filtrar por categoría (trabajos)
       if (this.category === 'trabajos' && this.topFilters.category) {
-        console.log('🔍 Filtrando por categoría:', this.topFilters.category)
-        console.log('📋 Total listings antes de filtrar:', results.length)
-
         results = results.filter(listing => {
           // Normalizar para comparación (remover acentos y comparar en minúsculas)
           const normalizeText = (text) => {
@@ -291,20 +285,12 @@ export default {
           const filterCategory = normalizeText(this.topFilters.category)
           const match = listingCategory === filterCategory
 
-          if (match) {
-            console.log(`✅ Match: "${listing.jobCategory}" (${listingCategory}) === "${this.topFilters.category}" (${filterCategory})`)
-          }
-
           return match
         })
-
-        console.log('📋 Total listings después de filtrar:', results.length)
       }
 
       // Filtrar por tipo de contrato (trabajos)
       if (this.category === 'trabajos' && this.topFilters.contractType) {
-        console.log('🔍 Filtrando por tipo de contrato:', this.topFilters.contractType)
-        console.log('📋 Total listings antes de filtrar:', results.length)
 
         results = results.filter(listing => {
           // Normalizar para comparación (remover acentos, plurales y comparar en minúsculas)
@@ -333,14 +319,8 @@ export default {
           const filterContractType = normalizeContractType(this.topFilters.contractType)
           const match = listingContractType === filterContractType
 
-          if (match) {
-            console.log(`✅ Match: "${listing.contractType}" (${listingContractType}) === "${this.topFilters.contractType}" (${filterContractType})`)
-          }
-
           return match
         })
-
-        console.log('📋 Total listings después de filtrar:', results.length)
       }
 
       // Filtrar por subcategoría (otros)
@@ -590,18 +570,13 @@ export default {
 
       // 🆕 Si hay categoría en query params, usarla
       if (category) {
-        console.log('📌 Category slug from URL:', category)
         const denormalizedCategory = await this.denormalizeCategory(category)
-        console.log('📌 Denormalized category:', denormalizedCategory)
         this.topFilters.category = denormalizedCategory
-        console.log('📌 topFilters.category set to:', this.topFilters.category)
       }
 
       // 🆕 Si hay tipo de contrato en query params, usarlo
       if (contractType) {
-        console.log('📌 ContractType from URL:', contractType)
         this.topFilters.contractType = contractType
-        console.log('📌 topFilters.contractType set to:', this.topFilters.contractType)
       } else if (this.searchStore.selectedContractType && !hasSelectedParam) {
         this.topFilters.contractType = this.searchStore.selectedContractType
       }
@@ -618,7 +593,6 @@ export default {
         if (response.data && response.data.categories) {
           const category = response.data.categories.find(cat => cat.slug === categorySlug)
           if (category) {
-            console.log('✅ Categoría encontrada en API:', category.text)
             return category.text // Retornar el nombre completo: "Tecnología e Informática"
           }
         }
@@ -640,7 +614,6 @@ export default {
         return word.charAt(0).toUpperCase() + word.slice(1)
       }).join(' ')
 
-      console.log('⚠️ Usando fallback - Convertido:', categorySlug, '→', result)
       return result
     },
 
@@ -881,18 +854,14 @@ export default {
         const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
         const response = await fetch(`${baseURL}/api/jobs/`)
 
-        console.log('[GuideView] Cargando trabajos desde:', `${baseURL}/api/jobs/`)
-
         if (!response.ok) {
           throw new Error(`Error ${response.status}: ${response.statusText}`)
         }
 
         const data = await response.json()
-        console.log('[GuideView] Datos recibidos:', data)
 
         if (data.success && data.jobs) {
           this.allListings = data.jobs
-          console.log('[GuideView] Trabajos cargados:', this.allListings.length)
         } else {
           console.warn('[GuideView] No se encontraron trabajos en la respuesta')
           this.allListings = []
@@ -1119,12 +1088,9 @@ export default {
     // Verificar si hay un trabajo preseleccionado en la URL (query param 'selected')
     const selectedId = this.$route.query.selected
     if (selectedId) {
-      console.log('[GuideView] Buscando trabajo con ID:', selectedId)
-      console.log('[GuideView] Total trabajos cargados:', this.allListings.length)
       // Buscar el trabajo en la lista y seleccionarlo (comparar como string porque IDs pueden ser UUIDs)
       const job = this.allListings.find(listing => String(listing.id) === String(selectedId))
       if (job) {
-        console.log('[GuideView] Trabajo encontrado, seleccionando:', job.title)
         this.selectJob(job)
       } else {
         console.warn('[GuideView] No se encontró el trabajo con ID:', selectedId)
