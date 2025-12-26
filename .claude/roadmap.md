@@ -7,6 +7,8 @@ FASE 1.2: Formulario Aplicación Candidato  ✅ 100% COMPLETADA
 FASE 2: Flujo de Publicación Completo      ✅ 100% COMPLETADA
 FASE 3: Búsqueda y Filtrado GuideView      ✅ 100% COMPLETADA
 FASE 3.6: Autenticación Real               ✅ 100% COMPLETADA
+FASE 3.6.1: Recuperación de Contraseña     ✅ 100% COMPLETADA
+FASE 3.6.2: Mejoras UX/UI Auth Forms       ✅ 100% COMPLETADA
 FASE 4: Perfiles de Usuario                ✅ 100% COMPLETADA
 FASE 5: Perfiles de Empresa                ✅ 100% COMPLETADA
 FASE 6: Sistema de Aplicaciones            ✅ 100% COMPLETADA
@@ -96,6 +98,96 @@ FASE 11.1: Mejoras UX/UI Admin + Frontend  ✅ 100% COMPLETADA
 - ✅ Badge de verificación más sutil ("✓ Verificado" en lugar de "✓✓ VERIFICADO")
 - ✅ Tab "Verificación de Pago" como primer fieldset por defecto
 - ✅ Textos profesionales (removidos textos de desarrollo como "FASE 7.1")
+
+### ✅ FASE 3.6.1: Sistema de Recuperación de Contraseña (100% COMPLETADA) - Diciembre 2024
+**Archivos:** `auth_api/models.py`, `auth_api/views.py`, `core/settings.py`, `ForgotPasswordForm.vue`, `ResetPasswordForm.vue`
+**Commits:** `e3bbf25` - Correcciones UX/UI auth forms
+
+#### Backend Completado:
+- ✅ **Modelo PasswordResetToken**
+  - ✅ Token seguro generado con `secrets.token_urlsafe(32)`
+  - ✅ Validación de 1 hora de expiración
+  - ✅ Método `is_valid()` para verificar tokens no usados y no expirados
+  - ✅ Método estático `create_for_user()` - invalida tokens anteriores y crea nuevo
+  - ✅ Relación ForeignKey con CustomUser
+
+- ✅ **Endpoints API**
+  - ✅ `POST /api/auth/forgot-password` - Solicitar recuperación
+  - ✅ `POST /api/auth/reset-password` - Restablecer contraseña con token
+  - ✅ Validación robusta de email y contraseña
+  - ✅ Seguridad: No revela si email existe o no
+
+- ✅ **Configuración de Email**
+  - ✅ Desarrollo: Console backend para localhost
+  - ✅ Producción: SMTP con variables de entorno
+  - ✅ Documentación completa para deployment en Render
+  - ✅ Email con URL de reset personalizada según entorno
+  - ✅ Plantilla de email profesional
+
+#### Frontend Completado:
+- ✅ **ForgotPasswordForm.vue**
+  - ✅ Formulario de solicitud de recuperación
+  - ✅ Validación de email en tiempo real
+  - ✅ Mensajes de éxito/error claros
+  - ✅ Diseño consistente con LoginForm y RegisterForm
+  - ✅ Responsive design completo
+
+- ✅ **ResetPasswordForm.vue**
+  - ✅ Formulario de nueva contraseña con token
+  - ✅ Validación de contraseña y confirmación
+  - ✅ Mostrar/ocultar contraseña
+  - ✅ Indicador de fortaleza de contraseña
+  - ✅ Manejo de tokens inválidos o expirados
+  - ✅ Redirección automática a login después de éxito
+
+#### Testing Completado:
+- ✅ **Scripts de prueba automatizados**
+  - ✅ `test_password_recovery.py` - Pruebas manuales paso a paso
+  - ✅ `test_password_recovery_auto.py` - Pruebas automatizadas (5/5 pasadas)
+  - ✅ Extracción automática de tokens desde base de datos
+  - ✅ Validación de flujo completo: registro → forgot → reset → login
+
+### ✅ FASE 3.6.2: Mejoras UX/UI en Formularios de Autenticación (100% COMPLETADA) - Diciembre 2024
+**Archivos:** `LoginForm.vue`, `RegisterForm.vue`, `ForgotPasswordForm.vue`, `ResetPasswordForm.vue`
+**Commits:** `e3bbf25` - fix: Corregir alineación de íconos y mejorar UX
+
+#### Mejoras Aplicadas en Todos los Formularios:
+- ✅ **Alineación de íconos corregida**
+  - ✅ Cambio de `top: 50%; transform: translateY(-50%)` a `top: 14px` fijo
+  - ✅ Íconos ahora se mantienen alineados con inputs incluso cuando aparecen mensajes de error
+  - ✅ Soluciona problema de desplazamiento vertical al validar
+
+- ✅ **RegisterForm - Mejoras específicas**
+  - ✅ Labels dinámicos según rol seleccionado (empresa/postulante)
+  - ✅ "Nombre Completo" → "Nombre de la Empresa" si rol = company
+  - ✅ "Correo Electrónico" → "Correo Electrónico de la Empresa" si rol = company
+  - ✅ Header con Bolivia flag y gradiente púrpura
+  - ✅ Animación suave "gentle-float" en bandera (3px vertical)
+  - ✅ Checkbox de términos y condiciones alineado correctamente
+  - ✅ Labels de estadísticas en blanco con `!important` (forzar override)
+  - ✅ Fix de espacios vacíos en dropdowns con `select.form-input option { padding-left: 0.5rem; }`
+
+- ✅ **LoginForm - Mejoras de navegación**
+  - ✅ Redirección post-login unificada a `/dashboard` para todos los usuarios
+  - ✅ Simplificación de lógica de redirección (antes: empresa → jobs-manager, postulante → profile)
+  - ✅ Header con Bolivia flag y gradiente
+  - ✅ Diseño consistente con RegisterForm
+
+- ✅ **Optimizaciones móviles (todos los formularios)**
+  - ✅ Breakpoints consistentes: 1024px (tablets), 640px (móviles), 375px (móviles pequeños)
+  - ✅ Input `font-size: 16px` en móvil para prevenir auto-zoom en iOS
+  - ✅ Áreas táctiles mejoradas: `min-height: 48px` en inputs y botones (WCAG 2.1)
+  - ✅ Padding y espaciado optimizado por breakpoint
+  - ✅ Íconos y logos escalados apropiadamente
+  - ✅ Bandera de Bolivia responsive (28px → 22px → 20px)
+  - ✅ Headers con tamaños de fuente progresivos
+
+#### Resultado:
+- ✅ Íconos perfectamente alineados en todos los estados de validación
+- ✅ Dropdowns sin espacios vacíos molestos
+- ✅ Labels de estadísticas visibles en blanco sobre fondo púrpura
+- ✅ Navegación post-login más intuitiva y consistente
+- ✅ Experiencia móvil optimizada y profesional
 
 ### ✅ FASE 11.1: Mejoras de UX/UI Admin y Frontend (100% COMPLETADA) - Diciembre 2024
 **Archivos:** `jobs/admin.py`, `PublishSuccessModal.vue`, `SummaryCard.vue`, `InformationStepJob.vue`, `PublishView.vue`
