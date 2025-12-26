@@ -641,8 +641,7 @@ const currentYear = new Date().getFullYear()
 .input-icon {
   position: absolute;
   left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 14px; /* Fijo para que no se mueva con mensajes de error */
   width: 18px;
   height: 18px;
   color: #9ca3af;
@@ -695,6 +694,11 @@ const currentYear = new Date().getFullYear()
 
 select.form-input {
   cursor: pointer;
+}
+
+/* Fix dropdown options alignment - remove left padding from options */
+select.form-input option {
+  padding-left: 0.5rem;
 }
 
 .password-toggle {
@@ -1054,7 +1058,7 @@ select.form-input {
 
 .stat-label {
   font-size: 0.75rem;
-  color: #FFFFFF;
+  color: #FFFFFF !important;
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;

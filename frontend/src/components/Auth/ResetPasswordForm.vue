@@ -453,8 +453,7 @@ const currentYear = new Date().getFullYear()
 .input-icon {
   position: absolute;
   left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 14px; /* Fijo para que no se mueva con mensajes de error */
   width: 18px;
   height: 18px;
   color: #9ca3af;

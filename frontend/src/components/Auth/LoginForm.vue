@@ -269,10 +269,9 @@ const handleLogin = async () => {
       setTimeout(() => {
         if (redirectUrl) {
           router.push(redirectUrl)
-        } else if (authStore.user?.role === 'company') {
-          router.push('/dashboard/jobs-manager')
         } else {
-          router.push('/dashboard/profile')
+          // Redirigir al tablero principal para todos los usuarios
+          router.push('/dashboard')
         }
       }, 500)
     } else {
@@ -462,8 +461,7 @@ const currentYear = new Date().getFullYear()
 .input-icon {
   position: absolute;
   left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 14px; /* Fijo para que no se mueva con mensajes de error */
   width: 18px;
   height: 18px;
   color: #9ca3af;
