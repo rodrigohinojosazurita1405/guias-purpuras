@@ -413,6 +413,7 @@ const initializeFormData = (modelValue) => ({
   municipality: modelValue.municipality || '',
   contractType: modelValue.contractType || '',
   modality: modelValue.modality || 'presencial',
+  applicationDeadline: modelValue.applicationDeadline || null,
   expiryDate: modelValue.expiryDate || null,
   salaryType: modelValue.salaryType || 'range',
   salaryMin: modelValue.salaryMin || null,

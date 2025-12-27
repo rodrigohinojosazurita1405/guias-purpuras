@@ -1292,6 +1292,19 @@ onMounted(async () => {
   // Cargar planes desde backend para sincronizar con Django Admin
   await PAYMENT_CONFIG.loadPlansFromBackend()
 
+  // DEBUG: Ver qué datos de aplicación externa están llegando
+  if (props.type === 'job') {
+    console.log('🔍 SummaryCard - jobData recibido:', {
+      applicationType: props.jobData?.applicationType,
+      externalApplicationUrl: props.jobData?.externalApplicationUrl,
+      email: props.jobData?.email,
+      whatsapp: props.jobData?.whatsapp,
+      website: props.jobData?.website,
+      applicationInstructions: props.jobData?.applicationInstructions,
+      todosLosDatos: props.jobData
+    })
+  }
+
   if (props.formData.coordinates) {
     initMap()
   }
