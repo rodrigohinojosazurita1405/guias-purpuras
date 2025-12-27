@@ -563,6 +563,57 @@
               </div>
             </section>
 
+            <!-- ===== INFORMACIÓN DE APLICACIÓN EXTERNA ===== -->
+            <section v-if="jobData.applicationType === 'external'" class="content-block application-external-block">
+              <h2 class="block-title">
+                <va-icon name="open_in_new" size="small" />
+                Información de Aplicación Externa
+              </h2>
+              <div class="external-application-info">
+                <div v-if="jobData.externalApplicationUrl" class="info-item-external">
+                  <span class="info-label-external">
+                    <va-icon name="link" size="small" />
+                    URL del Formulario:
+                  </span>
+                  <a :href="jobData.externalApplicationUrl" target="_blank" class="info-value-external url-link">
+                    {{ jobData.externalApplicationUrl }}
+                    <va-icon name="open_in_new" size="x-small" />
+                  </a>
+                </div>
+                <div v-if="jobData.applicationInstructions" class="info-item-external">
+                  <span class="info-label-external">
+                    <va-icon name="description" size="small" />
+                    Instrucciones:
+                  </span>
+                  <p class="info-value-external instructions-text">{{ jobData.applicationInstructions }}</p>
+                </div>
+                <div v-if="jobData.email" class="info-item-external">
+                  <span class="info-label-external">
+                    <va-icon name="email" size="small" />
+                    Email de Contacto:
+                  </span>
+                  <span class="info-value-external">{{ jobData.email }}</span>
+                </div>
+                <div v-if="jobData.whatsapp" class="info-item-external">
+                  <span class="info-label-external">
+                    <va-icon name="phone" size="small" />
+                    WhatsApp/Teléfono:
+                  </span>
+                  <span class="info-value-external">{{ jobData.whatsapp }}</span>
+                </div>
+                <div v-if="jobData.website" class="info-item-external">
+                  <span class="info-label-external">
+                    <va-icon name="language" size="small" />
+                    Sitio Web:
+                  </span>
+                  <a :href="jobData.website" target="_blank" class="info-value-external url-link">
+                    {{ jobData.website }}
+                    <va-icon name="open_in_new" size="x-small" />
+                  </a>
+                </div>
+              </div>
+            </section>
+
             <!-- ===== SECCIÓN PAGO Y COMPROBANTE (SIEMPRE VISIBLE) ===== -->
             <section class="content-block payment-section">
               <div class="payment-accordion always-open">
@@ -3982,6 +4033,75 @@ watch(() => props.formData.coordinates, (newCoords) => {
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
+}
+
+/* ===== INFORMACIÓN DE APLICACIÓN EXTERNA ===== */
+.application-external-block {
+  background: linear-gradient(135deg, #FEFCFF 0%, #F9FAFB 100%);
+  border: 1px solid #E9D5FF;
+}
+
+.external-application-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.info-item-external {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #F3E8FF;
+  transition: all 0.2s ease;
+}
+
+.info-item-external:hover {
+  border-color: #E9D5FF;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.08);
+}
+
+.info-label-external {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #7C3AED;
+  font-size: 0.875rem;
+}
+
+.info-value-external {
+  color: #1E293B;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-left: 1.75rem;
+}
+
+.info-value-external.url-link {
+  color: #7C3AED;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s ease;
+  word-break: break-all;
+}
+
+.info-value-external.url-link:hover {
+  color: #6D28D9;
+  text-decoration: underline;
+}
+
+.info-value-external.instructions-text {
+  margin: 0;
+  padding: 0.75rem;
+  background: #FEFCFF;
+  border-radius: 6px;
+  border-left: 3px solid #7C3AED;
+  font-style: italic;
+  color: #475569;
 }
 
 </style>
