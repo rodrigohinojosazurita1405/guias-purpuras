@@ -4039,6 +4039,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
 .application-external-block {
   background: linear-gradient(135deg, #FEFCFF 0%, #F9FAFB 100%);
   border: 1px solid #E9D5FF;
+  margin-bottom: 2rem;
 }
 
 .external-application-info {
