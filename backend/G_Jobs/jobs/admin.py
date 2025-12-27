@@ -181,8 +181,7 @@ class JobAdmin(admin.ModelAdmin):
             'fields': ('salaryType', 'salaryMin', 'salaryMax', 'salaryFixed', 'benefits')
         }),
         ('Vacantes y Aplicaciones', {
-            'fields': ('vacancies', 'applications', 'applicationDeadline', 'expiryDate'),
-            'description': 'IMPORTANTE: applicationDeadline = fecha límite de postulación (candidatos). expiryDate = vencimiento del plan (visibilidad del anuncio).'
+            'fields': ('vacancies', 'applications', 'applicationDeadline', 'expiryDate')
         }),
         ('Contacto', {
             'fields': ('email',)

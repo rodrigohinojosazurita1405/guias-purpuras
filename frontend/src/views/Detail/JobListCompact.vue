@@ -36,9 +36,10 @@
           </span>
         </div>
         <div class="badges">
-          <span v-if="listing.planType === 'impulso'" class="badge impulso">Patrocinado</span>
+          <span v-if="daysRemaining < 0" class="badge closed">CERRADO</span>
+          <span v-else-if="listing.planType === 'impulso'" class="badge impulso">Patrocinado</span>
           <span v-else-if="listing.planType === 'purpura'" class="badge purpura">Destacado</span>
-          <span v-if="listing.urgent" class="badge urgent">Urgente</span>
+          <span v-if="listing.urgent && daysRemaining >= 0" class="badge urgent">Urgente</span>
         </div>
       </div>
 
@@ -328,6 +329,15 @@ export default {
   color: white;
   border: 1px solid rgba(220, 38, 38, 0.5);
   box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.badge.closed {
+  background: linear-gradient(135deg, #64748B 0%, #475569 100%);
+  color: white;
+  border: 1px solid rgba(100, 116, 139, 0.5);
+  box-shadow: 0 2px 8px rgba(100, 116, 139, 0.3);
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .job-title {

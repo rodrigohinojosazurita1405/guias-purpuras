@@ -54,15 +54,22 @@
           <div class="header-info">
             <span class="publish-date">{{ publishDate }}</span>
             <div class="badges">
-              <span v-if="listing.planType === 'impulso'" class="badge badge-impulso">Patrocinado</span>
+              <span v-if="isDeadlineClosed" class="badge badge-closed">CERRADO</span>
+              <span v-else-if="listing.planType === 'impulso'" class="badge badge-impulso">Patrocinado</span>
               <span v-else-if="listing.planType === 'purpura'" class="badge badge-purpura">Destacado</span>
-              <span v-if="listing.urgent" class="badge badge-urgent">Urgente</span>
+              <span v-if="listing.urgent && !isDeadlineClosed" class="badge badge-urgent">Urgente</span>
             </div>
           </div>
           <div class="header-actions">
-            <button @click="applyToJob" class="btn-apply-header" title="Postularme">
+            <button
+              @click="applyToJob"
+              class="btn-apply-header"
+              :class="{ 'disabled-btn': isDeadlineClosed }"
+              :disabled="isDeadlineClosed"
+              :title="isDeadlineClosed ? 'Convocatoria cerrada' : 'Postularme'"
+            >
               <va-icon name="send" size="small" />
-              <span class="btn-text">Postularme</span>
+              <span class="btn-text">{{ isDeadlineClosed ? 'Cerrado' : 'Postularme' }}</span>
             </button>
             <button
               class="save-btn"
@@ -121,7 +128,7 @@
           </span>
           <span class="meta-item" v-if="listing.applicationDeadline || listing.expiryDate">
             <va-icon name="event" size="small" />
-            Cierra: {{ formatExpiryDate(listing.applicationDeadline || listing.expiryDate) }}
+            Fecha límite: {{ formatExpiryDate(listing.applicationDeadline || listing.expiryDate) }}
           </span>
           <span class="meta-item">
             <span class="job-status-badge" :class="jobStatusClass">
@@ -266,9 +273,14 @@
 
     <!-- Botón postular final -->
     <div class="detail-footer">
-      <button @click="applyToJob" class="btn-apply-footer">
+      <button
+        @click="applyToJob"
+        class="btn-apply-footer"
+        :class="{ 'disabled-btn': isDeadlineClosed }"
+        :disabled="isDeadlineClosed"
+      >
         <va-icon name="send" size="small" />
-        Postularme a esta vacante
+        {{ isDeadlineClosed ? 'Convocatoria Cerrada' : 'Postularme a esta vacante' }}
       </button>
     </div>
   </div>
@@ -375,6 +387,21 @@ export default {
 
     jobStatusClass() {
       return this.jobStatusText === 'Vigente' ? 'status-active' : 'status-closed'
+    },
+
+    isDeadlineClosed() {
+      if (!this.listing) return false
+
+      const deadline = this.listing.applicationDeadline || this.listing.expiryDate
+      if (!deadline) return false
+
+      const [year, month, day] = deadline.split('-')
+      const deadlineDate = new Date(year, month - 1, day)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      deadlineDate.setHours(0, 0, 0, 0)
+
+      return deadlineDate < today
     }
   },
 
@@ -391,6 +418,27 @@ export default {
     },
 
     async applyToJob() {
+      // VALIDACIÓN CRÍTICA 1: Verificar si la fecha límite de postulación cerró
+      if (this.isDeadlineClosed) {
+        const deadline = this.listing.applicationDeadline || this.listing.expiryDate
+        const [year, month, day] = deadline.split('-')
+        const deadlineDate = new Date(year, month - 1, day)
+        const formattedDeadline = deadlineDate.toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric'
+        })
+
+        this.$vaModal.init({
+          message: `Lo sentimos, la fecha límite para postular a esta oferta cerró el ${formattedDeadline}. Ya no se aceptan nuevas postulaciones.`,
+          title: 'Convocatoria Cerrada',
+          okText: 'Entendido',
+          color: 'danger',
+          size: 'small'
+        })
+        return
+      }
+
       // Validar autenticación
       if (!this.authStore.isAuthenticated) {
         this.$vaToast.init({
@@ -941,6 +989,15 @@ export default {
   color: white;
   border: 1px solid rgba(220, 38, 38, 0.5);
   box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.badge-closed {
+  background: linear-gradient(135deg, #64748B 0%, #475569 100%);
+  color: white;
+  border: 1px solid rgba(100, 116, 139, 0.5);
+  box-shadow: 0 2px 8px rgba(100, 116, 139, 0.3);
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .header-actions {
@@ -1591,5 +1648,18 @@ export default {
     font-size: 0.5625rem;
     padding: 0.125rem 0.25rem;
   }
+}
+
+/* ========== DISABLED BUTTON STYLES ========== */
+.disabled-btn {
+  background: linear-gradient(135deg, #9CA3AF, #6B7280) !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.disabled-btn:hover {
+  transform: none !important;
+  box-shadow: none !important;
 }
 </style>

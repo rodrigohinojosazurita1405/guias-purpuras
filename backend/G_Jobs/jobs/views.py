@@ -716,6 +716,19 @@ def apply_to_job(request, job_id):
     try:
         job = Job.objects.get(id=job_id)
 
+        # VALIDACIÓN CRÍTICA: Verificar si la fecha límite de postulación ya pasó
+        from datetime import date
+        today = date.today()
+        deadline = job.applicationDeadline or job.expiryDate
+
+        if deadline and deadline < today:
+            return JsonResponse({
+                'success': False,
+                'message': 'Lo sentimos, la fecha límite para postular a esta oferta ha cerrado.',
+                'deadlineClosed': True,
+                'deadline': deadline.isoformat()
+            }, status=403)
+
         # Parsear datos del request
         data = json.loads(request.body) if request.body else {}
 
@@ -787,6 +800,105 @@ def apply_to_job(request, job_id):
 
     except Exception as e:
         print(f'Error al aplicar a trabajo: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+@require_http_methods(["PATCH"])
+@csrf_exempt
+@token_required
+def update_application_deadline(request, job_id):
+    """
+    Endpoint para actualizar la fecha límite de postulación de una oferta
+    PATCH /api/jobs/<job_id>/update-deadline
+
+    Body esperado:
+    {
+        "applicationDeadline": "2026-02-15"  # Formato YYYY-MM-DD
+    }
+
+    Reglas de negocio:
+    1. Solo el dueño del anuncio puede editar la fecha
+    2. La nueva fecha NO puede exceder expiryDate (fecha de vencimiento del plan)
+    3. La nueva fecha NO puede ser anterior a hoy
+    4. Se requiere que haya días disponibles (applicationDeadline < expiryDate)
+    """
+    try:
+        job = Job.objects.get(id=job_id)
+
+        # SEGURIDAD: Verificar que el usuario sea el dueño del anuncio
+        if job.email != request.user.email:
+            return JsonResponse({
+                'success': False,
+                'message': 'No tienes permiso para editar este anuncio'
+            }, status=403)
+
+        # Parsear datos
+        data = json.loads(request.body) if request.body else {}
+        new_deadline_str = data.get('applicationDeadline')
+
+        if not new_deadline_str:
+            return JsonResponse({
+                'success': False,
+                'message': 'La nueva fecha límite es requerida'
+            }, status=400)
+
+        # Convertir string a date
+        from datetime import datetime, date
+        try:
+            new_deadline = datetime.strptime(new_deadline_str, '%Y-%m-%d').date()
+        except ValueError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Formato de fecha inválido. Usa YYYY-MM-DD'
+            }, status=400)
+
+        # VALIDACIÓN 1: No puede ser anterior a hoy
+        today = date.today()
+        if new_deadline < today:
+            return JsonResponse({
+                'success': False,
+                'message': 'La nueva fecha límite no puede ser anterior a hoy'
+            }, status=400)
+
+        # VALIDACIÓN 2: No puede exceder expiryDate (plan pagado)
+        if new_deadline > job.expiryDate:
+            return JsonResponse({
+                'success': False,
+                'message': f'La nueva fecha límite no puede exceder la fecha de vencimiento del plan ({job.expiryDate.strftime("%d/%m/%Y")})',
+                'maxDeadline': job.expiryDate.isoformat()
+            }, status=400)
+
+        # Actualizar applicationDeadline
+        old_deadline = job.applicationDeadline
+        job.applicationDeadline = new_deadline
+        job.save(update_fields=['applicationDeadline'])
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Fecha límite de postulación actualizada exitosamente',
+            'oldDeadline': old_deadline.isoformat() if old_deadline else None,
+            'newDeadline': new_deadline.isoformat(),
+            'expiryDate': job.expiryDate.isoformat(),
+            'daysAvailable': (job.expiryDate - new_deadline).days
+        }, status=200)
+
+    except Job.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Oferta no encontrada'
+        }, status=404)
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Error: formato JSON inválido'
+        }, status=400)
+
+    except Exception as e:
+        print(f'Error al actualizar fecha límite: {str(e)}')
         return JsonResponse({
             'success': False,
             'message': f'Error: {str(e)}'

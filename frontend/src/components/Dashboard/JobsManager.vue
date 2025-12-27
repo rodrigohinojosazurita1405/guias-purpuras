@@ -188,24 +188,38 @@
 
           <div class="stat-divider">|</div>
           <div class="stat-item">
-            <va-icon name="schedule" color="#64748B" />
+            <va-icon name="schedule" color="#7C3AED" />
             <span class="stat-label">Publicado:</span>
             <span class="stat-text stat-date">{{ formatExactDateTime(job.createdAt) }}</span>
           </div>
-          <div class="stat-item">
+          <div class="stat-item deadline-item">
             <va-icon name="how_to_reg" color="#7C3AED" />
             <span class="stat-label">Cierra postulación:</span>
-            <span class="stat-text stat-date">{{ formatExpiryDate(job.applicationDeadline || job.expiryDate) }}</span>
+            <span class="stat-text stat-date" :class="{ 'deadline-closed': isDeadlinePassed(job) }">
+              {{ formatExpiryDate(job.applicationDeadline || job.expiryDate) }}
+            </span>
+            <button
+              v-show="canExtendDeadline(job)"
+              class="edit-deadline-btn"
+              @click.stop="openEditDeadlineModal(job)"
+              title="Ampliar fecha límite de postulación"
+            >
+              <va-icon name="schedule" size="18px" color="white" />
+            </button>
           </div>
           <div class="stat-item">
-            <va-icon name="timer" color="#F59E0B" />
+            <va-icon name="timer" color="#7C3AED" />
             <span class="stat-label">Faltan:</span>
             <span class="stat-text">{{ calculateDaysRemaining(job.applicationDeadline || job.expiryDate) }} días</span>
           </div>
           <div class="stat-item">
-            <va-icon name="event_note" color="#64748B" />
+            <va-icon name="event_note" color="#7C3AED" />
             <span class="stat-label">Plan vence:</span>
             <span class="stat-text stat-date">{{ formatExpiryDate(job.expiryDate) }}</span>
+          </div>
+          <div class="stat-item" v-show="canExtendDeadline(job)">
+            <va-icon name="info" color="#10B981" size="14px" />
+            <span class="stat-text days-available">{{ calculateRemainingDays(job) }} días disponibles</span>
           </div>
         </div>
 
@@ -409,6 +423,87 @@
         </div>
       </template>
     </va-modal>
+
+    <!-- Modal de Edición de Fecha Límite -->
+    <va-modal
+      v-model="showEditDeadlineModal"
+      size="small"
+      :close-button="false"
+      hide-default-actions
+      :mobile-fullscreen="true"
+    >
+      <template #header>
+        <div class="deadline-modal-header">
+          <va-icon name="edit_calendar" size="2rem" color="#7C3AED" class="header-icon" />
+          <h2 class="deadline-modal-title">Editar Fecha Límite</h2>
+          <button class="modal-close-btn" @click="closeEditDeadlineModal" aria-label="Cerrar">
+            <va-icon name="close" size="1.5rem" />
+          </button>
+        </div>
+      </template>
+
+      <div class="deadline-modal-content">
+        <!-- Job Info -->
+        <div class="job-info-box">
+          <p class="job-name">{{ jobToEditDeadline?.title }}</p>
+          <p class="job-stats">{{ jobToEditDeadline?.views || 0 }} vistas • {{ jobToEditDeadline?.applications || 0 }} postulaciones</p>
+        </div>
+
+        <!-- Current Deadline Info -->
+        <div class="current-deadline-info">
+          <div class="info-row">
+            <span class="info-label">Fecha límite actual:</span>
+            <span class="info-value current">{{ formatExpiryDate(jobToEditDeadline?.applicationDeadline || jobToEditDeadline?.expiryDate) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Plan vence:</span>
+            <span class="info-value">{{ formatExpiryDate(jobToEditDeadline?.expiryDate) }}</span>
+          </div>
+          <div class="info-row highlight">
+            <va-icon name="info" size="14px" color="#10B981" />
+            <span class="info-text">Tienes {{ calculateRemainingDays(jobToEditDeadline) }} días disponibles para extender</span>
+          </div>
+        </div>
+
+        <!-- Date Picker (Native HTML5 para evitar problemas de z-index) -->
+        <div class="form-group">
+          <label class="form-label">Nueva fecha límite de postulación *</label>
+          <div class="native-date-input-wrapper">
+            <va-icon name="event" color="purple" class="date-icon" />
+            <input
+              type="date"
+              v-model="newDeadlineDateString"
+              class="native-date-input"
+              :min="todayString"
+              :max="jobToEditDeadline?.expiryDate"
+              required
+            />
+          </div>
+          <span class="field-hint">
+            <va-icon name="info" size="12px" color="#6B7280" />
+            La fecha debe estar entre hoy y {{ formatExpiryDate(jobToEditDeadline?.expiryDate) }}
+          </span>
+        </div>
+
+        <!-- Warning -->
+        <div class="warning-box">
+          <va-icon name="warning" size="small" color="#F59E0B" />
+          <p>Al extender la fecha límite, los candidatos podrán seguir postulando hasta la nueva fecha establecida.</p>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="deadline-modal-actions">
+          <va-button color="secondary" @click="closeEditDeadlineModal">
+            Cancelar
+          </va-button>
+          <va-button @click="saveNewDeadline" class="btn-save" :disabled="!newDeadlineDateString">
+            <va-icon name="check_circle" size="small" />
+            Guardar Nueva Fecha
+          </va-button>
+        </div>
+      </template>
+    </va-modal>
   </div>
 </template>
 
@@ -442,9 +537,23 @@ const sortBy = ref('recent')
 const showDetailModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
+const showEditDeadlineModal = ref(false)
 const selectedJob = ref(null)
 const jobToDelete = ref(null)
+const jobToEditDeadline = ref(null)
+const newDeadlineDate = ref(null)
+const newDeadlineDateString = ref('')
 const deleteConfirmed = ref(false)
+
+// Calcular fecha de hoy en formato YYYY-MM-DD para el input date
+const getTodayString = () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+const todayString = ref(getTodayString())
 const editFormData = ref({
   title: '',
   city: '',
@@ -571,9 +680,6 @@ const loadJobs = async () => {
     }
 
     if (data.success && data.jobs) {
-      // DEBUG: Ver qué datos llegan del backend
-      console.log('[JobsManager] Jobs recibidos del backend:', data.jobs)
-
       // Mapear datos de la API al formato esperado
       jobs.value = data.jobs.map(job => ({
         id: job.id,
@@ -593,9 +699,6 @@ const loadJobs = async () => {
         planPrice: job.planPrice,
         planDuration: job.planDuration
       }))
-
-      // DEBUG: Ver jobs después del mapeo
-      console.log('[JobsManager] Jobs después del mapeo:', jobs.value)
     } else {
       throw new Error(data.message || 'Respuesta del servidor inválida')
     }
@@ -625,18 +728,6 @@ const statusLabel = (status) => {
     rejected: 'Rechazado'
   }
   return labels[status] || status
-}
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  const today = new Date()
-  const diff = today - date
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
-  if (days === 0) return 'Hoy'
-  if (days === 1) return 'Ayer'
-  if (days < 7) return `Hace ${days} días`
-  return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
 }
 
 const formatExactDateTime = (dateString) => {
@@ -681,6 +772,157 @@ const isJobExpired = (job) => {
   if (!job.expiryDate) return false
   const daysRemaining = calculateDaysRemaining(job.expiryDate)
   return daysRemaining < 0
+}
+
+// ========== DEADLINE MANAGEMENT FUNCTIONS ==========
+
+const isDeadlinePassed = (job) => {
+  const deadline = job.applicationDeadline || job.expiryDate
+  if (!deadline) return false
+  const daysRemaining = calculateDaysRemaining(deadline)
+  return daysRemaining < 0
+}
+
+const canExtendDeadline = (job) => {
+  if (!job || !job.applicationDeadline || !job.expiryDate) return false
+
+  try {
+    // Parsear fechas de manera consistente con otras funciones
+    const [yearApp, monthApp, dayApp] = job.applicationDeadline.split('-')
+    const [yearExp, monthExp, dayExp] = job.expiryDate.split('-')
+
+    const deadline = new Date(yearApp, monthApp - 1, dayApp)
+    const expiry = new Date(yearExp, monthExp - 1, dayExp)
+    const today = new Date()
+
+    today.setHours(0, 0, 0, 0)
+    deadline.setHours(0, 0, 0, 0)
+    expiry.setHours(0, 0, 0, 0)
+
+    // Condiciones:
+    // 1. El plan no debe estar expirado (expiryDate >= hoy)
+    // 2. Debe haber días disponibles (applicationDeadline < expiryDate)
+    // 3. El anuncio debe estar verificado
+    return expiry >= today && deadline < expiry && job.paymentVerified
+  } catch (error) {
+    return false
+  }
+}
+
+const calculateRemainingDays = (job) => {
+  if (!job || !job.applicationDeadline || !job.expiryDate) return 0
+
+  const [yearApp, monthApp, dayApp] = job.applicationDeadline.split('-')
+  const [yearExp, monthExp, dayExp] = job.expiryDate.split('-')
+
+  const deadline = new Date(yearApp, monthApp - 1, dayApp)
+  const expiry = new Date(yearExp, monthExp - 1, dayExp)
+
+  const diffTime = expiry - deadline
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  return diffDays > 0 ? diffDays : 0
+}
+
+const openEditDeadlineModal = (job) => {
+  jobToEditDeadline.value = job
+
+  // Pre-cargar la fecha actual en formato YYYY-MM-DD
+  const currentDeadline = job.applicationDeadline || job.expiryDate
+  if (currentDeadline) {
+    newDeadlineDateString.value = currentDeadline // Ya viene en formato YYYY-MM-DD
+  }
+
+  showEditDeadlineModal.value = true
+}
+
+const closeEditDeadlineModal = () => {
+  showEditDeadlineModal.value = false
+  jobToEditDeadline.value = null
+  newDeadlineDate.value = null
+  newDeadlineDateString.value = ''
+}
+
+const saveNewDeadline = async () => {
+  if (!newDeadlineDateString.value || !jobToEditDeadline.value) {
+    notify({
+      message: 'Por favor selecciona una fecha válida',
+      color: 'danger'
+    })
+    return
+  }
+
+  // La fecha ya viene en formato YYYY-MM-DD del input nativo
+  const formattedDate = newDeadlineDateString.value
+
+  // Validaciones (las validaciones HTML5 ya cubren min/max, pero agregamos verificación adicional)
+  const [yearSel, monthSel, daySel] = formattedDate.split('-')
+  const selectedDate = new Date(yearSel, monthSel - 1, daySel)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  selectedDate.setHours(0, 0, 0, 0)
+
+  // Validación 1: No puede ser anterior a hoy
+  if (selectedDate < today) {
+    notify({
+      message: 'La fecha límite no puede ser anterior a hoy',
+      color: 'danger'
+    })
+    return
+  }
+
+  // Validación 2: No puede exceder expiryDate
+  const [yearExp, monthExp, dayExp] = jobToEditDeadline.value.expiryDate.split('-')
+  const maxDate = new Date(yearExp, monthExp - 1, dayExp)
+  maxDate.setHours(0, 0, 0, 0)
+
+  if (selectedDate > maxDate) {
+    notify({
+      message: `La fecha límite no puede exceder la fecha de vencimiento del plan (${formatExpiryDate(jobToEditDeadline.value.expiryDate)})`,
+      color: 'danger'
+    })
+    return
+  }
+
+  try {
+    const response = await apiCall(`/jobs/${jobToEditDeadline.value.id}/update-deadline`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        applicationDeadline: formattedDate
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al actualizar fecha límite')
+    }
+
+    if (data.success) {
+      // Actualizar el job en el array local
+      const jobIndex = jobs.value.findIndex(j => j.id === jobToEditDeadline.value.id)
+      if (jobIndex !== -1) {
+        jobs.value[jobIndex].applicationDeadline = formattedDate
+      }
+
+      notify({
+        message: 'Fecha límite actualizada exitosamente',
+        color: 'success'
+      })
+
+      closeEditDeadlineModal()
+    } else {
+      throw new Error(data.message || 'Error al actualizar fecha límite')
+    }
+  } catch (error) {
+    notify({
+      message: error.message || 'Error al actualizar la fecha límite',
+      color: 'danger'
+    })
+  }
 }
 
 const formatPlanName = (planKey, planLabel, planPrice) => {
@@ -1224,6 +1466,7 @@ const activateJob = async () => {
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
+  font-family: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .job-card:hover {
@@ -1245,26 +1488,35 @@ const activateJob = async () => {
 
 .job-title {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #0F172A;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  font-family: 'Source Sans Pro', sans-serif;
 }
 
 .job-company {
-  margin: 0.25rem 0 0;
-  color: #666;
-  font-size: 0.95rem;
+  margin: 0.35rem 0 0;
+  color: #64748B;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  font-family: 'Source Sans Pro', sans-serif;
 }
 
 .job-badge {
   padding: 0.5rem 1rem;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   white-space: nowrap;
   display: flex;
   align-items: center;
   gap: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: 'Source Sans Pro', sans-serif;
 }
 
 .job-badge.pending {
@@ -1519,21 +1771,29 @@ const activateJob = async () => {
 }
 
 .stat-label {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #6B7280;
-  margin-right: 0.25rem;
+  color: #64748B;
+  margin-right: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: 'Source Sans Pro', sans-serif;
 }
 
 .stat-text {
   font-weight: 500;
-  color: #1a1a1a;
+  color: #0F172A;
+  font-size: 0.95rem;
+  letter-spacing: 0.005em;
+  font-family: 'Source Sans Pro', sans-serif;
 }
 
 .stat-date {
-  font-size: 0.8rem;
-  color: #374151;
+  font-size: 0.9rem;
+  color: #1E293B;
   font-weight: 500;
+  letter-spacing: 0.003em;
+  font-family: 'Source Sans Pro', sans-serif;
 }
 
 .plan-stat {
@@ -1550,12 +1810,16 @@ const activateJob = async () => {
 
 .plan-badge {
   display: inline-block;
-  padding: 0.25rem 0.6rem;
-  border-radius: 4px;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 600;
   color: white;
   white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: 'Source Sans Pro', sans-serif;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .plan-estandar {
@@ -2194,6 +2458,418 @@ const activateJob = async () => {
 
   .delete-actions .va-button {
     width: 100%;
+  }
+}
+
+/* ========== DEADLINE EDIT STYLES ========== */
+.deadline-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.deadline-closed {
+  color: #DC2626 !important;
+  font-weight: 600;
+}
+
+.edit-deadline-btn {
+  background: linear-gradient(135deg, #7C3AED, #6D28D9);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem;
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.edit-deadline-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s, height 0.4s;
+}
+
+.edit-deadline-btn:hover::before {
+  width: 100px;
+  height: 100px;
+}
+
+.edit-deadline-btn[style*="display: none"] {
+  margin: 0;
+  padding: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.edit-deadline-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 12px rgba(124, 58, 237, 0.4);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.edit-deadline-btn:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.3);
+}
+
+.edit-deadline-btn .va-icon {
+  color: white !important;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+  z-index: 1;
+  position: relative;
+}
+
+.days-available {
+  color: #10B981;
+  font-weight: 500;
+  font-size: 0.85rem;
+  font-family: 'Source Sans Pro', sans-serif;
+  letter-spacing: 0.005em;
+}
+
+/* Modal de Deadline */
+.deadline-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.deadline-modal-header .header-icon {
+  flex-shrink: 0;
+}
+
+.modal-close-btn {
+  position: absolute;
+  right: -0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #F3F4F6;
+  border: 2px solid #E5E7EB;
+  cursor: pointer;
+  padding: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6B7280;
+  transition: all 0.2s;
+  border-radius: 50%;
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.modal-close-btn:hover {
+  background: #EF4444;
+  color: white;
+  border-color: #DC2626;
+  transform: translateY(-50%) scale(1.05);
+}
+
+.modal-close-btn:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* Native Date Input Styles */
+.native-date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #FFFFFF;
+  border: 2px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  transition: all 0.2s;
+}
+
+.native-date-input-wrapper:focus-within {
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.native-date-input-wrapper .date-icon {
+  flex-shrink: 0;
+}
+
+.native-date-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  font-family: inherit;
+  color: #1F2937;
+  background: transparent;
+  cursor: pointer;
+}
+
+.native-date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.native-date-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.deadline-modal-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+}
+
+.deadline-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem;
+}
+
+.current-deadline-info {
+  background: linear-gradient(135deg, #F9FAFB, #F3F4F6);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid #E5E7EB;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.info-row.highlight {
+  background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  gap: 0.5rem;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #6B7280;
+  font-size: 0.9rem;
+}
+
+.info-value {
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.info-value.current {
+  color: #7C3AED;
+  font-size: 1.05rem;
+}
+
+.info-text {
+  color: #059669;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.warning-box {
+  background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+  border: 1px solid #F59E0B;
+  border-radius: 10px;
+  padding: 0.85rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.warning-box p {
+  margin: 0;
+  color: #92400E;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.deadline-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #7C3AED, #6D28D9) !important;
+  color: white !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-save:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ========== RESPONSIVE MODAL STYLES ========== */
+@media (max-width: 768px) {
+  .deadline-modal-header {
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .deadline-modal-header .header-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .deadline-modal-title {
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+
+  .modal-close-btn {
+    padding: 0.4rem;
+    right: -0.5rem;
+  }
+
+  .deadline-modal-content {
+    padding: 0.25rem;
+    gap: 1rem;
+  }
+
+  .job-info-box {
+    padding: 0.75rem;
+  }
+
+  .job-name {
+    font-size: 0.95rem;
+  }
+
+  .job-stats {
+    font-size: 0.8rem;
+  }
+
+  .current-deadline-info {
+    padding: 0.75rem;
+    gap: 0.6rem;
+  }
+
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .info-row.highlight {
+    flex-direction: row;
+    align-items: center;
+    padding: 0.5rem;
+  }
+
+  .info-label {
+    font-size: 0.85rem;
+  }
+
+  .info-value {
+    font-size: 0.9rem;
+  }
+
+  .info-value.current {
+    font-size: 1rem;
+  }
+
+  .info-text {
+    font-size: 0.85rem;
+  }
+
+  .native-date-input-wrapper {
+    padding: 0.6rem 0.85rem;
+  }
+
+  .native-date-input {
+    font-size: 0.95rem;
+  }
+
+  .field-hint {
+    font-size: 0.8rem;
+  }
+
+  .warning-box {
+    padding: 0.7rem;
+    gap: 0.5rem;
+  }
+
+  .warning-box p {
+    font-size: 0.85rem;
+  }
+
+  .deadline-modal-actions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    padding-top: 0.25rem;
+  }
+
+  .deadline-modal-actions .va-button {
+    width: 100%;
+    font-size: 0.95rem;
+  }
+
+  .edit-deadline-btn {
+    padding: 0.25rem 0.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .deadline-modal-title {
+    font-size: 1rem;
+  }
+
+  .job-name {
+    font-size: 0.9rem;
+  }
+
+  .info-label,
+  .info-value,
+  .info-text {
+    font-size: 0.8rem;
+  }
+
+  .native-date-input-wrapper {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .native-date-input {
+    font-size: 0.9rem;
+  }
+
+  .warning-box p {
+    font-size: 0.8rem;
+    line-height: 1.3;
   }
 }
 </style>

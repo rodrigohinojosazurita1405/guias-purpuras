@@ -168,8 +168,20 @@
               <va-date-input
                 v-model="localFormData.applicationDeadline"
                 placeholder="Selecciona fecha límite para aplicar"
-                :rules="[(v) => !!v || 'La fecha límite de postulación es requerida']"
+                :rules="[
+                  (v) => !!v || 'La fecha límite de postulación es requerida',
+                  (v) => validateApplicationDeadline(v) || `La fecha límite no puede exceder los ${selectedPlanData?.durationDays || 15} días de tu plan`
+                ]"
                 size="small"
+                :weekdayNames="['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']"
+                :monthNames="['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']"
+                firstWeekday="monday"
+                :allowedDates="(date) => {
+                  if (!minApplicationDeadline || !maxApplicationDeadline) return true
+                  const checkDate = new Date(date)
+                  checkDate.setHours(0, 0, 0, 0)
+                  return checkDate >= minApplicationDeadline && checkDate <= maxApplicationDeadline
+                }"
               >
                 <template #prepend>
                   <va-icon name="event" color="purple" />
@@ -365,7 +377,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 
 // ========== PROPS Y EMITS ==========
 const props = defineProps({
@@ -420,6 +432,67 @@ const modalityOptions = [
 const loadingCategories = ref(true)
 const loadingContractTypes = ref(true)
 const loadingCities = ref(true)
+
+// ========== PLAN Y FECHA LÍMITE ==========
+const selectedPlanData = ref(null)
+const loadingPlanData = ref(false)
+
+// Computed: Calcular fecha máxima permitida para applicationDeadline
+const maxApplicationDeadline = computed(() => {
+  if (!selectedPlanData.value || !selectedPlanData.value.durationDays) {
+    return null
+  }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const maxDate = new Date(today)
+  maxDate.setDate(today.getDate() + selectedPlanData.value.durationDays)
+
+  return maxDate
+})
+
+// Computed: Fecha mínima (hoy)
+const minApplicationDeadline = computed(() => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return today
+})
+
+// Función de validación para applicationDeadline
+const validateApplicationDeadline = (dateValue) => {
+  if (!dateValue) return true // Si está vacío, otra regla lo validará
+
+  console.log('[DEBUG] Validando fecha:', dateValue)
+  console.log('[DEBUG] maxApplicationDeadline:', maxApplicationDeadline.value)
+
+  // Convertir el valor a Date
+  let selectedDate
+  if (typeof dateValue === 'string') {
+    const [year, month, day] = dateValue.split('-')
+    selectedDate = new Date(year, month - 1, day)
+  } else if (dateValue instanceof Date) {
+    selectedDate = new Date(dateValue)
+  } else {
+    selectedDate = new Date(dateValue)
+  }
+
+  selectedDate.setHours(0, 0, 0, 0)
+
+  console.log('[DEBUG] Fecha seleccionada normalizada:', selectedDate)
+  console.log('[DEBUG] Es válida?:', selectedDate <= maxApplicationDeadline.value)
+
+  // Validar que no exceda la fecha máxima
+  if (maxApplicationDeadline.value && selectedDate > maxApplicationDeadline.value) {
+    return false
+  }
+
+  // Validar que no sea anterior a hoy
+  if (minApplicationDeadline.value && selectedDate < minApplicationDeadline.value) {
+    return false
+  }
+
+  return true
+}
 
 // ========== MODAL DE ERRORES ==========
 const showErrorModal = ref(false)
@@ -643,12 +716,63 @@ onMounted(() => {
   Promise.all([
     loadJobCategories(),
     loadContractTypes(),
-    loadCities()
+    loadCities(),
+    loadSelectedPlanData()
   ])
-  
+
   // Inicializar Quill
   initQuill()
 })
+
+// Cargar datos del plan seleccionado
+const loadSelectedPlanData = async () => {
+  const selectedPlan = props.modelValue.selectedPlan
+  console.log('[DEBUG] Plan seleccionado:', selectedPlan)
+
+  if (!selectedPlan) {
+    console.log('[DEBUG] No hay plan, usando fallback 15 días')
+    selectedPlanData.value = { name: 'estandar', durationDays: 15 }
+    return
+  }
+
+  try {
+    loadingPlanData.value = true
+    const timestamp = new Date().getTime()
+    const response = await fetch(`/api/plans/?_t=${timestamp}`)
+
+    if (!response.ok) {
+      throw new Error('No se pudieron cargar los planes')
+    }
+
+    const data = await response.json()
+    console.log('[DEBUG] Planes de API:', data.data)
+
+    if (data.success && data.data) {
+      // Encontrar el plan seleccionado
+      const plan = data.data.find(p => p.name.toLowerCase() === selectedPlan.toLowerCase())
+      console.log('[DEBUG] Plan encontrado:', plan)
+      if (plan) {
+        selectedPlanData.value = plan
+        console.log('[DEBUG] Días del plan:', plan.durationDays)
+        console.log('[DEBUG] maxApplicationDeadline:', maxApplicationDeadline.value)
+      }
+    }
+  } catch (error) {
+    console.log('[DEBUG] Error, usando fallback:', error)
+    // Fallback con duraciones hardcodeadas
+    const planDurations = {
+      'estandar': 15,
+      'purpura': 30,
+      'impulso': 30
+    }
+    selectedPlanData.value = {
+      name: selectedPlan,
+      durationDays: planDurations[selectedPlan.toLowerCase()] || 15
+    }
+  } finally {
+    loadingPlanData.value = false
+  }
+}
 
 onBeforeUnmount(() => {
   // Destruir instancia de Quill
@@ -704,6 +828,11 @@ const validate = () => {
 
   if (!localFormData.value.applicationDeadline) {
     errors.push('La fecha límite de postulación es requerida')
+  } else {
+    // Validar que la fecha límite esté dentro del rango permitido
+    if (!validateApplicationDeadline(localFormData.value.applicationDeadline)) {
+      errors.push(`La fecha límite no puede exceder los ${selectedPlanData.value?.durationDays || 15} días de tu plan. Por favor, selecciona una fecha válida.`)
+    }
   }
 
   // Validación de salario
@@ -1096,6 +1225,75 @@ defineExpose({
 :deep(.va-date-input__field:focus) {
   border-color: #7C3AED !important;
   box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1) !important;
+}
+
+/* Estilos del calendario - quitar botones morados redondos */
+:deep(.va-date-picker) {
+  font-family: 'Source Sans Pro', sans-serif !important;
+}
+
+:deep(.va-date-picker__calendar-day) {
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #1E293B !important;
+  font-weight: 500 !important;
+}
+
+:deep(.va-date-picker__calendar-day:hover) {
+  background: #F1F5F9 !important;
+  border-radius: 4px !important;
+}
+
+:deep(.va-date-picker__calendar-day--today) {
+  background: #E0E7FF !important;
+  border-radius: 4px !important;
+  color: #4F46E5 !important;
+  font-weight: 600 !important;
+}
+
+:deep(.va-date-picker__calendar-day--selected) {
+  background: #7C3AED !important;
+  border-radius: 4px !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+:deep(.va-date-picker__calendar-day--in-range) {
+  background: #EDE9FE !important;
+  border-radius: 0 !important;
+}
+
+:deep(.va-date-picker__header) {
+  background: #F8FAFC !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  padding: 0.5rem !important;
+}
+
+/* Quitar resaltado morado del mes */
+:deep(.va-date-picker__header-month),
+:deep(.va-date-picker__header-year) {
+  color: #1E293B !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  text-decoration: none !important;
+}
+
+:deep(.va-date-picker__header button) {
+  color: #64748B !important;
+  background: transparent !important;
+  border-radius: 4px !important;
+}
+
+:deep(.va-date-picker__header button:hover) {
+  background: #E2E8F0 !important;
+  color: #1E293B !important;
+}
+
+:deep(.va-date-picker__weekday) {
+  color: #64748B !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
 }
 
 input[type="text"],

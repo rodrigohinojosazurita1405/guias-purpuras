@@ -49,6 +49,9 @@ urlpatterns = [
     # Aplicar a un trabajo
     path('jobs/<str:job_id>/apply', views.apply_to_job, name='apply_to_job'),
 
+    # Actualizar fecha límite de postulación (para reclutadores)
+    path('jobs/<str:job_id>/update-deadline', views.update_application_deadline, name='update_application_deadline'),
+
     # Listar aplicaciones de un trabajo (para reclutadores)
     path('jobs/<str:job_id>/applications', applicant_views.get_job_applications, name='get_job_applications'),
 
