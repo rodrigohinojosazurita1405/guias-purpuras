@@ -301,8 +301,29 @@
           </div>
           <div v-if="['external', 'both'].includes(jobData.applicationType)" class="info-row full-width">
             <span class="label">URL Externa:</span>
-            <span class="value url">{{ jobData.externalApplicationUrl }}</span>
+            <span class="value url">{{ jobData.externalApplicationUrl || 'No especificada' }}</span>
           </div>
+
+          <!-- INFORMACIÓN DE CONTACTO PARA APLICACIÓN EXTERNA -->
+          <template v-if="jobData.applicationType === 'external'">
+            <div v-if="jobData.email" class="info-row">
+              <span class="label">Email de Contacto:</span>
+              <span class="value">{{ jobData.email }}</span>
+            </div>
+            <div v-if="jobData.whatsapp" class="info-row">
+              <span class="label">WhatsApp/Teléfono:</span>
+              <span class="value">{{ jobData.whatsapp }}</span>
+            </div>
+            <div v-if="jobData.website" class="info-row full-width">
+              <span class="label">Sitio Web:</span>
+              <span class="value url">{{ jobData.website }}</span>
+            </div>
+            <div v-if="jobData.applicationInstructions" class="info-row full-width">
+              <span class="label">Instrucciones de Aplicación:</span>
+              <span class="value">{{ jobData.applicationInstructions }}</span>
+            </div>
+          </template>
+
           <!-- PREGUNTAS DE FILTRADO (solo para aplicación interna) -->
           <div v-if="jobData.applicationType === 'internal'" class="info-row full-width">
             <span class="label">Preguntas de Filtrado:</span>
