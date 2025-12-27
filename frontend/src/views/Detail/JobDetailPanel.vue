@@ -356,15 +356,16 @@ export default {
         return 'Cerrado'
       }
 
-      // Verificar si expiró por fecha
-      if (this.listing.expiryDate) {
+      // Verificar si expiró por fecha límite de postulación
+      const deadline = this.listing.applicationDeadline || this.listing.expiryDate
+      if (deadline) {
         // Parsear como fecha local para evitar problemas de zona horaria
-        const [year, month, day] = this.listing.expiryDate.split('-')
-        const expiryDate = new Date(year, month - 1, day)
+        const [year, month, day] = deadline.split('-')
+        const deadlineDate = new Date(year, month - 1, day)
         const today = new Date()
         today.setHours(0, 0, 0, 0)
-        expiryDate.setHours(0, 0, 0, 0)
-        if (expiryDate < today) {
+        deadlineDate.setHours(0, 0, 0, 0)
+        if (deadlineDate < today) {
           return 'Cerrado'
         }
       }

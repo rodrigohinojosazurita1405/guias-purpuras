@@ -75,9 +75,9 @@
           <!-- Footer -->
           <div class="card-footer">
             <span class="job-date">{{ formatDate(job.createdAt) }}</span>
-            <span v-if="job.expiryDate" class="expiry-date" :class="getExpiryClass(job.expiryDate)">
+            <span v-if="job.applicationDeadline || job.expiryDate" class="expiry-date" :class="getExpiryClass(job.applicationDeadline || job.expiryDate)">
               <va-icon name="schedule" size="12px" />
-              {{ formatExpiryDate(job.expiryDate) }}
+              {{ formatExpiryDate(job.applicationDeadline || job.expiryDate) }}
             </span>
           </div>
         </div>
@@ -264,16 +264,16 @@ const goToAllJobs = () => {
   router.push('/guias/trabajos')
 }
 
-const formatExpiryDate = (expiryDateString) => {
-  if (!expiryDateString) return ''
+const formatExpiryDate = (deadlineString) => {
+  if (!deadlineString) return ''
 
   // Parsear como fecha local para evitar problemas de zona horaria
-  const [year, month, day] = expiryDateString.split('-')
-  const expiryDate = new Date(year, month - 1, day)
+  const [year, month, day] = deadlineString.split('-')
+  const deadlineDate = new Date(year, month - 1, day)
   const options = { day: '2-digit', month: 'short', year: 'numeric' }
-  const formattedDate = expiryDate.toLocaleDateString('es-ES', options)
+  const formattedDate = deadlineDate.toLocaleDateString('es-ES', options)
 
-  return `Vence: ${formattedDate}`
+  return `Cierra: ${formattedDate}`
 }
 
 const getDaysRemaining = (expiryDateString) => {

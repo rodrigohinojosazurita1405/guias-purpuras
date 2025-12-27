@@ -45,9 +45,9 @@
                 <va-icon name="group" size="small" />
                 {{ job.vacancies }} {{ job.vacancies === 1 ? 'vacante' : 'vacantes' }}
               </span>
-              <span v-if="job.expiryDate" class="job-meta-item">
+              <span v-if="job.applicationDeadline || job.expiryDate" class="job-meta-item">
                 <va-icon name="event" size="small" />
-                Vence: {{ formatExpiryDate(job.expiryDate) }}
+                Cierra: {{ formatExpiryDate(job.applicationDeadline || job.expiryDate) }}
               </span>
             </div>
           </div>
