@@ -166,15 +166,19 @@
             <div class="form-row compact">
               <label class="form-label">Fecha límite postulación *</label>
               <va-date-input
-                v-model="localFormData.expiryDate"
-                placeholder="Selecciona"
-                :rules="[(v) => !!v || 'La fecha de vencimiento es requerida']"
+                v-model="localFormData.applicationDeadline"
+                placeholder="Selecciona fecha límite para aplicar"
+                :rules="[(v) => !!v || 'La fecha límite de postulación es requerida']"
                 size="small"
               >
                 <template #prepend>
                   <va-icon name="event" color="purple" />
                 </template>
               </va-date-input>
+              <p class="field-hint">
+                <va-icon name="info" size="12px" color="#6B7280" />
+                Fecha hasta la cual los candidatos pueden postular a esta oferta
+              </p>
             </div>
           </div>
         </div>
@@ -698,8 +702,8 @@ const validate = () => {
     errors.push('El tipo de contrato es requerido')
   }
 
-  if (!localFormData.value.expiryDate) {
-    errors.push('La fecha de vencimiento es requerida')
+  if (!localFormData.value.applicationDeadline) {
+    errors.push('La fecha límite de postulación es requerida')
   }
 
   // Validación de salario
@@ -868,6 +872,15 @@ defineExpose({
   font-weight: 600;
   color: #1E293B;
   font-size: 0.95rem;;
+}
+
+.field-hint {
+  font-size: 0.8rem;
+  color: #6B7280;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* ========== TINYMCE STYLES ========== */

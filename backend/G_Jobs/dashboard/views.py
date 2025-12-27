@@ -218,6 +218,7 @@ def get_user_published_jobs(request):
                 'applications': int(job.applications or 0),
                 'createdAt': str(job.createdAt.isoformat()) if job.createdAt else None,
                 'expiryDate': str(job.expiryDate.isoformat()) if job.expiryDate else None,
+                'applicationDeadline': str(job.applicationDeadline.isoformat()) if job.applicationDeadline else None,
                 'selectedPlan': str(job.selectedPlan) if job.selectedPlan else None,
                 'planLabel': plan_label,
                 'planPrice': plan_price,

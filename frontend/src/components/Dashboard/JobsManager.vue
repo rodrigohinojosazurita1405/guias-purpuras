@@ -193,14 +193,19 @@
             <span class="stat-text stat-date">{{ formatExactDateTime(job.createdAt) }}</span>
           </div>
           <div class="stat-item">
-            <va-icon name="event_note" color="#64748B" />
-            <span class="stat-label">Vence:</span>
-            <span class="stat-text stat-date">{{ formatExpiryDate(job.expiryDate) }}</span>
+            <va-icon name="how_to_reg" color="#7C3AED" />
+            <span class="stat-label">Cierra postulación:</span>
+            <span class="stat-text stat-date">{{ formatExpiryDate(job.applicationDeadline || job.expiryDate) }}</span>
           </div>
           <div class="stat-item">
             <va-icon name="timer" color="#F59E0B" />
-            <span class="stat-label">Restan:</span>
-            <span class="stat-text">{{ calculateDaysRemaining(job.expiryDate) }} días</span>
+            <span class="stat-label">Faltan:</span>
+            <span class="stat-text">{{ calculateDaysRemaining(job.applicationDeadline || job.expiryDate) }} días</span>
+          </div>
+          <div class="stat-item">
+            <va-icon name="event_note" color="#64748B" />
+            <span class="stat-label">Plan vence:</span>
+            <span class="stat-text stat-date">{{ formatExpiryDate(job.expiryDate) }}</span>
           </div>
         </div>
 

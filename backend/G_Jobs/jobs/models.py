@@ -77,7 +77,15 @@ class Job(models.Model):
     # Otros detalles
     benefits = models.TextField(blank=True, verbose_name="Beneficios adicionales")
     vacancies = models.IntegerField(default=1, verbose_name="Número de vacantes")
-    expiryDate = models.DateField(verbose_name="Fecha de vencimiento")
+
+    # Fechas importantes - CRÍTICO: Dos conceptos diferentes
+    expiryDate = models.DateField(verbose_name="Fecha de vencimiento del plan (visibilidad del anuncio)")
+    applicationDeadline = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha límite para postulaciones",
+        help_text="Fecha límite en que los candidatos pueden postular. Si no se especifica, se usa expiryDate."
+    )
 
     # Fechas
     createdAt = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de creación")
@@ -206,11 +214,27 @@ class Job(models.Model):
         verbose_name_plural = "Ofertas de Trabajo"
         ordering = ['-createdAt']
 
+    def clean(self):
+        """
+        Validaciones a nivel de modelo
+        """
+        from django.core.exceptions import ValidationError
+
+        # Validación CRÍTICA: applicationDeadline debe ser <= expiryDate
+        if self.applicationDeadline and self.expiryDate:
+            if self.applicationDeadline > self.expiryDate:
+                raise ValidationError({
+                    'applicationDeadline': 'La fecha límite de postulación no puede ser posterior a la fecha de vencimiento del plan.'
+                })
+
     def save(self, *args, **kwargs):
         """
         Sincronizar estado con verificación de pago automáticamente
         Si el pago es verificado, el trabajo pasa a 'active'
         """
+        # Ejecutar validaciones
+        self.clean()
+
         # Si el pago se acaba de verificar
         if self.paymentVerified and self.status == 'pending':
             from django.utils import timezone

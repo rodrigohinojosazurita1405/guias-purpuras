@@ -259,6 +259,7 @@ def publish_job(request):
                 contractType=contract_type,
                 modality=modality,
                 expiryDate=expiry_date,
+                applicationDeadline=data.get('applicationDeadline'),  # CRÍTICO: Fecha límite de postulación
                 salaryType=salary_type,
                 salaryMin=float(data.get('salaryMin')) if data.get('salaryMin') else None,
                 salaryMax=float(data.get('salaryMax')) if data.get('salaryMax') else None,
@@ -479,6 +480,7 @@ def get_job(request, job_id):
                 'contractType': job.contractType,
                 'modality': job.modality.capitalize() if hasattr(job, 'modality') else 'Presencial',
                 'expiryDate': job.expiryDate.isoformat(),
+                'applicationDeadline': job.applicationDeadline.isoformat() if job.applicationDeadline else None,
 
                 # Compensación
                 'salaryType': job.salaryType,
@@ -670,6 +672,7 @@ def list_jobs(request):
                 'schedule': None,  # Campo futuro
                 'vacancies': job.vacancies,
                 'expiryDate': job.expiryDate.isoformat() if job.expiryDate else None,
+                'applicationDeadline': job.applicationDeadline.isoformat() if job.applicationDeadline else None,
                 'applicationType': job.applicationType,
                 'externalApplicationUrl': job.externalApplicationUrl if job.externalApplicationUrl else None,
                 'createdAt': job.createdAt.isoformat(),
@@ -1587,6 +1590,7 @@ def duplicate_job(request, job_id):
             contractType=job.contractType,
             modality=job.modality,
             expiryDate=job.expiryDate,
+            applicationDeadline=job.applicationDeadline,
             salaryType=job.salaryType,
             salaryMin=job.salaryMin,
             salaryMax=job.salaryMax,

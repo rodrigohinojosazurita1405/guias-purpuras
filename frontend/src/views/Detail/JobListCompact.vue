@@ -116,32 +116,36 @@ export default {
     },
 
     daysRemaining() {
-      if (!this.listing.expiryDate) return null
+      // CRÍTICO: Usar applicationDeadline (fecha límite de postulación) NO expiryDate (fecha de vencimiento del plan)
+      const deadline = this.listing.applicationDeadline || this.listing.expiryDate
+      if (!deadline) return null
 
       const today = new Date()
       today.setHours(0, 0, 0, 0)
 
       // Parsear como fecha local para evitar problemas de zona horaria
-      const [year, month, day] = this.listing.expiryDate.split('-')
-      const expiryDate = new Date(year, month - 1, day)
-      expiryDate.setHours(0, 0, 0, 0)
+      const [year, month, day] = deadline.split('-')
+      const deadlineDate = new Date(year, month - 1, day)
+      deadlineDate.setHours(0, 0, 0, 0)
 
-      const diff = expiryDate - today
+      const diff = deadlineDate - today
       const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
 
       return days
     },
 
     expiryText() {
-      if (!this.listing.expiryDate) return ''
+      // CRÍTICO: Mostrar applicationDeadline (cuándo cierra la convocatoria) NO expiryDate
+      const deadline = this.listing.applicationDeadline || this.listing.expiryDate
+      if (!deadline) return ''
 
       // Parsear como fecha local para evitar problemas de zona horaria
-      const [year, month, day] = this.listing.expiryDate.split('-')
-      const expiryDate = new Date(year, month - 1, day)
+      const [year, month, day] = deadline.split('-')
+      const deadlineDate = new Date(year, month - 1, day)
       const options = { day: '2-digit', month: 'short', year: 'numeric' }
-      const formattedDate = expiryDate.toLocaleDateString('es-ES', options)
+      const formattedDate = deadlineDate.toLocaleDateString('es-ES', options)
 
-      return `Vence: ${formattedDate}`
+      return `Cierra: ${formattedDate}`
     },
 
     expiryClass() {

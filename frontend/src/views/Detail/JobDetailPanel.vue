@@ -119,9 +119,9 @@
             <va-icon name="groups" size="small" />
             {{ listing.vacancies }} {{ listing.vacancies === 1 ? 'vacante' : 'vacantes' }}
           </span>
-          <span class="meta-item" v-if="listing.expiryDate">
+          <span class="meta-item" v-if="listing.applicationDeadline || listing.expiryDate">
             <va-icon name="event" size="small" />
-            Vence: {{ formatExpiryDate(listing.expiryDate) }}
+            Cierra: {{ formatExpiryDate(listing.applicationDeadline || listing.expiryDate) }}
           </span>
           <span class="meta-item">
             <span class="job-status-badge" :class="jobStatusClass">

@@ -120,28 +120,6 @@ class JobAdmin(admin.ModelAdmin):
         'views_count'
     )
 
-    def get_queryset(self, request):
-        """
-        Personalizar queryset para que trabajos expirados aparezcan al final.
-        Ordena por: no expirados primero, luego por fecha de creación descendente.
-        """
-        from django.db.models import Case, When, Value, BooleanField
-
-        qs = super().get_queryset(request)
-        now = timezone.now()
-
-        # Crear campo calculado: is_expired
-        # True si expiryDate < now, False en caso contrario
-        qs = qs.annotate(
-            is_expired=Case(
-                When(expiryDate__lt=now, then=Value(True)),
-                default=Value(False),
-                output_field=BooleanField()
-            )
-        )
-
-        # Ordenar: primero los no expirados (is_expired=False), luego por fecha de creación
-        return qs.order_by('is_expired', '-createdAt')
 
     # Filtros avanzados
     list_filter = (
@@ -203,7 +181,8 @@ class JobAdmin(admin.ModelAdmin):
             'fields': ('salaryType', 'salaryMin', 'salaryMax', 'salaryFixed', 'benefits')
         }),
         ('Vacantes y Aplicaciones', {
-            'fields': ('vacancies', 'applications', 'expiryDate')
+            'fields': ('vacancies', 'applications', 'applicationDeadline', 'expiryDate'),
+            'description': 'IMPORTANTE: applicationDeadline = fecha límite de postulación (candidatos). expiryDate = vencimiento del plan (visibilidad del anuncio).'
         }),
         ('Contacto', {
             'fields': ('email',)
@@ -236,14 +215,30 @@ class JobAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         """
-        Por defecto, mostrar solo trabajos NO eliminados
-        El admin puede usar el filtro para ver los eliminados
+        Personalizar queryset para:
+        1. Mostrar solo trabajos NO eliminados por defecto
+        2. Ordenar trabajos expirados al final de la lista
         """
+        from django.db.models import Case, When, Value, IntegerField
+
         qs = super().get_queryset(request)
-        # Si no hay filtro específico de isDeleted, mostrar solo no eliminados
+
+        # 1. Filtro de eliminados: Si no hay filtro específico, mostrar solo no eliminados
         if 'isDeleted__exact' not in request.GET:
-            return qs.filter(isDeleted=False)
-        return qs
+            qs = qs.filter(isDeleted=False)
+
+        # 2. Ordenamiento por expiración: Anotar campo is_expired
+        now = timezone.now()
+        qs = qs.annotate(
+            is_expired=Case(
+                When(expiryDate__lt=now, then=Value(1)),  # Expirado = 1 (va al final)
+                default=Value(0),  # No expirado = 0 (va primero)
+                output_field=IntegerField()
+            )
+        )
+
+        # Ordenar: primero los no expirados (0), luego por fecha de creación descendente
+        return qs.order_by('is_expired', '-createdAt')
 
     # ========== MÉTODOS DE DISPLAY PARA LA LISTA ==========
 
