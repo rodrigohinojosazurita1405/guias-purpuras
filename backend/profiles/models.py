@@ -101,8 +101,34 @@ class CompanyProfile(models.Model):
         verbose_name="Categoría"
     )
 
+    # Información Legal (para verificación)
+    nit = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name="NIT (Número de Identificación Tributaria)"
+    )
+    legalName = models.CharField(
+        max_length=300,
+        blank=True,
+        verbose_name="Razón Social"
+    )
+    seprecCode = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Código SEPREC (Matrícula de Comercio)"
+    )
+
     # Verificación
     verified = models.BooleanField(default=False, verbose_name="Verificada")
+    verificationRequestedAt = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de Solicitud de Verificación"
+    )
+    verificationNotes = models.TextField(
+        blank=True,
+        verbose_name="Notas de Verificación (solo admin)"
+    )
 
     # Timestamps
     createdAt = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")

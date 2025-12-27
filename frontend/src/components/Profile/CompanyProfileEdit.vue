@@ -2,14 +2,22 @@
 <template>
   <div class="company-edit-container">
     <div class="edit-header">
-      <h2>Perfil De La Empresa</h2>
-      <va-button
-        preset="plain"
-        color="textPrimary"
-        @click="$emit('close')"
-      >
-        <va-icon name="close" size="large" />
-      </va-button>
+      <div class="header-title-section">
+        <h2>Perfil De La Empresa</h2>
+        <div v-if="companyStore.currentCompany?.verified" class="verified-badge" title="Empresa Verificada">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" fill="#7C3AED"/>
+            <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Empresa Verificada</span>
+        </div>
+      </div>
+      <button class="close-btn" @click="$emit('close')" type="button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
 
     <!-- No Company Message -->
@@ -30,7 +38,37 @@
 
     <!-- Form -->
     <form v-else @submit.prevent="handleSaveCompany" class="company-form">
-      <!-- Logo & Banner Upload Section (Card Design) -->
+      <!-- Tabs Navigation -->
+      <div class="tabs-navigation">
+        <button
+          type="button"
+          class="tab-btn"
+          :class="{ active: activeTab === 'general' }"
+          @click="activeTab = 'general'"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          Información General
+        </button>
+        <button
+          type="button"
+          class="tab-btn"
+          :class="{ active: activeTab === 'verification' }"
+          @click="activeTab = 'verification'"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          Verificación
+        </button>
+      </div>
+
+      <!-- Tab Content: General -->
+      <div v-show="activeTab === 'general'" class="tab-content">
+        <!-- Logo & Banner Upload Section (Card Design) -->
       <div class="upload-section">
         <h3 class="section-title">Perfil de la Empresa</h3>
 
@@ -72,11 +110,12 @@
                   @click="clearBannerPreview"
                   title="Eliminar banner"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="3 6 5 4 21 4 23 6 23 20a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6"></polyline>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     <line x1="10" y1="11" x2="10" y2="17"></line>
                     <line x1="14" y1="11" x2="14" y2="17"></line>
-                    <line x1="4" y1="6" x2="20" y2="6"></line>
                   </svg>
                 </button>
               </div>
@@ -131,11 +170,12 @@
                   @click="clearLogoPreview"
                   title="Eliminar logo"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="3 6 5 4 21 4 23 6 23 20a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6"></polyline>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     <line x1="10" y1="11" x2="10" y2="17"></line>
                     <line x1="14" y1="11" x2="14" y2="17"></line>
-                    <line x1="4" y1="6" x2="20" y2="6"></line>
                   </svg>
                 </button>
               </div>
@@ -255,6 +295,92 @@
           class="form-input"
         />
       </div>
+      </div>
+      <!-- Fin Tab Content: General -->
+
+      <!-- Tab Content: Verification -->
+      <div v-show="activeTab === 'verification'" class="tab-content">
+      <!-- Sección de Verificación -->
+      <div class="verification-section">
+        <h3 class="section-title">Verificación de Empresa</h3>
+
+        <!-- Grid de 2 columnas para campos de verificación -->
+        <div class="verification-grid">
+          <div class="form-group">
+            <label class="form-label">NIT *</label>
+            <va-input
+              v-model="formData.nit"
+              placeholder="1234567890"
+              class="form-input"
+            />
+            <p class="field-hint">Número de Identificación Tributaria</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Razón Social *</label>
+            <va-input
+              v-model="formData.legalName"
+              placeholder="EMPRESA S.R.L."
+              class="form-input"
+            />
+            <p class="field-hint">Nombre legal registrado</p>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Código SEPREC (Opcional)</label>
+            <va-input
+              v-model="formData.seprecCode"
+              placeholder="00-123456-7-8"
+              class="form-input"
+            />
+            <p class="field-hint">Matrícula de Comercio - FUNDEMPRESA</p>
+          </div>
+        </div>
+
+        <!-- Info Box de Verificación -->
+        <div class="info-box">
+          <div class="info-content">
+            <p><strong>¿Cómo verificar tu empresa?</strong></p>
+            <p>Completa los datos de NIT y Razón Social. Opcionalmente, agrega tu Código SEPREC para una verificación más rápida.</p>
+            <p class="contact-info">¿Necesitas ayuda? Contacta: <a href="mailto:info@guiaspurpuras.com.bo">info@guiaspurpuras.com.bo</a></p>
+          </div>
+        </div>
+
+        <!-- Estado de verificación y acciones -->
+        <div class="verification-status-section">
+          <!-- Si ya está verificada -->
+          <div v-if="companyStore.currentCompany?.verified" class="verification-status-message verified">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" fill="#7C3AED"/>
+              <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>¡Tu empresa ya está verificada!</span>
+          </div>
+
+          <!-- Si ya solicitó verificación pero aún no está verificada -->
+          <div v-else-if="companyStore.currentCompany?.verificationRequestedAt" class="verification-status-message pending">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <div class="status-content">
+              <span class="status-title">Verificación en proceso</span>
+              <span class="status-subtitle">Tu solicitud está siendo revisada. Puedes actualizar tus datos legales arriba si necesitas agregar información.</span>
+            </div>
+          </div>
+
+          <!-- Si aún no ha solicitado verificación -->
+          <div v-else class="verification-checkbox">
+            <label class="checkbox-label">
+              <input type="checkbox" v-model="formData.requestVerification" class="custom-checkbox" />
+              <span class="checkbox-text">Solicitar verificación de mi empresa</span>
+            </label>
+            <p class="checkbox-hint">Completa los datos de NIT y Razón Social arriba, luego marca esta casilla y haz clic en "Guardar Cambios" para enviar tu solicitud.</p>
+          </div>
+        </div>
+      </div>
+      </div>
+      <!-- Fin Tab Content: Verification -->
 
       <!-- Submit Button -->
       <div class="form-actions">
@@ -263,17 +389,15 @@
           {{ companyStore.isLoading ? 'Guardando...' : 'Guardar Cambios' }}
         </button>
 
-        <va-button
+        <button
           type="button"
-          preset="plain"
-          color="textSecondary"
-          size="large"
+          class="red-btn-gradient"
           @click="$emit('close')"
           :disabled="companyStore.isLoading"
         >
           <va-icon name="close" />
           Cancelar
-        </va-button>
+        </button>
       </div>
     </form>
   </div>
@@ -305,6 +429,7 @@ const emit = defineEmits(['close', 'created', 'updated'])
 
 // ========== DATA ==========
 const showForm = ref(false)
+const activeTab = ref('general') // 'general' o 'verification'
 
 // Media upload refs and state
 const logoFileInput = ref(null)
@@ -323,7 +448,11 @@ const formData = ref({
   location: '',
   city: '',
   description: '',
-  category: 'other'
+  category: 'other',
+  nit: '',
+  legalName: '',
+  seprecCode: '',
+  requestVerification: false
 })
 
 const cities = [
@@ -385,7 +514,11 @@ const loadCompanyProfile = async () => {
         location: result.company.location || '',
         city: result.company.city || '',
         description: result.company.description || '',
-        category: result.company.category || 'other'
+        category: result.company.category || 'other',
+        nit: result.company.nit || '',
+        legalName: result.company.legalName || '',
+        seprecCode: result.company.seprecCode || '',
+        requestVerification: false
       }
     }
   } catch (err) {
@@ -434,7 +567,15 @@ const handleSaveCompany = async () => {
       location: formData.value.location || '',
       city: formData.value.city || '',
       description: formData.value.description || '',
-      category: categoryValue || 'other'
+      category: categoryValue || 'other',
+      nit: formData.value.nit || '',
+      legalName: formData.value.legalName || '',
+      seprecCode: formData.value.seprecCode || ''
+    }
+
+    // Si se marca el checkbox de verificación y no está ya verificada, establecer fecha de solicitud
+    if (formData.value.requestVerification && !companyStore.currentCompany?.verified) {
+      dataToSend.verificationRequestedAt = new Date().toISOString()
     }
 
     // Obtener archivos seleccionados para logo y banner
@@ -644,11 +785,64 @@ const clearBannerPreview = async () => {
   border-bottom: 2px solid #f0f0f0;
 }
 
+.header-title-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .edit-header h2 {
   font-size: 1.5rem;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
+}
+
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  background: transparent;
+  color: #7C3AED;
+  border-radius: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.verified-badge svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(124, 58, 237, 0.3));
+}
+
+.close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #F3F4F6;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #6B7280;
+}
+
+.close-btn:hover {
+  background: #FEE2E2;
+  color: #DC2626;
+  transform: rotate(90deg);
+}
+
+.close-btn:active {
+  transform: rotate(90deg) scale(0.95);
+}
+
+.close-btn svg {
+  width: 20px;
+  height: 20px;
 }
 
 .no-company-message {
@@ -676,6 +870,79 @@ const clearBannerPreview = async () => {
   display: flex;
   flex-direction: column;
   gap: 2rem;
+}
+
+/* ========== TABS STYLES ========== */
+.tabs-navigation {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #F3F4F6;
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6B7280;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.tab-btn svg {
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  color: #7C3AED;
+  background: linear-gradient(180deg, transparent 0%, rgba(124, 58, 237, 0.05) 100%);
+}
+
+.tab-btn.active {
+  color: #7C3AED;
+  border-bottom-color: #7C3AED;
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.05) 0%, transparent 100%);
+}
+
+.tab-btn.active svg {
+  color: #7C3AED;
+}
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  background: linear-gradient(135deg, #7C3AED, #9333EA);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-left: 0.25rem;
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .upload-section {
@@ -768,6 +1035,33 @@ const clearBannerPreview = async () => {
 }
 
 .purple-btn-gradient:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.red-btn-gradient {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.red-btn-gradient:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  transform: translateY(-2px);
+}
+
+.red-btn-gradient:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
@@ -1013,6 +1307,167 @@ const clearBannerPreview = async () => {
   line-height: 1.4;
 }
 
+/* ========== VERIFICATION SECTION STYLES ========== */
+.verification-section {
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.verification-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.verification-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+.verification-grid .form-input {
+  background: white !important;
+}
+
+.verification-grid .va-input-wrapper {
+  background: white !important;
+}
+
+.verification-grid .va-input-wrapper__field {
+  background: white !important;
+}
+
+.info-box {
+  padding: 1rem 1.25rem;
+  background: #fffbeb;
+  border: 1px solid #fbbf24;
+  border-left: 4px solid #fbbf24;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.info-content p {
+  margin: 0 0 0.5rem 0;
+  color: #78350f;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.info-content p:last-child {
+  margin-bottom: 0;
+}
+
+.info-content strong {
+  color: #78350f;
+  font-weight: 600;
+}
+
+.contact-info {
+  color: #92400e !important;
+  font-size: 0.85rem !important;
+}
+
+.contact-info a {
+  color: #7C3AED;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.contact-info a:hover {
+  text-decoration: underline;
+}
+
+.verification-status-section {
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.verification-checkbox {
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.custom-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #7C3AED;
+}
+
+.checkbox-text {
+  font-weight: 600;
+  color: #1F2937;
+  font-size: 0.95rem;
+}
+
+.checkbox-hint {
+  margin: 0 0 0 calc(20px + 0.75rem);
+  color: #6B7280;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.verification-status-message {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.verification-status-message.verified {
+  background: transparent;
+  color: #7C3AED;
+  padding: 0;
+}
+
+.verification-status-message.verified svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(124, 58, 237, 0.3));
+}
+
+.verification-status-message.pending {
+  background: #fffbeb;
+  border: 1px solid #fbbf24;
+  color: #92400e;
+}
+
+.verification-status-message.pending svg {
+  flex-shrink: 0;
+  color: #f59e0b;
+}
+
+.status-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.status-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.status-subtitle {
+  font-weight: 400;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
 @media (max-width: 768px) {
   .company-edit-container {
     padding: 1.5rem;
@@ -1026,6 +1481,20 @@ const clearBannerPreview = async () => {
 
   .edit-header h2 {
     font-size: 1.25rem;
+  }
+
+  .tabs-navigation {
+    gap: 0.25rem;
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .verification-grid {
+    grid-template-columns: 1fr;
   }
 
   .banner-background {

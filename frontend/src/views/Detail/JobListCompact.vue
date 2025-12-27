@@ -55,13 +55,13 @@
       <!-- Empresa + Verificación -->
       <div class="job-company">
         <span class="company-name">{{ listing.companyName }}</span>
-        <va-icon
-          v-if="listing.verified"
-          name="verified"
-          size="small"
-          class="verified-icon"
-          title="Empresa verificada"
-        />
+        <div v-if="listing.companyProfile?.verified" class="verified-badge-compact" title="Empresa Verificada">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" fill="#7C3AED"/>
+            <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Verificada</span>
+        </div>
       </div>
 
       <!-- Ciudad -->
@@ -379,9 +379,23 @@ export default {
   white-space: nowrap;
 }
 
-.verified-icon {
-  color: #3B82F6;
+.verified-badge-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   flex-shrink: 0;
+  margin-left: 0.375rem;
+}
+
+.verified-badge-compact svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(124, 58, 237, 0.3));
+}
+
+.verified-badge-compact span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #7C3AED;
 }
 
 .job-location {

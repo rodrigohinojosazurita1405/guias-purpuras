@@ -100,7 +100,12 @@
             <h1 class="job-title">{{ listing.title }}</h1>
             <div class="company-info">
               <span class="company-name">{{ listing.companyName }}</span>
-              <va-icon v-if="listing.verified" name="verified" size="small" class="verified-icon" />
+              <div v-if="listing.companyProfile?.verified" class="verified-icon" title="Empresa Verificada">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" fill="#7C3AED"/>
+                  <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
             </div>
           </div>
         </div>
@@ -202,6 +207,18 @@
           <!-- Banner de la empresa -->
           <div v-if="listing.companyProfile.banner" class="company-banner">
             <img :src="listing.companyProfile.banner" :alt="listing.companyName" />
+          </div>
+
+          <!-- Header con nombre de empresa y badge de verificación -->
+          <div class="company-header-section">
+            <h2 class="company-profile-name">{{ listing.companyName }}</h2>
+            <div v-if="listing.companyProfile.verified" class="verified-badge-with-text" title="Empresa Verificada">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" fill="#7C3AED"/>
+                <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Empresa Verificada</span>
+            </div>
           </div>
 
           <!-- Descripción de la empresa -->
@@ -1670,5 +1687,68 @@ export default {
 .disabled-btn:hover {
   transform: none !important;
   box-shadow: none !important;
+}
+
+/* ========== VERIFIED ICON STYLES ========== */
+.verified-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 0.375rem;
+}
+
+.verified-icon svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(124, 58, 237, 0.3));
+}
+
+.company-header-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #F3F4F6;
+}
+
+.company-profile-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+}
+
+.verified-badge-with-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.verified-badge-with-text svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 3px rgba(124, 58, 237, 0.4));
+}
+
+.verified-badge-with-text span {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #7C3AED;
+}
+
+@media (max-width: 768px) {
+  .company-header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .company-profile-name {
+    font-size: 1.25rem;
+  }
+
+  .verified-badge-with-text span {
+    font-size: 0.8rem;
+  }
 }
 </style>

@@ -456,6 +456,10 @@ def get_company_profile(request, company_id):
                 'city': company_profile.city,
                 'category': company_profile.category,
                 'verified': company_profile.verified,
+                'nit': company_profile.nit,
+                'legalName': company_profile.legalName,
+                'seprecCode': company_profile.seprecCode,
+                'verificationRequestedAt': company_profile.verificationRequestedAt.isoformat() if company_profile.verificationRequestedAt else None,
                 'logo': get_absolute_media_url(company_profile.logo) if company_profile.logo else None,
                 'banner': get_absolute_media_url(company_profile.banner) if company_profile.banner else None,
                 'createdAt': company_profile.createdAt.isoformat(),
@@ -561,6 +565,32 @@ def update_company_profile(request, company_id):
             company_profile.category = data_dict.get('category')
             print(f'[UPDATE] category: {company_profile.category}')
 
+        # Actualizar campos de verificación
+        if 'nit' in data_dict:
+            company_profile.nit = data_dict.get('nit', '')
+            print(f'[UPDATE] nit: {company_profile.nit}')
+
+        if 'legalName' in data_dict:
+            company_profile.legalName = data_dict.get('legalName', '')
+            print(f'[UPDATE] legalName: {company_profile.legalName}')
+
+        if 'seprecCode' in data_dict:
+            company_profile.seprecCode = data_dict.get('seprecCode', '')
+            print(f'[UPDATE] seprecCode: {company_profile.seprecCode}')
+
+        if 'verificationRequestedAt' in data_dict:
+            verification_date_str = data_dict.get('verificationRequestedAt')
+            if verification_date_str:
+                # Parsear string ISO a datetime
+                from datetime import datetime
+                try:
+                    company_profile.verificationRequestedAt = datetime.fromisoformat(verification_date_str.replace('Z', '+00:00'))
+                except (ValueError, AttributeError):
+                    company_profile.verificationRequestedAt = None
+            else:
+                company_profile.verificationRequestedAt = None
+            print(f'[UPDATE] verificationRequestedAt: {company_profile.verificationRequestedAt}')
+
         # Procesar logo si fue enviado
         if 'logo' in request.FILES:
             logo_file = request.FILES['logo']
@@ -615,6 +645,11 @@ def update_company_profile(request, company_id):
                 'location': company_profile.location,
                 'city': company_profile.city,
                 'category': company_profile.category,
+                'verified': company_profile.verified,
+                'nit': company_profile.nit,
+                'legalName': company_profile.legalName,
+                'seprecCode': company_profile.seprecCode,
+                'verificationRequestedAt': company_profile.verificationRequestedAt.isoformat() if company_profile.verificationRequestedAt else None,
                 'logo': get_absolute_media_url(company_profile.logo) if company_profile.logo else None,
                 'banner': get_absolute_media_url(company_profile.banner) if company_profile.banner else None,
                 'updatedAt': company_profile.updatedAt.isoformat()
@@ -882,6 +917,10 @@ def get_or_create_my_company(request):
                 'city': company.city,
                 'category': company.category,
                 'verified': company.verified,
+                'nit': company.nit,
+                'legalName': company.legalName,
+                'seprecCode': company.seprecCode,
+                'verificationRequestedAt': company.verificationRequestedAt.isoformat() if company.verificationRequestedAt else None,
                 'logo': get_absolute_media_url(company.logo) if company.logo else None,
                 'banner': get_absolute_media_url(company.banner) if company.banner else None,
                 'createdAt': company.createdAt.isoformat(),
