@@ -133,7 +133,7 @@
               <span class="label">URL Externa de Aplicación:</span>
               <span class="value"><a :href="job.externalApplicationUrl" target="_blank" rel="noopener noreferrer">{{ job.externalApplicationUrl }}</a></span>
             </div>
-            <div class="info-item full-width">
+            <div v-if="['internal', 'both'].includes(job.applicationType)" class="info-item full-width">
               <span class="label">Preguntas de Filtrado:</span>
               <div class="value">
                 <template v-if="getScreeningQuestions(job.screeningQuestions).length > 0">

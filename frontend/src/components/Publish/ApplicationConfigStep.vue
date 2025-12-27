@@ -359,10 +359,27 @@ const showErrorModal = ref(false)
 const validationErrors = ref([])
 
 const updateData = (key, value) => {
-  emit('update:modelValue', {
+  const updates = {
     ...props.modelValue,
     [key]: value
-  })
+  }
+
+  // Si se cambia el tipo de aplicación, limpiar campos específicos del tipo anterior
+  if (key === 'applicationType') {
+    if (value === 'external') {
+      // Cambió a externo: limpiar preguntas de filtrado
+      updates.screeningQuestions = []
+    } else if (value === 'internal') {
+      // Cambió a interno: limpiar campos de aplicación externa
+      updates.externalApplicationUrl = ''
+      updates.applicationInstructions = ''
+      updates.email = ''
+      updates.whatsapp = ''
+      updates.website = ''
+    }
+  }
+
+  emit('update:modelValue', updates)
 }
 
 const addQuestion = () => {
