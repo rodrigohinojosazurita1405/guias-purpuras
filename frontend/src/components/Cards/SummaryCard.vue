@@ -566,49 +566,49 @@
             <!-- ===== INFORMACIÓN DE APLICACIÓN EXTERNA ===== -->
             <section v-if="jobData.applicationType === 'external'" class="content-block application-external-block">
               <h2 class="block-title">
-                <va-icon name="open_in_new" size="small" />
+                <va-icon name="open_in_new" size="small" color="purple" />
                 Información de Aplicación Externa
               </h2>
               <div class="external-application-info">
                 <div v-if="jobData.externalApplicationUrl" class="info-item-external">
                   <span class="info-label-external">
-                    <va-icon name="link" size="small" />
+                    <va-icon name="link" size="small" color="purple" />
                     URL del Formulario:
                   </span>
                   <a :href="jobData.externalApplicationUrl" target="_blank" class="info-value-external url-link">
                     {{ jobData.externalApplicationUrl }}
-                    <va-icon name="open_in_new" size="x-small" />
+                    <va-icon name="open_in_new" size="x-small" color="purple" />
                   </a>
                 </div>
                 <div v-if="jobData.applicationInstructions" class="info-item-external">
                   <span class="info-label-external">
-                    <va-icon name="description" size="small" />
+                    <va-icon name="description" size="small" color="purple" />
                     Instrucciones:
                   </span>
                   <p class="info-value-external instructions-text">{{ jobData.applicationInstructions }}</p>
                 </div>
                 <div v-if="jobData.email" class="info-item-external">
                   <span class="info-label-external">
-                    <va-icon name="email" size="small" />
+                    <va-icon name="email" size="small" color="purple" />
                     Email de Contacto:
                   </span>
                   <span class="info-value-external">{{ jobData.email }}</span>
                 </div>
                 <div v-if="jobData.whatsapp" class="info-item-external">
                   <span class="info-label-external">
-                    <va-icon name="phone" size="small" />
+                    <va-icon name="phone" size="small" color="purple" />
                     WhatsApp/Teléfono:
                   </span>
                   <span class="info-value-external">{{ jobData.whatsapp }}</span>
                 </div>
                 <div v-if="jobData.website" class="info-item-external">
                   <span class="info-label-external">
-                    <va-icon name="language" size="small" />
+                    <va-icon name="language" size="small" color="purple" />
                     Sitio Web:
                   </span>
                   <a :href="jobData.website" target="_blank" class="info-value-external url-link">
                     {{ jobData.website }}
-                    <va-icon name="open_in_new" size="x-small" />
+                    <va-icon name="open_in_new" size="x-small" color="purple" />
                   </a>
                 </div>
               </div>
