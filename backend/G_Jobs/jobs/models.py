@@ -65,7 +65,8 @@ class Job(models.Model):
         choices=[
             ('range', 'Rango'),
             ('fixed', 'Fijo'),
-            ('negotiable', 'A convenir')
+            ('negotiable', 'A convenir'),
+            ('pretension_salarial', 'Pretensión Salarial')
         ],
         default='negotiable',
         verbose_name="Tipo de salario"

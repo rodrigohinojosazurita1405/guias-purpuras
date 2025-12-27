@@ -334,7 +334,16 @@ export default {
     },
 
     formattedSalary() {
-      if (!this.listing || !this.listing.salary || this.listing.salary === 'A convenir') {
+      if (!this.listing || !this.listing.salary) {
+        return 'A convenir'
+      }
+
+      // Verificar si es pretensión salarial
+      if (this.listing.salary === 'Indique su pretensión salarial') {
+        return 'Indique su pretensión salarial'
+      }
+
+      if (this.listing.salary === 'A convenir') {
         return 'A convenir'
       }
 

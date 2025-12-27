@@ -285,6 +285,14 @@
                   />
                   <span>A convenir</span>
                 </label>
+                <label class="radio-label-compact">
+                  <va-radio
+                    v-model="localFormData.salaryType"
+                    option="pretension_salarial"
+                    label=""
+                  />
+                  <span>Pretensión Salarial</span>
+                </label>
               </div>
             </div>
           </div>
@@ -462,9 +470,6 @@ const minApplicationDeadline = computed(() => {
 const validateApplicationDeadline = (dateValue) => {
   if (!dateValue) return true // Si está vacío, otra regla lo validará
 
-  console.log('[DEBUG] Validando fecha:', dateValue)
-  console.log('[DEBUG] maxApplicationDeadline:', maxApplicationDeadline.value)
-
   // Convertir el valor a Date
   let selectedDate
   if (typeof dateValue === 'string') {
@@ -477,9 +482,6 @@ const validateApplicationDeadline = (dateValue) => {
   }
 
   selectedDate.setHours(0, 0, 0, 0)
-
-  console.log('[DEBUG] Fecha seleccionada normalizada:', selectedDate)
-  console.log('[DEBUG] Es válida?:', selectedDate <= maxApplicationDeadline.value)
 
   // Validar que no exceda la fecha máxima
   if (maxApplicationDeadline.value && selectedDate > maxApplicationDeadline.value) {

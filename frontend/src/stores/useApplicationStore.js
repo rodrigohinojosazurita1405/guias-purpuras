@@ -37,7 +37,7 @@ export const useApplicationStore = defineStore('application', () => {
 
   // ========== GETTERS ==========
   const requiresSalaryExpectation = computed(() => {
-    return jobData.value?.salaryType === 'negotiable'
+    return jobData.value?.salaryType === 'negotiable' || jobData.value?.salaryType === 'pretension_salarial'
   })
 
   const hasScreeningQuestions = computed(() => {
@@ -59,6 +59,9 @@ export const useApplicationStore = defineStore('application', () => {
     }
     if (type === 'negotiable') {
       return 'A convenir'
+    }
+    if (type === 'pretension_salarial') {
+      return 'Indique su pretensión salarial'
     }
     return null
   })

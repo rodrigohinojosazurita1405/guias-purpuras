@@ -238,7 +238,8 @@ const getSalaryLabel = (salaryType) => {
     monthly: 'Mensual',
     hourly: 'Por hora',
     negotiable: 'A convenir',
-    fixed: 'Fijo'
+    fixed: 'Fijo',
+    pretension_salarial: 'Pretensión Salarial'
   }
   return labels[salaryType] || salaryType
 }

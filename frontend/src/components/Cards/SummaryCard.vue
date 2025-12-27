@@ -260,6 +260,9 @@
               <template v-else-if="jobData.salaryType === 'negotiable'">
                 A convenir
               </template>
+              <template v-else-if="jobData.salaryType === 'pretension_salarial'">
+                Indique su pretensión salarial
+              </template>
               <template v-else>
                 No mostrado
               </template>
@@ -500,7 +503,7 @@
 
               <!-- Salario Destacado -->
               <div class="salary-container">
-                <p class="salary-label">Rango Salarial:</p>
+                <p class="salary-label">Salario:</p>
                 <p class="salary-amount">
                   <template v-if="jobData.salaryType === 'range'">
                     Bs. {{ jobData.salaryMin?.toLocaleString() }} - {{ jobData.salaryMax?.toLocaleString() }}
@@ -510,6 +513,9 @@
                   </template>
                   <template v-else-if="jobData.salaryType === 'negotiable'">
                     A convenir
+                  </template>
+                  <template v-else-if="jobData.salaryType === 'pretension_salarial'">
+                    Indique su pretensión salarial
                   </template>
                   <template v-else>
                     No especificado

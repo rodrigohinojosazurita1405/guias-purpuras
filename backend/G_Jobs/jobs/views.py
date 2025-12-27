@@ -191,8 +191,8 @@ def publish_job(request):
 
         # Salary Type
         salary_type = (data.get('salaryType') or 'range').lower()
-        if salary_type not in ['range', 'fixed', 'negotiable', 'hidden']:
-            errors['salaryType'] = "Debe ser 'range', 'fixed', 'negotiable' o 'hidden'"
+        if salary_type not in ['range', 'fixed', 'negotiable', 'hidden', 'pretension_salarial']:
+            errors['salaryType'] = "Debe ser 'range', 'fixed', 'negotiable', 'pretension_salarial' o 'hidden'"
 
         # Application Type
         app_type = (data.get('applicationType') or 'internal').lower()
@@ -541,6 +541,8 @@ def format_salary(job):
         return f'Bs. {int(job.salaryFixed)}'
     elif job.salaryType == 'negotiable':
         return 'A convenir'
+    elif job.salaryType == 'pretension_salarial':
+        return 'Indique su pretensión salarial'
     else:
         return 'No Declarado'
 
