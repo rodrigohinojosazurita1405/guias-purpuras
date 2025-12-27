@@ -232,8 +232,8 @@
             <span class="value">{{ getModalityValue(jobData.modality) }}</span>
           </div>
           <div class="info-row">
-            <span class="label">Fecha de Vencimiento:</span>
-            <span class="value">{{ jobData.expiryDate }}</span>
+            <span class="label">Fecha Límite Postulación:</span>
+            <span class="value">{{ jobData.applicationDeadline || jobData.expiryDate }}</span>
           </div>
         </div>
       </div>
@@ -437,9 +437,9 @@
                   <div class="info-item-compact">
                     <va-icon name="calendar_today" size="small" class="info-icon" />
                     <div class="info-text">
-                      <span class="info-label-compact">Vence</span>
+                      <span class="info-label-compact">Cierra</span>
                       <span class="info-value-compact" :class="{ 'expired-text': isExpired }">
-                        {{ isExpired ? 'CERRADA' : formatDate(jobData.expiryDate) }}
+                        {{ isExpired ? 'CERRADA' : formatDate(jobData.applicationDeadline || jobData.expiryDate) }}
                       </span>
                     </div>
                   </div>
@@ -893,9 +893,11 @@ const paymentReference = computed(() => {
 
 // Verificar si la convocatoria está cerrada
 const isExpired = computed(() => {
-  if (!props.jobData?.expiryDate) return false
-  const expiryDate = new Date(props.jobData.expiryDate)
-  return expiryDate < new Date()
+  // CRÍTICO: Usar applicationDeadline (fecha límite de postulación) NO expiryDate
+  const deadline = props.jobData?.applicationDeadline || props.jobData?.expiryDate
+  if (!deadline) return false
+  const deadlineDate = new Date(deadline)
+  return deadlineDate < new Date()
 })
 
 // Formatear fecha de vencimiento

@@ -328,7 +328,7 @@ const handleSubmit = async () => {
   }
 
   // ========== VALIDAR DATOS MÍNIMOS ==========
-  const { title, description, city, contractType, expiryDate } = publishStore.jobData
+  const { title, description, city, contractType, applicationDeadline } = publishStore.jobData
   const email = authStore.user?.email // Email del usuario autenticado
   const fieldErrors = {}
 
@@ -337,7 +337,7 @@ const handleSubmit = async () => {
   if (!email?.trim()) fieldErrors.email = 'Email es requerido'
   if (!city?.trim()) fieldErrors.city = 'Ciudad es requerida'
   if (!contractType?.trim()) fieldErrors.contractType = 'Tipo de contrato es requerido'
-  if (!expiryDate) fieldErrors.expiryDate = 'Fecha de vencimiento es requerida'
+  if (!applicationDeadline) fieldErrors.applicationDeadline = 'Fecha límite de postulación es requerida'
 
   // FASE 7.1: Validación de comprobante de pago obligatorio (verificar el archivo real en la store)
   if (!publishStore.proofOfPaymentFile) fieldErrors.proofOfPayment = 'El comprobante de pago es requerido'
@@ -365,9 +365,14 @@ const handleSubmit = async () => {
       // Saltar proofOfPaymentPreview (es solo para preview, no enviar al backend)
       if (key === 'proofOfPaymentPreview') return
 
-      // Para expiryDate (Date object), convertir a ISO 8601 format (YYYY-MM-DD)
-      if (key === 'expiryDate' && value instanceof Date) {
-        formData.append(key, value.toISOString().split('T')[0])
+      // Para applicationDeadline y expiryDate, convertir a formato YYYY-MM-DD
+      if (key === 'applicationDeadline' || key === 'expiryDate') {
+        if (value instanceof Date) {
+          formData.append(key, value.toISOString().split('T')[0])
+        } else if (typeof value === 'string') {
+          // Si ya es string, extraer solo la parte de fecha YYYY-MM-DD
+          formData.append(key, value.split('T')[0])
+        }
       }
       // Para screeningQuestions (es array), convertir a JSON
       else if (key === 'screeningQuestions' && Array.isArray(value)) {

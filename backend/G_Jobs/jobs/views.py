@@ -98,6 +98,7 @@ def publish_job(request):
         files = request.FILES.dict()
 
         print(f'[PUBLISH] [PUBLISH_JOB] Usuario: {request.user.email} (rol: {request.user.role}), Campos recibidos: {list(data.keys())}, Archivos: {list(files.keys())}')
+        print(f'[DEBUG] applicationDeadline recibido: {data.get("applicationDeadline")} (tipo: {type(data.get("applicationDeadline"))})')
 
         # ========== VALIDACIONES DE CAMPOS REQUERIDOS ==========
         errors = {}

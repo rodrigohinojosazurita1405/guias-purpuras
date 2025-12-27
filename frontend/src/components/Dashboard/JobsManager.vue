@@ -571,6 +571,9 @@ const loadJobs = async () => {
     }
 
     if (data.success && data.jobs) {
+      // DEBUG: Ver qué datos llegan del backend
+      console.log('[JobsManager] Jobs recibidos del backend:', data.jobs)
+
       // Mapear datos de la API al formato esperado
       jobs.value = data.jobs.map(job => ({
         id: job.id,
@@ -583,12 +586,16 @@ const loadJobs = async () => {
         applications: job.applications || 0,
         createdAt: new Date(job.createdAt).toISOString(),
         expiryDate: job.expiryDate,
+        applicationDeadline: job.applicationDeadline,  // CRÍTICO: Fecha límite de postulación
         selectedPlan: job.selectedPlan,
         // Datos del plan capturados en el momento de publicación
         planLabel: job.planLabel,
         planPrice: job.planPrice,
         planDuration: job.planDuration
       }))
+
+      // DEBUG: Ver jobs después del mapeo
+      console.log('[JobsManager] Jobs después del mapeo:', jobs.value)
     } else {
       throw new Error(data.message || 'Respuesta del servidor inválida')
     }
