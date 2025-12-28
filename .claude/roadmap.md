@@ -420,68 +420,62 @@ interviewed → accepted:
 
 ## 🎯 PRÓXIMAS PRIORIDADES
 
-### 1. **FASE 7.9: Mejoras Dashboard Reclutador - CandidatesView** (ALTA PRIORIDAD)
+### 1. **✅ FASE 7.9: Mejoras Dashboard Reclutador - CandidatesView** (COMPLETADA)
 **Descripción:** Funcionalidades críticas para gestión eficiente de candidatos con alto volumen de solicitudes
 
 **Contexto:**
 - Con 50+ candidatos por trabajo, se vuelve imposible gestionar sin herramientas avanzadas
 - Basado en análisis de plataformas profesionales (LinkedIn Recruiter, Greenhouse, Lever)
 
-**Tareas Priorizadas:**
+**Tareas Completadas:**
 
-#### **FASE 1 - LO MÁS CRÍTICO** (2-3 horas total)
-1. ⏳ **Puntuación/Rating de Candidatos** ⭐ (2-3 horas)
-   - Sistema de estrellas 1-5 para calificar candidatos
-   - Ordenar por mejor puntuación
-   - Campo `rating` en modelo `JobApplication`
-   - Componente de estrellas clickeable en cada tarjeta
-   - Filtro adicional "Ordenar por: Rating"
-   - **JUSTIFICACIÓN:** Esencial para priorizar rápidamente. Usado DIARIAMENTE en 90%+ de ATS profesionales
+#### **✅ FASE 1 - LO MÁS CRÍTICO**
+1. ✅ **Puntuación/Rating de Candidatos** ⭐
+   - ✅ Sistema de estrellas 1-5 para calificar candidatos
+   - ✅ Ordenar por mejor puntuación (rating-desc, rating-asc)
+   - ✅ Campo `rating` en modelo `JobApplication`
+   - ✅ Componente StarRating.vue reutilizable
+   - ✅ Componente de estrellas clickeable en cada tarjeta
+   - ✅ Filtro adicional "Ordenar por: Rating"
+   - ✅ Rating incluido en exportaciones CSV
 
-2. ⏳ **Filtros Avanzados** 🔍 (4-6 horas)
-   - Filtrar por fecha de aplicación (última semana, último mes, etc.)
-   - Filtrar por años de experiencia (si se captura en CV)
-   - Filtrar por ubicación/ciudad
-   - Filtro combinado (múltiples criterios simultáneos)
-   - **JUSTIFICACIÓN:** Crítico con volumen alto. Sin esto, 50+ candidatos es caos total
+#### **✅ FASE 2 - MUY ÚTIL**
+2. ✅ **Acciones en Lote** ⚡
+   - ✅ Checkbox para seleccionar múltiples candidatos
+   - ✅ Toolbar flotante con contador de seleccionados
+   - ✅ Botón "Cambiar estado de seleccionados" (5 opciones)
+   - ✅ Modal de confirmación personalizado (Vuestic UI)
+   - ✅ Confirmar antes de acción masiva
+   - ✅ Contador de éxitos/errores en operaciones
+   - ✅ Animaciones suaves de entrada/salida
 
-#### **FASE 2 - MUY ÚTIL** (5-7 horas total)
-3. ⏳ **Acciones en Lote** ⚡ (3-4 horas)
-   - Checkbox para seleccionar múltiples candidatos
-   - Botón "Cambiar estado de seleccionados"
-   - Botón "Rechazar seleccionados"
-   - Botón "Mover a preseleccionados"
-   - Confirmar antes de acción masiva
-   - **JUSTIFICACIÓN:** Ahorra MUCHO tiempo. Cuando recibes 100 CVs y 70 no califican, rechazar todos de golpe
+3. ✅ **Exportación a Excel/CSV** 📊
+   - ✅ Dropdown con 3 modos de exportación:
+     - ✅ Exportar Todo (filtrados en un archivo)
+     - ✅ Seleccionar Anuncios (múltiples trabajos por separado)
+     - ✅ Exportar Todos por Separado (cada trabajo en archivo CSV)
+   - ✅ Incluir: Nombre, Email, Teléfono, WhatsApp, Estado, Rating, Fecha
+   - ✅ Formato profesional con UTF-8 BOM para Excel
+   - ✅ Notificaciones de progreso para descargas múltiples
+   - ✅ Delay entre descargas para evitar bloqueo
 
-4. ⏳ **Exportación a Excel/CSV** 📊 (2-3 horas)
-   - Botón "Exportar a Excel"
-   - Incluir: Nombre, Email, Teléfono, WhatsApp, Estado, Rating, Fecha aplicación
-   - Opción de exportar solo seleccionados o todos
-   - Formato profesional con headers
-   - **JUSTIFICACIÓN:** Muy pedido para reportes a gerencia. Común en todas las empresas
+#### **⏳ FASE 3 - PENDIENTE**
+4. ⏳ **Filtros Avanzados** 🔍
+   - ⏳ Filtrar por fecha de aplicación (última semana, último mes, etc.)
+   - ⏳ Filtrar por años de experiencia (si se captura en CV)
+   - ⏳ Filtrar por ubicación/ciudad
+   - ⏳ Filtro combinado (múltiples criterios simultáneos)
 
-#### **FASE 3 - SI HAY TIEMPO** (6-8 horas)
-5. ⏳ **Comunicación Directa con Templates** 💬 (6-8 horas)
-   - Botón "Enviar Email" en cada candidato
-   - Modal con editor de email
-   - Templates predefinidos:
-     - "Gracias por aplicar"
-     - "Rechazado cortésmente"
-     - "Invitación a entrevista"
-     - "Solicitud de más información"
-   - Variables dinámicas: {nombre}, {puesto}, {empresa}
-   - Registro de emails enviados en notas
-   - **JUSTIFICACIÓN:** Ahorra horas de escribir emails repetitivos. Muy valorado pero no crítico
+5. ⏳ **Comunicación Directa con Templates** 💬
+   - ⏳ Botón "Enviar Email" en cada candidato
+   - ⏳ Modal con editor de email
+   - ⏳ Templates predefinidos (gracias, rechazo, invitación, info)
+   - ⏳ Variables dinámicas: {nombre}, {puesto}, {empresa}
+   - ⏳ Registro de emails enviados en notas
 
-**Estimación total:** 15-20 horas de desarrollo
+**Estado:** 3 de 5 funcionalidades completadas (las más críticas) 🎉
 
-**Orden de implementación sugerido:**
-1. Puntuación/Rating (impacto inmediato, fácil)
-2. Filtros Avanzados (crítico con volumen)
-3. Acciones en Lote (gran ahorro de tiempo)
-4. Exportación Excel (rápido de hacer, muy pedido)
-5. Templates Email (si hay tiempo)
+---
 
 ### 2. **FASE 7.7: Sistema de Notificaciones de Estado** (ALTA PRIORIDAD)
 **Descripción:** Notificar automáticamente al postulante cuando el reclutador cambie el estado de su postulación
