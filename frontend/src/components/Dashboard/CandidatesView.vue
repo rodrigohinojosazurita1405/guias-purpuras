@@ -434,8 +434,8 @@
           >
         <!-- Card Header -->
         <div class="card-header">
-          <!-- Checkbox de selección -->
-          <div class="selection-checkbox">
+          <!-- Checkbox de selección (oculto si está bloqueado) -->
+          <div class="selection-checkbox" v-if="!isUserBlocked(application.applicantId)">
             <input
               type="checkbox"
               :checked="selectedApplications.has(application.id)"
@@ -444,6 +444,8 @@
               :title="`Seleccionar candidato ${application.applicantName}`"
             />
           </div>
+          <!-- Espacio vacío si está bloqueado para mantener alineación -->
+          <div class="selection-checkbox blocked-space" v-else></div>
 
           <div class="applicant-info">
             <div class="applicant-avatar">
@@ -1076,10 +1078,18 @@ const getStatusCount = (applications, status) => {
 }
 
 const isUserBlocked = (applicantId) => {
-  if (!applicantId) return false
-  return blockedUsersStore.blockedUsers.some(
-    blocked => blocked.blockedUserId === applicantId
+  if (!applicantId) {
+    return false
+  }
+
+  // Convertir a número para comparación (backend envía number, frontend puede enviar string)
+  const applicantIdNum = Number(applicantId)
+
+  const isBlocked = blockedUsersStore.blockedUsers.some(
+    blocked => Number(blocked.blockedUserId) === applicantIdNum
   )
+
+  return isBlocked
 }
 
 const changeStatus = async (application, newStatus) => {
@@ -1558,8 +1568,6 @@ const cancelBulkAction = () => {
 
 // ========== BLOCK CANDIDATE ==========
 const openBlockModal = (application) => {
-  console.log('🚫 [BLOCK] Abriendo modal para bloquear:', application)
-
   blockForm.value = {
     candidateId: application.applicantId,
     candidateName: application.applicantName,
@@ -1567,7 +1575,6 @@ const openBlockModal = (application) => {
     notes: ''
   }
 
-  console.log('🚫 [BLOCK] Formulario inicializado:', blockForm.value)
   showBlockModal.value = true
 }
 
@@ -1581,12 +1588,6 @@ const confirmBlockCandidate = async () => {
       notes: blockForm.value.notes
     }
 
-    console.log('🚫 [BLOCK] Intentando bloquear candidato:')
-    console.log('  - blockedUserId:', payload.blockedUserId)
-    console.log('  - reason:', payload.reason)
-    console.log('  - notes:', payload.notes)
-    console.log('🚫 [BLOCK] Token:', authStore.accessToken ? 'presente' : 'ausente')
-
     const response = await fetch('http://localhost:8000/api/blocked-users/block', {
       method: 'POST',
       headers: {
@@ -1598,9 +1599,6 @@ const confirmBlockCandidate = async () => {
 
     const data = await response.json()
 
-    console.log('🚫 [BLOCK] Response status:', response.status)
-    console.log('🚫 [BLOCK] Response data:', data)
-
     if (response.ok && data.success) {
       notify({
         message: `✅ ${blockForm.value.candidateName} ha sido bloqueado exitosamente`,
@@ -1610,7 +1608,8 @@ const confirmBlockCandidate = async () => {
 
       closeBlockModal()
 
-      // Recargar las aplicaciones para actualizar la lista
+      // Recargar usuarios bloqueados y aplicaciones para actualizar la lista
+      await blockedUsersStore.loadBlockedUsers(authStore.accessToken)
       await applicationMgr.loadApplications()
     } else {
       notify({
@@ -2640,6 +2639,11 @@ const closeBlockModal = () => {
   margin-right: 0.75rem;
 }
 
+.selection-checkbox.blocked-space {
+  width: 20px;
+  height: 20px;
+}
+
 .custom-checkbox {
   width: 20px;
   height: 20px;
@@ -3196,7 +3200,6 @@ const closeBlockModal = () => {
 .application-card.is-blocked {
   opacity: 0.6;
   background: #f9fafb;
-  border-left: 4px solid #EF4444;
 }
 
 .blocked-badge {

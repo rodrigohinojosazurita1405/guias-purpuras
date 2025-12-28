@@ -610,6 +610,11 @@ export default {
         if (!response.ok) {
           const errorData = await response.json()
 
+          // Manejar caso de usuario bloqueado
+          if (response.status === 403 && errorData.blocked) {
+            throw new Error(errorData.error || 'No puedes postularte a empleos de esta empresa.')
+          }
+
           // Manejar caso específico de postulación duplicada
           if (response.status === 400 && errorData.error &&
               (errorData.error.includes('Ya te has postulado') ||

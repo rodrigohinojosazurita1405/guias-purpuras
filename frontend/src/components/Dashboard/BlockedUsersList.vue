@@ -85,12 +85,7 @@
 
         <!-- Card Actions -->
         <div class="card-actions">
-          <button class="action-btn-secondary" @click="handleViewCV(blockedUser.blockedUserId)">
-            <va-icon name="description" size="small" />
-            Ver CV
-          </button>
-
-          <button class="action-btn-danger" @click="handleUnblock(blockedUser.id)">
+          <button class="action-btn-danger" @click="handleUnblock(blockedUser.id, blockedUser.firstName, blockedUser.lastName)">
             <va-icon name="close" size="small" />
             Desbloquear
           </button>
@@ -104,6 +99,42 @@
       <h3>No hay usuarios bloqueados</h3>
       <p>No tienes ningún postulante bloqueado en este momento</p>
     </div>
+
+    <!-- Confirmation Modal -->
+    <va-modal
+      v-model="showUnblockModal"
+      size="small"
+      :close-button="false"
+      :hide-default-actions="true"
+    >
+      <template #header>
+        <h2 class="modal-title">
+          <va-icon name="warning" color="warning" />
+          Confirmar Desbloqueo
+        </h2>
+      </template>
+
+      <div class="modal-content">
+        <p class="modal-message">
+          ¿Estás seguro de que deseas desbloquear a <strong>{{ unblockCandidate.name }}</strong>?
+        </p>
+        <p class="modal-warning">
+          Este candidato podrá volver a postularse a tus empleos.
+        </p>
+      </div>
+
+      <template #footer>
+        <div class="modal-actions">
+          <va-button color="secondary" @click="showUnblockModal = false">
+            Cancelar
+          </va-button>
+          <va-button color="danger" @click="confirmUnblock">
+            <va-icon name="close" size="small" />
+            Desbloquear
+          </va-button>
+        </div>
+      </template>
+    </va-modal>
   </div>
 </template>
 
@@ -121,6 +152,11 @@ const { init: notify } = useToast()
 // ========== DATA ==========
 const searchQuery = ref('')
 const filterReason = ref('')
+const showUnblockModal = ref(false)
+const unblockCandidate = ref({
+  id: null,
+  name: ''
+})
 
 const reasonOptions = [
   { text: 'Spam', value: 'spam' },
@@ -199,39 +235,41 @@ const formatDate = (dateString) => {
   })
 }
 
-const handleViewCV = (userId) => {
-  notify({
-    message: 'Funcionalidad de CV próximamente...',
-    color: 'info'
-  })
-  // TODO: Navegar a CV detail cuando esté implementado
+const handleUnblock = (blockId, firstName, lastName) => {
+  const fullName = `${firstName || ''} ${lastName || ''}`.trim() || 'este postulante'
+
+  unblockCandidate.value = {
+    id: blockId,
+    name: fullName
+  }
+
+  showUnblockModal.value = true
 }
 
-const handleUnblock = async (blockId) => {
-  if (confirm('¿Estás seguro de que deseas desbloquear a este postulante?')) {
-    try {
-      const success = await blockedUsersStore.unblockUser(blockId, authStore.accessToken)
+const confirmUnblock = async () => {
+  try {
+    const success = await blockedUsersStore.unblockUser(unblockCandidate.value.id, authStore.accessToken)
 
-      if (success) {
-        notify({
-          message: '✅ Postulante desbloqueado exitosamente',
-          color: 'success',
-          duration: 3000
-        })
-      } else {
-        notify({
-          message: `Error: ${blockedUsersStore.error}`,
-          color: 'danger',
-          duration: 5000
-        })
-      }
-    } catch (err) {
+    if (success) {
       notify({
-        message: `Error al desbloquear: ${err.message}`,
+        message: `✅ ${unblockCandidate.value.name} ha sido desbloqueado exitosamente`,
+        color: 'success',
+        duration: 3000
+      })
+      showUnblockModal.value = false
+    } else {
+      notify({
+        message: blockedUsersStore.error || 'Error al desbloquear candidato',
         color: 'danger',
         duration: 5000
       })
     }
+  } catch (err) {
+    notify({
+      message: 'Error al desbloquear candidato. Por favor, intenta nuevamente.',
+      color: 'danger',
+      duration: 5000
+    })
   }
 }
 </script>
@@ -367,10 +405,6 @@ const handleUnblock = async (blockId) => {
 .blocked-user-card:hover {
   border-color: #e0e0e0;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.blocked-user-card {
-  border-left: 4px solid #dc2626;
 }
 
 /* Card Header */
@@ -527,6 +561,7 @@ const handleUnblock = async (blockId) => {
   flex-wrap: wrap;
   padding-top: 1rem;
   border-top: 1px solid #f5f5f5;
+  justify-content: flex-end;
 }
 
 .action-btn-secondary,
@@ -713,5 +748,44 @@ const handleUnblock = async (blockId) => {
     width: 40px;
     height: 40px;
   }
+}
+
+/* ========== MODAL STYLES ========== */
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0;
+}
+
+.modal-content {
+  padding: 1rem 0;
+}
+
+.modal-message {
+  font-size: 1rem;
+  color: #374151;
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+.modal-warning {
+  font-size: 0.9rem;
+  color: #6B7280;
+  margin: 0;
+  padding: 0.75rem;
+  background: #FEF3C7;
+  border-left: 3px solid #F59E0B;
+  border-radius: 4px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
 }
 </style>

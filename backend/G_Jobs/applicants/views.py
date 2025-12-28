@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from .models import ApplicantProfile, ApplicantCV, JobApplication, SavedJob
 from G_Jobs.jobs.models import Job
+from G_Jobs.moderation.models import BlockedUser
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.contrib.auth import get_user_model
@@ -370,30 +371,50 @@ def apply_to_job(request, job_id):
     """
     try:
         data = json.loads(request.body)
-        print(f"\n========== APPLY TO JOB ==========")
-        print(f"Job ID: {job_id}")
-        print(f"User: {request.user.email}")
-        print(f"Request data: {data}")
-        print(f"CV ID recibido: {data.get('cv_id')}")
-        print(f"==================================\n")
 
         # Verificar que el trabajo existe y está activo
         job = get_object_or_404(Job, id=job_id, status='active')
+
+        # Verificar si el usuario está bloqueado por esta empresa
+        block = BlockedUser.objects.filter(
+            company=job.company,
+            blocked_user=request.user
+        ).first()
+
+        if block:
+            # Registrar intento de aplicación bloqueado
+            from G_Jobs.audit.models import AuditLog
+            AuditLog.objects.create(
+                user=job.company,
+                action='block_attempt',
+                model_name='JobApplication',
+                severity='warning',
+                details={
+                    'blocked_user_email': request.user.email,
+                    'blocked_user_id': request.user.id,
+                    'job_id': str(job.id),
+                    'job_title': job.title,
+                    'block_reason': block.reason,
+                    'message': 'Usuario bloqueado intentó postularse'
+                }
+            )
+
+            return JsonResponse({
+                'success': False,
+                'error': 'No puedes postularte a empleos de esta empresa en este momento. Si crees que esto es un error, contacta al empleador.',
+                'blocked': True
+            }, status=403)
 
         # Verificar que el CV existe y pertenece al usuario
         cv_id = data.get('cv_id')
         cv = None
         if cv_id:
-            print(f"Buscando CV con ID: {cv_id}")
             cv = get_object_or_404(
                 ApplicantCV,
                 id=cv_id,
                 applicant=request.user,
                 is_deleted=False
             )
-            print(f"CV encontrado: {cv.name} (tipo: {cv.cv_type})")
-        else:
-            print("ADVERTENCIA: No se proporciono CV ID, la postulacion no tendra CV")
 
         # Crear la postulación
         application = JobApplication.objects.create(
