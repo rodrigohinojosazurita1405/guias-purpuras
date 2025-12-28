@@ -316,9 +316,6 @@ def create_company_profile(request):
         company_name = request.POST.get('companyName')
         email = request.POST.get('email')
 
-        # Logging para debug
-        print(f'[CREATE_COMPANY] {company_name} | FILES: {list(request.FILES.keys())}')
-
         # Validaciones
         if not user_profile_id:
             return JsonResponse({
@@ -367,11 +364,6 @@ def create_company_profile(request):
             # Validaciones básicas
             if logo_file.size <= 5 * 1024 * 1024:  # máx 5MB
                 company_profile.logo = logo_file
-                print(f'DEBUG: Logo file assigned to company_profile: {logo_file.name}')
-            else:
-                print(f'DEBUG: Logo file too large: {logo_file.size} bytes')
-        else:
-            print(f'DEBUG: No logo file in request.FILES')
 
         # Procesar banner si fue enviado
         if 'banner' in request.FILES:
@@ -379,15 +371,8 @@ def create_company_profile(request):
             # Validaciones básicas
             if banner_file.size <= 10 * 1024 * 1024:  # máx 10MB
                 company_profile.banner = banner_file
-                print(f'DEBUG: Banner file assigned to company_profile: {banner_file.name}')
-            else:
-                print(f'DEBUG: Banner file too large: {banner_file.size} bytes')
-        else:
-            print(f'DEBUG: No banner file in request.FILES')
 
-        print(f'DEBUG: Before save - logo={company_profile.logo}, banner={company_profile.banner}')
         company_profile.save()
-        print(f'DEBUG: After save - logo={company_profile.logo}, banner={company_profile.banner}')
 
         return JsonResponse({
             'success': True,
@@ -511,72 +496,51 @@ def update_company_profile(request, company_id):
         if request.content_type and 'application/json' in request.content_type:
             try:
                 data_dict = json.loads(request.body)
-                print(f'[DEBUG] Parsed JSON data')
             except json.JSONDecodeError:
-                print(f'[DEBUG] Failed to parse JSON, trying FormData')
                 data_dict = request.POST.dict()
         else:
             # Si no es JSON, usar FormData (request.POST)
             data_dict = request.POST.dict()
 
-        print(f'[UPDATE_COMPANY] Data keys: {list(data_dict.keys())}')
-        print(f'[UPDATE_COMPANY] FILES keys: {list(request.FILES.keys())}')
-        print(f'[UPDATE_COMPANY] Content-Type: {request.content_type}')
-        print(f'[UPDATE_COMPANY] REQUEST.FILES: {request.FILES}')
-        for key, file in request.FILES.items():
-            print(f'[UPDATE_COMPANY] File {key}: {file.name}, size: {file.size}, path: {file.file}')
-
         # Actualizar campos de texto
         if data_dict.get('companyName'):
             company_profile.companyName = data_dict.get('companyName')
-            print(f'[UPDATE] companyName: {company_profile.companyName}')
 
         if data_dict.get('description'):
             company_profile.description = data_dict.get('description')
-            print(f'[UPDATE] description: {company_profile.description}')
 
         if data_dict.get('email'):
             company_profile.email = data_dict.get('email')
-            print(f'[UPDATE] email: {company_profile.email}')
 
         if 'contactEmail' in data_dict:
             company_profile.contactEmail = data_dict.get('contactEmail', '')
-            print(f'[UPDATE] contactEmail: {company_profile.contactEmail}')
 
         if data_dict.get('phone'):
             company_profile.phone = data_dict.get('phone')
-            print(f'[UPDATE] phone: {company_profile.phone}')
 
         if data_dict.get('website'):
             company_profile.website = data_dict.get('website')
-            print(f'[UPDATE] website: {company_profile.website}')
 
         # Aceptar tanto 'address' como 'location' para mayor compatibilidad
         location_value = data_dict.get('location') or data_dict.get('address')
         if location_value:
             company_profile.location = location_value
-            print(f'[UPDATE] location: {company_profile.location}')
 
         if data_dict.get('city'):
             company_profile.city = data_dict.get('city')
-            print(f'[UPDATE] city: {company_profile.city}')
 
         if data_dict.get('category'):
             company_profile.category = data_dict.get('category')
-            print(f'[UPDATE] category: {company_profile.category}')
 
         # Actualizar campos de verificación
         if 'nit' in data_dict:
             company_profile.nit = data_dict.get('nit', '')
-            print(f'[UPDATE] nit: {company_profile.nit}')
 
         if 'legalName' in data_dict:
             company_profile.legalName = data_dict.get('legalName', '')
-            print(f'[UPDATE] legalName: {company_profile.legalName}')
 
         if 'seprecCode' in data_dict:
             company_profile.seprecCode = data_dict.get('seprecCode', '')
-            print(f'[UPDATE] seprecCode: {company_profile.seprecCode}')
 
         if 'verificationRequestedAt' in data_dict:
             verification_date_str = data_dict.get('verificationRequestedAt')
@@ -589,7 +553,6 @@ def update_company_profile(request, company_id):
                     company_profile.verificationRequestedAt = None
             else:
                 company_profile.verificationRequestedAt = None
-            print(f'[UPDATE] verificationRequestedAt: {company_profile.verificationRequestedAt}')
 
         # Procesar logo si fue enviado
         if 'logo' in request.FILES:
@@ -626,9 +589,6 @@ def update_company_profile(request, company_id):
                 company_profile.banner = banner_file
 
         company_profile.save()
-        print(f'[SAVE] Company profile saved successfully. ID: {company_profile.id}, Name: {company_profile.companyName}')
-        print(f'[SAVE] Logo: {company_profile.logo}')
-        print(f'[SAVE] Banner: {company_profile.banner}')
 
         # Construir respuesta
         response_data = {
@@ -656,7 +616,6 @@ def update_company_profile(request, company_id):
             }
         }
 
-        print(f'[RESPONSE] Enviando respuesta: {response_data}')
         return JsonResponse(response_data)
 
     except CompanyProfile.DoesNotExist:
