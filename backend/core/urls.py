@@ -38,6 +38,7 @@ urlpatterns = [
     path('api/', include('G_Jobs.dashboard.urls')),
     path('api/', include('G_Jobs.plans.urls')),
     path('api/', include('G_Jobs.applicants.urls')),
+    path('api/audit/', include('G_Jobs.audit.urls')),
 ]
 
 # Servir archivos media en desarrollo

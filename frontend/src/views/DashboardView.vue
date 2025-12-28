@@ -67,6 +67,11 @@
         <MessagesView :user-profile-id="userProfileId" />
       </div>
 
+      <!-- Activity Log Section -->
+      <div v-else-if="activeSection === 'history'" class="dashboard-section">
+        <ActivityLog />
+      </div>
+
       <!-- Placeholder Sections -->
       <div v-else class="dashboard-placeholder">
         <va-icon :name="getSectionIcon(activeSection)" size="3rem" color="purple" />
@@ -89,6 +94,7 @@ import JobsManager from '@/components/Dashboard/JobsManager.vue'
 import MisOrdenes from '@/components/Dashboard/MisOrdenes.vue'
 import CandidatesView from '@/components/Dashboard/CandidatesView.vue'
 import BlockedUsersList from '@/components/Dashboard/BlockedUsersList.vue'
+import ActivityLog from '@/components/Dashboard/ActivityLog.vue'
 import MessagesView from '@/components/Dashboard/MessagesView.vue'
 import CVManager from '@/components/Dashboard/CVManager.vue'
 import ApplicationsView from '@/components/Dashboard/ApplicationsView.vue'

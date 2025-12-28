@@ -52,10 +52,8 @@ def get_blocked_users(request):
                 'lastName': block.blocked_user.last_name,
                 'reason': block.reason,
                 'reasonDisplay': block.get_reason_display(),
-                'reasonNotes': block.reason_notes,
+                'notes': block.notes,
                 'blockedAt': block.blocked_at.isoformat(),
-                'blockedUntil': block.blocked_until.isoformat() if block.blocked_until else None,
-                'isPermanent': block.is_permanent,
                 'blockedUserId': block.blocked_user.id
             })
 
@@ -100,9 +98,8 @@ def block_user(request):
         # Parsear body
         body = json.loads(request.body)
         blocked_user_id = body.get('blockedUserId')
-        reason = body.get('reason', 'OTHER')
-        reason_notes = body.get('reasonNotes', '')
-        is_permanent = body.get('isPermanent', True)
+        reason = body.get('reason', 'other')
+        notes = body.get('notes', '')
 
         if not blocked_user_id:
             return JsonResponse({
@@ -132,9 +129,7 @@ def block_user(request):
             company=request.user,
             blocked_user=blocked_user,
             reason=reason,
-            reason_notes=reason_notes,
-            is_permanent=is_permanent,
-            blocked_until=None if is_permanent else datetime.now() + timedelta(days=30)
+            notes=notes
         )
 
         blocked_data = {
@@ -144,10 +139,9 @@ def block_user(request):
             'lastName': block.blocked_user.last_name,
             'reason': block.reason,
             'reasonDisplay': block.get_reason_display(),
-            'reasonNotes': block.reason_notes,
+            'notes': block.notes,
             'blockedAt': block.blocked_at.isoformat(),
-            'blockedUntil': block.blocked_until.isoformat() if block.blocked_until else None,
-            'isPermanent': block.is_permanent
+            'blockedUserId': block.blocked_user.id
         }
 
         return JsonResponse({
@@ -263,24 +257,11 @@ def check_if_blocked(request, user_id):
                 'blockInfo': None
             }, status=200)
 
-        # Verificar si el bloqueo sigue siendo válido (temporal)
-        if not block.is_permanent and block.blocked_until:
-            if datetime.now() > block.blocked_until:
-                # Bloqueo expirado, eliminarlo
-                block.delete()
-                return JsonResponse({
-                    'success': True,
-                    'isBlocked': False,
-                    'blockInfo': None
-                }, status=200)
-
         block_info = {
             'id': block.id,
             'reason': block.reason,
             'reasonDisplay': block.get_reason_display(),
-            'reasonNotes': block.reason_notes,
-            'isPermanent': block.is_permanent,
-            'blockedUntil': block.blocked_until.isoformat() if block.blocked_until else None
+            'notes': block.notes
         }
 
         return JsonResponse({

@@ -142,15 +142,6 @@
         <div class="menu-section-title">ADMINISTRACIÓN</div>
 
         <router-link
-          to="/dashboard/users"
-          class="menu-item"
-          :class="{ active: activeSection === 'users' }"
-        >
-          <va-icon name="people" />
-          <span>Gestionar Usuarios</span>
-        </router-link>
-
-        <router-link
           to="/dashboard/history"
           class="menu-item"
           :class="{ active: activeSection === 'history' }"

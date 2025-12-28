@@ -5,12 +5,8 @@
     <div class="section-header">
       <div class="header-content">
         <h2>Usuarios Bloqueados</h2>
-        <p class="section-subtitle">Gestiona los postulantes que has bloqueado</p>
+        <p class="section-subtitle">Lista de postulantes bloqueados automáticamente por el sistema</p>
       </div>
-      <button class="btn-block-user" @click="showBlockModal = true">
-        <va-icon name="add_circle" />
-        <span>Bloquear Postulante</span>
-      </button>
     </div>
 
     <!-- Filter Bar -->
@@ -57,8 +53,8 @@
               <va-icon name="person" size="1.5rem" />
             </div>
             <div class="user-details">
-              <h3 class="user-name">{{ blockedUser.blockedUser.name }}</h3>
-              <p class="user-email">{{ blockedUser.blockedUser.email }}</p>
+              <h3 class="user-name">{{ blockedUser.firstName }} {{ blockedUser.lastName }}</h3>
+              <p class="user-email">{{ blockedUser.email }}</p>
             </div>
           </div>
           <div class="block-badge">
@@ -71,33 +67,25 @@
         <div class="reason-section">
           <div class="reason-item">
             <span class="label">Motivo:</span>
-            <span class="value" :class="`reason-${blockedUser.reason.toLowerCase()}`">
-              {{ getReasonLabel(blockedUser.reason) }}
+            <span class="value" :class="`reason-${blockedUser.reason}`">
+              {{ blockedUser.reasonDisplay || getReasonLabel(blockedUser.reason) }}
             </span>
           </div>
           <div class="date-item">
             <span class="label">Bloqueado:</span>
             <span class="value">{{ formatDate(blockedUser.blockedAt) }}</span>
           </div>
-          <div v-if="!blockedUser.isPermanent" class="duration-item">
-            <span class="label">Hasta:</span>
-            <span class="value">{{ formatDate(blockedUser.blockedUntil) }}</span>
-          </div>
-          <div v-else class="permanent-item">
-            <span class="label">Duración:</span>
-            <span class="value permanent">Permanente</span>
-          </div>
         </div>
 
         <!-- Notes Section -->
-        <div v-if="blockedUser.reasonNotes" class="notes-section">
+        <div v-if="blockedUser.notes" class="notes-section">
           <span class="label">Notas:</span>
-          <p class="notes-content">{{ blockedUser.reasonNotes }}</p>
+          <p class="notes-content">{{ blockedUser.notes }}</p>
         </div>
 
         <!-- Card Actions -->
         <div class="card-actions">
-          <button class="action-btn-secondary" @click="handleViewCV(blockedUser.blockedUser.id)">
+          <button class="action-btn-secondary" @click="handleViewCV(blockedUser.blockedUserId)">
             <va-icon name="description" size="small" />
             Ver CV
           </button>
@@ -114,162 +102,31 @@
     <div v-else class="empty-state">
       <va-icon name="done_all" size="4rem" color="green" />
       <h3>No hay usuarios bloqueados</h3>
-      <p>Aún no has bloqueado a ningún postulante</p>
-      <button class="explore-btn" @click="showBlockModal = true">
-        <va-icon name="add_circle" />
-        Bloquear Postulante
-      </button>
+      <p>No tienes ningún postulante bloqueado en este momento</p>
     </div>
-
-    <!-- Block User Modal -->
-    <va-modal
-      v-model="showBlockModal"
-      title="Bloquear Postulante"
-      ok-text="Bloquear"
-      cancel-text="Cancelar"
-      @ok="handleBlockUser"
-    >
-      <div class="modal-content">
-        <div class="form-group">
-          <label>Seleccionar postulante:</label>
-          <va-select
-            v-model="blockForm.userId"
-            :options="availableUsers"
-            placeholder="Busca un postulante..."
-            filterable
-            searchable
-            class="form-input"
-          />
-        </div>
-
-        <div class="form-group">
-          <label>Tipo de bloqueo:</label>
-          <div class="radio-group">
-            <label class="radio-item">
-              <input
-                v-model="blockForm.isPermanent"
-                type="radio"
-                :value="true"
-              />
-              <span>Permanente</span>
-            </label>
-            <label class="radio-item">
-              <input
-                v-model="blockForm.isPermanent"
-                type="radio"
-                :value="false"
-              />
-              <span>Temporal (especifica fecha)</span>
-            </label>
-          </div>
-        </div>
-
-        <div v-if="!blockForm.isPermanent" class="form-group">
-          <label>Hasta cuándo:</label>
-          <va-date-input
-            v-model="blockForm.blockedUntil"
-            class="form-input"
-          />
-        </div>
-
-        <div class="form-group">
-          <label>Motivo del bloqueo:</label>
-          <va-select
-            v-model="blockForm.reason"
-            :options="blockReasonOptions"
-            placeholder="Selecciona un motivo"
-            class="form-input"
-          />
-        </div>
-
-        <div class="form-group">
-          <label>Notas adicionales:</label>
-          <va-textarea
-            v-model="blockForm.reasonNotes"
-            placeholder="Explica por qué bloqueaste a este postulante..."
-            rows="3"
-            class="form-input"
-          />
-        </div>
-      </div>
-    </va-modal>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useToast } from 'vuestic-ui'
+import { useBlockedUsersStore } from '@/stores/useBlockedUsersStore'
+import { useAuthStore } from '@/stores/useAuthStore'
 
-// ========== COMPOSABLES ==========
+// ========== STORES ==========
+const blockedUsersStore = useBlockedUsersStore()
+const authStore = useAuthStore()
 const { init: notify } = useToast()
 
-// ========== PROPS ==========
-defineProps({
-  userProfileId: {
-    type: String,
-    required: true
-  }
-})
-
 // ========== DATA ==========
-const loading = ref(false)
 const searchQuery = ref('')
 const filterReason = ref('')
-const showBlockModal = ref(false)
-
-const blockedUsers = ref([
-  {
-    id: 'blocked-001',
-    blockedUser: {
-      id: 'user-456',
-      name: 'Carlos Spam',
-      email: 'carlos.spam@example.com'
-    },
-    reason: 'SPAM',
-    reasonNotes: 'Envía 10+ aplicaciones en 1 hora a todos los anuncios',
-    blockedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    blockedUntil: null,
-    isPermanent: true
-  },
-  {
-    id: 'blocked-002',
-    blockedUser: {
-      id: 'user-789',
-      name: 'Andrea NoCalif',
-      email: 'andrea@example.com'
-    },
-    reason: 'UNQUALIFIED',
-    reasonNotes: 'No cumple requisitos mínimos (sin experiencia)',
-    blockedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-    blockedUntil: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-    isPermanent: false
-  }
-])
-
-const blockForm = ref({
-  userId: '',
-  isPermanent: true,
-  blockedUntil: null,
-  reason: 'SPAM',
-  reasonNotes: ''
-})
 
 const reasonOptions = [
-  { text: 'Spam', value: 'SPAM' },
-  { text: 'No calificado', value: 'UNQUALIFIED' },
-  { text: 'Otro', value: 'OTHER' }
-]
-
-const blockReasonOptions = [
-  { text: 'Spam', value: 'SPAM' },
-  { text: 'No cumple requisitos', value: 'UNQUALIFIED' },
-  { text: 'Comportamiento inapropiado', value: 'OTHER' }
-]
-
-const availableUsers = [
-  { text: 'Juan Pérez (juan@example.com)', value: 'user-001' },
-  { text: 'María García (maria@example.com)', value: 'user-002' },
-  { text: 'Carlos López (carlos@example.com)', value: 'user-003' }
+  { text: 'Spam', value: 'spam' },
+  { text: 'Comportamiento inapropiado', value: 'inappropriate' },
+  { text: 'No calificado repetidamente', value: 'unqualified' },
+  { text: 'Otra razón', value: 'other' }
 ]
 
 // ========== LIFECYCLE ==========
@@ -278,6 +135,9 @@ onMounted(() => {
 })
 
 // ========== COMPUTED PROPERTIES ==========
+const loading = computed(() => blockedUsersStore.loading)
+const blockedUsers = computed(() => blockedUsersStore.blockedUsers)
+
 const filteredBlockedUsers = computed(() => {
   let filtered = blockedUsers.value
 
@@ -289,10 +149,10 @@ const filteredBlockedUsers = computed(() => {
   // Filter by search query
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(bu =>
-      bu.blockedUser.name.toLowerCase().includes(query) ||
-      bu.blockedUser.email.toLowerCase().includes(query)
-    )
+    filtered = filtered.filter(bu => {
+      const fullName = `${bu.firstName || ''} ${bu.lastName || ''}`.toLowerCase()
+      return fullName.includes(query) || bu.email.toLowerCase().includes(query)
+    })
   }
 
   return filtered
@@ -301,41 +161,38 @@ const filteredBlockedUsers = computed(() => {
 // ========== METHODS ==========
 const loadBlockedUsers = async () => {
   try {
-    loading.value = true
+    await blockedUsersStore.loadBlockedUsers(authStore.accessToken)
 
-    // TODO: Reemplazar con llamada real a API
-    // const response = await fetch('/api/blocked-users/me', {
-    //   headers: {
-    //     'Authorization': `Bearer ${authStore.accessToken}`
-    //   }
-    // })
-
-    // Simular carga
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    if (blockedUsersStore.error) {
+      notify({
+        message: `Error: ${blockedUsersStore.error}`,
+        color: 'danger',
+        duration: 5000
+      })
+    }
   } catch (err) {
     notify({
-      message: `Error: ${err.message}`,
+      message: `Error al cargar usuarios bloqueados: ${err.message}`,
       color: 'danger',
       duration: 5000
     })
-  } finally {
-    loading.value = false
   }
 }
 
 const getReasonLabel = (reason) => {
   const labels = {
-    'SPAM': 'Spam',
-    'UNQUALIFIED': 'No calificado',
-    'OTHER': 'Otro'
+    'spam': 'Spam',
+    'inappropriate': 'Comportamiento inapropiado',
+    'unqualified': 'No calificado repetidamente',
+    'other': 'Otra razón'
   }
   return labels[reason] || reason
 }
 
-const formatDate = (date) => {
-  if (!date) return 'N/A'
-  const d = new Date(date)
-  return d.toLocaleDateString('es-ES', {
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('es-ES', {
     day: 'numeric',
     month: 'short',
     year: 'numeric'
@@ -344,71 +201,37 @@ const formatDate = (date) => {
 
 const handleViewCV = (userId) => {
   notify({
-    message: 'Abriendo CV del postulante...',
+    message: 'Funcionalidad de CV próximamente...',
     color: 'info'
   })
-  // TODO: Navegar a CV detail
+  // TODO: Navegar a CV detail cuando esté implementado
 }
 
-const handleUnblock = async (blockedUserId) => {
+const handleUnblock = async (blockId) => {
   if (confirm('¿Estás seguro de que deseas desbloquear a este postulante?')) {
     try {
-      // TODO: Llamar a API para desbloquear
-      const index = blockedUsers.value.findIndex(bu => bu.id === blockedUserId)
-      if (index > -1) {
-        blockedUsers.value.splice(index, 1)
+      const success = await blockedUsersStore.unblockUser(blockId, authStore.accessToken)
+
+      if (success) {
         notify({
           message: '✅ Postulante desbloqueado exitosamente',
           color: 'success',
           duration: 3000
         })
+      } else {
+        notify({
+          message: `Error: ${blockedUsersStore.error}`,
+          color: 'danger',
+          duration: 5000
+        })
       }
     } catch (err) {
       notify({
-        message: `Error: ${err.message}`,
+        message: `Error al desbloquear: ${err.message}`,
         color: 'danger',
         duration: 5000
       })
     }
-  }
-}
-
-const handleBlockUser = async () => {
-  if (!blockForm.value.userId) {
-    notify({
-      message: 'Debes seleccionar un postulante',
-      color: 'warning'
-    })
-    return
-  }
-
-  try {
-    // TODO: Llamar a API para bloquear
-    // POST /api/blocked-users/block
-    notify({
-      message: '✅ Postulante bloqueado exitosamente',
-      color: 'success',
-      duration: 3000
-    })
-
-    showBlockModal.value = false
-    resetBlockForm()
-  } catch (err) {
-    notify({
-      message: `Error: ${err.message}`,
-      color: 'danger',
-      duration: 5000
-    })
-  }
-}
-
-const resetBlockForm = () => {
-  blockForm.value = {
-    userId: '',
-    isPermanent: true,
-    blockedUntil: null,
-    reason: 'SPAM',
-    reasonNotes: ''
   }
 }
 </script>
