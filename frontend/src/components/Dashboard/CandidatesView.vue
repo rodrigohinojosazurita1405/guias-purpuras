@@ -300,6 +300,8 @@
             <va-select
               v-model="blockForm.reason"
               :options="blockReasonOptions"
+              text-by="text"
+              value-by="value"
               placeholder="Selecciona un motivo"
               class="form-input"
             />
@@ -3122,5 +3124,18 @@ const closeBlockModal = () => {
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid #f0f0f0;
+}
+
+/* Asegurar que el dropdown del va-select se muestre correctamente */
+.block-modal-content :deep(.va-select-dropdown) {
+  z-index: 99999 !important;
+}
+
+.block-modal-content :deep(.va-dropdown__anchor) {
+  overflow: visible !important;
+}
+
+.block-modal-content :deep(.va-dropdown__content) {
+  z-index: 99999 !important;
 }
 </style>
