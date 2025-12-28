@@ -770,18 +770,11 @@ const blockForm = ref({
 })
 
 const blockReasonOptions = [
-  'Spam',
-  'Comportamiento inapropiado',
-  'No calificado repetidamente',
-  'Otra razón'
+  { text: 'Spam', value: 'spam' },
+  { text: 'Comportamiento inapropiado', value: 'inappropriate' },
+  { text: 'No calificado repetidamente', value: 'unqualified' },
+  { text: 'Otra razón', value: 'other' }
 ]
-
-const blockReasonMap = {
-  'Spam': 'spam',
-  'Comportamiento inapropiado': 'inappropriate',
-  'No calificado repetidamente': 'unqualified',
-  'Otra razón': 'other'
-}
 
 const statusOptions = ['submitted', 'reviewing', 'shortlisted', 'interviewed', 'accepted', 'rejected']
 
@@ -1548,7 +1541,7 @@ const openBlockModal = (application) => {
   blockForm.value = {
     candidateId: application.applicantId,
     candidateName: application.applicantName,
-    reason: 'Spam',  // Valor inicial en español
+    reason: 'spam',
     notes: ''
   }
   showBlockModal.value = true
@@ -1558,9 +1551,6 @@ const confirmBlockCandidate = async () => {
   try {
     blocking.value = true
 
-    // Convertir el motivo de español a inglés para el backend
-    const reasonKey = blockReasonMap[blockForm.value.reason] || 'other'
-
     const response = await fetch('http://localhost:8000/api/blocked-users/block', {
       method: 'POST',
       headers: {
@@ -1569,7 +1559,7 @@ const confirmBlockCandidate = async () => {
       },
       body: JSON.stringify({
         blockedUserId: blockForm.value.candidateId,
-        reason: reasonKey,
+        reason: blockForm.value.reason,
         notes: blockForm.value.notes
       })
     })
@@ -1610,7 +1600,7 @@ const closeBlockModal = () => {
   blockForm.value = {
     candidateId: null,
     candidateName: '',
-    reason: 'Spam',
+    reason: 'spam',
     notes: ''
   }
 }
