@@ -894,6 +894,7 @@ def get_job_applications(request, job_id):
                 'coverLetter': app.cover_letter,
                 'status': app.status,
                 'recruiterNotes': app.employer_notes,
+                'rating': app.rating,
                 'createdAt': app.applied_at.isoformat(),
                 'viewedByEmployer': app.viewed_by_employer
             })
@@ -949,6 +950,17 @@ def update_application_status(request, job_id, application_id):
         if 'recruiterNotes' in data:
             application.employer_notes = data['recruiterNotes']
 
+        # Actualizar rating si se proporciona
+        if 'rating' in data:
+            rating = data['rating']
+            # Validar que el rating esté entre 1 y 5, o sea None para quitar rating
+            if rating is not None and (not isinstance(rating, int) or rating < 1 or rating > 5):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'El rating debe ser un número entre 1 y 5, o null para quitar la calificación'
+                }, status=400)
+            application.rating = rating
+
         # Marcar como visto por el empleador
         if not application.viewed_by_employer:
             application.viewed_by_employer = True
@@ -961,7 +973,8 @@ def update_application_status(request, job_id, application_id):
             'application': {
                 'id': str(application.id),
                 'status': application.status,
-                'recruiterNotes': application.employer_notes
+                'recruiterNotes': application.employer_notes,
+                'rating': application.rating
             }
         })
 

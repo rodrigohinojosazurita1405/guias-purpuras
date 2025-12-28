@@ -52,18 +52,7 @@
         <span>{{ formattedSalary }}</span>
       </div>
 
-      <!-- Empresa + Verificación -->
-      <div class="job-company">
-        <span class="company-name">{{ listing.companyName }}</span>
-        <div v-if="listing.companyProfile?.verified" class="verified-badge-compact" title="Empresa Verificada">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" fill="#7C3AED"/>
-            <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>Verificada</span>
-        </div>
-      </div>
-
+      
       <!-- Ciudad -->
       <div class="job-location">
         <va-icon name="place" size="small" />

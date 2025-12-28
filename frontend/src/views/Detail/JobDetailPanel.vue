@@ -105,6 +105,7 @@
                   <circle cx="12" cy="12" r="10" fill="#7C3AED"/>
                   <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
+                 <span>Empresa verificada</span>
               </div>
             </div>
           </div>
@@ -1174,7 +1175,16 @@ export default {
 }
 
 .verified-icon {
-  color: #3B82F6;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #7C3AED;
+}
+
+.verified-icon span {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #7C3AED;
 }
 
 /* Meta info */
@@ -1193,7 +1203,7 @@ export default {
   gap: 0.5rem;
   font-size: 0.9375rem;
   color: #1F2937;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.01em;
 }
 

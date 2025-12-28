@@ -949,6 +949,7 @@ def list_applications(request, job_id):
                 'applicantWhatsapp': app.applicantWhatsapp,
                 'screeningAnswers': app.screeningAnswers,
                 'status': app.status,
+                'rating': app.rating,
                 'recruiterNotes': app.recruiterNotes,
                 'createdAt': app.createdAt.isoformat(),
                 'updatedAt': app.updatedAt.isoformat()

@@ -194,6 +194,50 @@ export function useApplications() {
   }
 
   /**
+   * Actualizar rating de una aplicación
+   */
+  const updateApplicationRating = async (jobId, applicationId, rating) => {
+    try {
+      const accessToken = authStore.accessToken || localStorage.getItem('access_token')
+
+      if (!accessToken) {
+        throw new Error('No hay autenticación')
+      }
+
+      const response = await fetch(
+        `http://localhost:8000/api/jobs/${jobId}/applications/${applicationId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ rating })
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar rating')
+      }
+
+      const data = await response.json()
+      if (data.success) {
+        // Actualizar en local
+        const app = applications.value.find(a => a.id === applicationId)
+        if (app) {
+          app.rating = rating
+        }
+        triggerRef(applications)
+      }
+
+      return data
+    } catch (err) {
+      console.error('Error actualizando rating:', err)
+      throw err
+    }
+  }
+
+  /**
    * Guardar notas del reclutador
    */
   const saveRecruiterNotes = async (jobId, applicationId, notes) => {
@@ -249,6 +293,7 @@ export function useApplications() {
     acceptedCount,
     loadApplications,
     updateApplicationStatus,
+    updateApplicationRating,
     saveRecruiterNotes,
     resetApplications
   }

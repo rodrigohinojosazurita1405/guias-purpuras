@@ -189,12 +189,12 @@
           <div class="stat-divider">|</div>
           <div class="stat-item">
             <va-icon name="schedule" color="#7C3AED" />
-            <span class="stat-label">Publicado:</span>
+            <span class="stat-label">Anuncio Publicado:</span>
             <span class="stat-text stat-date">{{ formatExactDateTime(job.createdAt) }}</span>
           </div>
           <div class="stat-item deadline-item">
             <va-icon name="how_to_reg" color="#7C3AED" />
-            <span class="stat-label">Cierra postulación:</span>
+            <span class="stat-label">Fecha de cierre postulación:</span>
             <span class="stat-text stat-date" :class="{ 'deadline-closed': isDeadlinePassed(job) }">
               {{ formatExpiryDate(job.applicationDeadline || job.expiryDate) }}
             </span>
@@ -208,18 +208,13 @@
             </button>
           </div>
           <div class="stat-item">
-            <va-icon name="timer" color="#7C3AED" />
-            <span class="stat-label">Faltan:</span>
-            <span class="stat-text">{{ calculateDaysRemaining(job.applicationDeadline || job.expiryDate) }} días</span>
-          </div>
-          <div class="stat-item">
             <va-icon name="event_note" color="#7C3AED" />
-            <span class="stat-label">Plan vence:</span>
+            <span class="stat-label">Tu plan vence:</span>
             <span class="stat-text stat-date">{{ formatExpiryDate(job.expiryDate) }}</span>
           </div>
           <div class="stat-item" v-show="canExtendDeadline(job)">
             <va-icon name="info" color="#10B981" size="14px" />
-            <span class="stat-text days-available">{{ calculateRemainingDays(job) }} días disponibles</span>
+            <span class="stat-text days-available">Te sobran {{ calculateRemainingDays(job) }} días para extender la fecha de cierre</span>
           </div>
         </div>
 
@@ -332,6 +327,8 @@
       size="large"
       :close-button="false"
       hide-default-actions
+      :mobile-fullscreen="true"
+      overflow-behavior="outside"
     >
       <template #header>
         <div class="modal-header-content">
@@ -346,17 +343,21 @@
           <va-input
             v-model="editFormData.title"
             placeholder="Ej: Desarrollador Full Stack"
+            disabled
+            readonly
           />
-          <span class="field-hint">Nombre del cargo que estás ofreciendo</span>
+          <span class="field-hint">El título no puede modificarse para prevenir fraude</span>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Ciudad *</label>
-            <va-input
-              v-model="editFormData.city"
-              placeholder="Ej: Santa Cruz"
-            />
+            <select v-model="editFormData.city" class="native-select" :disabled="loadingCities">
+              <option value="" disabled>{{ loadingCities ? 'Cargando...' : 'Selecciona una ciudad' }}</option>
+              <option v-for="city in cityOptions" :key="city.value || city" :value="city.value || city">
+                {{ city.text || city }}
+              </option>
+            </select>
           </div>
 
           <div class="form-group">
@@ -372,39 +373,22 @@
 
         <div class="form-group">
           <label class="form-label">Tipo de Contrato *</label>
-          <va-select
-            v-model="editFormData.contractType"
-            :options="['Tiempo Completo', 'Medio Tiempo', 'Por Proyecto', 'Freelance', 'Temporal', 'Indefinido']"
-            placeholder="Selecciona el tipo de contrato"
-          />
+          <select v-model="editFormData.contractType" class="native-select" :disabled="loadingContractTypes">
+            <option value="" disabled>{{ loadingContractTypes ? 'Cargando...' : 'Selecciona el tipo de contrato' }}</option>
+            <option v-for="type in contractTypeOptions" :key="type.value || type" :value="type.value || type">
+              {{ type.text || type }}
+            </option>
+          </select>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Descripción del Trabajo *</label>
-          <va-textarea
-            v-model="editFormData.description"
-            placeholder="Describe las responsabilidades, requisitos y detalles del puesto..."
-            :min-rows="6"
-            autosize
-            class="description-field"
-          />
+          <label class="form-label">Detalles de la oferta Laboral *</label>
+          <div ref="editorContainer" class="quill-editor-container"></div>
           <span class="field-hint">Detalla las funciones del cargo y lo que buscas en un candidato</span>
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Beneficios Adicionales</label>
-          <va-textarea
-            v-model="editFormData.benefits"
-            placeholder="Aguinaldo, bono de producción, seguro médico, horario flexible, trabajo remoto..."
-            :min-rows="3"
-            autosize
-            class="benefits-field"
-          />
-          <span class="field-hint">Beneficios que hagan más atractivo tu anuncio</span>
-        </div>
-
         <div class="info-box">
-          <va-icon name="info" size="small" color="#F59E0B" />
+          <va-icon name="info" size="small" color="#9f7aea" />
           <div class="info-text">
             <strong>Datos protegidos</strong>
             <p>El salario, plan contratado y método de pago no pueden editarse. Contacta a soporte si necesitas modificarlos.</p>
@@ -461,7 +445,7 @@
           </div>
           <div class="info-row highlight">
             <va-icon name="info" size="14px" color="#10B981" />
-            <span class="info-text">Tienes {{ calculateRemainingDays(jobToEditDeadline) }} días disponibles para extender</span>
+            <span class="info-text">Te sobran {{ calculateRemainingDays(jobToEditDeadline) }} días para extender la publicación</span>
           </div>
         </div>
 
@@ -469,7 +453,7 @@
         <div class="form-group">
           <label class="form-label">Nueva fecha límite de postulación *</label>
           <div class="native-date-input-wrapper">
-            <va-icon name="event" color="purple" class="date-icon" />
+            <va-icon name="event" class="date-icon-left" size="22px" />
             <input
               type="date"
               v-model="newDeadlineDateString"
@@ -478,6 +462,9 @@
               :max="jobToEditDeadline?.expiryDate"
               required
             />
+            <div class="calendar-btn-visual">
+              <va-icon name="calendar_month" color="white" size="18px" />
+            </div>
           </div>
           <span class="field-hint">
             <va-icon name="info" size="12px" color="#6B7280" />
@@ -508,7 +495,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -559,9 +546,80 @@ const editFormData = ref({
   city: '',
   vacancies: 1,
   contractType: '',
-  description: '',
-  benefits: ''
+  description: ''
 })
+
+// ========== OPCIONES DE FORMULARIO ==========
+const cityOptions = ref([])
+const loadingCities = ref(false)
+const contractTypeOptions = ref([])
+const loadingContractTypes = ref(false)
+
+// ========== QUILL EDITOR ==========
+const editorContainer = ref(null)
+let editorInstance = null
+
+const initQuill = () => {
+  // Cargar Quill desde CDN
+  if (!window.Quill) {
+    // Cargar CSS
+    const link = document.createElement('link')
+    link.href = 'https://cdn.quilljs.com/1.3.7/quill.snow.css'
+    link.rel = 'stylesheet'
+    document.head.appendChild(link)
+
+    // Cargar JS
+    const script = document.createElement('script')
+    script.src = 'https://cdn.quilljs.com/1.3.7/quill.min.js'
+    script.onload = () => {
+      setTimeout(createQuill, 100)
+    }
+    document.head.appendChild(script)
+  } else {
+    createQuill()
+  }
+}
+
+const createQuill = () => {
+  if (!editorContainer.value || editorInstance) return
+
+  const toolbarOptions = [
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    [{ 'indent': '-1'}, { 'indent': '+1' }],
+    ['blockquote', 'link'],
+    ['clean']
+  ]
+
+  editorInstance = new window.Quill(editorContainer.value, {
+    theme: 'snow',
+    placeholder: 'Describe las responsabilidades, requisitos y detalles del puesto...',
+    modules: {
+      toolbar: toolbarOptions
+    },
+    formats: ['bold', 'italic', 'underline', 'strike', 'list', 'indent', 'blockquote', 'link']
+  })
+
+  // Establecer contenido inicial
+  if (editFormData.value.description) {
+    editorInstance.root.innerHTML = editFormData.value.description
+  }
+
+  // Sincronizar cambios
+  editorInstance.on('text-change', () => {
+    let html = editorInstance.root.innerHTML
+    // Convertir todas las etiquetas H1-H6 a párrafos <p>
+    html = html.replace(/<h[1-6]([^>]*)>/gi, '<p$1>')
+    html = html.replace(/<\/h[1-6]>/gi, '</p>')
+    editFormData.value.description = html
+  })
+}
+
+const destroyQuill = () => {
+  if (editorInstance) {
+    editorInstance = null
+  }
+}
 
 // ========== COMPUTED ==========
 const filteredJobs = computed(() => {
@@ -644,9 +702,47 @@ const filteredJobs = computed(() => {
 // ========== LIFECYCLE ==========
 onMounted(() => {
   loadJobs()
+  loadCities()
+  loadContractTypes()
 })
 
 // ========== METHODS ==========
+const loadCities = async () => {
+  try {
+    loadingCities.value = true
+    const response = await fetch('http://localhost:8000/api/jobs/cities')
+    const data = await response.json()
+
+    if (data.success && data.cities) {
+      cityOptions.value = data.cities
+    } else {
+      console.error('Error loading cities:', data.message)
+    }
+  } catch (error) {
+    console.error('Error fetching cities:', error)
+  } finally {
+    loadingCities.value = false
+  }
+}
+
+const loadContractTypes = async () => {
+  try {
+    loadingContractTypes.value = true
+    const response = await fetch('http://localhost:8000/api/jobs/contract-types')
+    const data = await response.json()
+
+    if (data.success && data.contractTypes) {
+      contractTypeOptions.value = data.contractTypes
+    } else {
+      console.error('Error loading contract types:', data.message)
+    }
+  } catch (error) {
+    console.error('Error fetching contract types:', error)
+  } finally {
+    loadingContractTypes.value = false
+  }
+}
+
 const loadJobs = async () => {
   try {
     loading.value = true
@@ -801,9 +897,9 @@ const canExtendDeadline = (job) => {
 
     // Condiciones:
     // 1. El plan no debe estar expirado (expiryDate >= hoy)
-    // 2. Debe haber días disponibles (applicationDeadline < expiryDate)
+    // 2. Debe haber días disponibles (applicationDeadline <= expiryDate)
     // 3. El anuncio debe estar verificado
-    return expiry >= today && deadline < expiry && job.paymentVerified
+    return expiry >= today && deadline <= expiry && job.paymentVerified
   } catch (error) {
     return false
   }
@@ -1019,12 +1115,16 @@ const editJob = async (job) => {
       city: data.job.city || '',
       vacancies: data.job.vacancies || 1,
       contractType: data.job.contractType || '',
-      description: data.job.description || '',
-      benefits: data.job.benefits || ''
+      description: data.job.description || ''
     }
 
     // Abrir modal
     showEditModal.value = true
+
+    // Inicializar Quill después de que el modal se renderice
+    await nextTick()
+    destroyQuill() // Destruir instancia anterior si existe
+    initQuill()
   } catch (err) {
     if (err.message.includes('sesión ha sido cerrada')) {
       router.push('/login')
@@ -1188,7 +1288,6 @@ const saveEditedJob = async () => {
       jobs.value[index].vacancies = editFormData.value.vacancies
       jobs.value[index].contractType = editFormData.value.contractType
       jobs.value[index].description = editFormData.value.description
-      jobs.value[index].benefits = editFormData.value.benefits
     }
 
     // Cerrar modal
@@ -1225,9 +1324,9 @@ const closeEditModal = () => {
     city: '',
     vacancies: 1,
     contractType: '',
-    description: '',
-    benefits: ''
+    description: ''
   }
+  destroyQuill()
 }
 
 const deactivateJob = async () => {
@@ -2106,6 +2205,16 @@ const activateJob = async () => {
   padding: 1.5rem 0;
   max-height: 60vh;
   overflow-y: auto;
+  overflow-x: visible;
+}
+
+/* Asegurar que los dropdowns del va-select se muestren correctamente */
+.edit-form :deep(.va-select-dropdown) {
+  z-index: 9999 !important;
+}
+
+.edit-form :deep(.va-dropdown__anchor) {
+  overflow: visible !important;
 }
 
 .edit-form::-webkit-scrollbar {
@@ -2146,19 +2255,88 @@ const activateJob = async () => {
   margin-top: 0.25rem;
 }
 
-.description-field,
-.benefits-field {
+/* Native Select Styles */
+.native-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #1F2937;
+  background-color: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 12px;
+  padding-right: 2.5rem;
+}
+
+.native-select:hover {
+  border-color: #9f7aea;
+}
+
+.native-select:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.native-select:disabled {
+  background-color: #F3F4F6;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.native-select option {
+  padding: 0.5rem;
+  font-size: 0.95rem;
+}
+
+/* Quill Editor Styles */
+.quill-editor-container {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  min-height: 200px;
+  font-family: inherit;
+}
+
+.quill-editor-container :deep(.ql-toolbar) {
+  border: none;
+  border-bottom: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  border-radius: 8px 8px 0 0;
+  padding: 0.5rem;
+}
+
+.quill-editor-container :deep(.ql-container) {
+  border: none;
   font-family: inherit;
   font-size: 0.95rem;
   line-height: 1.6;
+  min-height: 150px;
+}
+
+.quill-editor-container :deep(.ql-editor) {
+  min-height: 150px;
+  padding: 1rem;
+}
+
+.quill-editor-container :deep(.ql-editor.ql-blank::before) {
+  color: #9CA3AF;
+  font-style: normal;
 }
 
 .info-box {
   display: flex;
   gap: 0.75rem;
   padding: 1rem;
-  background: #FFFBEB;
-  border: 1px solid #FDE68A;
+  background: #FAF5FF;
+  border: 1px solid #E9D5FF;
   border-radius: 8px;
   margin-top: 0.5rem;
 }
@@ -2169,7 +2347,7 @@ const activateJob = async () => {
 
 .info-text strong {
   display: block;
-  color: #92400E;
+  color: #7C3AED;
   font-size: 0.9rem;
   margin-bottom: 0.25rem;
 }
@@ -2177,7 +2355,7 @@ const activateJob = async () => {
 .info-text p {
   margin: 0;
   font-size: 0.85rem;
-  color: #B45309;
+  color: #6B21A8;
   line-height: 1.5;
 }
 
@@ -2592,42 +2770,146 @@ const activateJob = async () => {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  background: #FFFFFF;
-  border: 2px solid #E5E7EB;
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  transition: all 0.2s;
+  gap: 0.875rem;
+  background: linear-gradient(135deg, #FAFAFA 0%, #FFFFFF 100%);
+  border: 2.5px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.native-date-input-wrapper:hover {
+  border-color: #C4B5FD;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.12);
 }
 
 .native-date-input-wrapper:focus-within {
   border-color: #7C3AED;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15), 0 6px 16px rgba(124, 58, 237, 0.2);
+  transform: translateY(-2px);
 }
 
-.native-date-input-wrapper .date-icon {
+.date-icon-left {
   flex-shrink: 0;
+  color: #7C3AED;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 1px 2px rgba(124, 58, 237, 0.2));
+}
+
+.native-date-input-wrapper:hover .date-icon-left {
+  transform: scale(1.08);
+  filter: drop-shadow(0 2px 4px rgba(124, 58, 237, 0.35));
+}
+
+.native-date-input-wrapper:focus-within .date-icon-left {
+  transform: scale(1.15) rotate(-5deg);
+  filter: drop-shadow(0 3px 6px rgba(124, 58, 237, 0.45));
+}
+
+.calendar-btn-visual {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(124, 58, 237, 0.35);
+  pointer-events: none;
+}
+
+.calendar-btn-visual .va-icon {
+  color: white !important;
+}
+
+.calendar-btn-visual i {
+  color: white !important;
+}
+
+.native-date-input-wrapper:hover .calendar-btn-visual {
+  background: linear-gradient(135deg, #6D28D9 0%, #5B21B6 100%);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.5);
+}
+
+.native-date-input-wrapper:active .calendar-btn-visual {
+  transform: scale(0.95);
 }
 
 .native-date-input {
   flex: 1;
   border: none;
   outline: none;
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-family: inherit;
+  font-weight: 600;
   color: #1F2937;
   background: transparent;
   cursor: pointer;
+  letter-spacing: 0.02em;
+  padding-right: 0.5rem;
 }
 
+/* Expandir el área clickeable del calendario nativo */
 .native-date-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
   cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 0.2s;
+  z-index: 3;
+  margin: 0;
+  padding: 0;
 }
 
-.native-date-input::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
+.native-date-input::-webkit-datetime-edit-fields-wrapper {
+  padding: 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.native-date-input::-webkit-datetime-edit-text {
+  color: #D1D5DB;
+  padding: 0 0.375rem;
+  font-weight: 500;
+  font-size: 1.0625rem;
+}
+
+.native-date-input::-webkit-datetime-edit-day-field,
+.native-date-input::-webkit-datetime-edit-month-field,
+.native-date-input::-webkit-datetime-edit-year-field {
+  color: #1F2937;
+  font-weight: 700;
+  padding: 0.375rem 0.625rem;
+  border-radius: 8px;
+  background: rgba(124, 58, 237, 0.05);
+  transition: all 0.2s ease;
+}
+
+.native-date-input::-webkit-datetime-edit-day-field:hover,
+.native-date-input::-webkit-datetime-edit-month-field:hover,
+.native-date-input::-webkit-datetime-edit-year-field:hover {
+  background: rgba(124, 58, 237, 0.12);
+  transform: scale(1.05);
+}
+
+.native-date-input::-webkit-datetime-edit-day-field:focus,
+.native-date-input::-webkit-datetime-edit-month-field:focus,
+.native-date-input::-webkit-datetime-edit-year-field:focus {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(109, 40, 217, 0.15));
+  color: #7C3AED;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+  transform: scale(1.08);
 }
 
 .deadline-modal-title {

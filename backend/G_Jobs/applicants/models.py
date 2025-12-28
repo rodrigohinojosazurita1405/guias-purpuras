@@ -291,6 +291,14 @@ class JobApplication(models.Model):
         verbose_name="Notas del empleador"
     )
 
+    # Calificación del candidato (1-5 estrellas)
+    rating = models.IntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Calificación",
+        help_text="Puntuación de 1 a 5 estrellas"
+    )
+
     # Fechas
     applied_at = models.DateTimeField(
         auto_now_add=True,

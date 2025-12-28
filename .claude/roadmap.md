@@ -420,7 +420,70 @@ interviewed → accepted:
 
 ## 🎯 PRÓXIMAS PRIORIDADES
 
-### 1. **FASE 7.7: Sistema de Notificaciones de Estado** (ALTA PRIORIDAD)
+### 1. **FASE 7.9: Mejoras Dashboard Reclutador - CandidatesView** (ALTA PRIORIDAD)
+**Descripción:** Funcionalidades críticas para gestión eficiente de candidatos con alto volumen de solicitudes
+
+**Contexto:**
+- Con 50+ candidatos por trabajo, se vuelve imposible gestionar sin herramientas avanzadas
+- Basado en análisis de plataformas profesionales (LinkedIn Recruiter, Greenhouse, Lever)
+
+**Tareas Priorizadas:**
+
+#### **FASE 1 - LO MÁS CRÍTICO** (2-3 horas total)
+1. ⏳ **Puntuación/Rating de Candidatos** ⭐ (2-3 horas)
+   - Sistema de estrellas 1-5 para calificar candidatos
+   - Ordenar por mejor puntuación
+   - Campo `rating` en modelo `JobApplication`
+   - Componente de estrellas clickeable en cada tarjeta
+   - Filtro adicional "Ordenar por: Rating"
+   - **JUSTIFICACIÓN:** Esencial para priorizar rápidamente. Usado DIARIAMENTE en 90%+ de ATS profesionales
+
+2. ⏳ **Filtros Avanzados** 🔍 (4-6 horas)
+   - Filtrar por fecha de aplicación (última semana, último mes, etc.)
+   - Filtrar por años de experiencia (si se captura en CV)
+   - Filtrar por ubicación/ciudad
+   - Filtro combinado (múltiples criterios simultáneos)
+   - **JUSTIFICACIÓN:** Crítico con volumen alto. Sin esto, 50+ candidatos es caos total
+
+#### **FASE 2 - MUY ÚTIL** (5-7 horas total)
+3. ⏳ **Acciones en Lote** ⚡ (3-4 horas)
+   - Checkbox para seleccionar múltiples candidatos
+   - Botón "Cambiar estado de seleccionados"
+   - Botón "Rechazar seleccionados"
+   - Botón "Mover a preseleccionados"
+   - Confirmar antes de acción masiva
+   - **JUSTIFICACIÓN:** Ahorra MUCHO tiempo. Cuando recibes 100 CVs y 70 no califican, rechazar todos de golpe
+
+4. ⏳ **Exportación a Excel/CSV** 📊 (2-3 horas)
+   - Botón "Exportar a Excel"
+   - Incluir: Nombre, Email, Teléfono, WhatsApp, Estado, Rating, Fecha aplicación
+   - Opción de exportar solo seleccionados o todos
+   - Formato profesional con headers
+   - **JUSTIFICACIÓN:** Muy pedido para reportes a gerencia. Común en todas las empresas
+
+#### **FASE 3 - SI HAY TIEMPO** (6-8 horas)
+5. ⏳ **Comunicación Directa con Templates** 💬 (6-8 horas)
+   - Botón "Enviar Email" en cada candidato
+   - Modal con editor de email
+   - Templates predefinidos:
+     - "Gracias por aplicar"
+     - "Rechazado cortésmente"
+     - "Invitación a entrevista"
+     - "Solicitud de más información"
+   - Variables dinámicas: {nombre}, {puesto}, {empresa}
+   - Registro de emails enviados en notas
+   - **JUSTIFICACIÓN:** Ahorra horas de escribir emails repetitivos. Muy valorado pero no crítico
+
+**Estimación total:** 15-20 horas de desarrollo
+
+**Orden de implementación sugerido:**
+1. Puntuación/Rating (impacto inmediato, fácil)
+2. Filtros Avanzados (crítico con volumen)
+3. Acciones en Lote (gran ahorro de tiempo)
+4. Exportación Excel (rápido de hacer, muy pedido)
+5. Templates Email (si hay tiempo)
+
+### 2. **FASE 7.7: Sistema de Notificaciones de Estado** (ALTA PRIORIDAD)
 **Descripción:** Notificar automáticamente al postulante cuando el reclutador cambie el estado de su postulación
 
 **Tareas Pendientes:**
@@ -589,4 +652,136 @@ logeado como empresa pero al registrarse algun evento editar o eliminar detecta 
 - **Gestión de CVs en dashboard postulante** - Ver FASE 7.8 (ALTA PRIORIDAD)
 - **Backend de notificaciones** - Crear modelo Notification y endpoints API (FASE 7.7)
 - ~~**Admin Django con Jazzmin** - Menús anidados sobre Jobs en sidebar izquierdo dropdown~~ ✅ COMPLETADO
-- **Dashboard con gráficos en Admin** - Widgets de métricas visuales y tendencias (futuro) 
+- **Dashboard con gráficos en Admin** - Widgets de métricas visuales y tendencias (futuro)
+
+---
+
+## 📅 SESIÓN DE TRABAJO - 27 Diciembre 2024
+
+### ✅ MEJORAS Y CORRECCIONES COMPLETADAS
+
+#### 1. Nueva Opción de Salario: "Pretensión Salarial" ✅
+**Commits:** `6bdc343`
+**Archivos modificados:** 8 archivos (backend + frontend)
+
+**Backend:**
+- ✅ `models.py`: Agregada opción 'pretension_salarial' al campo salaryType
+- ✅ `views.py`: Actualizada validación para aceptar 'pretension_salarial'
+- ✅ `views.py`: Actualizada función `format_salary()` para mostrar "Indique su pretensión salarial"
+- ✅ Migración `0034_add_pretension_salarial_option.py` creada y aplicada
+
+**Frontend:**
+- ✅ `InformationStepJob.vue`: Agregado 4to radio button "Pretensión Salarial"
+- ✅ `InformationStepJob.vue`: Limpieza de logs de debug en validateApplicationDeadline
+- ✅ `SummaryCard.vue`: Agregados templates para mostrar "Indique su pretensión salarial" en ambas secciones de salario
+- ✅ `SummaryCard.vue`: Cambiado label "Rango Salarial:" a "Salario:" (más genérico)
+- ✅ `useApplicationStore.js`: Actualizado `requiresSalaryExpectation` y `salaryDisplayText`
+- ✅ `JobDetailPanel.vue`: Agregado case para pretension_salarial en formattedSalary
+- ✅ `ShortlistedView.vue`: Agregado mapping en getSalaryLabel()
+
+**Comportamiento:**
+- Cuando el reclutador selecciona "Pretensión Salarial", no se muestran campos de entrada
+- El sistema muestra "Indique su pretensión salarial" en todas las vistas
+- Los candidatos DEBEN proporcionar su expectativa salarial al postular (obligatorio)
+
+#### 2. Fix: Visualización de Aplicación Externa en SummaryCard ✅
+**Commits:** `5d9aec2`, `57514f0`, `b579e27`, `78c63a5`
+
+**Problema identificado:**
+- SummaryCard tiene DOS layouts: antiguo (líneas 13-373) y nuevo para jobs "Estilo Trabajito" (línea 378+)
+- Los datos de aplicación externa solo se mostraban en layout antiguo
+- Los datos SÍ llegaban correctamente al componente (verificado con console.log)
+
+**Solución implementada:**
+- ✅ Agregada sección completa "Información de Aplicación Externa" en layout de jobs
+- ✅ Nueva sección muestra:
+  - URL del formulario (clickeable con ícono external)
+  - Instrucciones de aplicación (formato especial destacado)
+  - Email de contacto (condicional)
+  - WhatsApp/Teléfono (condicional)
+  - Sitio Web (condicional)
+- ✅ Estilos CSS profesionales con cards individuales y hover effects
+- ✅ Íconos específicos para cada tipo de contacto
+- ✅ Todos los íconos en color púrpura (#7C3AED)
+- ✅ Espaciado mejorado (margin-bottom: 2rem) entre secciones
+
+#### 3. Fix: Preservar applicationDeadline al Navegar entre Pasos ✅
+**Commits:** `a5b9bc3`
+**Archivo:** `InformationStepJob.vue`
+
+**Problema:**
+- Al volver atrás desde SummaryCard, el campo "Fecha límite postulación" se reseteaba
+- Usuario debía llenar nuevamente el campo cada vez
+
+**Causa:**
+- La función `initializeFormData()` no incluía `applicationDeadline` en la inicialización
+
+**Solución:**
+- ✅ Agregado `applicationDeadline: modelValue.applicationDeadline || null` en línea 416
+- ✅ Ahora el valor se preserva correctamente al navegar entre pasos
+
+#### 4. Fix: Limpiar Datos al Cambiar Tipo de Aplicación ✅
+**Commits:** `63decf8`
+**Archivos:** `ApplicationConfigStep.vue`, `JobDetailModal.vue`
+
+**Problema:**
+- Al cambiar de "Aplicación Interna" a "Externa" (o viceversa), los datos del tipo anterior NO se limpiaban
+- Esto causaba que se guardaran preguntas de filtrado en aplicaciones externas (donde no deberían existir)
+- En JobDetailModal, las preguntas de filtrado se mostraban SIEMPRE, incluso para aplicaciones externas
+
+**Solución:**
+1. **ApplicationConfigStep.vue:**
+   - ✅ Modificada función `updateData()` para limpiar datos específicos al cambiar tipo
+   - ✅ Si cambia a "external": limpia screeningQuestions (array vacío)
+   - ✅ Si cambia a "internal": limpia campos externos (URL, instrucciones, email, whatsapp, website)
+
+2. **JobDetailModal.vue:**
+   - ✅ Agregada condición `v-if="['internal', 'both'].includes(job.applicationType)"`
+   - ✅ Sección "Preguntas de Filtrado" solo aparece cuando es aplicable
+
+**Resultado:**
+- Al cambiar entre tipos de aplicación, se limpian automáticamente los campos del tipo anterior
+- No más mezcla de datos entre tipos de aplicación diferentes
+
+#### 5. Mejoras de Experiencia de Usuario (UX) ✅
+**Commits:** `5d9aec2`, `b579e27`, `78c63a5`
+
+- ✅ Console.log de debug agregado en SummaryCard (líneas 1295-1306) para diagnóstico
+- ✅ Íconos en color púrpura consistente con diseño del sitio
+- ✅ Links clickeables con ícono "abrir en nueva ventana"
+- ✅ Instrucciones con formato especial (borde izquierdo morado, fondo suave, texto itálico)
+- ✅ Separación visual mejorada entre secciones
+
+### 📊 RESUMEN DE LA SESIÓN
+
+**Commits creados:** 7 commits
+1. `6bdc343` - feat: Agregar opción 'Pretensión Salarial' al sistema de salarios
+2. `5d9aec2` - fix: Mostrar todos los campos de contacto en SummaryCard para aplicación externa (primer intento)
+3. `a5b9bc3` - fix: Preservar applicationDeadline al navegar entre pasos del formulario
+4. `57514f0` - fix: Mostrar información de aplicación externa en layout de jobs de SummaryCard (fix completo)
+5. `b579e27` - style: Cambiar íconos de aplicación externa a color púrpura
+6. `78c63a5` - style: Mejorar espaciado entre secciones en SummaryCard
+7. `63decf8` - fix: Limpiar datos al cambiar tipo de aplicación y ocultar preguntas si es externa
+
+**Archivos modificados:** 10 archivos únicos
+- Backend: `models.py`, `views.py`, migración 0034
+- Frontend: `InformationStepJob.vue`, `SummaryCard.vue`, `ApplicationConfigStep.vue`, `JobDetailModal.vue`, `useApplicationStore.js`, `JobDetailPanel.vue`, `ShortlistedView.vue`
+
+**Líneas de código:** ~200+ líneas agregadas/modificadas
+
+**Problemas resueltos:**
+1. ✅ Sistema de salarios ahora soporta "Pretensión Salarial" como 4ta opción
+2. ✅ Información de aplicación externa se muestra correctamente en SummaryCard
+3. ✅ Fecha límite de postulación se preserva al navegar entre pasos
+4. ✅ Datos se limpian automáticamente al cambiar tipo de aplicación
+5. ✅ Preguntas de filtrado solo se muestran para aplicaciones internas
+
+**Calidad del código:**
+- ✅ Commits descriptivos con mensajes detallados
+- ✅ Separación clara de responsabilidades (backend/frontend)
+- ✅ Código bien documentado
+- ✅ Estilos CSS profesionales y consistentes
+- ✅ Validaciones robustas
+- ✅ UX/UI mejorada significativamente
+
+--- 

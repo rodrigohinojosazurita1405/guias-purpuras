@@ -71,7 +71,213 @@
         <option value="accepted">Aceptado</option>
         <option value="rejected">Rechazado</option>
       </select>
+
+      <select v-model="filterDate" class="filter-select">
+        <option value="">Todas las fechas</option>
+        <option value="week">Última semana</option>
+        <option value="month">Último mes</option>
+        <option value="3months">Últimos 3 meses</option>
+        <option value="6months">Últimos 6 meses</option>
+      </select>
+
+      <select v-model="filterRating" class="filter-select">
+        <option value="">Todas las calificaciones</option>
+        <option value="with-rating">Solo con calificación</option>
+        <option value="no-rating">Sin calificar</option>
+        <option value="3+">3+ estrellas</option>
+        <option value="4+">4+ estrellas</option>
+        <option value="5">5 estrellas</option>
+      </select>
+
+      <select v-model="sortBy" class="filter-select">
+        <option value="date-desc">Aplicaciones recientes primero</option>
+        <option value="date-asc">Aplicaciones antiguas primero</option>
+        <option value="rating-desc">Mejor calificados primero (5→1)</option>
+        <option value="rating-asc">Menor calificados primero (1→5)</option>
+        <option value="name-asc">Nombre A→Z</option>
+        <option value="name-desc">Nombre Z→A</option>
+      </select>
     </div>
+
+    <!-- Results Counter -->
+    <div v-if="localIsReady && totalApplicationsCount > 0" class="results-counter">
+      <span class="counter-text">
+        Mostrando <strong>{{ filteredApplicationsCount }}</strong> de <strong>{{ totalApplicationsCount }}</strong> candidatos
+      </span>
+      <div class="counter-actions">
+        <!-- Dropdown de Exportación -->
+        <div class="export-dropdown" @click.stop>
+          <button
+            @click.stop="toggleExportMenu"
+            class="export-btn"
+            :disabled="filteredApplicationsCount === 0"
+          >
+            <va-icon name="download" size="small" />
+            Exportar
+            <va-icon :name="showExportMenu ? 'expand_less' : 'expand_more'" size="small" />
+          </button>
+
+          <transition name="dropdown-fade">
+            <div v-if="showExportMenu" class="export-menu" @click.stop>
+              <button @click="exportAllToCSV" class="export-menu-item">
+                <va-icon name="file_download" size="small" />
+                <div class="menu-item-content">
+                  <span class="menu-item-title">Exportar Todo</span>
+                  <span class="menu-item-desc">Todos los candidatos filtrados en un archivo</span>
+                </div>
+              </button>
+
+              <div class="menu-divider"></div>
+
+              <button @click="toggleBulkExportMode" class="export-menu-item">
+                <va-icon name="checklist" size="small" />
+                <div class="menu-item-content">
+                  <span class="menu-item-title">Seleccionar Anuncios</span>
+                  <span class="menu-item-desc">Exportar múltiples trabajos por separado</span>
+                </div>
+              </button>
+
+              <button @click="exportAllJobsSeparately" class="export-menu-item">
+                <va-icon name="folder_zip" size="small" />
+                <div class="menu-item-content">
+                  <span class="menu-item-title">Exportar Todos por Separado</span>
+                  <span class="menu-item-desc">Cada trabajo en su propio archivo</span>
+                </div>
+              </button>
+            </div>
+          </transition>
+        </div>
+
+        <button
+          v-if="hasActiveFilters"
+          @click="clearAllFilters"
+          class="clear-filters-btn"
+        >
+          <va-icon name="clear" size="small" />
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
+
+    <!-- Bulk Actions Toolbar -->
+    <transition name="slide-down">
+      <div v-if="selectedApplications.size > 0" class="bulk-actions-toolbar">
+        <div class="bulk-info">
+          <va-icon name="check_circle" color="#10B981" />
+          <span class="bulk-count">
+            <strong>{{ selectedApplications.size }}</strong>
+            {{ selectedApplications.size === 1 ? 'candidato seleccionado' : 'candidatos seleccionados' }}
+          </span>
+        </div>
+
+        <div class="bulk-actions">
+          <!-- Cambiar Estado -->
+          <div class="bulk-action-group">
+            <span class="bulk-action-label">Cambiar estado a:</span>
+            <div class="bulk-status-buttons">
+              <button
+                v-for="status in bulkStatusOptions"
+                :key="status.value"
+                @click="bulkChangeStatus(status.value)"
+                class="bulk-status-btn"
+                :class="`status-${status.value}`"
+                :title="`Cambiar ${selectedApplications.size} candidatos a ${status.label}`"
+              >
+                <va-icon :name="status.icon" size="small" />
+                {{ status.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Acciones Rápidas -->
+          <div class="bulk-quick-actions">
+            <button
+              @click="clearSelection"
+              class="bulk-clear-btn"
+            >
+              <va-icon name="close" size="small" />
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Bulk Export Toolbar -->
+    <transition name="slide-down">
+      <div v-if="bulkExportMode" class="bulk-export-toolbar">
+        <div class="bulk-info">
+          <va-icon name="checklist" color="#7C3AED" />
+          <span class="bulk-count">
+            <strong>{{ selectedJobs.size }}</strong>
+            {{ selectedJobs.size === 1 ? 'anuncio seleccionado' : 'anuncios seleccionados' }}
+          </span>
+        </div>
+
+        <div class="bulk-actions">
+          <button
+            @click="exportSelectedJobs"
+            class="export-selected-btn"
+            :disabled="selectedJobs.size === 0"
+          >
+            <va-icon name="file_download" size="small" />
+            Exportar Seleccionados
+          </button>
+
+          <button @click="cancelBulkExport" class="bulk-clear-btn">
+            <va-icon name="close" size="small" />
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Modal de Confirmación de Acción en Lote -->
+    <va-modal
+      v-model="showBulkConfirmModal"
+      size="small"
+      :hide-default-actions="true"
+      blur
+    >
+      <template #header>
+        <h2 class="modal-title">
+          <va-icon name="warning" color="warning" size="1.5rem" />
+          Confirmar Acción en Lote
+        </h2>
+      </template>
+
+      <div class="modal-content" v-if="pendingBulkAction">
+        <p class="modal-message">
+          ¿Estás seguro de cambiar el estado de
+          <strong>{{ pendingBulkAction.count }}</strong>
+          {{ pendingBulkAction.count === 1 ? 'candidato' : 'candidatos' }}
+          a <strong class="status-highlight">"{{ pendingBulkAction.label }}"</strong>?
+        </p>
+        <p class="modal-warning">
+          Se actualizarán {{ pendingBulkAction.count }} {{ pendingBulkAction.count === 1 ? 'candidato' : 'candidatos' }} a la vez.
+        </p>
+      </div>
+
+      <template #footer>
+        <div class="modal-actions">
+          <va-button
+            color="secondary"
+            @click="cancelBulkAction"
+            class="modal-btn-cancel"
+          >
+            Cancelar
+          </va-button>
+          <va-button
+            color="primary"
+            @click="confirmBulkAction"
+            class="modal-btn-confirm"
+          >
+            <va-icon name="check" size="small" />
+            Confirmar
+          </va-button>
+        </div>
+      </template>
+    </va-modal>
 
     <!-- Loading State -->
     <div v-if="!localIsReady" class="loading-state">
@@ -99,16 +305,86 @@
       </p>
     </div>
 
-    <!-- Applications List -->
-    <div v-else-if="localIsReady && displayApplications.length > 0" class="applications-list">
+    <!-- Applications List Grouped by Job -->
+    <div v-else-if="localIsReady && groupedApplications.length > 0" class="applications-list">
+      <!-- Job Group -->
       <div
-        v-for="application in displayApplications"
-        :key="application.id"
-        class="application-card"
-        :class="`status-${application.status}`"
+        v-for="jobGroup in groupedApplications"
+        :key="jobGroup.jobId"
+        class="job-group"
       >
+        <!-- Job Group Header -->
+        <div class="job-group-header">
+          <!-- Checkbox para modo de exportación en lote -->
+          <div v-if="bulkExportMode" class="job-export-checkbox" @click.stop>
+            <input
+              type="checkbox"
+              :checked="selectedJobs.has(jobGroup.jobId)"
+              @change="toggleJobSelection(jobGroup.jobId)"
+              class="custom-checkbox"
+              :title="`Seleccionar ${jobGroup.jobTitle}`"
+            />
+          </div>
+
+          <div class="job-group-info" @click="toggleJobGroup(jobGroup.jobId)">
+            <va-icon
+              :name="isJobExpanded(jobGroup.jobId) ? 'expand_less' : 'expand_more'"
+              class="expand-icon"
+            />
+            <div class="job-group-title">
+              <h3>{{ jobGroup.jobTitle }}</h3>
+              <span class="applications-count">
+                {{ jobGroup.applications.length }}
+                {{ jobGroup.applications.length === 1 ? 'solicitud' : 'solicitudes' }}
+              </span>
+            </div>
+          </div>
+          <div class="job-group-actions">
+            <button
+              @click.stop="exportJobToCSV(jobGroup)"
+              class="export-job-btn"
+              v-tooltip="'Exportar candidatos de este anuncio'"
+            >
+              <va-icon name="download" size="small" />
+            </button>
+            <div class="job-group-stats">
+              <span
+                v-for="status in statusOptions"
+                :key="status"
+                class="mini-stat"
+                :class="`status-${status}`"
+                v-show="getStatusCount(jobGroup.applications, status) > 0"
+              >
+                {{ getStatusCount(jobGroup.applications, status) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Applications in this Job -->
+        <div v-show="isJobExpanded(jobGroup.jobId)" class="job-group-applications">
+          <div
+            v-for="application in jobGroup.applications"
+            :key="application.id"
+            class="application-card"
+            :class="{
+              [`status-${application.status}`]: true,
+              'is-selected': selectedApplications.has(application.id)
+            }"
+          >
         <!-- Card Header -->
         <div class="card-header">
+          <!-- Checkbox de selección -->
+          <div class="selection-checkbox">
+            <input
+              type="checkbox"
+              :checked="selectedApplications.has(application.id)"
+              @change="toggleSelection(application.id)"
+              class="custom-checkbox"
+              :title="`Seleccionar candidato ${application.applicantName}`"
+            />
+          </div>
+
           <div class="applicant-info">
             <div class="applicant-avatar">
               {{ getInitials(application.applicantName) }}
@@ -116,10 +392,16 @@
             <div class="applicant-details">
               <h3 class="applicant-name">{{ application.applicantName }}</h3>
               <p class="applicant-email">{{ application.applicantEmail }}</p>
-              <p class="job-title">Puesto: {{ application.jobTitle }}</p>
-              <span class="application-date">
-                Aplicó {{ formatRelativeDate(application.createdAt) }}
-              </span>
+              <div class="applicant-meta">
+                <span class="application-date">
+                  Aplicó {{ formatRelativeDate(application.createdAt) }}
+                </span>
+                <StarRating
+                  :model-value="application.rating"
+                  @update:model-value="(rating) => updateRating(application, rating)"
+                  :show-label="false"
+                />
+              </div>
             </div>
           </div>
 
@@ -282,21 +564,66 @@
           </div>
 
           <!-- Change Status -->
-          <div class="section">
+          <div class="section status-section">
             <h4 class="section-title">
               <va-icon name="swap_horiz" size="small" />
               Cambiar Estado
             </h4>
-            <div class="status-buttons">
+
+            <div class="status-buttons-compact">
               <button
-                v-for="status in statusOptions"
-                :key="status"
-                @click="changeStatus(application, status)"
-                class="status-btn"
-                :class="{ active: application.status === status }"
+                @click="changeStatus(application, 'submitted')"
+                class="status-pill"
+                :class="{ active: application.status === 'submitted' }"
                 :disabled="updating"
               >
-                {{ getStatusLabel(status) }}
+                <va-icon name="mail" size="small" />
+                <span>Recibida</span>
+              </button>
+              <button
+                @click="changeStatus(application, 'reviewing')"
+                class="status-pill status-reviewing"
+                :class="{ active: application.status === 'reviewing' }"
+                :disabled="updating"
+              >
+                <va-icon name="visibility" size="small" />
+                <span>En Revisión</span>
+              </button>
+              <button
+                @click="changeStatus(application, 'shortlisted')"
+                class="status-pill status-shortlisted"
+                :class="{ active: application.status === 'shortlisted' }"
+                :disabled="updating"
+              >
+                <va-icon name="star" size="small" />
+                <span>Preseleccionado</span>
+              </button>
+              <button
+                @click="changeStatus(application, 'interviewed')"
+                class="status-pill status-interviewed"
+                :class="{ active: application.status === 'interviewed' }"
+                :disabled="updating"
+              >
+                <va-icon name="person" size="small" />
+                <span>Entrevistado</span>
+              </button>
+              <button
+                @click="changeStatus(application, 'accepted')"
+                class="status-pill status-accepted"
+                :class="{ active: application.status === 'accepted' }"
+                :disabled="updating"
+              >
+                <va-icon name="check_circle" size="small" />
+                <span>Aceptado</span>
+              </button>
+              <button
+                @click="changeStatus(application, 'rejected')"
+                class="status-pill status-rejected"
+                :class="{ active: application.status === 'rejected' }"
+                :disabled="updating"
+              >
+                <va-icon name="cancel" size="small" />
+                <span>Rechazado</span>
               </button>
             </div>
           </div>
@@ -317,6 +644,8 @@
           </div>
         </div>
       </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -325,6 +654,7 @@
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useToast } from 'vuestic-ui'
 import { useApplications } from '@/composables/useApplications'
+import StarRating from '@/components/Dashboard/StarRating.vue'
 
 // ========== COMPOSABLES ==========
 const { init: notify } = useToast()
@@ -333,11 +663,36 @@ const applicationMgr = useApplications()
 // ========== DATA ==========
 const searchQuery = ref('')
 const filterStatus = ref('')
+const filterDate = ref('')
+const filterRating = ref('')
+const sortBy = ref('date-desc')  // Por defecto: más recientes primero
 const expandedId = ref(null)
+const expandedJobIds = ref(new Set())  // IDs de trabajos expandidos
 const updating = ref(false)
 const localIsReady = ref(false)  // Variable local para forzar re-render
 
+// Bulk Actions
+const selectedApplications = ref(new Set())  // IDs de aplicaciones seleccionadas
+
+// Export dropdown state
+const showExportMenu = ref(false)
+const bulkExportMode = ref(false)
+const selectedJobs = ref(new Set())
+
+// Bulk action confirmation modal
+const showBulkConfirmModal = ref(false)
+const pendingBulkAction = ref(null)
+
 const statusOptions = ['submitted', 'reviewing', 'shortlisted', 'interviewed', 'accepted', 'rejected']
+
+// Opciones de estado para acciones en lote (con íconos)
+const bulkStatusOptions = [
+  { value: 'reviewing', label: 'En Revisión', icon: 'visibility' },
+  { value: 'shortlisted', label: 'Preseleccionar', icon: 'star' },
+  { value: 'interviewed', label: 'Entrevistado', icon: 'person' },
+  { value: 'accepted', label: 'Aceptar', icon: 'check_circle' },
+  { value: 'rejected', label: 'Rechazar', icon: 'cancel' }
+]
 
 // ========== COMPUTED ==========
 const displayApplications = computed(() => {
@@ -354,6 +709,53 @@ const displayApplications = computed(() => {
     result = result.filter(app => app.status === filterStatus.value)
   }
 
+  // Filter by date
+  if (filterDate.value) {
+    const now = new Date()
+    const cutoffDate = new Date()
+
+    switch (filterDate.value) {
+      case 'week':
+        cutoffDate.setDate(now.getDate() - 7)
+        break
+      case 'month':
+        cutoffDate.setMonth(now.getMonth() - 1)
+        break
+      case '3months':
+        cutoffDate.setMonth(now.getMonth() - 3)
+        break
+      case '6months':
+        cutoffDate.setMonth(now.getMonth() - 6)
+        break
+    }
+
+    result = result.filter(app => {
+      const appDate = new Date(app.createdAt)
+      return appDate >= cutoffDate
+    })
+  }
+
+  // Filter by rating
+  if (filterRating.value) {
+    switch (filterRating.value) {
+      case 'with-rating':
+        result = result.filter(app => app.rating !== null && app.rating > 0)
+        break
+      case 'no-rating':
+        result = result.filter(app => !app.rating || app.rating === 0)
+        break
+      case '3+':
+        result = result.filter(app => app.rating >= 3)
+        break
+      case '4+':
+        result = result.filter(app => app.rating >= 4)
+        break
+      case '5':
+        result = result.filter(app => app.rating === 5)
+        break
+    }
+  }
+
   // Filter by search
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
@@ -365,6 +767,95 @@ const displayApplications = computed(() => {
   }
 
   return result
+})
+
+// Agrupar solicitudes por trabajo
+const groupedApplications = computed(() => {
+  const apps = displayApplications.value
+
+  if (!apps || apps.length === 0) {
+    return []
+  }
+
+  // Agrupar por jobId
+  const grouped = {}
+
+  apps.forEach(app => {
+    const jobId = app.jobId
+    if (!grouped[jobId]) {
+      grouped[jobId] = {
+        jobId: jobId,
+        jobTitle: app.jobTitle,
+        applications: []
+      }
+    }
+    grouped[jobId].applications.push(app)
+  })
+
+  // Ordenar las aplicaciones dentro de cada grupo según el criterio seleccionado
+  Object.values(grouped).forEach(group => {
+    group.applications.sort((a, b) => {
+      switch (sortBy.value) {
+        case 'date-desc':
+          // Más recientes primero
+          return new Date(b.createdAt) - new Date(a.createdAt)
+
+        case 'date-asc':
+          // Más antiguos primero
+          return new Date(a.createdAt) - new Date(b.createdAt)
+
+        case 'rating-desc':
+          // Mejor calificados primero (5→1), sin rating al final
+          const ratingA = a.rating || 0
+          const ratingB = b.rating || 0
+          return ratingB - ratingA
+
+        case 'rating-asc':
+          // Menor calificados primero (1→5), sin rating al inicio
+          const ratingA2 = a.rating || 0
+          const ratingB2 = b.rating || 0
+          // Si ambos tienen rating, ordenar ascendente
+          if (ratingA2 > 0 && ratingB2 > 0) {
+            return ratingA2 - ratingB2
+          }
+          // Los que no tienen rating van primero
+          if (ratingA2 === 0 && ratingB2 > 0) return -1
+          if (ratingA2 > 0 && ratingB2 === 0) return 1
+          return 0
+
+        case 'name-asc':
+          // Nombre A→Z
+          return a.applicantName.localeCompare(b.applicantName)
+
+        case 'name-desc':
+          // Nombre Z→A
+          return b.applicantName.localeCompare(a.applicantName)
+
+        default:
+          // Por defecto: más recientes primero
+          return new Date(b.createdAt) - new Date(a.createdAt)
+      }
+    })
+  })
+
+  // Convertir a array y ordenar por número de solicitudes (descendente)
+  return Object.values(grouped).sort((a, b) => b.applications.length - a.applications.length)
+})
+
+// Contador de aplicaciones totales
+const totalApplicationsCount = computed(() => {
+  const rawApps = applicationMgr.applications.value
+  return rawApps ? rawApps.length : 0
+})
+
+// Contador de aplicaciones filtradas
+const filteredApplicationsCount = computed(() => {
+  return displayApplications.value.length
+})
+
+// Verificar si hay filtros activos
+const hasActiveFilters = computed(() => {
+  return !!(searchQuery.value || filterStatus.value || filterDate.value || filterRating.value)
 })
 
 // ========== WATCHERS ==========
@@ -393,6 +884,14 @@ onMounted(async () => {
   } catch (error) {
     localIsReady.value = true
   }
+
+  // Click outside handler para cerrar el dropdown de exportación
+  document.addEventListener('click', (e) => {
+    const exportDropdown = document.querySelector('.export-dropdown')
+    if (exportDropdown && !exportDropdown.contains(e.target)) {
+      showExportMenu.value = false
+    }
+  })
 })
 
 // ========== METHODS ==========
@@ -438,6 +937,24 @@ const toggleExpanded = (id) => {
   expandedId.value = expandedId.value === id ? null : id
 }
 
+const toggleJobGroup = (jobId) => {
+  if (expandedJobIds.value.has(jobId)) {
+    expandedJobIds.value.delete(jobId)
+  } else {
+    expandedJobIds.value.add(jobId)
+  }
+  // Force reactivity
+  expandedJobIds.value = new Set(expandedJobIds.value)
+}
+
+const isJobExpanded = (jobId) => {
+  return expandedJobIds.value.has(jobId)
+}
+
+const getStatusCount = (applications, status) => {
+  return applications.filter(app => app.status === status).length
+}
+
 const changeStatus = async (application, newStatus) => {
   try {
     updating.value = true
@@ -461,6 +978,320 @@ const changeStatus = async (application, newStatus) => {
   } finally {
     updating.value = false
   }
+}
+
+const updateRating = async (application, rating) => {
+  try {
+    updating.value = true
+    await applicationMgr.updateApplicationRating(
+      application.jobId,
+      application.id,
+      rating
+    )
+
+    notify({
+      message: rating ? `✅ Calificación actualizada: ${rating}/5` : '✅ Calificación eliminada',
+      color: 'success',
+      duration: 2000
+    })
+  } catch (err) {
+    notify({
+      message: `Error: ${err.message}`,
+      color: 'danger',
+      duration: 5000
+    })
+  } finally {
+    updating.value = false
+  }
+}
+
+const clearAllFilters = () => {
+  searchQuery.value = ''
+  filterStatus.value = ''
+  filterDate.value = ''
+  filterRating.value = ''
+
+  notify({
+    message: 'Filtros limpiados',
+    color: 'info',
+    duration: 2000
+  })
+}
+
+// ========== EXPORT DROPDOWN FUNCTIONS ==========
+const toggleExportMenu = () => {
+  showExportMenu.value = !showExportMenu.value
+}
+
+const exportAllToCSV = () => {
+  showExportMenu.value = false
+  exportToCSV()
+}
+
+const toggleBulkExportMode = () => {
+  showExportMenu.value = false
+  bulkExportMode.value = !bulkExportMode.value
+
+  if (bulkExportMode.value) {
+    notify({
+      message: '📋 Modo de selección activado. Marca los anuncios que deseas exportar.',
+      color: 'info',
+      duration: 4000
+    })
+  } else {
+    selectedJobs.value = new Set()
+  }
+}
+
+const toggleJobSelection = (jobId) => {
+  if (selectedJobs.value.has(jobId)) {
+    selectedJobs.value.delete(jobId)
+  } else {
+    selectedJobs.value.add(jobId)
+  }
+  // Force reactivity
+  selectedJobs.value = new Set(selectedJobs.value)
+}
+
+const exportSelectedJobs = async () => {
+  if (selectedJobs.value.size === 0) {
+    notify({
+      message: 'Por favor, selecciona al menos un anuncio para exportar',
+      color: 'warning',
+      duration: 3000
+    })
+    return
+  }
+
+  // Usar TODAS las aplicaciones sin filtros
+  const allApps = applicationMgr.applications.value
+
+  // Agrupar TODAS las aplicaciones por trabajo
+  const grouped = {}
+  allApps.forEach(app => {
+    const jobId = app.jobId
+    if (!grouped[jobId]) {
+      grouped[jobId] = {
+        jobId: jobId,
+        jobTitle: app.jobTitle,
+        applications: []
+      }
+    }
+    grouped[jobId].applications.push(app)
+  })
+
+  // Filtrar solo los trabajos seleccionados
+  const jobsToExport = Object.values(grouped).filter(jobGroup =>
+    selectedJobs.value.has(jobGroup.jobId)
+  )
+
+  // Notificar sobre descargas múltiples
+  if (jobsToExport.length > 1) {
+    notify({
+      message: `Preparando ${jobsToExport.length} archivos para descarga. Si tu navegador solicita permiso, por favor acepta las descargas múltiples.`,
+      color: 'info',
+      duration: 5000
+    })
+    // Pequeño delay para que el usuario vea el mensaje
+    await new Promise(resolve => setTimeout(resolve, 1000))
+  }
+
+  // Exportar con delay entre cada archivo para evitar bloqueo del navegador
+  for (let i = 0; i < jobsToExport.length; i++) {
+    exportJobToCSV(jobsToExport[i])
+    // Esperar 300ms entre cada descarga
+    if (i < jobsToExport.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 300))
+    }
+  }
+
+  notify({
+    message: `✅ ${jobsToExport.length} ${jobsToExport.length === 1 ? 'archivo exportado' : 'archivos exportados'}`,
+    color: 'success',
+    duration: 4000
+  })
+
+  // Salir del modo de selección
+  bulkExportMode.value = false
+  selectedJobs.value = new Set()
+}
+
+const cancelBulkExport = () => {
+  bulkExportMode.value = false
+  selectedJobs.value = new Set()
+}
+
+const exportAllJobsSeparately = async () => {
+  showExportMenu.value = false
+
+  // Usar TODAS las aplicaciones sin filtros
+  const allApps = applicationMgr.applications.value
+
+  if (!allApps || allApps.length === 0) {
+    notify({
+      message: 'No hay anuncios para exportar',
+      color: 'warning',
+      duration: 3000
+    })
+    return
+  }
+
+  // Agrupar TODAS las aplicaciones por trabajo (sin filtros)
+  const grouped = {}
+  allApps.forEach(app => {
+    const jobId = app.jobId
+    if (!grouped[jobId]) {
+      grouped[jobId] = {
+        jobId: jobId,
+        jobTitle: app.jobTitle,
+        applications: []
+      }
+    }
+    grouped[jobId].applications.push(app)
+  })
+
+  const jobs = Object.values(grouped)
+
+  // Notificar sobre descargas múltiples
+  if (jobs.length > 1) {
+    notify({
+      message: `Preparando ${jobs.length} archivos para descarga. Si tu navegador solicita permiso, por favor acepta las descargas múltiples.`,
+      color: 'info',
+      duration: 5000
+    })
+    // Pequeño delay para que el usuario vea el mensaje
+    await new Promise(resolve => setTimeout(resolve, 1000))
+  }
+
+  // Exportar con delay entre cada archivo para evitar bloqueo del navegador
+  for (let i = 0; i < jobs.length; i++) {
+    exportJobToCSV(jobs[i])
+    // Esperar 300ms entre cada descarga
+    if (i < jobs.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 300))
+    }
+  }
+
+  notify({
+    message: `${jobs.length} ${jobs.length === 1 ? 'archivo exportado' : 'archivos exportados'} exitosamente`,
+    color: 'success',
+    duration: 4000
+  })
+}
+
+const exportToCSV = () => {
+  try {
+    const apps = displayApplications.value
+
+    if (!apps || apps.length === 0) {
+      notify({
+        message: 'No hay candidatos para exportar',
+        color: 'warning',
+        duration: 3000
+      })
+      return
+    }
+
+    generateCSV(apps, 'candidatos_todos')
+  } catch (error) {
+    console.error('Error exporting CSV:', error)
+    notify({
+      message: 'Error al exportar. Intenta nuevamente.',
+      color: 'danger',
+      duration: 4000
+    })
+  }
+}
+
+const exportJobToCSV = (jobGroup) => {
+  try {
+    if (!jobGroup.applications || jobGroup.applications.length === 0) {
+      notify({
+        message: 'No hay candidatos en este anuncio para exportar',
+        color: 'warning',
+        duration: 3000
+      })
+      return
+    }
+
+    // Limpiar el título del trabajo para usarlo como nombre de archivo
+    const jobTitleClean = jobGroup.jobTitle
+      .replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/g, '')
+      .replace(/\s+/g, '_')
+      .substring(0, 50)
+
+    generateCSV(jobGroup.applications, `candidatos_${jobTitleClean}`)
+  } catch (error) {
+    console.error('Error exporting job CSV:', error)
+    notify({
+      message: 'Error al exportar. Intenta nuevamente.',
+      color: 'danger',
+      duration: 4000
+    })
+  }
+}
+
+const generateCSV = (apps, fileNamePrefix) => {
+  // Definir headers del CSV
+  const headers = [
+    'Nombre',
+    'Email',
+    'Teléfono',
+    'Puesto',
+    'Estado',
+    'Calificación',
+    'Fecha de Aplicación',
+    'Notas'
+  ]
+
+  // Convertir aplicaciones a filas CSV
+  const rows = apps.map(app => {
+    const statusLabels = {
+      submitted: 'Recibida',
+      reviewing: 'En Revisión',
+      shortlisted: 'Preseleccionado',
+      interviewed: 'Entrevistado',
+      accepted: 'Aceptado',
+      rejected: 'Rechazado',
+      withdrawn: 'Retirada'
+    }
+
+    return [
+      `"${app.applicantName || ''}"`,
+      `"${app.applicantEmail || ''}"`,
+      `"${app.applicantPhone || ''}"`,
+      `"${app.jobTitle || ''}"`,
+      `"${statusLabels[app.status] || app.status}"`,
+      app.rating ? `${app.rating}/5` : 'Sin calificar',
+      app.createdAt ? new Date(app.createdAt).toLocaleDateString('es-ES') : '',
+      `"${(app.recruiterNotes || '').replace(/"/g, '""')}"` // Escapar comillas dobles
+    ].join(',')
+  })
+
+  // Crear contenido CSV
+  const csvContent = [
+    headers.join(','),
+    ...rows
+  ].join('\n')
+
+  // Crear Blob y descargar
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+
+  link.setAttribute('href', url)
+  link.setAttribute('download', `${fileNamePrefix}_${new Date().toISOString().split('T')[0]}.csv`)
+  link.style.visibility = 'hidden'
+
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  notify({
+    message: `${apps.length} candidatos exportados exitosamente`,
+    color: 'success',
+    duration: 3000
+  })
 }
 
 const saveNotes = async (application) => {
@@ -502,6 +1333,100 @@ const downloadCV = (fileUrl) => {
     : `http://localhost:8000${fileUrl}`
 
   window.open(fullUrl, '_blank')
+}
+
+// ========== BULK ACTIONS ==========
+const toggleSelection = (applicationId) => {
+  if (selectedApplications.value.has(applicationId)) {
+    selectedApplications.value.delete(applicationId)
+  } else {
+    selectedApplications.value.add(applicationId)
+  }
+  // Force reactivity
+  selectedApplications.value = new Set(selectedApplications.value)
+}
+
+const clearSelection = () => {
+  selectedApplications.value = new Set()  // Crear un Set completamente nuevo
+}
+
+const bulkChangeStatus = (newStatus) => {
+  if (selectedApplications.value.size === 0) return
+
+  // Guardar la acción pendiente y mostrar modal de confirmación
+  pendingBulkAction.value = {
+    status: newStatus,
+    count: selectedApplications.value.size,
+    label: getStatusLabel(newStatus)
+  }
+  showBulkConfirmModal.value = true
+}
+
+const confirmBulkAction = async () => {
+  if (!pendingBulkAction.value) return
+
+  const { status: newStatus, label: statusLabel } = pendingBulkAction.value
+  showBulkConfirmModal.value = false
+
+  try {
+    updating.value = true
+
+    // Obtener todas las aplicaciones seleccionadas
+    const selectedApps = applicationMgr.applications.value.filter(app =>
+      selectedApplications.value.has(app.id)
+    )
+
+    // Contador de éxitos y errores
+    let successCount = 0
+    let errorCount = 0
+
+    // Actualizar cada aplicación
+    for (const app of selectedApps) {
+      try {
+        await applicationMgr.updateApplicationStatus(
+          app.jobId,
+          app.id,
+          newStatus
+        )
+        successCount++
+      } catch (error) {
+        console.error(`Error updating application ${app.id}:`, error)
+        errorCount++
+      }
+    }
+
+    // Limpiar selección
+    clearSelection()
+    pendingBulkAction.value = null
+
+    // Notificar resultados
+    if (errorCount === 0) {
+      notify({
+        message: `${successCount} ${successCount === 1 ? 'candidato actualizado' : 'candidatos actualizados'} a "${statusLabel}"`,
+        color: 'success',
+        duration: 4000
+      })
+    } else {
+      notify({
+        message: `${successCount} actualizados correctamente, ${errorCount} con errores`,
+        color: 'warning',
+        duration: 5000
+      })
+    }
+  } catch (err) {
+    notify({
+      message: `Error al actualizar candidatos: ${err.message}`,
+      color: 'danger',
+      duration: 5000
+    })
+  } finally {
+    updating.value = false
+  }
+}
+
+const cancelBulkAction = () => {
+  showBulkConfirmModal.value = false
+  pendingBulkAction.value = null
 }
 </script>
 
@@ -630,6 +1555,160 @@ const downloadCV = (fileUrl) => {
   cursor: pointer;
 }
 
+/* ========== RESULTS COUNTER ========== */
+.results-counter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+  border-radius: 8px;
+  border: 1px solid #E4E7EC;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.counter-text {
+  font-size: 0.95rem;
+  color: #4B5563;
+}
+
+.counter-text strong {
+  color: #7C3AED;
+  font-weight: 700;
+}
+
+.counter-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.export-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.export-btn:disabled {
+  background: linear-gradient(135deg, #D1D5DB 0%, #9CA3AF 100%);
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+/* Export Dropdown */
+.export-dropdown {
+  position: relative;
+}
+
+.export-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 320px;
+  background: white;
+  border: 2px solid #7C3AED;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.export-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.export-menu-item:hover {
+  background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%);
+}
+
+.menu-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.menu-item-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.menu-item-desc {
+  font-size: 0.75rem;
+  color: #6B7280;
+  line-height: 1.3;
+}
+
+.menu-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #E4E7EC, transparent);
+  margin: 0.25rem 0;
+}
+
+/* Dropdown Fade Animation */
+.dropdown-fade-enter-active,
+.dropdown-fade-leave-active {
+  transition: all 0.2s ease;
+}
+
+.dropdown-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.clear-filters-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #E4E7EC;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-filters-btn:hover {
+  background: #F9FAFB;
+  border-color: #7C3AED;
+  color: #7C3AED;
+}
+
 /* ========== STATES ========== */
 .loading-state,
 .error-state,
@@ -675,7 +1754,132 @@ const downloadCV = (fileUrl) => {
 .applications-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
+}
+
+/* ========== JOB GROUPS ========== */
+.job-group {
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #E4E7EC;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.job-group:hover {
+  border-color: #C4B5FD;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.1);
+}
+
+.job-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 1.75rem;
+  background: linear-gradient(135deg, #FAFAFA 0%, #F5F3FF 100%);
+  transition: all 0.3s;
+  border-bottom: 2px solid #E4E7EC;
+}
+
+.job-group-header:hover {
+  background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%);
+}
+
+.job-group-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  flex: 1;
+}
+
+.job-group-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.expand-icon {
+  color: #7C3AED;
+  font-size: 1.75rem;
+  transition: transform 0.3s;
+}
+
+.job-group-title h3 {
+  margin: 0 0 0.375rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.applications-count {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #7C3AED;
+  background: rgba(124, 58, 237, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+}
+
+.export-job-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.export-job-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.35);
+}
+
+.export-job-btn:active {
+  transform: translateY(0);
+}
+
+.job-group-stats {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.mini-stat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 0.5rem;
+  border-radius: 14px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.25);
+  transition: all 0.3s ease;
+}
+
+.mini-stat:hover {
+  background: linear-gradient(135deg, #6D28D9 0%, #5B21B6 100%);
+  transform: scale(1.08);
+  box-shadow: 0 3px 8px rgba(124, 58, 237, 0.4);
+}
+
+.job-group-applications {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: #FAFAFA;
 }
 
 .application-card {
@@ -688,6 +1892,7 @@ const downloadCV = (fileUrl) => {
 
 .application-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #C4B5FD;
 }
 
 .card-header {
@@ -745,10 +1950,17 @@ const downloadCV = (fileUrl) => {
   font-weight: 500;
 }
 
+.applicant-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .application-date {
   font-size: 0.8rem;
   color: #9CA3AF;
-  margin-top: 0.25rem;
 }
 
 .card-actions {
@@ -866,38 +2078,143 @@ const downloadCV = (fileUrl) => {
   text-decoration: underline;
 }
 
-.status-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+/* Status Section Mejorada */
+.status-section {
+  background: linear-gradient(135deg, #FAFAFA 0%, #F5F3FF 100%) !important;
+  border: 2px solid #E4E7EC !important;
 }
 
-.status-btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid #E4E7EC;
-  border-radius: 6px;
+.status-buttons-compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  border: 2px solid #E4E7EC;
+  border-radius: 20px;
   background: white;
   color: #6B7280;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.2s;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.status-btn:hover:not(:disabled) {
-  border-color: var(--color-purple);
-  color: var(--color-purple);
+.status-pill:hover:not(:disabled):not(.active) {
+  border-color: #C4B5FD;
+  background: #FAFAFA;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(124, 58, 237, 0.15);
 }
 
-.status-btn.active {
-  background: var(--color-purple);
-  border-color: var(--color-purple);
-  color: white;
+.status-pill:active:not(:disabled) {
+  transform: translateY(0);
 }
 
-.status-btn:disabled {
-  opacity: 0.6;
+.status-pill:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Estado Activo General */
+.status-pill.active {
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  border-color: #7C3AED;
+  color: white;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Estados Específicos */
+.status-pill.status-reviewing:not(.active) {
+  border-color: #FEF3C7;
+  color: #D97706;
+  background: #FFFBEB;
+}
+
+.status-pill.status-reviewing:not(.active):hover {
+  border-color: #F59E0B;
+  background: #FEF3C7;
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.2);
+}
+
+.status-pill.status-reviewing.active {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  border-color: #F59E0B;
+}
+
+.status-pill.status-shortlisted:not(.active) {
+  border-color: #D1FAE5;
+  color: #059669;
+  background: #ECFDF5;
+}
+
+.status-pill.status-shortlisted:not(.active):hover {
+  border-color: #10B981;
+  background: #D1FAE5;
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2);
+}
+
+.status-pill.status-shortlisted.active {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  border-color: #10B981;
+}
+
+.status-pill.status-interviewed:not(.active) {
+  border-color: #DBEAFE;
+  color: #2563EB;
+  background: #EFF6FF;
+}
+
+.status-pill.status-interviewed:not(.active):hover {
+  border-color: #3B82F6;
+  background: #DBEAFE;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
+}
+
+.status-pill.status-interviewed.active {
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  border-color: #3B82F6;
+}
+
+.status-pill.status-accepted:not(.active) {
+  border-color: #D1FAE5;
+  color: #047857;
+  background: #ECFDF5;
+}
+
+.status-pill.status-accepted:not(.active):hover {
+  border-color: #059669;
+  background: #D1FAE5;
+  box-shadow: 0 4px 8px rgba(5, 150, 105, 0.2);
+}
+
+.status-pill.status-accepted.active {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  border-color: #059669;
+}
+
+.status-pill.status-rejected:not(.active) {
+  border-color: #FEE2E2;
+  color: #DC2626;
+  background: #FEF2F2;
+}
+
+.status-pill.status-rejected:not(.active):hover {
+  border-color: #EF4444;
+  background: #FEE2E2;
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.2);
+}
+
+.status-pill.status-rejected.active {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  border-color: #EF4444;
 }
 
 .notes-textarea {
@@ -1103,6 +2420,257 @@ const downloadCV = (fileUrl) => {
   transform: translateY(-2px);
 }
 
+/* ========== BULK ACTIONS ========== */
+.selection-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+}
+
+.custom-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #7C3AED;
+  border-radius: 4px;
+}
+
+.application-card.is-selected {
+  border-color: #7C3AED;
+  background: linear-gradient(to right, rgba(124, 58, 237, 0.05) 0%, white 100%);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+}
+
+.bulk-actions-toolbar {
+  background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%);
+  border: 2px solid #7C3AED;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.2);
+}
+
+.bulk-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bulk-count {
+  font-size: 1rem;
+  color: #1F2937;
+}
+
+.bulk-count strong {
+  color: #7C3AED;
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.bulk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bulk-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 300px;
+}
+
+.bulk-action-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4B5563;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bulk-status-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bulk-status-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+  color: #6B7280;
+}
+
+.bulk-status-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bulk-status-btn.status-reviewing {
+  border-color: #F59E0B;
+  color: #F59E0B;
+}
+
+.bulk-status-btn.status-reviewing:hover {
+  background: #F59E0B;
+  color: white;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.bulk-status-btn.status-shortlisted {
+  border-color: #10B981;
+  color: #10B981;
+}
+
+.bulk-status-btn.status-shortlisted:hover {
+  background: #10B981;
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.bulk-status-btn.status-interviewed {
+  border-color: #3B82F6;
+  color: #3B82F6;
+}
+
+.bulk-status-btn.status-interviewed:hover {
+  background: #3B82F6;
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.bulk-status-btn.status-accepted {
+  border-color: #059669;
+  color: #059669;
+}
+
+.bulk-status-btn.status-accepted:hover {
+  background: #059669;
+  color: white;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+}
+
+.bulk-status-btn.status-rejected {
+  border-color: #EF4444;
+  color: #EF4444;
+}
+
+.bulk-status-btn.status-rejected:hover {
+  background: #EF4444;
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.bulk-quick-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bulk-clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: white;
+  border: 2px solid #D1D5DB;
+  border-radius: 8px;
+  color: #6B7280;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bulk-clear-btn:hover {
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+  color: #374151;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ========== BULK EXPORT TOOLBAR ========== */
+.bulk-export-toolbar {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border: 2px solid #F59E0B;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+}
+
+.export-selected-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.export-selected-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.export-selected-btn:disabled {
+  background: linear-gradient(135deg, #D1D5DB 0%, #9CA3AF 100%);
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+.job-export-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+}
+
+/* Animación de entrada del toolbar */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-down-enter-from {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .candidates-view {
@@ -1135,8 +2703,14 @@ const downloadCV = (fileUrl) => {
     grid-template-columns: 1fr;
   }
 
-  .status-buttons {
-    justify-content: flex-start;
+  /* Status Pills Responsive */
+  .status-buttons-compact {
+    flex-direction: column;
+  }
+
+  .status-pill {
+    width: 100%;
+    justify-content: center;
   }
 
   .cv-info {
@@ -1161,5 +2735,95 @@ const downloadCV = (fileUrl) => {
     font-size: 0.75rem;
     padding: 0.3rem 0.6rem;
   }
+
+  /* Bulk Actions Responsive */
+  .bulk-actions-toolbar {
+    padding: 1rem;
+  }
+
+  .bulk-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bulk-action-group {
+    min-width: 100%;
+  }
+
+  .bulk-status-buttons {
+    flex-direction: column;
+  }
+
+  .bulk-status-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .bulk-quick-actions {
+    flex-direction: column;
+  }
+
+  .bulk-clear-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ========== MODAL DE CONFIRMACIÓN ========== */
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0;
+}
+
+.modal-content {
+  padding: 1rem 0;
+}
+
+.modal-message {
+  font-size: 1rem;
+  color: #374151;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.status-highlight {
+  color: #7C3AED;
+  font-weight: 700;
+}
+
+.modal-warning {
+  font-size: 0.875rem;
+  color: #DC2626;
+  font-weight: 600;
+  background: #FEF2F2;
+  border-left: 4px solid #DC2626;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin: 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+}
+
+.modal-btn-cancel {
+  min-width: 120px;
+}
+
+.modal-btn-confirm {
+  min-width: 120px;
+  background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+}
+
+.modal-btn-confirm:hover {
+  background: linear-gradient(135deg, #6D28D9 0%, #5B21B6 100%);
 }
 </style>
