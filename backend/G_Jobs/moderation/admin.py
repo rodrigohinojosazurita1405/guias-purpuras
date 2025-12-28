@@ -30,6 +30,7 @@ class BlockedUserAdmin(admin.ModelAdmin):
     readonly_fields = (
         'blocked_at',
         'blocked_user_info_display',
+        'notes_display',
     )
 
     fieldsets = (
@@ -37,7 +38,7 @@ class BlockedUserAdmin(admin.ModelAdmin):
             'fields': ('company', 'blocked_user', 'blocked_user_info_display')
         }),
         ('Motivo del Bloqueo', {
-            'fields': ('reason', 'notes')
+            'fields': ('reason', 'notes', 'notes_display')
         }),
         ('Información de Bloqueo', {
             'fields': ('blocked_at',)
@@ -130,3 +131,20 @@ class BlockedUserAdmin(admin.ModelAdmin):
         html_content += '</div>'
         return format_html(html_content)
     blocked_user_info_display.short_description = 'Información del Usuario'
+
+    def notes_display(self, obj):
+        """Muestra las notas del bloqueo de forma visual"""
+        if not obj.notes:
+            return format_html(
+                '<span style="color: #9CA3AF; font-style: italic;">Sin notas</span>'
+            )
+
+        return format_html(
+            '<div style="background-color: #FEF3C7; padding: 12px; border-left: 4px solid #F59E0B; '
+            'border-radius: 6px; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto; '
+            'font-size: 13px; color: #92400E; line-height: 1.6;">'
+            '{}'
+            '</div>',
+            obj.notes
+        )
+    notes_display.short_description = 'Notas del Reclutador'

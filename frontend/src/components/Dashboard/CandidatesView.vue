@@ -279,6 +279,63 @@
       </template>
     </va-modal>
 
+    <!-- Modal de Bloqueo de Candidato -->
+    <va-modal
+      v-model="showBlockModal"
+      title="Bloquear Candidato"
+      size="small"
+      :hide-default-actions="true"
+      blur
+    >
+      <template #default>
+        <div class="block-modal-content">
+          <div class="warning-message">
+            <va-icon name="warning" color="warning" size="1.5rem" />
+            <p>Estás a punto de bloquear a <strong>{{ blockForm.candidateName }}</strong></p>
+            <p class="warning-subtext">Este candidato no podrá postular a ninguna de tus ofertas en el futuro.</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Motivo del bloqueo</label>
+            <va-select
+              v-model="blockForm.reason"
+              :options="blockReasonOptions"
+              placeholder="Selecciona un motivo"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Notas adicionales (opcional)</label>
+            <va-textarea
+              v-model="blockForm.notes"
+              placeholder="Explica por qué estás bloqueando a este candidato..."
+              :min-rows="3"
+              class="form-input"
+            />
+          </div>
+
+          <div class="modal-actions">
+            <va-button
+              color="danger"
+              @click="confirmBlockCandidate"
+              :loading="blocking"
+            >
+              <va-icon name="block" size="small" />
+              Bloquear Candidato
+            </va-button>
+
+            <va-button
+              preset="secondary"
+              @click="closeBlockModal"
+            >
+              Cancelar
+            </va-button>
+          </div>
+        </div>
+      </template>
+    </va-modal>
+
     <!-- Loading State -->
     <div v-if="!localIsReady" class="loading-state">
       <va-progress-bar indeterminate color="purple" size="large" />
@@ -494,6 +551,14 @@
                 <va-icon name="email" size="small" />
                 Enviar Email
               </a>
+
+              <button
+                @click="openBlockModal(application)"
+                class="contact-btn block-btn"
+              >
+                <va-icon name="block" size="small" />
+                Bloquear Candidato
+              </button>
             </div>
           </div>
 
@@ -693,6 +758,30 @@ const selectedJobs = ref(new Set())
 // Bulk action confirmation modal
 const showBulkConfirmModal = ref(false)
 const pendingBulkAction = ref(null)
+
+// Block candidate modal
+const showBlockModal = ref(false)
+const blocking = ref(false)
+const blockForm = ref({
+  candidateId: null,
+  candidateName: '',
+  reason: 'spam',
+  notes: ''
+})
+
+const blockReasonOptions = [
+  'Spam',
+  'Comportamiento inapropiado',
+  'No calificado repetidamente',
+  'Otra razón'
+]
+
+const blockReasonMap = {
+  'Spam': 'spam',
+  'Comportamiento inapropiado': 'inappropriate',
+  'No calificado repetidamente': 'unqualified',
+  'Otra razón': 'other'
+}
 
 const statusOptions = ['submitted', 'reviewing', 'shortlisted', 'interviewed', 'accepted', 'rejected']
 
@@ -1452,6 +1541,78 @@ const confirmBulkAction = async () => {
 const cancelBulkAction = () => {
   showBulkConfirmModal.value = false
   pendingBulkAction.value = null
+}
+
+// ========== BLOCK CANDIDATE ==========
+const openBlockModal = (application) => {
+  blockForm.value = {
+    candidateId: application.applicantId,
+    candidateName: application.applicantName,
+    reason: 'Spam',  // Valor inicial en español
+    notes: ''
+  }
+  showBlockModal.value = true
+}
+
+const confirmBlockCandidate = async () => {
+  try {
+    blocking.value = true
+
+    // Convertir el motivo de español a inglés para el backend
+    const reasonKey = blockReasonMap[blockForm.value.reason] || 'other'
+
+    const response = await fetch('http://localhost:8000/api/blocked-users/block', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+      body: JSON.stringify({
+        blockedUserId: blockForm.value.candidateId,
+        reason: reasonKey,
+        notes: blockForm.value.notes
+      })
+    })
+
+    const data = await response.json()
+
+    if (response.ok && data.success) {
+      notify({
+        message: `✅ ${blockForm.value.candidateName} ha sido bloqueado exitosamente`,
+        color: 'success',
+        duration: 4000
+      })
+
+      closeBlockModal()
+
+      // Recargar las aplicaciones para actualizar la lista
+      await applicationMgr.loadApplications()
+    } else {
+      notify({
+        message: data.message || 'Error al bloquear candidato',
+        color: 'danger',
+        duration: 5000
+      })
+    }
+  } catch (err) {
+    notify({
+      message: `Error al bloquear candidato: ${err.message}`,
+      color: 'danger',
+      duration: 5000
+    })
+  } finally {
+    blocking.value = false
+  }
+}
+
+const closeBlockModal = () => {
+  showBlockModal.value = false
+  blockForm.value = {
+    candidateId: null,
+    candidateName: '',
+    reason: 'Spam',
+    notes: ''
+  }
 }
 </script>
 
@@ -2899,7 +3060,77 @@ const cancelBulkAction = () => {
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
+.block-btn {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: white;
+}
+
+.block-btn:hover {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  color: white;
+}
+
 .contact-btn:active {
   transform: translateY(0);
+}
+
+/* ========== BLOCK MODAL ========== */
+.block-modal-content {
+  padding: 1rem 0;
+}
+
+.warning-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: #FEF3C7;
+  border: 2px solid #F59E0B;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.warning-message p {
+  margin: 0;
+  color: #92400E;
+  font-size: 0.95rem;
+}
+
+.warning-message strong {
+  color: #78350F;
+}
+
+.warning-subtext {
+  font-size: 0.85rem !important;
+  font-style: italic;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.form-input {
+  width: 100%;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f0f0f0;
 }
 </style>
