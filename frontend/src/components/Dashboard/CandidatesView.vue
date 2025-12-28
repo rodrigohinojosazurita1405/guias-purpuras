@@ -469,20 +469,31 @@
                   {{ application.applicantEmail }}
                 </a>
               </div>
-              <div v-if="application.applicantPhone" class="contact-item">
-                <span class="contact-label">Teléfono:</span>
-                <span class="contact-value">{{ application.applicantPhone }}</span>
-              </div>
               <div v-if="application.applicantWhatsapp" class="contact-item">
                 <span class="contact-label">WhatsApp:</span>
-                <a
-                  :href="`https://wa.me/${application.applicantWhatsapp}`"
-                  target="_blank"
-                  class="contact-link"
-                >
-                  {{ application.applicantWhatsapp }}
-                </a>
+                <span class="contact-value">{{ application.applicantWhatsapp }}</span>
               </div>
+            </div>
+
+            <!-- Botones de contacto -->
+            <div class="contact-actions">
+              <a
+                v-if="application.applicantWhatsapp"
+                :href="getWhatsAppLink(application.applicantWhatsapp, application.applicantName)"
+                target="_blank"
+                class="contact-btn whatsapp-btn"
+              >
+                <va-icon name="chat" size="small" />
+                WhatsApp
+              </a>
+
+              <a
+                :href="`mailto:${application.applicantEmail}?subject=Postulación - ${application.applicantName}`"
+                class="contact-btn email-btn"
+              >
+                <va-icon name="email" size="small" />
+                Enviar Email
+              </a>
             </div>
           </div>
 
@@ -902,6 +913,20 @@ const getInitials = (name) => {
     .join('')
     .toUpperCase()
     .slice(0, 2)
+}
+
+const getWhatsAppLink = (phone, candidateName) => {
+  // Limpiar el número de teléfono (quitar espacios, guiones, paréntesis)
+  const cleanPhone = phone.replace(/[\s\-\(\)]/g, '')
+
+  // Mensaje personalizado para el candidato
+  const message = `Hola ${candidateName}, te contacto desde Guías Púrpuras respecto a tu postulación.`
+
+  // Codificar el mensaje para URL
+  const encodedMessage = encodeURIComponent(message)
+
+  // Retornar enlace de WhatsApp
+  return `https://wa.me/${cleanPhone}?text=${encodedMessage}`
 }
 
 const formatRelativeDate = (dateString) => {
@@ -1969,6 +1994,7 @@ const cancelBulkAction = () => {
   gap: 1rem;
 }
 
+
 .status-badge {
   padding: 0.5rem 1rem;
   border-radius: 20px;
@@ -2825,5 +2851,55 @@ const cancelBulkAction = () => {
 
 .modal-btn-confirm:hover {
   background: linear-gradient(135deg, #6D28D9 0%, #5B21B6 100%);
+}
+
+/* ========== CONTACT ACTIONS ========== */
+.contact-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  border: none;
+}
+
+.whatsapp-btn {
+  background: linear-gradient(135deg, #25D366 0%, #1EBE57 100%);
+  color: white;
+}
+
+.whatsapp-btn:hover {
+  background: linear-gradient(135deg, #1EBE57 0%, #128C7E 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+  color: white;
+}
+
+.email-btn {
+  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  color: white;
+}
+
+.email-btn:hover {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.contact-btn:active {
+  transform: translateY(0);
 }
 </style>

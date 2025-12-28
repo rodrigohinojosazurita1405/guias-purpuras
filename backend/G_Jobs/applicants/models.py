@@ -25,10 +25,17 @@ class ApplicantProfile(models.Model):
     )
 
     # Información de contacto adicional
+    # IMPORTANTE: Estos campos se usan en CandidatesView.vue para mostrar contacto en dashboard de reclutadores
     phone = models.CharField(
         max_length=20,
         blank=True,
         verbose_name="Teléfono"
+    )
+    whatsapp = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name="WhatsApp",
+        help_text="Número de WhatsApp (ej: 59176543210) - Se usa para botón de contacto directo en dashboard"
     )
     linkedin_url = models.URLField(
         max_length=500,

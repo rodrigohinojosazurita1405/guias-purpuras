@@ -248,6 +248,26 @@ def update_user_profile(request, user_id):
             user_profile.fullName = data['fullName']
         if 'phone' in data:
             user_profile.phone = data['phone']
+
+            # IMPORTANTE: Sincronizar WhatsApp en ApplicantProfile
+            # Cuando el usuario actualiza su teléfono en el perfil, también se actualiza
+            # en ApplicantProfile.whatsapp para que los reclutadores puedan contactarlo
+            try:
+                from django.contrib.auth import get_user_model
+                from G_Jobs.applicants.models import ApplicantProfile
+
+                User = get_user_model()
+                user = User.objects.get(email=user_profile.email)
+
+                # Obtener o crear ApplicantProfile
+                app_profile, created = ApplicantProfile.objects.get_or_create(user=user)
+                app_profile.phone = user_profile.phone
+                app_profile.whatsapp = user_profile.phone  # Usar mismo número para WhatsApp
+                app_profile.save()
+            except Exception as e:
+                print(f'Error al sincronizar ApplicantProfile: {e}')
+                # No fallar la actualización del perfil si falla la sincronización
+
         if 'location' in data:
             user_profile.location = data['location']
         if 'bio' in data:

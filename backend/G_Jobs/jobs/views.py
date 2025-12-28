@@ -18,6 +18,7 @@ from django.db import models
 from django.utils import timezone
 from .models import Job
 from auth_api.decorators import token_required
+from G_Jobs.applicants.models import JobApplication
 
 
 @require_http_methods(["POST"])
@@ -921,8 +922,8 @@ def list_applications(request, job_id):
     try:
         job = Job.objects.get(id=job_id)
 
-        # Obtener aplicaciones del trabajo
-        applications = Application.objects.filter(job=job)
+        # Obtener aplicaciones del trabajo con relaciones
+        applications = JobApplication.objects.filter(job=job).select_related('applicant', 'applicant__applicant_profile')
 
         # Filtros opcionales
         status = request.GET.get('status')
@@ -933,26 +934,44 @@ def list_applications(request, job_id):
 
         if search:
             applications = applications.filter(
-                models.Q(applicantName__icontains=search) |
-                models.Q(applicantEmail__icontains=search)
+                models.Q(applicant__first_name__icontains=search) |
+                models.Q(applicant__last_name__icontains=search) |
+                models.Q(applicant__email__icontains=search)
             )
 
         # Construir lista de aplicaciones
         applications_list = []
-        for app in applications.order_by('-createdAt'):
+        for app in applications.order_by('-applied_at'):
+            # Obtener datos del aplicante
+            applicant = app.applicant
+            applicant_name = applicant.get_full_name() or applicant.email
+            applicant_email = applicant.email
+
+            # IMPORTANTE: Obtener teléfono y WhatsApp del perfil del aplicante
+            # Estos datos se muestran en CandidatesView.vue para contacto directo por WhatsApp
+            # El campo whatsapp se agregó en migración 0003_applicantprofile_whatsapp
+            applicant_phone = ''
+            applicant_whatsapp = ''
+            try:
+                if hasattr(applicant, 'applicant_profile'):
+                    applicant_phone = applicant.applicant_profile.phone or ''
+                    applicant_whatsapp = applicant.applicant_profile.whatsapp or ''
+            except:
+                pass
+
             applications_list.append({
-                'id': app.id,
-                'jobId': app.job.id,
-                'applicantName': app.applicantName,
-                'applicantEmail': app.applicantEmail,
-                'applicantPhone': app.applicantPhone,
-                'applicantWhatsapp': app.applicantWhatsapp,
-                'screeningAnswers': app.screeningAnswers,
+                'id': str(app.id),
+                'jobId': job.id,
+                'applicantName': applicant_name,
+                'applicantEmail': applicant_email,
+                'applicantPhone': applicant_phone,
+                'applicantWhatsapp': applicant_whatsapp,
+                'screeningAnswers': app.screening_answers,
                 'status': app.status,
                 'rating': app.rating,
-                'recruiterNotes': app.recruiterNotes,
-                'createdAt': app.createdAt.isoformat(),
-                'updatedAt': app.updatedAt.isoformat()
+                'recruiterNotes': app.employer_notes,
+                'createdAt': app.applied_at.isoformat(),
+                'updatedAt': app.updated_at.isoformat()
             })
 
         return JsonResponse({

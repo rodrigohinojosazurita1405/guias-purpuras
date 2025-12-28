@@ -100,7 +100,7 @@
             :class="{ active: activeSection === 'jobs' }"
           >
             <va-icon name="work" />
-            <span>Mis Órdenes</span>
+            <span>Órdenes de Facturación</span>
           </router-link>
         </template>
 

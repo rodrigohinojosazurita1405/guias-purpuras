@@ -45,15 +45,16 @@
         />
       </div>
 
-      <!-- Teléfono -->
+      <!-- WhatsApp -->
       <div class="form-group">
-        <label class="form-label">Teléfono</label>
+        <label class="form-label">WhatsApp</label>
         <va-input
           v-model="formData.phone"
-          placeholder="+591..."
+          placeholder="591XXXXXXXXX (sin espacios ni guiones)"
           type="tel"
           class="form-input"
         />
+        <p class="field-hint">Número de WhatsApp para que los reclutadores te contacten directamente</p>
       </div>
 
       <!-- Ubicación -->
@@ -277,6 +278,13 @@ const handleSaveProfile = async () => {
   font-weight: 600;
   color: #333;
   font-size: 0.95rem;
+}
+
+.field-hint {
+  font-size: 0.85rem;
+  color: #6B7280;
+  margin: 0.25rem 0 0 0;
+  font-style: italic;
 }
 
 .form-input,
