@@ -101,7 +101,11 @@ def block_user(request):
         reason = body.get('reason', 'other')
         notes = body.get('notes', '')
 
+        print(f'🚫 [BLOCK] Request user: {request.user.email}')
+        print(f'🚫 [BLOCK] Received data: blockedUserId={blocked_user_id}, reason={reason}, notes={notes}')
+
         if not blocked_user_id:
+            print(f'🚫 [BLOCK] ERROR: blockedUserId es requerido')
             return JsonResponse({
                 'success': False,
                 'message': 'blockedUserId es requerido'
@@ -110,7 +114,9 @@ def block_user(request):
         # Obtener el usuario a bloquear
         try:
             blocked_user = CustomUser.objects.get(id=blocked_user_id)
+            print(f'🚫 [BLOCK] Usuario encontrado: {blocked_user.email}')
         except CustomUser.DoesNotExist:
+            print(f'🚫 [BLOCK] ERROR: Usuario no encontrado con ID: {blocked_user_id}')
             return JsonResponse({
                 'success': False,
                 'message': 'Usuario a bloquear no encontrado'
@@ -119,18 +125,21 @@ def block_user(request):
         # Verificar si ya existe bloqueo
         existing = BlockedUser.objects.filter(company=request.user, blocked_user=blocked_user).first()
         if existing:
+            print(f'🚫 [BLOCK] ERROR: Usuario ya está bloqueado')
             return JsonResponse({
                 'success': False,
                 'message': 'Este usuario ya está bloqueado'
             }, status=400)
 
         # Crear bloqueo
+        print(f'🚫 [BLOCK] Creando bloqueo...')
         block = BlockedUser.objects.create(
             company=request.user,
             blocked_user=blocked_user,
             reason=reason,
             notes=notes
         )
+        print(f'🚫 [BLOCK] ✅ Bloqueo creado exitosamente: ID={block.id}')
 
         blocked_data = {
             'id': block.id,

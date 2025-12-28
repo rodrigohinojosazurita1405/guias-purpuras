@@ -285,7 +285,6 @@
       title="Bloquear Candidato"
       size="small"
       :hide-default-actions="true"
-      blur
     >
       <template #default>
         <div class="block-modal-content">
@@ -297,14 +296,15 @@
 
           <div class="form-group">
             <label class="form-label">Motivo del bloqueo</label>
-            <va-select
+            <select
               v-model="blockForm.reason"
-              :options="blockReasonOptions"
-              text-by="text"
-              value-by="value"
-              placeholder="Selecciona un motivo"
-              class="form-input"
-            />
+              class="custom-select"
+            >
+              <option value="spam">Spam</option>
+              <option value="inappropriate">Comportamiento inapropiado</option>
+              <option value="unqualified">No calificado repetidamente</option>
+              <option value="other">Otra razón</option>
+            </select>
           </div>
 
           <div class="form-group">
@@ -428,7 +428,8 @@
             class="application-card"
             :class="{
               [`status-${application.status}`]: true,
-              'is-selected': selectedApplications.has(application.id)
+              'is-selected': selectedApplications.has(application.id),
+              'is-blocked': isUserBlocked(application.applicantId)
             }"
           >
         <!-- Card Header -->
@@ -465,7 +466,11 @@
           </div>
 
           <div class="card-actions">
-            <div class="status-badge" :class="`status-${application.status}`">
+            <div v-if="isUserBlocked(application.applicantId)" class="blocked-badge">
+              <va-icon name="block" size="small" />
+              BLOQUEADO
+            </div>
+            <div v-else class="status-badge" :class="`status-${application.status}`">
               {{ getStatusLabel(application.status) }}
             </div>
             <button
@@ -555,12 +560,17 @@
               </a>
 
               <button
+                v-if="!isUserBlocked(application.applicantId)"
                 @click="openBlockModal(application)"
                 class="contact-btn block-btn"
               >
                 <va-icon name="block" size="small" />
                 Bloquear Candidato
               </button>
+              <div v-else class="blocked-notice">
+                <va-icon name="block" size="small" />
+                Usuario bloqueado
+              </div>
             </div>
           </div>
 
@@ -732,11 +742,15 @@
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useToast } from 'vuestic-ui'
 import { useApplications } from '@/composables/useApplications'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { useBlockedUsersStore } from '@/stores/useBlockedUsersStore'
 import StarRating from '@/components/Dashboard/StarRating.vue'
 
 // ========== COMPOSABLES ==========
 const { init: notify } = useToast()
 const applicationMgr = useApplications()
+const authStore = useAuthStore()
+const blockedUsersStore = useBlockedUsersStore()
 
 // ========== DATA ==========
 const searchQuery = ref('')
@@ -770,13 +784,6 @@ const blockForm = ref({
   reason: 'spam',
   notes: ''
 })
-
-const blockReasonOptions = [
-  { text: 'Spam', value: 'spam' },
-  { text: 'Comportamiento inapropiado', value: 'inappropriate' },
-  { text: 'No calificado repetidamente', value: 'unqualified' },
-  { text: 'Otra razón', value: 'other' }
-]
 
 const statusOptions = ['submitted', 'reviewing', 'shortlisted', 'interviewed', 'accepted', 'rejected']
 
@@ -968,6 +975,10 @@ onMounted(async () => {
   applicationMgr.error = null
 
   try {
+    // Cargar usuarios bloqueados primero
+    await blockedUsersStore.loadBlockedUsers(authStore.accessToken)
+
+    // Luego cargar aplicaciones
     await applicationMgr.loadApplications()
 
     // Forzar acceso al computed para establecer dependencia reactiva
@@ -1062,6 +1073,13 @@ const isJobExpanded = (jobId) => {
 
 const getStatusCount = (applications, status) => {
   return applications.filter(app => app.status === status).length
+}
+
+const isUserBlocked = (applicantId) => {
+  if (!applicantId) return false
+  return blockedUsersStore.blockedUsers.some(
+    blocked => blocked.blockedUserId === applicantId
+  )
 }
 
 const changeStatus = async (application, newStatus) => {
@@ -1540,12 +1558,16 @@ const cancelBulkAction = () => {
 
 // ========== BLOCK CANDIDATE ==========
 const openBlockModal = (application) => {
+  console.log('🚫 [BLOCK] Abriendo modal para bloquear:', application)
+
   blockForm.value = {
     candidateId: application.applicantId,
     candidateName: application.applicantName,
     reason: 'spam',
     notes: ''
   }
+
+  console.log('🚫 [BLOCK] Formulario inicializado:', blockForm.value)
   showBlockModal.value = true
 }
 
@@ -1553,20 +1575,31 @@ const confirmBlockCandidate = async () => {
   try {
     blocking.value = true
 
+    const payload = {
+      blockedUserId: blockForm.value.candidateId,
+      reason: blockForm.value.reason,
+      notes: blockForm.value.notes
+    }
+
+    console.log('🚫 [BLOCK] Intentando bloquear candidato:')
+    console.log('  - blockedUserId:', payload.blockedUserId)
+    console.log('  - reason:', payload.reason)
+    console.log('  - notes:', payload.notes)
+    console.log('🚫 [BLOCK] Token:', authStore.accessToken ? 'presente' : 'ausente')
+
     const response = await fetch('http://localhost:8000/api/blocked-users/block', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        'Authorization': `Bearer ${authStore.accessToken}`
       },
-      body: JSON.stringify({
-        blockedUserId: blockForm.value.candidateId,
-        reason: blockForm.value.reason,
-        notes: blockForm.value.notes
-      })
+      body: JSON.stringify(payload)
     })
 
     const data = await response.json()
+
+    console.log('🚫 [BLOCK] Response status:', response.status)
+    console.log('🚫 [BLOCK] Response data:', data)
 
     if (response.ok && data.success) {
       notify({
@@ -3126,16 +3159,68 @@ const closeBlockModal = () => {
   border-top: 1px solid #f0f0f0;
 }
 
-/* Asegurar que el dropdown del va-select se muestre correctamente */
-.block-modal-content :deep(.va-select-dropdown) {
-  z-index: 99999 !important;
+/* Custom select styling */
+.custom-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: white;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
 }
 
-.block-modal-content :deep(.va-dropdown__anchor) {
-  overflow: visible !important;
+.custom-select:hover {
+  border-color: #3b82f6;
 }
 
-.block-modal-content :deep(.va-dropdown__content) {
-  z-index: 99999 !important;
+.custom-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.custom-select option {
+  padding: 0.5rem;
+}
+
+/* ========== BLOCKED USER STYLES ========== */
+.application-card.is-blocked {
+  opacity: 0.6;
+  background: #f9fafb;
+  border-left: 4px solid #EF4444;
+}
+
+.blocked-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+  color: #DC2626;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.blocked-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #FEE2E2;
+  color: #991B1B;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 </style>

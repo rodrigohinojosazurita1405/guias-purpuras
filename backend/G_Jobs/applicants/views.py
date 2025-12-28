@@ -886,6 +886,7 @@ def get_job_applications(request, job_id):
 
             applications_data.append({
                 'id': str(app.id),
+                'applicantId': str(app.applicant.id),  # ID del usuario que aplicó
                 'applicantName': app.applicant.get_full_name() or app.applicant.email,
                 'applicantEmail': app.applicant.email,
                 'applicantPhone': applicant_phone,
