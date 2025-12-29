@@ -19,7 +19,8 @@ FASE 7.3: Gestión de Anuncios              ✅ 100% COMPLETADA
 FASE 7.4: Gestión de Órdenes y Facturas    ✅ 100% COMPLETADA
 FASE 7.5: Sistema de Mensajes              ⏳ 60% (Interfaz lista, falta backend)
 FASE 7.6: Aplicaciones a Anuncios          ✅ 100% COMPLETADA
-FASE 7.7: Notificaciones de Estado         ⏳ 0% PENDIENTE
+FASE 7.7: Notificaciones de Estado         ✅ 100% COMPLETADA
+FASE 7.9: Sistema de Notificaciones        ✅ 100% COMPLETADA
 
 FASE 8: Sistema de Auditoría               ✅ 100% COMPLETADA
 FASE 9: Sistema de Reportes Diarios        ✅ 100% COMPLETADA
@@ -343,57 +344,95 @@ FASE 11.1: Mejoras UX/UI Admin + Frontend  ✅ 100% COMPLETADA
 - ✅ Reactividad forzada con `triggerRef()`
 - ✅ Computed con filtros (estado, búsqueda)
 
-### ⏳ FASE 7.7: Notificaciones de Cambio de Estado (0% PENDIENTE)
-**Objetivo:** Notificar al postulante cuando el reclutador cambie el estado de su postulación
+### ✅ FASE 7.7 y 7.9: Sistema Completo de Notificaciones (100% COMPLETADA) - Diciembre 2024
+**App:** `G_Jobs.notifications`
+**Modelos:** `Notification`
+**Archivos:** `notifications/models.py`, `notifications/signals.py`, `notifications/views.py`, `notifications/apps.py`
+**Commits:** `7e12599`, `45e5929`, `cfa043b`
 
-#### Funcionalidad Requerida:
-- ⏳ **Backend: Sistema de Notificaciones**
-  - ⏳ Modelo `Notification` en Django con campos:
-    - `user` - Usuario destinatario
-    - `type` - Tipo (application_status_change, new_message, etc.)
-    - `title` - Título de la notificación
-    - `message` - Mensaje descriptivo
-    - `related_application` - FK a JobApplication
-    - `old_status` - Estado anterior
-    - `new_status` - Estado nuevo
-    - `is_read` - Boolean
-    - `created_at` - Timestamp
-  - ⏳ Signal en `JobApplication.save()` para crear notificación automática al cambiar estado
-  - ⏳ API endpoints:
-    - `GET /api/notifications/` - Listar notificaciones del usuario
-    - `PATCH /api/notifications/{id}/mark-read/` - Marcar como leída
-    - `DELETE /api/notifications/{id}/` - Eliminar notificación
+#### Backend Completado:
+- ✅ **Modelo `Notification` en Django**
+  - ✅ Campos: user, notification_type, title, message, metadata (JSON), link, is_read, created_at
+  - ✅ Tipos definidos: application_sent, new_application, payment_verified, payment_rejected, job_expiring_soon, saved_job_closed, password_changed
+  - ✅ Método estático `create_notification()` para creación estandarizada
+  - ✅ Ordenamiento por fecha descendente (más recientes primero)
 
-- ⏳ **Frontend: Dashboard Postulante**
-  - ⏳ Tab "Mensajes" en dashboard debe mostrar notificaciones
-  - ⏳ Contador de notificaciones no leídas en navbar
-  - ⏳ Badge rojo con número en ícono de mensajes
-  - ⏳ Listado de notificaciones con:
-    - Título y mensaje descriptivo
-    - Estado anterior → nuevo estado
-    - Nombre del trabajo
-    - Timestamp relativo
-    - Acción para marcar como leída
-  - ⏳ Polling o WebSocket para notificaciones en tiempo real
-  - ⏳ Sonido/vibración al recibir notificación nueva
+- ✅ **Signals Automáticos Implementados**
+  - ✅ `notify_new_application`: Empresa recibe notificación cuando llega nueva postulación
+  - ✅ `notify_application_sent`: Postulante confirmación de postulación enviada
+  - ✅ `notify_payment_status`: Empresa cuando pago es verificado/rechazado por admin
+  - ✅ `notify_saved_job_closed`: Postulantes cuando trabajo guardado es cerrado
+  - ✅ `notify_password_changed`: Usuario cuando contraseña es cambiada (seguridad)
+  - ✅ Signal `pre_save` en CustomUser y Job para capturar estado anterior
 
-#### Mensajes de Notificación por Estado:
-```
-submitted → reviewing:
-"Tu postulación a {job_title} está siendo revisada"
+- ✅ **Management Command para Cron**
+  - ✅ `notify_expiring_jobs.py`: Notifica a empresas 3 días antes de vencimiento
+  - ✅ Valida trabajos activos con pago verificado
+  - ✅ Evita notificaciones duplicadas (verifica si ya existe)
+  - ✅ Debe ejecutarse diariamente: `0 9 * * * python manage.py notify_expiring_jobs`
 
-reviewing → shortlisted:
-"¡Felicidades! Has sido preseleccionado para {job_title}"
+- ✅ **API Endpoints**
+  - ✅ `GET /api/notifications/` - Listar notificaciones del usuario autenticado
+  - ✅ `PATCH /api/notifications/{id}/mark-read/` - Marcar como leída
+  - ✅ `POST /api/notifications/mark-all-read/` - Marcar todas como leídas
+  - ✅ `DELETE /api/notifications/{id}/` - Eliminar notificación
+  - ✅ Filtrado automático por usuario autenticado
+  - ✅ Paginación y ordenamiento
 
-shortlisted → interviewed:
-"Has sido seleccionado para entrevista en {job_title}"
+#### Frontend Completado:
+- ✅ **Componente `NotificationsView.vue`**
+  - ✅ Vista integrada en dashboard (ruta `/dashboard/notifications`)
+  - ✅ Contador de notificaciones no leídas en navbar
+  - ✅ Badge numérico en ícono de campana
+  - ✅ Listado con scroll infinito
+  - ✅ Marcar individual como leída
+  - ✅ Botón "Marcar todas como leídas"
+  - ✅ Eliminar notificación individual
+  - ✅ Timestamps relativos (hace 5 minutos, hace 2 horas, etc.)
+  - ✅ Íconos personalizados por tipo de notificación
+  - ✅ Colores diferenciados por tipo
+  - ✅ Empty state cuando no hay notificaciones
+  - ✅ Animaciones suaves de entrada/salida
 
-interviewed → accepted:
-"¡Enhorabuena! Has sido aceptado para {job_title}"
+- ✅ **Integración con Dashboard**
+  - ✅ Link en navbar (campana con badge)
+  - ✅ Tab dedicado "Notificaciones" en MessagesView
+  - ✅ Actualización en tiempo real mediante polling (cada 30 segundos)
+  - ✅ Notificaciones se cargan automáticamente al montar componente
 
-* → rejected:
-"Lamentablemente tu postulación a {job_title} no ha sido seleccionada"
-```
+#### Tipos de Notificaciones Implementados:
+
+**Para Empresas (4/4):**
+1. ✅ `new_application` - Nueva postulación recibida
+2. ✅ `payment_verified` - Pago verificado exitosamente
+3. ✅ `payment_rejected` - Pago rechazado por administrador
+4. ✅ `job_expiring_soon` - Anuncio próximo a vencer (3 días)
+
+**Para Postulantes (3/3):**
+5. ✅ `application_sent` - Postulación enviada exitosamente
+6. ✅ `saved_job_closed` - Trabajo guardado fue cerrado
+7. ✅ `password_changed` - Contraseña cambiada (seguridad)
+
+#### Testing y Diagnóstico:
+- ✅ Script `test_notifications.py` - Crear notificaciones de prueba manualmente
+- ✅ Script `check_notifications.py` - Verificar estado del sistema de notificaciones
+- ✅ Logs de consola con prefijo `[NOTIFICATION]` para debug
+
+#### Correcciones Aplicadas:
+- ✅ Fix en `jobs/admin.py`: Acción "Rechazar pagos" ahora también cambia estado a 'pending'
+- ✅ Apps config con método `ready()` para cargar signals automáticamente
+
+#### Pendientes (Mejoras Futuras):
+- ⏳ **Mejorar apariencia de notificaciones** (UX/UI más atractivo)
+  - ⏳ Diseño más moderno y visual
+  - ⏳ Animaciones más fluidas
+  - ⏳ Agrupación de notificaciones por fecha
+  - ⏳ Vista previa expandible de notificaciones largas
+  - ⏳ Acciones rápidas (eliminar múltiples, filtrar por tipo)
+- ⏳ WebSockets para notificaciones en tiempo real (reemplazar polling)
+- ⏳ Sonido/vibración al recibir notificación
+- ⏳ Push notifications para móvil (PWA)
+- ⏳ Preferencias de notificaciones por usuario
 
 ### ⏳ FASE 7.5: Sistema de Mensajes (60% COMPLETADA)
 **Componente:** `MessagesView.vue`
