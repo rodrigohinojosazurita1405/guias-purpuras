@@ -322,6 +322,10 @@ JAZZMIN_SETTINGS = {
         "audit.AuditLog": "fas fa-history",
         "audit.AuditLogSummary": "fas fa-clipboard-check",
 
+        # ===== NOTIFICACIONES =====
+        "notifications": "fas fa-bell",
+        "notifications.Notification": "fas fa-envelope",
+
         # ===== POSTULANTES Y APLICACIONES =====
         "applicants": "fas fa-user-friends",
         "applicants.ApplicantProfile": "fas fa-id-card",

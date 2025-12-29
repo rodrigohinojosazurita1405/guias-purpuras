@@ -52,41 +52,70 @@ def notify_new_application(sender, instance, created, **kwargs):
         traceback.print_exc()
 
 
+# Signal pre_save propio para capturar el estado ANTES de guardar
+from django.db.models.signals import pre_save
+
+@receiver(pre_save, sender='jobs.Job')
+def capture_job_state_for_notifications(sender, instance, **kwargs):
+    """
+    Capturar estado anterior del Job ANTES de guardar
+    Este signal se ejecuta ANTES que el post_save
+    """
+    if instance.pk:
+        try:
+            old_instance = sender.objects.get(pk=instance.pk)
+            # Guardar en el atributo de la instancia (no en thread-local)
+            instance._old_payment_verified = old_instance.paymentVerified
+            instance._old_status = old_instance.status
+            print(f'[NOTIFICATION PRE_SAVE] Estado capturado: paymentVerified={old_instance.paymentVerified}')
+        except sender.DoesNotExist:
+            pass
+
+
 @receiver(post_save, sender='jobs.Job')
 def notify_payment_status(sender, instance, created, **kwargs):
     """
     Notificar a la empresa cuando su pago es verificado o rechazado
     """
+    print(f'[NOTIFICATION DEBUG] Signal notify_payment_status iniciado')
+    print(f'[NOTIFICATION DEBUG] Job: {instance.title}, created={created}')
+
     if created:
+        print(f'[NOTIFICATION DEBUG] Es creación, saltando...')
         return
 
     try:
         from auth_api.models import CustomUser
 
-        # Obtener cambios del estado anterior
-        from G_Jobs.audit.signals import _audit_state
-        old_instance = None
-        if hasattr(_audit_state, 'job_old_state') and instance.pk in _audit_state.job_old_state:
-            old_instance = _audit_state.job_old_state[instance.pk]
-
-        if not old_instance:
+        # Obtener estado anterior desde el atributo de la instancia
+        if not hasattr(instance, '_old_payment_verified'):
+            print(f'[NOTIFICATION DEBUG] No hay estado anterior capturado, saltando...')
             return
 
-        # Detectar cambio en paymentVerified
-        old_payment = old_instance.paymentVerified
+        old_payment = instance._old_payment_verified
         new_payment = instance.paymentVerified
 
+        print(f'[NOTIFICATION DEBUG] old_payment={old_payment}, new_payment={new_payment}')
+
         if old_payment == new_payment:
+            print(f'[NOTIFICATION DEBUG] No hay cambio en paymentVerified, saltando...')
             return
 
         # Obtener usuario de la empresa
+        print(f'[NOTIFICATION DEBUG] Buscando usuario de empresa con email={instance.email}')
         company_user = CustomUser.objects.filter(email=instance.email, role='company').first()
+
         if not company_user:
+            print(f'[NOTIFICATION DEBUG] No se encontró usuario de empresa!')
+            print(f'[NOTIFICATION DEBUG] Usuarios encontrados con ese email: {CustomUser.objects.filter(email=instance.email).values("email", "role")}')
             return
+
+        print(f'[NOTIFICATION DEBUG] Usuario encontrado: {company_user.email} (role={company_user.role})')
 
         # Notificación de pago verificado
         if new_payment is True and old_payment is False:
-            Notification.create_notification(
+            print(f'[NOTIFICATION DEBUG] Creando notificación de pago verificado...')
+            notif = Notification.create_notification(
                 user=company_user,
                 notification_type='payment_verified',
                 title='Pago verificado',
@@ -96,11 +125,12 @@ def notify_payment_status(sender, instance, created, **kwargs):
                     'job_title': instance.title
                 }
             )
-            print(f'[NOTIFICATION] Pago verificado para: {instance.title}')
+            print(f'[NOTIFICATION] Pago verificado para: {instance.title} - Notificacion ID: {notif.id}')
 
         # Notificación de pago rechazado
         elif new_payment is False and old_payment is True:
-            Notification.create_notification(
+            print(f'[NOTIFICATION DEBUG] Creando notificación de pago rechazado...')
+            notif = Notification.create_notification(
                 user=company_user,
                 notification_type='payment_rejected',
                 title='Pago rechazado',
@@ -110,7 +140,7 @@ def notify_payment_status(sender, instance, created, **kwargs):
                     'job_title': instance.title
                 }
             )
-            print(f'[NOTIFICATION] Pago rechazado para: {instance.title}')
+            print(f'[NOTIFICATION] Pago rechazado para: {instance.title} - Notificacion ID: {notif.id}')
 
     except Exception as e:
         print(f'[NOTIFICATION ERROR] Error al crear notificación de pago: {e}')
@@ -127,17 +157,12 @@ def notify_saved_job_closed(sender, instance, created, **kwargs):
         return
 
     try:
-        # Obtener cambios del estado anterior
-        from G_Jobs.audit.signals import _audit_state
-        old_instance = None
-        if hasattr(_audit_state, 'job_old_state') and instance.pk in _audit_state.job_old_state:
-            old_instance = _audit_state.job_old_state[instance.pk]
-
-        if not old_instance:
+        # Obtener estado anterior desde el atributo de la instancia
+        if not hasattr(instance, '_old_status'):
             return
 
         # Detectar si el trabajo cambió a cerrado
-        old_status = old_instance.status
+        old_status = instance._old_status
         new_status = instance.status
 
         if new_status != 'closed' or old_status == 'closed':

@@ -13,6 +13,9 @@ urlpatterns = [
     # Marcar todas como leídas
     path('mark-all-read/', views.mark_all_as_read, name='mark_all_as_read'),
 
+    # Descartar/ocultar notificación
+    path('<uuid:notification_id>/', views.dismiss_notification, name='dismiss_notification'),
+
     # Contador de no leídas
     path('unread-count/', views.get_unread_count, name='get_unread_count'),
 ]

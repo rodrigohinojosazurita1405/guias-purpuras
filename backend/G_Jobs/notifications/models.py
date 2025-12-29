@@ -81,6 +81,19 @@ class Notification(models.Model):
         verbose_name="Leída el"
     )
 
+    # Estado de descartada (oculta de la vista principal)
+    is_dismissed = models.BooleanField(
+        default=False,
+        verbose_name="Descartada"
+    )
+
+    # Fecha en que fue descartada
+    dismissed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Descartada el"
+    )
+
     # Fecha de creación
     created_at = models.DateTimeField(
         auto_now_add=True,
@@ -130,3 +143,15 @@ class Notification(models.Model):
             self.is_read = True
             self.read_at = timezone.now()
             self.save(update_fields=['is_read', 'read_at'])
+
+    def dismiss(self):
+        """Descartar/ocultar notificación de la vista principal"""
+        from django.utils import timezone
+        if not self.is_dismissed:
+            self.is_dismissed = True
+            self.dismissed_at = timezone.now()
+            # También marcarla como leída al descartarla
+            if not self.is_read:
+                self.is_read = True
+                self.read_at = timezone.now()
+            self.save(update_fields=['is_dismissed', 'dismissed_at', 'is_read', 'read_at'])

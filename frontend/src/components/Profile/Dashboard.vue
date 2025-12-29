@@ -196,9 +196,14 @@
               <va-icon name="expand_more" class="dropdown-arrow" :class="{ open: showMenu }" />
             </button>
             <div v-if="showMenu" class="dropdown-content">
-              <div class="dropdown-item" @click="goToAlerts; showMenu = false">
+              <div
+                class="dropdown-item"
+                :class="{ 'dropdown-item-alerts': unreadNotifications > 0 }"
+                @click="goToAlerts; showMenu = false"
+              >
                 <va-icon name="notifications" size="small" />
                 <span>Alertas</span>
+                <span v-if="unreadNotifications > 0" class="dropdown-badge">{{ unreadNotifications }}</span>
               </div>
 
               <div class="dropdown-item" @click="showChangePassword = true; showMenu = false">
@@ -796,6 +801,45 @@ const handleLogout = () => {
   color: #DC2626;
 }
 
+/* Badge para Alertas con notificaciones */
+.dropdown-item-alerts {
+  background: linear-gradient(90deg, #fef2f2 0%, #fee2e2 100%);
+  border-left: 3px solid #ef4444;
+  animation: pulse-alert 2s ease-in-out infinite;
+}
+
+.dropdown-item-alerts::before {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  transform: translateX(0);
+}
+
+.dropdown-item-alerts .va-icon {
+  color: #ef4444;
+}
+
+.dropdown-item-alerts span:first-of-type {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.dropdown-item-alerts:hover {
+  background: linear-gradient(90deg, #fee2e2 0%, #fecaca 100%);
+}
+
+.dropdown-item-alerts:hover .va-icon {
+  color: #dc2626;
+  transform: scale(1.15);
+}
+
+@keyframes pulse-alert {
+  0%, 100% {
+    box-shadow: inset 0 0 0 0 rgba(239, 68, 68, 0.1);
+  }
+  50% {
+    box-shadow: inset 0 0 15px 0 rgba(239, 68, 68, 0.2);
+  }
+}
+
 /* ========== MOBILE MENU TOGGLE ========== */
 .mobile-menu-toggle {
   display: none;
@@ -1007,5 +1051,39 @@ const handleLogout = () => {
   right: 1rem;
   top: 50%;
   transform: translateY(-50%);
+}
+
+/* Badge para dropdown de Alertas */
+.dropdown-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: auto;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0);
+  }
+}
+
+.dropdown-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 </style>
