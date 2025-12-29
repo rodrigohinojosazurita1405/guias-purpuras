@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report.period_label }} - Guías Púrpuras</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        /* Toolbar sticky */
+        .toolbar {
+            position: sticky;
+            top: 0;
+            background: #7c3aed;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .toolbar h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .toolbar-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #7c3aed;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Content */
+        .content {
+            padding: 3rem 2rem;
+        }
+
+        /* Header del reporte */
+        .report-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 3px solid #7c3aed;
+        }
+
+        .report-header h2 {
+            font-size: 2.5rem;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .report-header .subtitle {
+            font-size: 1.25rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .report-header .date {
+            color: #9ca3af;
+            font-size: 1rem;
+        }
+
+        /* Executive Summary */
+        .executive-summary {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .executive-summary h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        .metric-change {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        /* Insights */
+        .insights-section {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-left: 4px solid #7c3aed;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .insights-section h4 {
+            color: #5b21b6;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .insights-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .insights-section li {
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 8px;
+            color: #6b21a8;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .insights-section li::before {
+            content: "✓";
+            font-weight: bold;
+            color: #7c3aed;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .insights-section li.alert {
+            background: #fee2e2;
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .insights-section li.alert::before {
+            content: "⚠";
+            color: #dc2626;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+        }
+
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            border-bottom: 1px solid #e5e7eb;
+            color: #6b7280;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: #f9fafb;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .badge-purple {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        .badge-blue {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-green {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        /* Grids */
+        .two-column {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Info boxes */
+        .info-box {
+            background: #f9fafb;
+            border-left: 4px solid #7c3aed;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-box h4 {
+            font-size: 1.125rem;
+            color: #1f2937;
+            margin-bottom: 0.75rem;
+        }
+
+        .info-box .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #7c3aed;
+            display: block;
+            margin: 0.75rem 0;
+        }
+
+        .info-box p {
+            color: #6b7280;
+            margin: 0.25rem 0;
+        }
+
+        /* Comparison arrows */
+        .comparison-arrow {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .comparison-arrow.up {
+            color: #10b981;
+        }
+
+        .comparison-arrow.down {
+            color: #ef4444;
+        }
+
+        .comparison-arrow.neutral {
+            color: #6b7280;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+            }
+
+            .toolbar {
+                display: none !important;
+            }
+
+            .content {
+                padding: 1rem;
+            }
+
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Toolbar con botones -->
+        <div class="toolbar">
+            <h1>{{ report.period_label }}</h1>
+            <div class="toolbar-buttons">
+                <button class="btn btn-primary" onclick="window.print()">
+                    Imprimir / Guardar PDF
+                </button>
+                <a href="{% url 'reports:download' report.id %}" class="btn btn-secondary">
+                    Descargar HTML
+                </a>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Header -->
+            <div class="report-header">
+                <h2>GUÍAS PÚRPURAS</h2>
+                <div class="subtitle">REPORTE {{ report.get_report_type_display|upper }}</div>
+                <div class="date">
+                    {{ metrics.period.start }} - {{ metrics.period.end }}
+                </div>
+            </div>
+
+            {% include 'reports/report_content.html' %}
+        </div>
+    </div>
+</body>
+</html>

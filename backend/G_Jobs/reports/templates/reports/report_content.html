@@ -1,0 +1,229 @@
+<!-- Executive Summary -->
+<div class="executive-summary">
+    <h3>RESUMEN EJECUTIVO</h3>
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-label">Ingresos del Período</div>
+            <div class="metric-value">{{ metrics.revenue.total|floatformat:2 }} Bs</div>
+            {% if metrics.comparison.revenue.direction == 'up' %}
+                <div class="metric-change">↑ +{{ metrics.comparison.revenue.percent }}% vs período anterior</div>
+            {% elif metrics.comparison.revenue.direction == 'down' %}
+                <div class="metric-change">↓ -{{ metrics.comparison.revenue.percent }}% vs período anterior</div>
+            {% else %}
+                <div class="metric-change">→ Sin cambios</div>
+            {% endif %}
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">Planes Vendidos</div>
+            <div class="metric-value">{{ metrics.plans.total_sold }}</div>
+            {% if metrics.comparison.plans.direction == 'up' %}
+                <div class="metric-change">↑ +{{ metrics.comparison.plans.percent }}%</div>
+            {% elif metrics.comparison.plans.direction == 'down' %}
+                <div class="metric-change">↓ -{{ metrics.comparison.plans.percent }}%</div>
+            {% else %}
+                <div class="metric-change">→ Sin cambios</div>
+            {% endif %}
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">Nuevos Usuarios</div>
+            <div class="metric-value">{{ metrics.users.new_total }}</div>
+            <div class="metric-change">{{ metrics.users.new_companies }} empresas • {{ metrics.users.new_applicants }} postulantes</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">Nuevas Publicaciones</div>
+            <div class="metric-value">{{ metrics.jobs.new }}</div>
+            <div class="metric-change">{{ metrics.applications.total }} aplicaciones recibidas</div>
+        </div>
+    </div>
+</div>
+
+<!-- Insights -->
+{% if metrics.insights %}
+<div class="insights-section">
+    <h4>INSIGHTS CLAVE</h4>
+    <ul>
+        {% for insight in metrics.insights %}
+            <li {% if 'ALERTA' in insight %}class="alert"{% endif %}>{{ insight }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- Ingresos Detallados -->
+<div class="section">
+    <h3 class="section-title">Ingresos Detallados</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Concepto</th>
+                <th style="text-align: right;">Cantidad</th>
+                <th style="text-align: right;">Monto (Bs)</th>
+                <th style="text-align: right;">% del Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="badge badge-blue">Plan Estándar</span></td>
+                <td style="text-align: right;">{{ metrics.plans.by_type.estandar }}</td>
+                <td style="text-align: right;">{{ metrics.revenue.by_plan.estandar|floatformat:2 }}</td>
+                <td style="text-align: right;">{{ metrics.plans.distribution.estandar|default:0 }}%</td>
+            </tr>
+            <tr>
+                <td><span class="badge badge-purple">Plan Púrpura</span></td>
+                <td style="text-align: right;">{{ metrics.plans.by_type.purpura }}</td>
+                <td style="text-align: right;">{{ metrics.revenue.by_plan.purpura|floatformat:2 }}</td>
+                <td style="text-align: right;">{{ metrics.plans.distribution.purpura|default:0 }}%</td>
+            </tr>
+            <tr>
+                <td><span class="badge badge-green">Plan Impulso</span></td>
+                <td style="text-align: right;">{{ metrics.plans.by_type.impulso }}</td>
+                <td style="text-align: right;">{{ metrics.revenue.by_plan.impulso|floatformat:2 }}</td>
+                <td style="text-align: right;">{{ metrics.plans.distribution.impulso|default:0 }}%</td>
+            </tr>
+            <tr style="font-weight: 700; background: #f9fafb;">
+                <td>TOTAL</td>
+                <td style="text-align: right;">{{ metrics.plans.total_sold }}</td>
+                <td style="text-align: right; color: #10b981;">{{ metrics.revenue.total|floatformat:2 }}</td>
+                <td style="text-align: right;">100%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="info-box">
+        <h4>Ticket Promedio</h4>
+        <span class="value">{{ metrics.revenue.average_ticket|floatformat:2 }} Bs</span>
+        <p>Ingreso promedio por plan vendido</p>
+    </div>
+</div>
+
+<!-- Usuarios -->
+<div class="section">
+    <h3 class="section-title">Usuarios y Empresas</h3>
+
+    <div class="two-column">
+        <div class="info-box">
+            <h4>Nuevos Usuarios</h4>
+            <span class="value">{{ metrics.users.new_total }}</span>
+            <p>{{ metrics.users.new_companies }} empresas</p>
+            <p>{{ metrics.users.new_applicants }} postulantes</p>
+        </div>
+
+        <div class="info-box">
+            <h4>Total Acumulado</h4>
+            <span class="value">{{ metrics.users.total_accumulated }}</span>
+            <p>{{ metrics.users.total_companies }} empresas</p>
+            <p>{{ metrics.users.total_applicants }} postulantes</p>
+        </div>
+    </div>
+</div>
+
+<!-- Trabajos -->
+<div class="section">
+    <h3 class="section-title">Ofertas de Trabajo</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Métrica</th>
+                <th style="text-align: right;">Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Nuevas publicaciones</td>
+                <td style="text-align: right; font-weight: 700; color: #10b981;">{{ metrics.jobs.new }}</td>
+            </tr>
+            <tr>
+                <td>Trabajos cerrados en el período</td>
+                <td style="text-align: right;">{{ metrics.jobs.closed_in_period }}</td>
+            </tr>
+            <tr>
+                <td>Trabajos activos (total)</td>
+                <td style="text-align: right;">{{ metrics.jobs.active }}</td>
+            </tr>
+            <tr>
+                <td>Aplicaciones recibidas</td>
+                <td style="text-align: right; font-weight: 700; color: #7c3aed;">{{ metrics.applications.total }}</td>
+            </tr>
+            {% if metrics.applications.total > 0 %}
+            <tr>
+                <td>Promedio por publicación</td>
+                <td style="text-align: right;">{{ metrics.applications.average_per_job }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Comparación -->
+<div class="section">
+    <h3 class="section-title">Comparación con Período Anterior</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Métrica</th>
+                <th style="text-align: right;">Cambio</th>
+                <th style="text-align: center;">Tendencia</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Ingresos</td>
+                <td style="text-align: right;">
+                    {% if metrics.comparison.revenue.direction == 'up' %}+{% elif metrics.comparison.revenue.direction == 'down' %}-{% endif %}{{ metrics.comparison.revenue.percent }}%
+                </td>
+                <td style="text-align: center;">
+                    <span class="comparison-arrow {{ metrics.comparison.revenue.direction }}">
+                        {% if metrics.comparison.revenue.direction == 'up' %}↑ ARRIBA
+                        {% elif metrics.comparison.revenue.direction == 'down' %}↓ ABAJO
+                        {% else %}→ ESTABLE{% endif %}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td>Planes vendidos</td>
+                <td style="text-align: right;">
+                    {% if metrics.comparison.plans.direction == 'up' %}+{% elif metrics.comparison.plans.direction == 'down' %}-{% endif %}{{ metrics.comparison.plans.percent }}%
+                </td>
+                <td style="text-align: center;">
+                    <span class="comparison-arrow {{ metrics.comparison.plans.direction }}">
+                        {% if metrics.comparison.plans.direction == 'up' %}↑ ARRIBA
+                        {% elif metrics.comparison.plans.direction == 'down' %}↓ ABAJO
+                        {% else %}→ ESTABLE{% endif %}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td>Nuevos usuarios</td>
+                <td style="text-align: right;">
+                    {% if metrics.comparison.users.direction == 'up' %}+{% elif metrics.comparison.users.direction == 'down' %}-{% endif %}{{ metrics.comparison.users.percent }}%
+                </td>
+                <td style="text-align: center;">
+                    <span class="comparison-arrow {{ metrics.comparison.users.direction }}">
+                        {% if metrics.comparison.users.direction == 'up' %}↑ ARRIBA
+                        {% elif metrics.comparison.users.direction == 'down' %}↓ ABAJO
+                        {% else %}→ ESTABLE{% endif %}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td>Nuevas publicaciones</td>
+                <td style="text-align: right;">
+                    {% if metrics.comparison.jobs.direction == 'up' %}+{% elif metrics.comparison.jobs.direction == 'down' %}-{% endif %}{{ metrics.comparison.jobs.percent }}%
+                </td>
+                <td style="text-align: center;">
+                    <span class="comparison-arrow {{ metrics.comparison.jobs.direction }}">
+                        {% if metrics.comparison.jobs.direction == 'up' %}↑ ARRIBA
+                        {% elif metrics.comparison.jobs.direction == 'down' %}↓ ABAJO
+                        {% else %}→ ESTABLE{% endif %}
+                    </span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

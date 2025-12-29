@@ -1,0 +1,38 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static %}
+
+{% block object-tools %}
+    {% if show_generate_buttons %}
+    <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+        <div style="display: flex; gap: 10px; flex: 1;">
+            <a href="{% url 'admin:reports_generate_daily' %}"
+               class="button"
+               style="background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                Reporte Diario
+            </a>
+            <a href="{% url 'admin:reports_generate_weekly' %}"
+               class="button"
+               style="background: #10b981; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                Semanal (Lun-Dom)
+            </a>
+            <a href="{% url 'admin:reports_generate_last7days' %}"
+               class="button"
+               style="background: #f59e0b; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                Últimos 7 Días
+            </a>
+            <a href="{% url 'admin:reports_generate_monthly' %}"
+               class="button"
+               style="background: #7c3aed; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                Reporte Mensual
+            </a>
+        </div>
+        <a href="{% url 'admin:reports_cleanup' %}"
+           class="button"
+           onclick="return confirm('Esto eliminara reportes generados hace mas de 30 dias. Continuar?')"
+           style="background: #dc2626; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-left: auto;">
+            Limpiar Antiguos
+        </a>
+    </div>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}
