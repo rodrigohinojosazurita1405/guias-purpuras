@@ -119,12 +119,13 @@
         </router-link>
 
         <router-link
-          to="/dashboard/messages"
+          to="/dashboard/notifications"
           class="menu-item"
-          :class="{ active: activeSection === 'messages' }"
+          :class="{ active: activeSection === 'notifications' }"
         >
-          <va-icon name="mail" />
-          <span>Mensajes</span>
+          <va-icon name="notifications" />
+          <span>Notificaciones</span>
+          <span v-if="unreadNotifications > 0" class="notification-badge">{{ unreadNotifications }}</span>
         </router-link>
 
         <!-- Bloqueados: Solo para empresas -->
@@ -284,6 +285,7 @@ const { init: notify } = useToast()
 const showChangePassword = ref(false)
 const showMenu = ref(false)
 const sidebarOpen = ref(false)
+const unreadNotifications = ref(0)
 const passwordForm = ref({
   current: '',
   new: '',
@@ -294,6 +296,17 @@ const passwordForm = ref({
 onMounted(() => {
   // Cerrar dropdown al hacer clic fuera
   document.addEventListener('click', handleClickOutside)
+
+  // Cargar contador de notificaciones no leídas
+  fetchUnreadCount()
+
+  // Actualizar contador cada 30 segundos
+  const intervalId = setInterval(fetchUnreadCount, 30000)
+
+  // Limpiar intervalo al desmontar
+  onUnmounted(() => {
+    clearInterval(intervalId)
+  })
 })
 
 onUnmounted(() => {
@@ -320,6 +333,26 @@ const goToAlerts = () => {
   // REMOVED: Ya no modificamos activeSection directamente (es prop del padre)
   // El router.push() hará que DashboardView actualice activeSection
   router.push('/dashboard/notifications')
+}
+
+const fetchUnreadCount = async () => {
+  try {
+    const response = await fetch('/api/notifications/unread-count/', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      unreadNotifications.value = data.count || 0
+    }
+  } catch (error) {
+    console.error('Error al obtener contador de notificaciones:', error)
+  }
 }
 
 const handleChangePassword = async () => {
@@ -946,5 +979,33 @@ const handleLogout = () => {
 :deep(.va-modal__dialog .va-modal__footer .va-button:first-child:active) {
   transform: translateY(0) !important;
   box-shadow: 0 1px 4px rgba(16, 185, 129, 0.25) !important;
+}
+
+/* Badge de notificaciones no leídas */
+.notification-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: auto;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.menu-item {
+  position: relative;
+}
+
+.menu-item .notification-badge {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
 }
 </style>

@@ -5,7 +5,7 @@
       <div class="header-section">
         <h2 class="step-title">Elige tu Plan</h2>
         <p class="step-description">
-          Selecciona el plan que mejor se adapte a tus necesidades de publicación
+          Selecciona el plan que mejor se adapte a tus necesidades de oferta laboral.
         </p>
       </div>
 

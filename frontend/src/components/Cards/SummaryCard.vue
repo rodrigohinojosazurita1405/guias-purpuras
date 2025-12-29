@@ -2098,7 +2098,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
 .info-value-compact {
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 500;
   color: #1F2937;
   line-height: 1.35;
   word-break: break-word;

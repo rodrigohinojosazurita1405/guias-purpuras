@@ -62,9 +62,9 @@
         <BlockedUsersList :user-profile-id="userProfileId" />
       </div>
 
-      <!-- Messages Section -->
-      <div v-else-if="activeSection === 'messages'" class="dashboard-section">
-        <MessagesView :user-profile-id="userProfileId" />
+      <!-- Notifications Section -->
+      <div v-else-if="activeSection === 'notifications'" class="dashboard-section">
+        <NotificationsView />
       </div>
 
       <!-- Activity Log Section -->
@@ -95,7 +95,7 @@ import MisOrdenes from '@/components/Dashboard/MisOrdenes.vue'
 import CandidatesView from '@/components/Dashboard/CandidatesView.vue'
 import BlockedUsersList from '@/components/Dashboard/BlockedUsersList.vue'
 import ActivityLog from '@/components/Dashboard/ActivityLog.vue'
-import MessagesView from '@/components/Dashboard/MessagesView.vue'
+import NotificationsView from '@/components/Dashboard/NotificationsView.vue'
 import CVManager from '@/components/Dashboard/CVManager.vue'
 import ApplicationsView from '@/components/Dashboard/ApplicationsView.vue'
 import ShortlistedView from '@/components/Dashboard/ShortlistedView.vue'

@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'G_Jobs.reports',  # Sistema de reportes diarios
     'G_Jobs.audit',  # Sistema de auditoría
     'G_Jobs.applicants',  # Sistema de postulantes y aplicaciones
+    'G_Jobs.notifications',  # Sistema de notificaciones
 ]
 
 MIDDLEWARE = [

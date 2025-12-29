@@ -166,12 +166,12 @@ const routes = [
     }
   },
   {
-    path: '/dashboard/messages',
-    name: 'DashboardMessages',
+    path: '/dashboard/notifications',
+    name: 'DashboardNotifications',
     component: () => import('@/views/DashboardView.vue'),
-    props: { tab: 'messages' },
+    props: { tab: 'notifications' },
     meta: {
-      title: 'Mensajes - Guías Púrpuras',
+      title: 'Notificaciones - Guías Púrpuras',
       requiresAuth: true
     }
   },
