@@ -73,9 +73,10 @@
             </button>
             <button
               class="save-btn"
-              :class="{ saved: isJobSaved }"
+              :class="{ saved: isJobSaved, 'disabled-save': isDeadlineClosed }"
               @click="toggleSaveJob"
-              :title="isJobSaved ? 'Guardado' : 'Guardar trabajo'"
+              :disabled="isDeadlineClosed"
+              :title="isDeadlineClosed ? 'No se puede guardar (cerrado)' : (isJobSaved ? 'Guardado' : 'Guardar trabajo')"
             >
               <va-icon :name="isJobSaved ? 'bookmark' : 'bookmark_border'" size="small" />
             </button>
@@ -185,19 +186,50 @@
           <h2 class="section-title">Cómo postular</h2>
 
           <template v-if="listing.applicationType === 'external'">
-            <p class="application-note">Esta empresa recibe postulaciones en su propio enlace externo.</p>
-            <a :href="listing.externalApplicationUrl" target="_blank" class="btn-external">
+            <p class="application-note">
+              {{ isDeadlineClosed ? 'Esta convocatoria ha cerrado. Ya no es posible postular.' : 'Esta empresa recibe postulaciones en su propio enlace externo.' }}
+            </p>
+            <a
+              v-if="!isDeadlineClosed"
+              :href="listing.externalApplicationUrl"
+              target="_blank"
+              class="btn-external"
+            >
               <va-icon name="open_in_new" size="small" />
               Ir al enlace de la empresa
             </a>
+            <button
+              v-else
+              class="btn-external disabled-external-link"
+              disabled
+              title="Convocatoria cerrada"
+            >
+              <va-icon name="block" size="small" />
+              Enlace deshabilitado (cerrado)
+            </button>
           </template>
 
           <template v-if="listing.applicationType === 'email'">
-            <p class="application-note">Envía tu CV al siguiente correo:</p>
-            <a :href="`mailto:${listing.email}?subject=Postulación - ${listing.title}`" class="email-link">
+            <p class="application-note">
+              {{ isDeadlineClosed ? 'Esta convocatoria ha cerrado. Ya no es posible postular.' : 'Envía tu CV al siguiente correo:' }}
+            </p>
+            <a
+              v-if="!isDeadlineClosed"
+              :href="`mailto:${listing.email}?subject=Postulación - ${listing.title}`"
+              class="email-link"
+            >
               <va-icon name="email" size="small" />
               {{ listing.email }}
             </a>
+            <button
+              v-else
+              class="email-link disabled-external-link"
+              disabled
+              title="Convocatoria cerrada"
+            >
+              <va-icon name="block" size="small" />
+              Email deshabilitado (cerrado)
+            </button>
           </template>
         </section>
       </div>
@@ -1129,6 +1161,21 @@ export default {
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
 }
 
+/* Botón de guardar deshabilitado cuando el trabajo está cerrado */
+.save-btn.disabled-save {
+  opacity: 0.4;
+  cursor: not-allowed !important;
+  background: #9CA3AF !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+
+.save-btn.disabled-save:hover {
+  transform: none !important;
+  background: #9CA3AF !important;
+  box-shadow: none !important;
+}
+
 .share-btn {
   background: linear-gradient(135deg, #7c3aed, #6d28d9);
   border: none;
@@ -1427,6 +1474,22 @@ export default {
 
 .email-link:hover {
   text-decoration: underline;
+}
+
+/* Botón/Link deshabilitado para aplicaciones externas cerradas */
+.disabled-external-link {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  background: #F3F4F6 !important;
+  color: #9CA3AF !important;
+  border-color: #D1D5DB !important;
+  pointer-events: none;
+}
+
+.disabled-external-link:hover {
+  background: #F3F4F6 !important;
+  color: #9CA3AF !important;
+  transform: none !important;
 }
 
 /* Sistema de Tabs */
