@@ -461,3 +461,12 @@ else:
 # Email para desarrollo local (siempre se configura)
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@guiaspurpuras.com')
 
+# ============================================================================
+# APSCHEDULER - Tareas Programadas (Compatible con Windows/Linux)
+# ============================================================================
+
+# La configuración de APScheduler se hace en notifications/apps.py
+# Aquí solo documentamos las tareas programadas:
+# - Limpieza de notificaciones descartadas: Cada día a las 3:00 AM
+#   Elimina notificaciones archivadas de más de 30 días
+

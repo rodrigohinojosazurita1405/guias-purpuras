@@ -201,13 +201,13 @@ const filterType = ref(null)
 
 // Opciones de tipos de notificaciones
 const notificationTypes = [
-  { value: 'new_application', text: '📩 Nueva aplicación' },
-  { value: 'payment_verified', text: '✅ Pago verificado' },
-  { value: 'payment_rejected', text: '❌ Pago rechazado' },
-  { value: 'job_expiring_soon', text: '⏰ Anuncio por vencer' },
-  { value: 'application_sent', text: '📤 Aplicación enviada' },
-  { value: 'saved_job_closed', text: '🔒 Trabajo cerrado' },
-  { value: 'password_changed', text: '🔐 Contraseña cambiada' }
+  { value: 'new_application', text: 'Nueva aplicación' },
+  { value: 'payment_verified', text: 'Pago verificado' },
+  { value: 'payment_rejected', text: 'Pago rechazado' },
+  { value: 'job_expiring_soon', text: 'Anuncio por vencer' },
+  { value: 'application_sent', text: 'Aplicación enviada' },
+  { value: 'saved_job_closed', text: 'Trabajo cerrado' },
+  { value: 'password_changed', text: 'Contraseña cambiada' }
 ]
 
 // Cargar notificaciones
