@@ -623,17 +623,18 @@ class JobAdmin(admin.ModelAdmin):
     verify_payment_action.short_description = '✓ VERIFICAR pagos y ACTIVAR anuncios'
 
     def reject_payment_action(self, request, queryset):
-        """Acción: Rechazar pago"""
+        """Acción: Rechazar pago y cambiar estado a pendiente"""
         updated = 0
         for job in queryset:
             job.paymentVerified = False
             job.paymentVerifiedBy = None
             job.paymentVerificationDate = None
+            job.status = 'pending'  # Cambiar estado a pendiente
             job._audit_user = request.user
             job._audit_request = request
             job.save()
             updated += 1
-        self.message_user(request, f'✗ {updated} pago(s) RECHAZADO(s)', messages.WARNING)
+        self.message_user(request, f'✗ {updated} pago(s) RECHAZADO(s) y anuncio(s) cambiado(s) a PENDIENTE', messages.WARNING)
     reject_payment_action.short_description = '✗ RECHAZAR pagos seleccionados'
 
     def soft_delete_jobs(self, request, queryset):
