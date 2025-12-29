@@ -118,6 +118,57 @@ def notify_payment_status(sender, instance, created, **kwargs):
         traceback.print_exc()
 
 
+@receiver(post_save, sender='jobs.Job')
+def notify_saved_job_closed(sender, instance, created, **kwargs):
+    """
+    Notificar a postulantes cuando un trabajo que guardaron es cerrado
+    """
+    if created:
+        return
+
+    try:
+        # Obtener cambios del estado anterior
+        from G_Jobs.audit.signals import _audit_state
+        old_instance = None
+        if hasattr(_audit_state, 'job_old_state') and instance.pk in _audit_state.job_old_state:
+            old_instance = _audit_state.job_old_state[instance.pk]
+
+        if not old_instance:
+            return
+
+        # Detectar si el trabajo cambió a cerrado
+        old_status = old_instance.status
+        new_status = instance.status
+
+        if new_status != 'closed' or old_status == 'closed':
+            return
+
+        # Obtener todos los usuarios que guardaron este trabajo
+        from G_Jobs.applicants.models import SavedJob
+
+        saved_jobs = SavedJob.objects.filter(job=instance).select_related('user')
+
+        for saved_job in saved_jobs:
+            Notification.create_notification(
+                user=saved_job.user,
+                notification_type='saved_job_closed',
+                title='Trabajo guardado cerrado',
+                message=f'El trabajo "{instance.title}" que guardaste ha sido cerrado',
+                metadata={
+                    'job_id': str(instance.id),
+                    'job_title': instance.title
+                }
+            )
+
+        if saved_jobs.exists():
+            print(f'[NOTIFICATION] Trabajo cerrado notificado a {saved_jobs.count()} usuarios: {instance.title}')
+
+    except Exception as e:
+        print(f'[NOTIFICATION ERROR] Error al crear notificación de trabajo cerrado: {e}')
+        import traceback
+        traceback.print_exc()
+
+
 # ========== NOTIFICACIONES PARA POSTULANTES ==========
 
 @receiver(post_save, sender='applicants.JobApplication')
@@ -149,3 +200,70 @@ def notify_application_sent(sender, instance, created, **kwargs):
         print(f'[NOTIFICATION ERROR] Error al crear notificación de postulación enviada: {e}')
         import traceback
         traceback.print_exc()
+
+
+# ========== NOTIFICACIONES DE SEGURIDAD ==========
+
+@receiver(post_save, sender='auth_api.CustomUser')
+def notify_password_changed(sender, instance, created, **kwargs):
+    """
+    Notificar al usuario cuando su contraseña es cambiada
+    """
+    if created:
+        return
+
+    try:
+        # Obtener cambios del estado anterior
+        from G_Jobs.audit.signals import _audit_state
+        old_instance = None
+
+        # Buscar en el thread-local storage
+        if hasattr(_audit_state, 'customuser_old_state') and instance.pk in _audit_state.customuser_old_state:
+            old_instance = _audit_state.customuser_old_state[instance.pk]
+
+        if not old_instance:
+            return
+
+        # Detectar cambio en password
+        old_password = old_instance.password
+        new_password = instance.password
+
+        if old_password == new_password:
+            return
+
+        # Crear notificación de seguridad
+        Notification.create_notification(
+            user=instance,
+            notification_type='password_changed',
+            title='Contraseña cambiada',
+            message='Tu contraseña ha sido cambiada exitosamente. Si no realizaste este cambio, contacta con soporte inmediatamente.',
+            metadata={
+                'user_email': instance.email,
+                'timestamp': instance.updated_at.isoformat() if hasattr(instance, 'updated_at') else None
+            }
+        )
+
+        print(f'[NOTIFICATION] Contraseña cambiada para: {instance.email}')
+
+    except Exception as e:
+        print(f'[NOTIFICATION ERROR] Error al crear notificación de cambio de contraseña: {e}')
+        import traceback
+        traceback.print_exc()
+
+
+# Signal pre_save para capturar estado anterior del usuario
+from django.db.models.signals import pre_save
+
+@receiver(pre_save, sender='auth_api.CustomUser')
+def customuser_pre_save(sender, instance, **kwargs):
+    """Capturar estado anterior del CustomUser antes de guardar"""
+    if instance.pk:
+        try:
+            old_instance = sender.objects.get(pk=instance.pk)
+            # Guardar estado anterior en thread-local
+            from G_Jobs.audit.signals import _audit_state
+            if not hasattr(_audit_state, 'customuser_old_state'):
+                _audit_state.customuser_old_state = {}
+            _audit_state.customuser_old_state[instance.pk] = old_instance
+        except sender.DoesNotExist:
+            pass
