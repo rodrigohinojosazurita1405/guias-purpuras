@@ -609,3 +609,114 @@ def reset_password(request):
             'success': False,
             'message': f'Error: {str(e)}'
         }, status=500)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def change_password(request):
+    """
+    Endpoint para cambiar contraseña de usuario autenticado
+    POST /api/auth/change-password
+
+    Body:
+    {
+        "current_password": "currentpass123",
+        "new_password": "newpass123",
+        "confirm_password": "newpass123"
+    }
+    """
+    try:
+        # Verificar autenticación mediante JWT
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return JsonResponse({
+                'success': False,
+                'message': 'Token de autenticación no proporcionado'
+            }, status=401)
+
+        token = auth_header.split(' ')[1]
+
+        try:
+            from rest_framework_simplejwt.tokens import AccessToken
+            access_token = AccessToken(token)
+            user_id = access_token['user_id']
+            user = CustomUser.objects.get(id=user_id)
+        except (InvalidToken, TokenError):
+            return JsonResponse({
+                'success': False,
+                'message': 'Token inválido o expirado'
+            }, status=401)
+        except CustomUser.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Usuario no encontrado'
+            }, status=404)
+
+        data = json.loads(request.body)
+
+        # Validaciones
+        current_password = data.get('current_password', '').strip()
+        new_password = data.get('new_password', '').strip()
+        confirm_password = data.get('confirm_password', '').strip()
+
+        if not current_password:
+            return JsonResponse({
+                'success': False,
+                'message': 'Contraseña actual es requerida'
+            }, status=400)
+
+        if not new_password:
+            return JsonResponse({
+                'success': False,
+                'message': 'Nueva contraseña es requerida'
+            }, status=400)
+
+        if len(new_password) < 6:
+            return JsonResponse({
+                'success': False,
+                'message': 'La nueva contraseña debe tener al menos 6 caracteres'
+            }, status=400)
+
+        if new_password != confirm_password:
+            return JsonResponse({
+                'success': False,
+                'message': 'Las contraseñas no coinciden'
+            }, status=400)
+
+        # Verificar que la contraseña actual sea correcta
+        if not user.check_password(current_password):
+            return JsonResponse({
+                'success': False,
+                'message': 'La contraseña actual es incorrecta'
+            }, status=400)
+
+        # Verificar que la nueva contraseña sea diferente
+        if current_password == new_password:
+            return JsonResponse({
+                'success': False,
+                'message': 'La nueva contraseña debe ser diferente a la actual'
+            }, status=400)
+
+        # Cambiar la contraseña
+        user.set_password(new_password)
+        user.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Contraseña cambiada exitosamente'
+        }, status=200)
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Error: formato JSON inválido'
+        }, status=400)
+
+    except Exception as e:
+        print(f'Error en change-password: {str(e)}')
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }, status=500)

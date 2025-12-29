@@ -130,15 +130,15 @@
       <div class="actions-grid">
         <button class="action-btn" @click="goToPublish">
           <va-icon name="add_circle" />
-          <span>Nueva Publicación</span>
+          <span>Publicar Nuevo Anuncio </span>
         </button>
         <button class="action-btn" @click="goToSection('jobs_manager')">
           <va-icon name="folder" />
-          <span>Ver Publicaciones</span>
+          <span>Ver Anuncios creados</span>
         </button>
         <button class="action-btn" @click="goToSection('candidates')">
           <va-icon name="people" />
-          <span>Ver Interacciones</span>
+          <span>Ver Postulaciones</span>
         </button>
         <button class="action-btn" @click="goToSection('profile')">
           <va-icon name="person" />

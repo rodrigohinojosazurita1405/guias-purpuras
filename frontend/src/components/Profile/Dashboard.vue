@@ -221,16 +221,45 @@
     <va-modal
       v-model="showChangePassword"
       title="Cambiar Contraseña"
+      size="small"
+      :before-ok="handleChangePassword"
       ok-text="Cambiar"
       cancel-text="Cancelar"
     >
-      <p>Funcionalidad disponible próximamente</p>
+      <div class="password-form">
+        <div class="password-field">
+          <va-input
+            v-model="passwordForm.current"
+            type="password"
+            label="Contraseña Actual"
+            placeholder="Ingresa tu contraseña actual"
+          />
+        </div>
+
+        <div class="password-field">
+          <va-input
+            v-model="passwordForm.new"
+            type="password"
+            label="Nueva Contraseña"
+            placeholder="Mínimo 6 caracteres"
+          />
+        </div>
+
+        <div class="password-field">
+          <va-input
+            v-model="passwordForm.confirm"
+            type="password"
+            label="Confirmar Nueva Contraseña"
+            placeholder="Repite la nueva contraseña"
+          />
+        </div>
+      </div>
     </va-modal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -255,25 +284,137 @@ const { init: notify } = useToast()
 const showChangePassword = ref(false)
 const showMenu = ref(false)
 const sidebarOpen = ref(false)
+const passwordForm = ref({
+  current: '',
+  new: '',
+  confirm: ''
+})
 
 // ========== LIFECYCLE ==========
-// REMOVED: updateActiveSection ya no es necesario porque activeSection viene del prop
-// onMounted(() => {
-//   updateActiveSection()
-// })
+onMounted(() => {
+  // Cerrar dropdown al hacer clic fuera
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  // Cleanup: remover event listener
+  document.removeEventListener('click', handleClickOutside)
+})
 
 watch(() => route.path, () => {
   // REMOVED: updateActiveSection() - el activeSection se maneja en DashboardView.vue
   sidebarOpen.value = false // Cerrar sidebar al cambiar de ruta
+  showChangePassword.value = false // Cerrar modal de cambiar contraseña al navegar
+  showMenu.value = false // Cerrar menú dropdown
 })
 
 // ========== METHODS ==========
-// REMOVED: updateActiveSection() - ahora activeSection es un prop controlado por el padre
+const handleClickOutside = (event) => {
+  const dropdown = event.target.closest('.dropdown-wrapper')
+  if (!dropdown && showMenu.value) {
+    showMenu.value = false
+  }
+}
 
 const goToAlerts = () => {
   // REMOVED: Ya no modificamos activeSection directamente (es prop del padre)
   // El router.push() hará que DashboardView actualice activeSection
   router.push('/dashboard/notifications')
+}
+
+const handleChangePassword = async () => {
+  try {
+    // Validaciones en el frontend
+    if (!passwordForm.value.current) {
+      notify({
+        message: 'Ingresa tu contraseña actual',
+        color: 'warning',
+        duration: 3000
+      })
+      return false
+    }
+
+    if (!passwordForm.value.new) {
+      notify({
+        message: 'Ingresa una nueva contraseña',
+        color: 'warning',
+        duration: 3000
+      })
+      return false
+    }
+
+    if (passwordForm.value.new.length < 6) {
+      notify({
+        message: 'La nueva contraseña debe tener al menos 6 caracteres',
+        color: 'warning',
+        duration: 3000
+      })
+      return false
+    }
+
+    if (passwordForm.value.new !== passwordForm.value.confirm) {
+      notify({
+        message: 'Las contraseñas no coinciden',
+        color: 'warning',
+        duration: 3000
+      })
+      return false
+    }
+
+    // Llamar al endpoint
+    const response = await fetch('http://localhost:8000/api/auth/change-password', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        current_password: passwordForm.value.current,
+        new_password: passwordForm.value.new,
+        confirm_password: passwordForm.value.confirm
+      })
+    })
+
+    const data = await response.json()
+
+    if (response.ok && data.success) {
+      // Limpiar el formulario
+      passwordForm.value = {
+        current: '',
+        new: '',
+        confirm: ''
+      }
+
+      // Cerrar el modal primero
+      showChangePassword.value = false
+
+      // Mostrar mensaje de éxito después de cerrar
+      setTimeout(() => {
+        notify({
+          message: 'Contraseña cambiada exitosamente',
+          color: 'success',
+          duration: 3000
+        })
+      }, 300)
+
+      return true
+    } else {
+      notify({
+        message: data.message || 'Error al cambiar la contraseña',
+        color: 'danger',
+        duration: 4000
+      })
+      return false // Mantener el modal abierto
+    }
+  } catch (error) {
+    console.error('Error changing password:', error)
+    notify({
+      message: 'Error al cambiar la contraseña. Intenta nuevamente.',
+      color: 'danger',
+      duration: 4000
+    })
+    return false
+  }
 }
 
 const handleLogout = () => {
@@ -562,11 +703,25 @@ const handleLogout = () => {
   gap: 0.75rem;
   padding: 0.875rem 1rem;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.3s ease;
   color: #1F2937;
   font-size: 0.9rem;
   font-weight: 500;
   border-bottom: 1px solid #F3F4F6;
+  position: relative;
+  overflow: hidden;
+}
+
+.dropdown-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background: linear-gradient(135deg, #9333EA 0%, #7C3AED 100%);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
 }
 
 .dropdown-item:last-child {
@@ -574,15 +729,38 @@ const handleLogout = () => {
 }
 
 .dropdown-item:hover {
-  background: #F3F4F6;
+  background: #F9FAFB;
+  padding-left: 1.25rem;
+}
+
+.dropdown-item:hover::before {
+  transform: translateX(0);
+}
+
+.dropdown-item:hover .va-icon {
+  color: #9333EA;
+  transform: scale(1.1);
+}
+
+.dropdown-item .va-icon {
+  transition: all 0.3s ease;
 }
 
 .dropdown-item-logout {
   color: #DC2626;
 }
 
+.dropdown-item-logout::before {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+}
+
 .dropdown-item-logout:hover {
-  background: #FEE2E2;
+  background: #FEF2F2;
+  color: #B91C1C;
+}
+
+.dropdown-item-logout:hover .va-icon {
+  color: #DC2626;
 }
 
 /* ========== MOBILE MENU TOGGLE ========== */
@@ -714,5 +892,59 @@ const handleLogout = () => {
     width: 100%;
     min-width: auto;
   }
+}
+
+/* Estilos para el formulario de cambio de contraseña */
+.password-form {
+  padding: 0.5rem 0 1rem 0;
+}
+
+.password-field {
+  margin-bottom: 2rem !important;
+}
+
+.password-field:last-child {
+  margin-bottom: 1rem !important;
+}
+
+/* Darle más espacio a los labels */
+.password-field :deep(.va-input__label) {
+  margin-bottom: 0.75rem !important;
+  font-weight: 500 !important;
+  color: #374151 !important;
+}
+
+/* Más altura al input */
+.password-field :deep(.va-input-wrapper__field) {
+  padding: 0.75rem !important;
+  font-size: 0.95rem !important;
+}
+
+/* Estilo personalizado para los botones del modal */
+:deep(.va-modal__dialog .va-modal__footer .va-button) {
+  padding: 0.4rem 1.25rem !important;
+  font-weight: 500 !important;
+  border-radius: 6px !important;
+  transition: all 0.3s ease !important;
+  font-size: 0.9rem !important;
+  line-height: 1.4 !important;
+}
+
+:deep(.va-modal__dialog .va-modal__footer .va-button:first-child) {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25) !important;
+  color: white !important;
+}
+
+:deep(.va-modal__dialog .va-modal__footer .va-button:first-child:hover) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35) !important;
+  transform: translateY(-1px) !important;
+}
+
+:deep(.va-modal__dialog .va-modal__footer .va-button:first-child:active) {
+  transform: translateY(0) !important;
+  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.25) !important;
 }
 </style>
