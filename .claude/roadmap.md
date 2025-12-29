@@ -434,9 +434,11 @@ FASE 11.1: Mejoras UX/UI Admin + Frontend  ✅ 100% COMPLETADA
 - ⏳ Push notifications para móvil (PWA)
 - ⏳ Preferencias de notificaciones por usuario
 
-### ⏳ FASE 7.5: Sistema de Mensajes (60% COMPLETADA)
+### ⏳ FASE 7.5: Sistema de Mensajes (60% COMPLETADA) - ❌ NO INCLUIDO EN MVP
 **Componente:** `MessagesView.vue`
-**Estado:** Interfaz frontend completa, backend pendiente
+**Estado:** Interfaz frontend completa, backend NO se hará para MVP
+**Decisión:** Sistema de chat interno se pospone para después del MVP
+
 - ✅ Tab de Notificaciones
   - ✅ Lista de notificaciones con tipos (postulaciones, pagos, vencimientos)
   - ✅ Contador de no leídas
@@ -449,17 +451,34 @@ FASE 11.1: Mejoras UX/UI Admin + Frontend  ✅ 100% COMPLETADA
   - ✅ Botón email directo
   - ✅ Botón WhatsApp directo
   - ✅ Contexto de interacción
-- ⏳ **PENDIENTE: Backend**
-  - ⏳ Integrar con sistema de notificaciones (FASE 7.7)
-  - ⏳ Sistema de chat interno completo (inbox)
-  - ⏳ WebSockets o polling para tiempo real
-  - ⏳ Modelo `Conversation` y `Message`
+
+**Backend de mensajería NO se implementará en MVP:**
+- ❌ Sistema de chat interno completo (inbox) - POST-MVP
+- ❌ WebSockets o polling para tiempo real - POST-MVP
+- ❌ Modelo `Conversation` y `Message` - POST-MVP
 
 ---
 
-## 🎯 PRÓXIMAS PRIORIDADES
+## 🎯 PRÓXIMAS PRIORIDADES PARA MVP
 
-### 1. **✅ FASE 7.9: Mejoras Dashboard Reclutador - CandidatesView** (COMPLETADA)
+### 1. **Mejorar Apariencia de Notificaciones** (ALTA PRIORIDAD)
+**Descripción:** Rediseño visual del componente NotificationsView.vue para mejor UX/UI
+
+**Mejoras a implementar:**
+- ⏳ Diseño más moderno y visual (gradientes, sombras, espaciado)
+- ⏳ Agrupación de notificaciones por fecha (Hoy, Ayer, Esta semana, Anterior)
+- ⏳ Animaciones más fluidas (transiciones de entrada/salida)
+- ⏳ Acciones rápidas (eliminar múltiples notificaciones)
+- ⏳ Filtrar por tipo de notificación (dropdown con opciones)
+- ⏳ Iconos más grandes y destacados
+- ⏳ Mejor jerarquía visual (títulos, mensajes, timestamps)
+
+**Archivos a modificar:**
+- `frontend/src/components/Dashboard/NotificationsView.vue`
+
+---
+
+### 2. **✅ FASE 7.9: Mejoras Dashboard Reclutador - CandidatesView** (COMPLETADA)
 **Descripción:** Funcionalidades críticas para gestión eficiente de candidatos con alto volumen de solicitudes
 
 **Contexto:**
@@ -498,14 +517,14 @@ FASE 11.1: Mejoras UX/UI Admin + Frontend  ✅ 100% COMPLETADA
    - ✅ Notificaciones de progreso para descargas múltiples
    - ✅ Delay entre descargas para evitar bloqueo
 
-#### **⏳ FASE 3 - PENDIENTE**
-4. ⏳ **Filtros Avanzados** 🔍
+#### **⏳ FASE 3 - PENDIENTE (POST-MVP)**
+4. ⏳ **Filtros Avanzados** 🔍 - POST-MVP
    - ⏳ Filtrar por fecha de aplicación (última semana, último mes, etc.)
    - ⏳ Filtrar por años de experiencia (si se captura en CV)
    - ⏳ Filtrar por ubicación/ciudad
    - ⏳ Filtro combinado (múltiples criterios simultáneos)
 
-5. ⏳ **Comunicación Directa con Templates** 💬
+5. ⏳ **Comunicación Directa con Templates** 💬 - POST-MVP
    - ⏳ Botón "Enviar Email" en cada candidato
    - ⏳ Modal con editor de email
    - ⏳ Templates predefinidos (gracias, rechazo, invitación, info)
@@ -513,21 +532,11 @@ FASE 11.1: Mejoras UX/UI Admin + Frontend  ✅ 100% COMPLETADA
    - ⏳ Registro de emails enviados en notas
 
 **Estado:** 3 de 5 funcionalidades completadas (las más críticas) 🎉
+**Nota:** FASE 3 se pospone para después del MVP
 
 ---
 
-### 2. **FASE 7.7: Sistema de Notificaciones de Estado** (ALTA PRIORIDAD)
-**Descripción:** Notificar automáticamente al postulante cuando el reclutador cambie el estado de su postulación
-
-**Tareas Pendientes:**
-- ⏳ Crear modelo `Notification` en Django
-- ⏳ Implementar signals para crear notificaciones automáticamente
-- ⏳ Crear endpoints API de notificaciones
-- ⏳ Integrar notificaciones en dashboard postulante (tab Mensajes)
-- ⏳ Contador de notificaciones no leídas en navbar
-- ⏳ Sistema de polling o WebSocket para tiempo real
-
-### 2. **FASE 7.8: Gestión de CVs en Dashboard Postulante** (🔴 CRÍTICO - EN PROGRESO 85%)
+### 3. **FASE 7.8: Gestión de CVs en Dashboard Postulante** (🔴 CRÍTICO - EN PROGRESO 85%)
 **Descripción:** Permitir crear, editar, eliminar y gestionar CVs desde el dashboard del postulante
 
 **Tareas Completadas:**
