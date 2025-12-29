@@ -68,6 +68,7 @@ class AuditLog(models.Model):
         ('duplicate', 'Duplicado'),
         ('view', 'Visualizado'),
         ('export', 'Exportado'),
+        ('block_attempt', 'Intento de Aplicación Bloqueado'),
         ('other', 'Otra Acción'),
     ]
 

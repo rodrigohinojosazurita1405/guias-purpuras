@@ -357,6 +357,56 @@ def delete_cv(request, cv_id):
 
 @csrf_exempt
 @require_authentication
+@require_http_methods(["GET"])
+def check_if_blocked(request, job_id):
+    """
+    Verificar si el usuario actual está bloqueado por la empresa del trabajo
+
+    GET /api/jobs/<job_id>/check-blocked/
+
+    Returns:
+    {
+        "blocked": bool,
+        "message": str (si está bloqueado)
+    }
+    """
+    try:
+        # Verificar que el trabajo existe
+        job = get_object_or_404(Job, id=job_id)
+
+        # Obtener el usuario de la empresa que publicó el trabajo
+        from auth_api.models import CustomUser
+        try:
+            company_user = CustomUser.objects.get(email=job.email, role='company')
+        except CustomUser.DoesNotExist:
+            return JsonResponse({
+                'blocked': False
+            }, status=200)
+
+        # Verificar si el usuario está bloqueado
+        block = BlockedUser.objects.filter(
+            company=company_user,
+            blocked_user=request.user
+        ).first()
+
+        if block:
+            return JsonResponse({
+                'blocked': True,
+                'message': 'No puedes postularte a empleos de esta empresa en este momento.'
+            }, status=200)
+
+        return JsonResponse({
+            'blocked': False
+        }, status=200)
+
+    except Exception as e:
+        print(f'[ERROR] check_if_blocked: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
 @require_http_methods(["POST"])
 def apply_to_job(request, job_id):
     """
@@ -375,28 +425,40 @@ def apply_to_job(request, job_id):
         # Verificar que el trabajo existe y está activo
         job = get_object_or_404(Job, id=job_id, status='active')
 
+        # Obtener el usuario de la empresa que publicó el trabajo
+        from auth_api.models import CustomUser
+        try:
+            company_user = CustomUser.objects.get(email=job.email, role='company')
+        except CustomUser.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'No se pudo verificar la empresa publicadora.'
+            }, status=400)
+
         # Verificar si el usuario está bloqueado por esta empresa
         block = BlockedUser.objects.filter(
-            company=job.company,
+            company=company_user,
             blocked_user=request.user
         ).first()
 
         if block:
             # Registrar intento de aplicación bloqueado
             from G_Jobs.audit.models import AuditLog
-            AuditLog.objects.create(
-                user=job.company,
+            AuditLog.log_action(
+                user=company_user,
+                obj=job,
                 action='block_attempt',
-                model_name='JobApplication',
-                severity='warning',
-                details={
+                changes={
                     'blocked_user_email': request.user.email,
-                    'blocked_user_id': request.user.id,
+                    'blocked_user_id': str(request.user.id),
                     'job_id': str(job.id),
                     'job_title': job.title,
-                    'block_reason': block.reason,
-                    'message': 'Usuario bloqueado intentó postularse'
-                }
+                    'block_reason': block.get_reason_display(),
+                    'block_notes': block.notes or ''
+                },
+                description=f"Usuario bloqueado {request.user.email} intentó postularse a '{job.title}'",
+                severity='warning',
+                request=request
             )
 
             return JsonResponse({

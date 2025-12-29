@@ -359,11 +359,11 @@ const goToSection = (section) => {
 
 const goToPublish = () => {
   // Para empresa: ir a publicar anuncio
-  // Para postulante: ir a buscar trabajos (GuideView)
+  // Para postulante: ir a buscar trabajos
   if (authStore.user?.role === 'company') {
     router.push('/publicar')
   } else {
-    router.push('/guideview')
+    router.push('/guias/trabajos')
   }
 }
 </script>

@@ -492,6 +492,12 @@ export default {
         return
       }
 
+      // Verificar si el usuario está bloqueado por la empresa
+      const isBlocked = await this.checkIfBlocked()
+      if (isBlocked) {
+        return // El método checkIfBlocked ya muestra el toast
+      }
+
       // Proceder según el tipo de aplicación
       if (this.listing.applicationType === 'internal') {
         // Verificar si ya se postuló antes de abrir el modal
@@ -511,6 +517,40 @@ export default {
         window.open(this.listing.externalApplicationUrl, '_blank')
       } else if (this.listing.applicationType === 'email') {
         window.location.href = `mailto:${this.listing.email}?subject=Postulación - ${this.listing.title}`
+      }
+    },
+
+    async checkIfBlocked() {
+      try {
+        const response = await fetch(`/api/jobs/${this.listing.id}/check-blocked/`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${this.authStore.accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+
+          if (data.blocked) {
+            this.$vaToast.init({
+              message: data.message || 'No puedes postularte a empleos de esta empresa en este momento.',
+              color: 'danger',
+              duration: 5000,
+              position: 'top-right'
+            })
+            return true
+          }
+
+          return false
+        }
+
+        return false
+      } catch (error) {
+        console.error('Error checking if blocked:', error)
+        return false
       }
     },
 

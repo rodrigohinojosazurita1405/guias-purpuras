@@ -12,6 +12,7 @@ urlpatterns = [
     path('cvs/<uuid:cv_id>/delete/', views.delete_cv, name='delete_cv'),
 
     # ========== Postulaciones Endpoints ==========
+    path('jobs/<str:job_id>/check-blocked/', views.check_if_blocked, name='check_if_blocked'),
     path('apply/<str:job_id>/', views.apply_to_job, name='apply_to_job'),
     path('applications/', views.get_user_applications, name='get_user_applications'),
     path('applications/<uuid:application_id>/', views.get_application_detail, name='get_application_detail'),

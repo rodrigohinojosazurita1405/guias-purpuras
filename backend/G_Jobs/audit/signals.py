@@ -126,11 +126,30 @@ def audit_job_save(sender, instance, created, **kwargs):
     # Detectar si es una eliminación lógica (soft delete)
     is_soft_delete = 'isDeleted' in changes and changes['isDeleted']['new'] == 'True'
 
-    # Determinar acción
+    # Detectar verificación de pago
+    is_payment_verified = 'paymentVerified' in changes and changes['paymentVerified']['new'] == 'True'
+    is_payment_rejected = 'paymentVerified' in changes and changes['paymentVerified']['new'] == 'False'
+
+    # Determinar acción basada en cambios de status o tipo de operación
     if created:
         action = 'create'
     elif is_soft_delete:
         action = 'soft_delete'  # Acción especial para eliminación lógica
+    elif is_payment_verified:
+        action = 'verify_payment'  # Prioridad: verificación de pago
+    elif is_payment_rejected:
+        action = 'reject_payment'  # Prioridad: rechazo de pago
+    elif 'status' in changes:
+        # Mapear cambios de status a acciones específicas
+        new_status = changes['status']['new']
+        if new_status == 'paused':
+            action = 'pause'
+        elif new_status == 'active':
+            action = 'activate'
+        elif new_status == 'closed':
+            action = 'close'
+        else:
+            action = 'update'
     else:
         action = 'update'
 
@@ -167,6 +186,16 @@ def audit_job_save(sender, instance, created, **kwargs):
         description = f"Job '{instance.title}' fue creado"
     elif is_soft_delete:
         description = f"Job '{instance.title}' fue eliminado (soft delete)"
+    elif action == 'verify_payment':
+        description = f"Pago verificado para job '{instance.title}'"
+    elif action == 'reject_payment':
+        description = f"Pago rechazado para job '{instance.title}'"
+    elif action == 'pause':
+        description = f"Job '{instance.title}' fue pausado"
+    elif action == 'activate':
+        description = f"Job '{instance.title}' fue activado"
+    elif action == 'close':
+        description = f"Job '{instance.title}' fue cerrado"
     else:
         description = f"Job '{instance.title}' fue actualizado"
 

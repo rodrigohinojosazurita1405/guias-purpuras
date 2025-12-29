@@ -167,7 +167,21 @@
             <span>Publicar Nuevo Anuncio</span>
           </router-link>
 
-          <router-link to="/" class="navbar-btn navbar-btn-secondary">
+          <!-- Botón diferente según el rol del usuario -->
+          <router-link
+            v-if="authStore.user?.role === 'applicant'"
+            to="/guias/trabajos"
+            class="navbar-btn navbar-btn-secondary"
+          >
+            <va-icon name="work" />
+            <span>Buscar Trabajos</span>
+          </router-link>
+
+          <router-link
+            v-else
+            to="/"
+            class="navbar-btn navbar-btn-secondary"
+          >
             <va-icon name="home" />
             <span>Volver a Inicio</span>
           </router-link>

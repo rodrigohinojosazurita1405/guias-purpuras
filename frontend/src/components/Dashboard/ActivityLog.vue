@@ -49,19 +49,21 @@
         <va-select
           v-model="actionFilter"
           :options="actionOptions"
+          text-by="text"
+          value-by="value"
           placeholder="Filtrar por acción"
           clearable
           class="filter-select"
-          @update:modelValue="loadLogs"
         />
 
         <va-select
           v-model="severityFilter"
           :options="severityOptions"
+          text-by="text"
+          value-by="value"
           placeholder="Filtrar por severidad"
           clearable
           class="filter-select"
-          @update:modelValue="loadLogs"
         />
       </div>
     </div>
@@ -150,7 +152,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useToast } from 'vuestic-ui'
 import { useAuthStore } from '@/stores/useAuthStore'
 
@@ -178,6 +180,7 @@ const actionOptions = [
   { text: 'Activado', value: 'activate' },
   { text: 'Cerrado', value: 'close' },
   { text: 'Pago Verificado', value: 'verify_payment' },
+  { text: 'Intento de Aplicación Bloqueado', value: 'block_attempt' },
   { text: 'Visualizado', value: 'view' },
   { text: 'Exportado', value: 'export' }
 ]
@@ -313,6 +316,7 @@ const getActionIcon = (action) => {
     'close': 'close',
     'verify_payment': 'check_circle',
     'reject_payment': 'cancel',
+    'block_attempt': 'block',
     'view': 'visibility',
     'export': 'download'
   }
@@ -340,6 +344,12 @@ const formatTimestamp = (isoString) => {
     minute: '2-digit'
   })
 }
+
+// ========== WATCHERS ==========
+// Recargar logs cuando cambian los filtros
+watch([actionFilter, severityFilter], () => {
+  loadLogs(true)
+})
 </script>
 
 <style scoped>
