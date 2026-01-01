@@ -28,9 +28,9 @@ def notify_new_application(sender, instance, created, **kwargs):
             return
 
         # Obtener nombre del postulante
-        applicant_name = f"{instance.user.first_name} {instance.user.last_name}".strip()
+        applicant_name = f"{instance.applicant.first_name} {instance.applicant.last_name}".strip()
         if not applicant_name:
-            applicant_name = instance.user.email
+            applicant_name = instance.applicant.email
 
         Notification.create_notification(
             user=company_user,
@@ -40,7 +40,7 @@ def notify_new_application(sender, instance, created, **kwargs):
             metadata={
                 'job_id': str(job.id),
                 'application_id': str(instance.id),
-                'applicant_email': instance.user.email
+                'applicant_email': instance.applicant.email
             }
         )
 
@@ -208,7 +208,7 @@ def notify_application_sent(sender, instance, created, **kwargs):
         job = instance.job
 
         Notification.create_notification(
-            user=instance.user,
+            user=instance.applicant,
             notification_type='application_sent',
             title='Postulación enviada exitosamente',
             message=f'Te has postulado exitosamente a "{job.title}"',
@@ -219,7 +219,7 @@ def notify_application_sent(sender, instance, created, **kwargs):
             }
         )
 
-        print(f'[NOTIFICATION] Postulación enviada: {instance.user.email} -> {job.title}')
+        print(f'[NOTIFICATION] Postulación enviada: {instance.applicant.email} -> {job.title}')
 
     except Exception as e:
         print(f'[NOTIFICATION ERROR] Error al crear notificación de postulación enviada: {e}')

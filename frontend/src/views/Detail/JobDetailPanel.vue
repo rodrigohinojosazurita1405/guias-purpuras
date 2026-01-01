@@ -190,7 +190,7 @@
               {{ isDeadlineClosed ? 'Esta convocatoria ha cerrado. Ya no es posible postular.' : 'Esta empresa recibe postulaciones en su propio enlace externo.' }}
             </p>
             <a
-              v-if="!isDeadlineClosed"
+              v-if="!isDeadlineClosed && listing.externalApplicationUrl"
               :href="listing.externalApplicationUrl"
               target="_blank"
               class="btn-external"
@@ -198,6 +198,9 @@
               <va-icon name="open_in_new" size="small" />
               Ir al enlace de la empresa
             </a>
+            <p v-else-if="!isDeadlineClosed && !listing.externalApplicationUrl" class="application-error">
+              Lo sentimos, esta oferta no tiene un enlace de postulación configurado. Por favor contacta directamente a la empresa.
+            </p>
             <button
               v-else
               class="btn-external disabled-external-link"
@@ -546,6 +549,16 @@ export default {
 
         this.showApplicationModal = true
       } else if (this.listing.applicationType === 'external') {
+        // Validar que exista la URL externa
+        if (!this.listing.externalApplicationUrl || this.listing.externalApplicationUrl.trim() === '') {
+          this.$vaToast.init({
+            message: 'Esta oferta no tiene configurado un enlace de postulación. Contacta directamente a la empresa.',
+            color: 'danger',
+            duration: 5000,
+            position: 'top-right'
+          })
+          return
+        }
         window.open(this.listing.externalApplicationUrl, '_blank')
       } else if (this.listing.applicationType === 'email') {
         window.location.href = `mailto:${this.listing.email}?subject=Postulación - ${this.listing.title}`
@@ -933,7 +946,7 @@ export default {
           this.isJobSaved = data.is_saved || false
         } else if (response.status === 401) {
           // Token podría haber expirado, intentar refrescar
-          await this.authStore.refreshTokens()
+          await this.authStore.refreshAccessToken()
         }
       } catch (error) {
         console.error('Error checking if job is saved:', error)
