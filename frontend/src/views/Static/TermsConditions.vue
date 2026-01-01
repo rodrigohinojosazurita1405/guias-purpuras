@@ -234,7 +234,7 @@
           La plataforma Guías Púrpuras puede ofrecer servicios gratuitos y servicios de pago (planes premium, 
           publicaciones destacadas, funcionalidades adicionales, etc.). Las tarifas, características y 
           condiciones de cada servicio estarán claramente especificadas en la plataforma al momento de la 
-          contratación.
+          contratación en el apartado Planes.
         </p>
         <p>
           Guías Púrpuras se reserva el derecho de modificar las tarifas y condiciones de los servicios de 

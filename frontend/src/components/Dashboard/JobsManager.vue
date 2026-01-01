@@ -1874,8 +1874,8 @@ const activateJob = async () => {
   font-weight: 600;
   color: #64748B;
   margin-right: 0.3rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
   font-family: 'Source Sans Pro', sans-serif;
 }
 
@@ -2439,11 +2439,19 @@ const activateJob = async () => {
   }
 
   .stat-item {
+    font-size: 0.8rem;
+  }
+
+  .stat-label {
     font-size: 0.75rem;
   }
 
   .stat-date {
-    font-size: 0.65rem;
+    font-size: 0.85rem;
+  }
+
+  .stat-text {
+    font-size: 0.85rem;
   }
 
   .job-actions {

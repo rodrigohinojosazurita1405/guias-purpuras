@@ -407,6 +407,8 @@ def check_if_blocked(request, job_id):
         }, status=500)
 
 
+@require_authentication
+@csrf_exempt
 @require_http_methods(["POST"])
 def apply_to_job(request, job_id):
     """

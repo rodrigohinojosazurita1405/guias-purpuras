@@ -198,7 +198,7 @@
         <label class="form-label">Nombre de la Empresa *</label>
         <va-input
           v-model="formData.companyName"
-          placeholder="Tech Solutions Bolivia"
+          placeholder="Ej: Constructora Andina S.R.L., Restaurante El Buen Sabor, Farmacia San Pedro"
           class="form-input"
           required
         />
@@ -210,7 +210,7 @@
         <va-input
           v-model="formData.email"
           type="email"
-          placeholder="contact@company.com"
+          placeholder="correo@miempresa.com"
           class="form-input"
           disabled
           required
@@ -224,7 +224,7 @@
         <va-input
           v-model="formData.contactEmail"
           type="email"
-          placeholder="contacto@empresa.com"
+          placeholder="Ej: rrhh@miempresa.com, info@miempresa.com, contacto@miempresa.com"
           class="form-input"
         />
         <p class="field-hint">Este email será visible para los candidatos que deseen contactarte</p>
@@ -235,7 +235,7 @@
         <label class="form-label">Teléfono</label>
         <va-input
           v-model="formData.phone"
-          placeholder="+591..."
+          placeholder="Ej: +591 2 2345678, +591 70123456, 4-4567890"
           type="tel"
           class="form-input"
         />
@@ -246,7 +246,7 @@
         <label class="form-label">Sitio Web</label>
         <va-input
           v-model="formData.website"
-          placeholder="https://company.com"
+          placeholder="Ej: https://www.miempresa.com, https://miempresa.com.bo"
           type="url"
           class="form-input"
         />
@@ -257,7 +257,7 @@
         <label class="form-label">Dirección</label>
         <va-input
           v-model="formData.location"
-          placeholder="Av. Mariscal Santa Cruz 1234"
+          placeholder="Ej: Av. Ballivián #1234, Calle Sucre esq. Bolivar, Zona Sur, Achumani"
           class="form-input"
         />
       </div>
@@ -268,6 +268,7 @@
         <va-select
           v-model="formData.city"
           :options="cities"
+          placeholder="Selecciona tu ciudad"
           class="form-input"
         />
       </div>
@@ -277,7 +278,7 @@
         <label class="form-label">Descripción</label>
         <va-textarea
           v-model="formData.description"
-          placeholder="Cuéntanos sobre tu empresa..."
+          placeholder="Describe tu empresa: qué servicios o productos ofreces, cuál es tu misión, años de experiencia, áreas de especialización, etc. Ej: 'Somos una empresa constructora con 15 años de experiencia en proyectos residenciales y comerciales...'"
           rows="4"
           class="form-textarea"
         />
@@ -310,30 +311,30 @@
             <label class="form-label">NIT *</label>
             <va-input
               v-model="formData.nit"
-              placeholder="1234567890"
+              placeholder="Ej: 1234567890, 123456789-0, 1234567-01-5"
               class="form-input"
             />
-            <p class="field-hint">Número de Identificación Tributaria</p>
+            <p class="field-hint">Número de Identificación Tributaria registrado en Impuestos Nacionales</p>
           </div>
 
           <div class="form-group">
             <label class="form-label">Razón Social *</label>
             <va-input
               v-model="formData.legalName"
-              placeholder="EMPRESA S.R.L."
+              placeholder="Ej: CONSTRUCTORA ANDINA S.R.L., SEMAPA - SERVICIO MUNICIPAL DE AGUA POTABLE"
               class="form-input"
             />
-            <p class="field-hint">Nombre legal registrado</p>
+            <p class="field-hint">Nombre legal completo tal como aparece en tu registro tributario</p>
           </div>
 
           <div class="form-group full-width">
             <label class="form-label">Código SEPREC (Opcional)</label>
             <va-input
               v-model="formData.seprecCode"
-              placeholder="00-123456-7-8"
+              placeholder="Ej: 00-005678-9-0, 01-123456-7-8 (Matrícula de Comercio FUNDEMPRESA)"
               class="form-input"
             />
-            <p class="field-hint">Matrícula de Comercio - FUNDEMPRESA</p>
+            <p class="field-hint">Matrícula de Comercio de FUNDEMPRESA - Ayuda a acelerar el proceso de verificación</p>
           </div>
         </div>
 
@@ -869,7 +870,7 @@ const clearBannerPreview = async () => {
 .company-form {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 /* ========== TABS STYLES ========== */
@@ -965,6 +966,7 @@ const clearBannerPreview = async () => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-label {

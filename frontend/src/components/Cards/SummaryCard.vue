@@ -665,7 +665,7 @@
                       <!-- Columna 2: Comprobante -->
                       <div class="payment-proof-column">
                         <div class="proof-card-compact">
-                          <div class="proof-label">Sube tu comprobante</div>
+                          <div class="proof-label">Sube tu comprobante aquí para verificar el pago</div>
 
                           <!-- Zona de carga -->
                           <div v-if="!proofOfPaymentPreview" class="proof-upload-zone-compact">
@@ -707,7 +707,9 @@
                     <!-- Aviso -->
                     <div class="payment-notice-compact">
                       <va-icon name="info" size="x-small" />
-                      <span>Escanea el QR, realiza el pago y sube el comprobante</span>
+                      <span>Escanea el QR, realiza el pago y sube el comprobante, el equipo de Guías Purpuras Bolivia
+                        verificará el pago antes de aprobar el anuncio, caso contrario el anuncio no será aprobado.
+                      </span>
                     </div>
 
                     <!-- Información de Contacto para Ayuda -->
@@ -720,7 +722,7 @@
                         <p class="support-text">
                           Contáctanos por
                           <a href="https://wa.me/59165324767" target="_blank" class="support-link">
-                            WhatsApp: 6532-4767
+                            WhatsApp: +591 63356311
                           </a>
                           o envía el comprobante a
                           <a href="mailto:info@guiaspurpuras.com.bo" class="support-link">
@@ -874,9 +876,9 @@
                     <div class="billing-alert">
                       <va-icon name="warning" size="small" color="warning" />
                       <div class="alert-content">
-                        <strong>Importante:</strong> Guías Púrpuras Bolivia no se hará responsable por errores tipograficos o númericos en los datos de facturación ingresados por el usuario (Razón Social, NIT/CI, Complemento, Email, Celular).
-                        el, usuario tiene la obligación deverificar que todos los datos sean correctos antes de publicar el anuncio, ya que estos se utilizarán para la emisión de facturas electrónicas según el SIN. Una vez ingresado todos los datos y verificado el pago
-                        por nuestro equipo, le enviaremos su factura digital al medio solicitado por el usuario en un plazo máximo de 24 horas desde la aprobación del anuncio.
+                        <strong>Importante:</strong> Guías Púrpuras Bolivia no se hará responsable por errores tipográficos o númericos en los datos de facturación ingresados por el usuario (Razón Social, NIT/CI, Complemento, Email, Celular).
+                        El usuario tiene la obligación y responsabilidad de verificar que todos los datos ingresados sean correctos antes de publicar el anuncio, nuestro sistema utilizará los datos ingresados por el usuario para la emisión de su factura electrónica según el normativa del SIN Bolivia. 
+                        Una vez ingresado todos los datos y realizado el pago del anuncio, este será verificado aprobado y/o rechazado por nuestro equipo, le enviaremos su factura digital al medio solicitado por el usuario en un plazo máximo de 24 horas desde la aprobación del anuncio.
                       </div>
                     </div>
                   </div>
@@ -2750,7 +2752,6 @@ watch(() => props.formData.coordinates, (newCoords) => {
   padding: 1rem;
   background: #EEF2FF;
   border-radius: 8px;
-  border-left: 3px solid #7C3AED;
   color: #3730A3;
   font-size: 0.85rem;
   line-height: 1.5;
@@ -3794,7 +3795,7 @@ watch(() => props.formData.coordinates, (newCoords) => {
   padding: 1.25rem;
   background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
   border-radius: 12px;
-  border: 2px solid #C7D2FE;
+  border: 1px solid #BFE7FF;
   margin: 1rem 0;
 }
 

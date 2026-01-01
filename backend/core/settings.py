@@ -309,7 +309,7 @@ JAZZMIN_SETTINGS = {
         "plans.Plan": "fas fa-crown",
 
         # ===== REPORTES =====
-        "reports": "fas fa-chart-bar",
+        "reports": "fas fa-bookmark",
         "reports.DailyReport": "fas fa-calendar-day",
 
         # ===== PERFILES =====

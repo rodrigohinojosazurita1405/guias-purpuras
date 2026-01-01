@@ -36,7 +36,7 @@
         <div class="header-text">
           <h2 class="step-title">Configuración de Aplicación Laboral</h2>
           <p class="step-description">
-            Elige cómo los candidatos aplicarán a esta oferta
+            Elige cómo los candidatos aplicarán a esta oferta laboral
           </p>
         </div>
       </div>
@@ -65,7 +65,7 @@
                 label=""
                 @update:model-value="updateData('applicationType', 'internal')"
               />
-              <h4>Interna</h4>
+              <h4>Postulación Interna</h4>
             </div>
             <p class="option-description">
               Los candidatos aplican directamente en Guías Púrpuras
@@ -99,7 +99,7 @@
                 label=""
                 @update:model-value="updateData('applicationType', 'external')"
               />
-              <h4>Externa</h4>
+              <h4>PostulaciónExterna</h4>
             </div>
             <p class="option-description">
               Los candidatos aplican en tu sitio o plataforma externa
@@ -268,7 +268,7 @@
             id="external-url"
             :value="modelValue.externalApplicationUrl"
             type="url"
-            placeholder="https://forms.google.com/... o https://ejemplo.com/aplicar"
+            placeholder="https://forms.google.com/, https://e-talent.jobs/ , https://www.evaluar.com/ ..... "
             class="form-input"
             @input="updateData('externalApplicationUrl', $event.target.value)"
           />
@@ -288,7 +288,7 @@
             class="form-input"
             @input="updateData('email', $event.target.value)"
           />
-          <small class="form-hint">Los candidatos podrán enviar su CV a este email</small>
+          <small class="form-hint">Los candidatos podrán enviar su CV directamente a este email</small>
         </div>
 
         <!-- WhatsApp/Teléfono -->
@@ -922,7 +922,6 @@ const validate = () => {
   gap: 1.25rem;
   padding: 1.5rem;
   background: linear-gradient(135deg, #F3E8FF 0%, #FFFBFE 100%);
-  border-left: 4px solid #7C3AED;
   border-radius: 12px;
   margin-top: 1.5rem;
 }
