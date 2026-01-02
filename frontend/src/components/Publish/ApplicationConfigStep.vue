@@ -251,35 +251,122 @@
         </div>
       </div>
 
-      <!-- INFORMACIÓN DE CONTACTO (si es externa) -->
+      <!-- MÉTODO DE POSTULACIÓN (si es externa) -->
       <div v-if="modelValue.applicationType === 'external'" class="form-section">
         <h3 class="section-title">
           <va-icon name="phone" size="1.25rem" />
-          Información de Contacto
+          Método de Postulación
         </h3>
         <p class="section-description">
-          Usted puede elegir el medio externo por donde los candidatos podrán postular a su vacante laboral, selecione al menos una opción.
+          Seleccione un método por donde los candidatos podrán postular a su vacante laboral.
         </p>
-<br>
-        <!-- URL del Formulario Externo -->
+
+        <!-- Selector de método de postulación -->
         <div class="form-row">
-          <label for="external-url">URL del Formulario Externo (Opcional)</label>
+          <label class="form-label">Seleccione el método de postulación *</label>
+          <div class="contact-method-selector">
+            <!-- Opción 1: URL Externa -->
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="contactMethod"
+                value="url"
+                :checked="contactMethod === 'url'"
+                @change="handleContactMethodChange('url')"
+              />
+              <div class="radio-content">
+                <va-icon name="link" size="1.5rem" />
+                <div>
+                  <strong>URL del Formulario Externo</strong>
+                  <small>Google Forms, Typeform, LinkedIn, etc.</small>
+                </div>
+              </div>
+            </label>
+
+            <!-- Opción 2: WhatsApp -->
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="contactMethod"
+                value="whatsapp"
+                :checked="contactMethod === 'whatsapp'"
+                @change="handleContactMethodChange('whatsapp')"
+              />
+              <div class="radio-content">
+                <va-icon name="chat" size="1.5rem" />
+                <div>
+                  <strong>WhatsApp</strong>
+                  <small>Los candidatos te contactarán por WhatsApp</small>
+                </div>
+              </div>
+            </label>
+
+            <!-- Opción 3: Email -->
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="contactMethod"
+                value="email"
+                :checked="contactMethod === 'email'"
+                @change="handleContactMethodChange('email')"
+              />
+              <div class="radio-content">
+                <va-icon name="email" size="1.5rem" />
+                <div>
+                  <strong>Email</strong>
+                  <small>Recibirás CVs por correo electrónico</small>
+                </div>
+              </div>
+            </label>
+
+            <!-- Opción 4: Sitio Web -->
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="contactMethod"
+                value="website"
+                :checked="contactMethod === 'website'"
+                @change="handleContactMethodChange('website')"
+              />
+              <div class="radio-content">
+                <va-icon name="language" size="1.5rem" />
+                <div>
+                  <strong>Sitio Web</strong>
+                  <small>Los candidatos visitarán tu página web</small>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Campo dinámico según la opción seleccionada -->
+        <div v-if="contactMethod === 'url'" class="form-row">
+          <label for="external-url">URL del Formulario *</label>
           <input
             id="external-url"
             :value="modelValue.externalApplicationUrl"
             type="url"
-            placeholder="https://forms.google.com/, https://e-talent.jobs/ , https://www.evaluar.com/ ..... "
+            placeholder="https://forms.google.com/..."
             class="form-input"
             @input="updateData('externalApplicationUrl', $event.target.value)"
           />
-          <small class="form-hint">
-            Enlace a Google Forms, Typeform, LinkedIn, o tu propio formulario
-          </small>
         </div>
 
-        <!-- Email de Contacto -->
-        <div class="form-row">
-          <label for="contact-email">Email de Contacto (Opcional)</label>
+        <div v-if="contactMethod === 'whatsapp'" class="form-row">
+          <label for="contact-whatsapp">Ingrese su número de WhatsApp *</label>
+          <input
+            id="contact-whatsapp"
+            :value="modelValue.whatsappNumber || ''"
+            type="text"
+            placeholder="Ej: 65324767 o +591 65324767"
+            class="form-input"
+            @input="updateData('whatsappNumber', $event.target.value)"
+          />
+          <small class="form-hint">Se generará un enlace de WhatsApp automáticamente</small>
+        </div>
+
+        <div v-if="contactMethod === 'email'" class="form-row">
+          <label for="contact-email">Email de Contacto *</label>
           <input
             id="contact-email"
             :value="modelValue.email || ''"
@@ -288,26 +375,10 @@
             class="form-input"
             @input="updateData('email', $event.target.value)"
           />
-          <small class="form-hint">Los candidatos podrán enviar su CV directamente a este email</small>
         </div>
 
-        <!-- WhatsApp/Teléfono -->
-        <div class="form-row">
-          <label for="contact-whatsapp">WhatsApp/Teléfono (Opcional)</label>
-          <input
-            id="contact-whatsapp"
-            :value="modelValue.whatsapp || ''"
-            type="text"
-            placeholder="Ej: +591 XXXXXXXXX o 6532-4767"
-            class="form-input"
-            @input="updateData('whatsapp', $event.target.value)"
-          />
-          <small class="form-hint">Los candidatos podrán contactarte por WhatsApp o llamada</small>
-        </div>
-
-        <!-- Sitio Web (Opcional) -->
-        <div class="form-row">
-          <label for="contact-website">Sitio Web (Opcional)</label>
+        <div v-if="contactMethod === 'website'" class="form-row">
+          <label for="contact-website">URL del Sitio Web *</label>
           <input
             id="contact-website"
             :value="modelValue.website || ''"
@@ -316,13 +387,12 @@
             class="form-input"
             @input="updateData('website', $event.target.value)"
           />
-          <small class="form-hint">Enlace a tu sitio web o portafolio</small>
         </div>
 
         <div class="info-box">
           <va-icon name="info" color="#7C3AED" size="1.5rem" />
           <div class="info-content">
-            <p><strong>Proporciona al menos un método de contacto</strong> (URL del formulario externo, Email o WhatsApp) para que los candidatos puedan aplicar exitosamente.</p>
+            <p><strong>Importante:</strong> Solo puedes seleccionar un método de postulación. Asegúrate de proporcionar la información correcta.</p>
           </div>
         </div>
       </div>
@@ -343,7 +413,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, ref } from 'vue'
+import { defineProps, defineEmits, ref, computed } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -357,6 +427,48 @@ const emit = defineEmits(['update:modelValue', 'next', 'back'])
 // Estados para el modal de validación
 const showErrorModal = ref(false)
 const validationErrors = ref([])
+
+// Estado local para el método de postulación seleccionado
+const selectedContactMethod = ref('url')
+
+// Detectar el método de contacto actualmente seleccionado
+const contactMethod = computed(() => {
+  // Si hay datos en el modelValue, usarlos para detectar el método
+  // Verificar que el valor no sea vacío ni solo espacios
+  if (props.modelValue.externalApplicationUrl && props.modelValue.externalApplicationUrl.trim()) return 'url'
+  if (props.modelValue.whatsappNumber && props.modelValue.whatsappNumber.trim()) return 'whatsapp'
+  if (props.modelValue.email && props.modelValue.email.trim()) return 'email'
+  if (props.modelValue.website && props.modelValue.website.trim()) return 'website'
+  // Si no hay datos, usar el método seleccionado localmente
+  return selectedContactMethod.value
+})
+
+// Manejar cambio de método de contacto (limpiar otros campos)
+const handleContactMethodChange = (method) => {
+  selectedContactMethod.value = method
+
+  // Solo limpiar los campos que NO corresponden al método seleccionado
+  const updates = {
+    ...props.modelValue
+  }
+
+  // Limpiar campos según el método NO seleccionado
+  if (method !== 'url') {
+    updates.externalApplicationUrl = ''
+  }
+  if (method !== 'whatsapp') {
+    updates.whatsappNumber = ''
+    updates.whatsapp = ''
+  }
+  if (method !== 'email') {
+    updates.email = ''
+  }
+  if (method !== 'website') {
+    updates.website = ''
+  }
+
+  emit('update:modelValue', updates)
+}
 
 const updateData = (key, value) => {
   const updates = {
@@ -375,6 +487,7 @@ const updateData = (key, value) => {
       updates.applicationInstructions = ''
       updates.email = ''
       updates.whatsapp = ''
+      updates.whatsappNumber = ''
       updates.website = ''
     }
   }
@@ -394,11 +507,6 @@ const addQuestion = () => {
         optionsList: []
       }
     ]
-    console.log('✅ ApplicationConfigStep - Agregando pregunta:', {
-      totalAntes: questions.length,
-      totalDespues: newQuestions.length,
-      preguntas: newQuestions
-    })
     emit('update:modelValue', {
       ...props.modelValue,
       screeningQuestions: newQuestions
@@ -421,13 +529,6 @@ const updateQuestion = (index, field, value) => {
     ...questions[index],
     [field]: value
   }
-  console.log('📝 ApplicationConfigStep - Actualizando pregunta:', {
-    index,
-    campo: field,
-    valor: value,
-    preguntaActualizada: questions[index],
-    todasLasPreguntas: questions
-  })
   emit('update:modelValue', {
     ...props.modelValue,
     screeningQuestions: questions
@@ -444,12 +545,6 @@ const getQuestionTypeLabel = (type) => {
 }
 
 const handleNext = () => {
-  console.log('🚀 ApplicationConfigStep - Botón Siguiente clickeado:', {
-    applicationType: props.modelValue.applicationType,
-    screeningQuestions: props.modelValue.screeningQuestions,
-    cantidadPreguntas: props.modelValue.screeningQuestions?.length || 0,
-    datosCompletos: props.modelValue
-  })
   if (validate()) {
     emit('next')
   }
@@ -467,11 +562,12 @@ const validate = () => {
   if (props.modelValue.applicationType === 'external') {
     const hasUrl = props.modelValue.externalApplicationUrl && props.modelValue.externalApplicationUrl.trim()
     const hasEmail = props.modelValue.email && props.modelValue.email.trim()
-    const hasWhatsapp = props.modelValue.whatsapp && props.modelValue.whatsapp.trim()
+    const hasWhatsapp = props.modelValue.whatsappNumber && props.modelValue.whatsappNumber.trim()
+    const hasWebsite = props.modelValue.website && props.modelValue.website.trim()
 
-    // Debe tener al menos uno de los tres métodos de contacto
-    if (!hasUrl && !hasEmail && !hasWhatsapp) {
-      errors.push('Debes proporcionar al menos un método de contacto: URL del formulario externo, Email o WhatsApp')
+    // Debe tener al menos uno de los métodos de postulación
+    if (!hasUrl && !hasEmail && !hasWhatsapp && !hasWebsite) {
+      errors.push('Debes proporcionar al menos un método de postulación: URL del formulario externo, Email, WhatsApp o Sitio Web')
     }
 
     // Si hay URL, validar que sea válida
@@ -483,9 +579,23 @@ const validate = () => {
       }
     }
 
+    // Si hay website, validar que sea válida
+    if (hasWebsite) {
+      try {
+        new URL(props.modelValue.website)
+      } catch {
+        errors.push('La URL del sitio web no es válida. Debe comenzar con http:// o https://')
+      }
+    }
+
     // Si hay email, validar formato básico
     if (hasEmail && !props.modelValue.email.includes('@')) {
       errors.push('El email de contacto no es válido')
+    }
+
+    // Si hay WhatsApp, validar que sea un número
+    if (hasWhatsapp && !/^\+?\d[\d\s\-]+$/.test(props.modelValue.whatsappNumber)) {
+      errors.push('El número de WhatsApp no es válido. Debe contener solo números, espacios o guiones')
     }
   }
 
@@ -1086,5 +1196,70 @@ const validate = () => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Estilos para selector de método de contacto */
+.contact-method-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border: 2px solid #E2E8F0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.radio-option:hover {
+  border-color: #7C3AED;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+}
+
+.radio-option input[type="radio"] {
+  margin-right: 1rem;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #7C3AED;
+}
+
+.radio-option input[type="radio"]:checked + .radio-content {
+  color: #7C3AED;
+}
+
+.radio-option:has(input[type="radio"]:checked) {
+  border-color: #7C3AED;
+  background: #F5F3FF;
+}
+
+.radio-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.radio-content > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.radio-content strong {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.radio-content small {
+  font-size: 0.85rem;
+  color: #64748B;
 }
 </style>

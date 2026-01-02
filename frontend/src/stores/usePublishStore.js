@@ -28,7 +28,8 @@ const DEFAULT_JOB_DATA = {
   // benefits: '', // DEPRECADO: Se eliminó el campo beneficios - ahora se incluye en description (CKEditor)
   vacancies: 1,
   email: '',
-  whatsapp: '',
+  whatsapp: '', // Enlace generado por backend
+  whatsappNumber: '', // Número ingresado por el usuario
   website: '',
   applicationInstructions: '',
   screeningQuestions: [],

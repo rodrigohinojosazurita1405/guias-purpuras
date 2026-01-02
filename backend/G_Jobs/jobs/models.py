@@ -156,6 +156,23 @@ class Job(models.Model):
         blank=True,
         verbose_name="Preguntas de filtrado"
     )
+    applicationInstructions = models.TextField(
+        blank=True,
+        verbose_name="Instrucciones de aplicación",
+        help_text="Instrucciones especiales para candidatos que aplican externamente"
+    )
+    whatsapp = models.URLField(
+        max_length=500,
+        blank=True,
+        verbose_name="WhatsApp",
+        help_text="Enlace de WhatsApp (generado automáticamente desde número)"
+    )
+    website = models.URLField(
+        max_length=500,
+        blank=True,
+        verbose_name="Sitio web",
+        help_text="URL del sitio web de la empresa"
+    )
 
     # FASE 7: Sistema de Pagos y Planes
     selectedPlan = models.CharField(

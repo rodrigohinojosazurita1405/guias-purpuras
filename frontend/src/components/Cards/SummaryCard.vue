@@ -275,73 +275,6 @@
         </div>
       </div>
 
-      <!-- CONFIGURACIÓN DE APLICACIÓN (JOBS ONLY) -->
-      <div v-if="type === 'job' && jobData" class="summary-section">
-        <div class="section-header">
-          <h3 class="section-title">
-            <va-icon name="how_to_reg" size="1.25rem" />
-            Configuración de Aplicación
-          </h3>
-        </div>
-
-        <div class="section-content">
-          <div class="info-row">
-            <span class="label">Tipo de Aplicación:</span>
-            <span class="value">
-              <template v-if="jobData.applicationType === 'internal'">
-                Interna (en Guías Púrpuras)
-              </template>
-              <template v-else-if="jobData.applicationType === 'external'">
-                Externa
-              </template>
-              <template v-else>
-                Ambas
-              </template>
-            </span>
-          </div>
-          <div v-if="['external', 'both'].includes(jobData.applicationType)" class="info-row full-width">
-            <span class="label">URL Externa:</span>
-            <span class="value url">{{ jobData.externalApplicationUrl || 'No especificada' }}</span>
-          </div>
-
-          <!-- INFORMACIÓN DE CONTACTO PARA APLICACIÓN EXTERNA -->
-          <template v-if="jobData.applicationType === 'external'">
-            <div v-if="jobData.email" class="info-row">
-              <span class="label">Email de Contacto:</span>
-              <span class="value">{{ jobData.email }}</span>
-            </div>
-            <div v-if="jobData.whatsapp" class="info-row">
-              <span class="label">WhatsApp/Teléfono:</span>
-              <span class="value">{{ jobData.whatsapp }}</span>
-            </div>
-            <div v-if="jobData.website" class="info-row full-width">
-              <span class="label">Sitio Web:</span>
-              <span class="value url">{{ jobData.website }}</span>
-            </div>
-            <div v-if="jobData.applicationInstructions" class="info-row full-width">
-              <span class="label">Instrucciones de Aplicación:</span>
-              <span class="value">{{ jobData.applicationInstructions }}</span>
-            </div>
-          </template>
-
-          <!-- PREGUNTAS DE FILTRADO (solo para aplicación interna) -->
-          <div v-if="jobData.applicationType === 'internal'" class="info-row full-width">
-            <span class="label">Preguntas de Filtrado:</span>
-            <template v-if="jobData.screeningQuestions?.length">
-              <div class="screening-list">
-                <div v-for="(question, qIndex) in jobData.screeningQuestions" :key="qIndex" class="screening-item">
-                  <strong>{{ qIndex + 1 }}. {{ question.text }}</strong>
-                  <span class="question-type">({{ getQuestionTypeLabel(question.type) }})</span>
-                </div>
-              </div>
-            </template>
-            <span v-else class="value text-muted" style="color: #94a3b8; font-style: italic;">
-              No se agregaron preguntas de filtrado
-            </span>
-          </div>
-        </div>
-      </div>
-
       <!-- PLAN SELECCIONADO (GENERIC) -->
       <div v-if="type !== 'job' && formData.plan" class="summary-section">
         <div class="section-header">
@@ -570,7 +503,7 @@
                 Información de Aplicación Externa
               </h2>
               <div class="external-application-info">
-                <div v-if="jobData.externalApplicationUrl" class="info-item-external">
+                <div v-if="jobData.externalApplicationUrl && jobData.externalApplicationUrl.trim()" class="info-item-external">
                   <span class="info-label-external">
                     <va-icon name="link" size="small" color="purple" />
                     URL del Formulario:
@@ -580,28 +513,32 @@
                     <va-icon name="open_in_new" size="x-small" color="purple" />
                   </a>
                 </div>
-                <div v-if="jobData.applicationInstructions" class="info-item-external">
+                <div v-if="jobData.applicationInstructions && jobData.applicationInstructions.trim()" class="info-item-external">
                   <span class="info-label-external">
                     <va-icon name="description" size="small" color="purple" />
                     Instrucciones:
                   </span>
                   <p class="info-value-external instructions-text">{{ jobData.applicationInstructions }}</p>
                 </div>
-                <div v-if="jobData.email" class="info-item-external">
+                <div v-if="jobData.email && jobData.email.trim()" class="info-item-external">
                   <span class="info-label-external">
                     <va-icon name="email" size="small" color="purple" />
                     Email de Contacto:
                   </span>
                   <span class="info-value-external">{{ jobData.email }}</span>
                 </div>
-                <div v-if="jobData.whatsapp" class="info-item-external">
+                <!-- USAR whatsappLink computed en lugar de jobData.whatsapp -->
+                <div v-if="whatsappLink" class="info-item-external">
                   <span class="info-label-external">
-                    <va-icon name="phone" size="small" color="purple" />
-                    WhatsApp/Teléfono:
+                    <va-icon name="chat" size="small" color="purple" />
+                    WhatsApp:
                   </span>
-                  <span class="info-value-external">{{ jobData.whatsapp }}</span>
+                  <a :href="whatsappLink" target="_blank" class="info-value-external url-link">
+                    {{ whatsappLink }}
+                    <va-icon name="open_in_new" size="x-small" color="purple" />
+                  </a>
                 </div>
-                <div v-if="jobData.website" class="info-item-external">
+                <div v-if="jobData.website && jobData.website.trim()" class="info-item-external">
                   <span class="info-label-external">
                     <va-icon name="language" size="small" color="purple" />
                     Sitio Web:
@@ -1140,6 +1077,21 @@ const planBadges = computed(() => {
   return getPlanBadges(props.jobData?.selectedPlan)
 })
 
+// Generar enlace de WhatsApp desde número (igual que en backend)
+const whatsappLink = computed(() => {
+  const phoneNumber = props.jobData?.whatsappNumber
+  if (!phoneNumber) return null
+
+  // Limpiar el número: quitar espacios, guiones, paréntesis
+  const cleaned = phoneNumber.replace(/[^0-9]/g, '')
+
+  // Si no empieza con 591 (código de Bolivia), agregarlo
+  const withCountryCode = cleaned.startsWith('591') ? cleaned : '591' + cleaned
+
+  // Generar enlace wa.me
+  return `https://wa.me/${withCountryCode}`
+})
+
 // Obtener clase CSS para el badge basado en su tipo
 const getBadgeClass = (badgeText) => {
   const classList = {
@@ -1352,8 +1304,10 @@ onMounted(async () => {
       externalApplicationUrl: props.jobData?.externalApplicationUrl,
       email: props.jobData?.email,
       whatsapp: props.jobData?.whatsapp,
+      whatsappNumber: props.jobData?.whatsappNumber,  // ← CAMPO NUEVO
       website: props.jobData?.website,
       applicationInstructions: props.jobData?.applicationInstructions,
+      whatsappLinkComputed: whatsappLink.value,  // ← Ver el computed
       todosLosDatos: props.jobData
     })
   }

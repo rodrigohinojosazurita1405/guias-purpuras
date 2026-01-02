@@ -129,9 +129,23 @@
                 </template>
               </span>
             </div>
-            <div v-if="['external', 'both'].includes(job.applicationType)" class="info-item full-width">
-              <span class="label">URL Externa de Aplicación:</span>
-              <span class="value"><a :href="job.externalApplicationUrl" target="_blank" rel="noopener noreferrer">{{ job.externalApplicationUrl }}</a></span>
+            <!-- Método de Postulación Externa (SOLO UNO) -->
+            <div v-if="job.applicationType === 'external'" class="info-item full-width">
+              <span class="label">Método de Postulación:</span>
+              <span class="value">
+                <template v-if="job.externalApplicationUrl && job.externalApplicationUrl.trim()">
+                  <strong>URL Externa:</strong> <a :href="job.externalApplicationUrl" target="_blank" rel="noopener noreferrer">{{ job.externalApplicationUrl }}</a>
+                </template>
+                <template v-else-if="whatsappLink">
+                  <strong>WhatsApp:</strong> <a :href="whatsappLink" target="_blank" rel="noopener noreferrer">{{ whatsappLink }}</a>
+                </template>
+                <template v-else-if="job.email && job.email.trim()">
+                  <strong>Email:</strong> {{ job.email }}
+                </template>
+                <template v-else-if="job.website && job.website.trim()">
+                  <strong>Sitio Web:</strong> <a :href="job.website" target="_blank" rel="noopener noreferrer">{{ job.website }}</a>
+                </template>
+              </span>
             </div>
             <div v-if="['internal', 'both'].includes(job.applicationType)" class="info-item full-width">
               <span class="label">Preguntas de Filtrado:</span>
@@ -178,21 +192,13 @@
           </div>
         </div>
 
-        <!-- Benefits & Contact -->
-        <div class="info-section" v-if="job.benefits || job.whatsapp || job.website">
-          <h3>Beneficios y Contacto</h3>
+        <!-- Benefits -->
+        <div class="info-section" v-if="job.benefits">
+          <h3>Beneficios</h3>
           <div class="info-grid">
-            <div class="info-item full-width" v-if="job.benefits">
+            <div class="info-item full-width">
               <span class="label">Beneficios:</span>
               <p class="value description">{{ stripHTML(job.benefits) }}</p>
-            </div>
-            <div class="info-item" v-if="job.whatsapp">
-              <span class="label">WhatsApp:</span>
-              <span class="value">{{ job.whatsapp }}</span>
-            </div>
-            <div class="info-item" v-if="job.website">
-              <span class="label">Sitio Web:</span>
-              <span class="value"><a :href="job.website" target="_blank">{{ job.website }}</a></span>
             </div>
           </div>
         </div>
@@ -207,9 +213,9 @@
 </template>
 
 <script setup>
-import { defineEmits } from 'vue'
+import { defineEmits, computed } from 'vue'
 
-defineProps({
+const props = defineProps({
   visible: {
     type: Boolean,
     default: false
@@ -225,6 +231,25 @@ const emit = defineEmits(['close', 'deactivate-job', 'activate-job'])
 const close = () => {
   emit('close')
 }
+
+// Generar enlace de WhatsApp desde whatsappNumber
+const whatsappLink = computed(() => {
+  // Primero intentar con job.whatsapp (campo legacy del backend)
+  if (props.job?.whatsapp) return props.job.whatsapp
+
+  // Si no existe, generar desde whatsappNumber
+  const phoneNumber = props.job?.whatsappNumber
+  if (!phoneNumber) return null
+
+  // Limpiar el número: quitar espacios, guiones, paréntesis
+  const cleaned = phoneNumber.replace(/[^0-9]/g, '')
+
+  // Si no empieza con 591 (código de Bolivia), agregarlo
+  const withCountryCode = cleaned.startsWith('591') ? cleaned : '591' + cleaned
+
+  // Generar enlace wa.me
+  return `https://wa.me/${withCountryCode}`
+})
 
 const formatExactDateTime = (dateString) => {
   if (!dateString) return 'N/A'

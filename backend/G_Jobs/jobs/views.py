@@ -100,6 +100,36 @@ def publish_job(request):
 
         print(f'[PUBLISH] [PUBLISH_JOB] Usuario: {request.user.email} (rol: {request.user.role}), Campos recibidos: {list(data.keys())}, Archivos: {list(files.keys())}')
         print(f'[DEBUG] applicationDeadline recibido: {data.get("applicationDeadline")} (tipo: {type(data.get("applicationDeadline"))})')
+        print(f'[DEBUG] whatsappNumber recibido: [{data.get("whatsappNumber")}]')
+        print(f'[DEBUG] whatsapp recibido: [{data.get("whatsapp")}]')
+        print(f'[DEBUG] website recibido: [{data.get("website")}]')
+        print(f'[DEBUG] applicationInstructions recibido: [{data.get("applicationInstructions")}]')
+
+        # ========== GENERAR ENLACE DE WHATSAPP SI SE PROPORCIONA NÚMERO ==========
+        def generate_whatsapp_link(phone_number):
+            """
+            Convierte un número de teléfono a enlace de WhatsApp
+            Acepta formatos: 65324767, +591 65324767, 591-65324767, etc.
+            Retorna: https://wa.me/59165324767
+            """
+            if not phone_number:
+                return ''
+
+            # Limpiar el número: quitar espacios, guiones, paréntesis
+            cleaned = ''.join(filter(str.isdigit, str(phone_number)))
+
+            # Si no empieza con 591 (código de Bolivia), agregarlo
+            if not cleaned.startswith('591'):
+                cleaned = '591' + cleaned
+
+            # Generar enlace wa.me
+            return f'https://wa.me/{cleaned}'
+
+        whatsapp_link = ''
+        whatsapp_number = data.get('whatsappNumber', '').strip()
+        if whatsapp_number:
+            whatsapp_link = generate_whatsapp_link(whatsapp_number)
+            print(f'[DEBUG] Enlace WhatsApp generado: {whatsapp_number} → {whatsapp_link}')
 
         # ========== VALIDACIONES DE CAMPOS REQUERIDOS ==========
         errors = {}
@@ -274,6 +304,10 @@ def publish_job(request):
                 selectedPlan=plan,
                 screeningQuestions=data.get('screeningQuestions', []),
                 proofOfPayment=proof_of_payment,  # FASE 7.1: Comprobante de pago obligatorio
+                # FASE 9.1: Nuevos campos de contacto para aplicación externa
+                whatsapp=whatsapp_link,  # Enlace generado automáticamente desde whatsappNumber
+                website=(data.get('website') or '').strip(),
+                applicationInstructions=(data.get('applicationInstructions') or '').strip(),
             )
 
             # ⚠️ FIX CRÍTICO: Pasar usuario y request al signal para auditoría correcta
@@ -499,6 +533,9 @@ def get_job(request, job_id):
                 # Aplicación
                 'applicationType': job.applicationType,
                 'externalApplicationUrl': job.externalApplicationUrl,
+                'whatsapp': job.whatsapp,
+                'website': job.website,
+                'applicationInstructions': job.applicationInstructions,
                 'screeningQuestions': job.screeningQuestions,
 
                 # Plan
@@ -679,6 +716,11 @@ def list_jobs(request):
                 'applicationDeadline': job.applicationDeadline.isoformat() if job.applicationDeadline else None,
                 'applicationType': job.applicationType,
                 'externalApplicationUrl': job.externalApplicationUrl if job.externalApplicationUrl else None,
+                'whatsapp': job.whatsapp if job.whatsapp else None,
+                'email': job.email if job.email else None,
+                'website': job.website if job.website else None,
+                'applicationInstructions': job.applicationInstructions if job.applicationInstructions else None,
+                'screeningQuestions': job.screeningQuestions if job.screeningQuestions else None,
                 'createdAt': job.createdAt.isoformat(),
                 'publishedDaysAgo': calculate_days_ago(job.createdAt),
             })

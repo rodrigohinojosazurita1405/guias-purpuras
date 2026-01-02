@@ -187,29 +187,70 @@
 
           <template v-if="listing.applicationType === 'external'">
             <p class="application-note">
-              {{ isDeadlineClosed ? 'Esta convocatoria ha cerrado. Ya no es posible postular.' : 'Esta empresa recibe postulaciones en su propio enlace externo.' }}
+              {{ isDeadlineClosed ? 'Esta convocatoria ha cerrado. Ya no es posible postular.' : (listing.applicationInstructions || 'Puedes postular a través de los siguientes medios:') }}
             </p>
-            <a
-              v-if="!isDeadlineClosed && listing.externalApplicationUrl"
-              :href="listing.externalApplicationUrl"
-              target="_blank"
-              class="btn-external"
-            >
-              <va-icon name="open_in_new" size="small" />
-              Ir al enlace de la empresa
-            </a>
-            <p v-else-if="!isDeadlineClosed && !listing.externalApplicationUrl" class="application-error">
-              Lo sentimos, esta oferta no tiene un enlace de postulación configurado. Por favor contacta directamente a la empresa.
-            </p>
-            <button
-              v-else
-              class="btn-external disabled-external-link"
-              disabled
-              title="Convocatoria cerrada"
-            >
-              <va-icon name="block" size="small" />
-              Enlace deshabilitado (cerrado)
-            </button>
+
+            <!-- Mostrar solo EL método de contacto configurado (no todos) -->
+            <div v-if="!isDeadlineClosed" class="contact-methods">
+              <!-- URL Externa (prioridad 1) -->
+              <a
+                v-if="listing.externalApplicationUrl && listing.externalApplicationUrl.trim()"
+                :href="listing.externalApplicationUrl"
+                target="_blank"
+                class="btn-external"
+              >
+                <va-icon name="open_in_new" size="small" />
+                Ir al formulario de aplicación
+              </a>
+
+              <!-- WhatsApp (prioridad 2) -->
+              <a
+                v-else-if="whatsappLink"
+                :href="whatsappLink"
+                target="_blank"
+                class="btn-external"
+              >
+                <va-icon name="chat" size="small" />
+                Contactar por WhatsApp
+              </a>
+
+              <!-- Sitio Web (prioridad 3) -->
+              <a
+                v-else-if="listing.website && listing.website.trim()"
+                :href="listing.website"
+                target="_blank"
+                class="btn-external"
+              >
+                <va-icon name="language" size="small" />
+                Visitar sitio web
+              </a>
+
+              <!-- Email (prioridad 4 - solo si no hay otro método) -->
+              <a
+                v-else-if="listing.email && listing.email.trim()"
+                :href="`mailto:${listing.email}?subject=Postulación - ${listing.title}`"
+                class="btn-external"
+              >
+                <va-icon name="email" size="small" />
+                Enviar email de postulación
+              </a>
+
+              <!-- Mensaje de error si no hay ningún método -->
+              <p v-else class="application-error">
+                Lo sentimos, esta oferta no tiene configurado ningún método de contacto. Por favor intenta más tarde.
+              </p>
+            </div>
+
+            <div v-else class="contact-methods">
+              <button
+                class="btn-external disabled-external-link"
+                disabled
+                title="Convocatoria cerrada"
+              >
+                <va-icon name="block" size="small" />
+                Postulaciones cerradas
+              </button>
+            </div>
           </template>
 
           <template v-if="listing.applicationType === 'email'">
@@ -451,6 +492,25 @@ export default {
       return this.jobStatusText === 'Vigente' ? 'status-active' : 'status-closed'
     },
 
+    // Generar enlace de WhatsApp desde whatsappNumber como fallback
+    whatsappLink() {
+      // Primero intentar con listing.whatsapp (campo del backend)
+      if (this.listing?.whatsapp) return this.listing.whatsapp
+
+      // Si no existe, generar desde whatsappNumber
+      const phoneNumber = this.listing?.whatsappNumber
+      if (!phoneNumber) return null
+
+      // Limpiar el número: quitar espacios, guiones, paréntesis
+      const cleaned = phoneNumber.replace(/[^0-9]/g, '')
+
+      // Si no empieza con 591 (código de Bolivia), agregarlo
+      const withCountryCode = cleaned.startsWith('591') ? cleaned : '591' + cleaned
+
+      // Generar enlace wa.me
+      return `https://wa.me/${withCountryCode}`
+    },
+
     isDeadlineClosed() {
       if (!this.listing) return false
 
@@ -549,17 +609,33 @@ export default {
 
         this.showApplicationModal = true
       } else if (this.listing.applicationType === 'external') {
-        // Validar que exista la URL externa
-        if (!this.listing.externalApplicationUrl || this.listing.externalApplicationUrl.trim() === '') {
+        // Validar que exista al menos un método de contacto
+        const hasContactMethod = this.listing.externalApplicationUrl ||
+                                 this.listing.email ||
+                                 this.whatsappLink ||
+                                 this.listing.website
+
+        if (!hasContactMethod) {
           this.$vaToast.init({
-            message: 'Esta oferta no tiene configurado un enlace de postulación. Contacta directamente a la empresa.',
+            message: 'Esta oferta no tiene configurado ningún método de contacto. Por favor intenta más tarde.',
             color: 'danger',
             duration: 5000,
             position: 'top-right'
           })
           return
         }
-        window.open(this.listing.externalApplicationUrl, '_blank')
+
+        // Prioridad: URL > WhatsApp > Email > Website
+        if (this.listing.externalApplicationUrl) {
+          window.open(this.listing.externalApplicationUrl, '_blank')
+        } else if (this.whatsappLink) {
+          // El enlace viene del computed whatsappLink
+          window.open(this.whatsappLink, '_blank')
+        } else if (this.listing.email) {
+          window.location.href = `mailto:${this.listing.email}?subject=Postulación - ${this.listing.title}`
+        } else if (this.listing.website) {
+          window.open(this.listing.website, '_blank')
+        }
       } else if (this.listing.applicationType === 'email') {
         window.location.href = `mailto:${this.listing.email}?subject=Postulación - ${this.listing.title}`
       }
@@ -1453,6 +1529,12 @@ export default {
   font-size: 0.9375rem;
   color: #4B5563;
   margin: 0 0 1rem 0;
+}
+
+.contact-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .btn-external {

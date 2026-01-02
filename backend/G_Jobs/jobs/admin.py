@@ -183,11 +183,8 @@ class JobAdmin(admin.ModelAdmin):
         ('Vacantes y Aplicaciones', {
             'fields': ('vacancies', 'applications', 'applicationDeadline', 'expiryDate')
         }),
-        ('Contacto', {
-            'fields': ('email',)
-        }),
         ('Tipo de Aplicación', {
-            'fields': ('applicationType', 'externalApplicationUrl', 'screeningQuestions')
+            'fields': ('applicationType', 'externalApplicationUrl', 'whatsapp', 'email', 'website', 'applicationInstructions', 'screeningQuestions')
         }),
         ('Plan y Estado', {
             'fields': ('selectedPlan', 'status', 'views')

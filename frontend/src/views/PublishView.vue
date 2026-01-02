@@ -94,7 +94,8 @@
     <!-- PASO 3: Configuración de Aplicación -->
     <ApplicationConfigStep
       v-if="publishStore.currentStep === 3"
-      v-model="publishStore.jobData"
+      :model-value="publishStore.jobData"
+      @update:model-value="(data) => publishStore.setJobData(data)"
       @next="nextStep"
       @back="previousStep"
     />
