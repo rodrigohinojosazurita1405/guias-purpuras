@@ -615,7 +615,13 @@ def list_jobs(request):
     Solo muestra trabajos ACTIVOS y con PAGO VERIFICADO
     """
     try:
-        jobs = Job.objects.filter(status='active', isDeleted=False, paymentVerified=True)
+        # Filtrar trabajos activos con plan vigente (expiryDate no vencido)
+        jobs = Job.objects.filter(
+            status='active',
+            isDeleted=False,
+            paymentVerified=True,
+            expiryDate__gte=timezone.now().date()
+        )
 
         # Filtros opcionales
         city = request.GET.get('city')

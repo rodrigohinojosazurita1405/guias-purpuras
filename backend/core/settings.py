@@ -177,6 +177,18 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False
 
+# CSRF Configuration - Trusted Origins for POST requests
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+    'http://127.0.0.1:5175',
+]
+
 # Debug: Print incoming origins
 CORS_ALLOW_HEADERS = [
     'accept',

@@ -188,9 +188,27 @@
         </div>
 
         <!-- Help Text -->
-        <p class="help-text">
-          Logo: JPG, PNG o GIF. Máximo 5MB. | Banner: Máximo 10MB. (851 x 315px)
-        </p>
+        <div class="help-text">
+          <div class="requirement-row">
+            <svg class="requirement-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <span class="requirement-label">Logo:</span>
+            <span>200-800px cuadrado (recomendado 400x400px), máx. 5MB</span>
+          </div>
+          <div class="requirement-row">
+            <svg class="requirement-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+            <span class="requirement-label">Banner:</span>
+            <span>1200-2400px ancho × 300-600px alto (recomendado 1920x400px), máx. 10MB</span>
+          </div>
+          <p class="optimization-note">Las imágenes se optimizarán automáticamente al subirlas</p>
+        </div>
       </div>
 
       <!-- Nombre de Empresa -->
@@ -284,7 +302,9 @@
         />
       </div>
 
-      <!-- Categoría -->
+      <!-- Categoría - Oculto en MVP (solo una opción disponible) -->
+      <!-- FUTURO: Descomentar cuando haya múltiples categorías -->
+      <!--
       <div class="form-group">
         <label class="form-label">Categoría</label>
         <va-select
@@ -296,6 +316,7 @@
           class="form-input"
         />
       </div>
+      -->
       </div>
       <!-- Fin Tab Content: General -->
 
@@ -449,7 +470,7 @@ const formData = ref({
   location: '',
   city: '',
   description: '',
-  category: 'other',
+  category: 'jobs', // MVP: Siempre 'jobs' (Empleador - Trabajos)
   nit: '',
   legalName: '',
   seprecCode: '',
@@ -468,12 +489,14 @@ const cities = [
   'Pando'
 ]
 
+// MVP: Solo categoría de Empleador - Trabajos activa
 const categories = [
-  { text: 'Empleador - Trabajos', value: 'jobs' },
-  { text: 'Restaurante - Gastronomía', value: 'restaurant' },
-  { text: 'Negocio', value: 'business' },
-  { text: 'Profesional', value: 'professional' },
-  { text: 'Otro', value: 'other' }
+  { text: 'Empleador - Trabajos', value: 'jobs' }
+  // FUTURO: Descomentar cuando se expanda a otros tipos de perfiles
+  // { text: 'Restaurante - Gastronomía', value: 'restaurant' },
+  // { text: 'Negocio', value: 'business' },
+  // { text: 'Profesional', value: 'professional' },
+  // { text: 'Otro', value: 'other' }
 ]
 
 // ========== COMPUTED ==========
@@ -515,7 +538,7 @@ const loadCompanyProfile = async () => {
         location: result.company.location || '',
         city: result.company.city || '',
         description: result.company.description || '',
-        category: result.company.category || 'other',
+        category: result.company.category || 'jobs', // MVP: Default 'jobs'
         nit: result.company.nit || '',
         legalName: result.company.legalName || '',
         seprecCode: result.company.seprecCode || '',
@@ -568,7 +591,7 @@ const handleSaveCompany = async () => {
       location: formData.value.location || '',
       city: formData.value.city || '',
       description: formData.value.description || '',
-      category: categoryValue || 'other',
+      category: categoryValue || 'jobs', // MVP: Default 'jobs'
       nit: formData.value.nit || '',
       legalName: formData.value.legalName || '',
       seprecCode: formData.value.seprecCode || ''
@@ -658,6 +681,19 @@ const handleSaveCompany = async () => {
 const MAX_LOGO_SIZE = 5 * 1024 * 1024 // 5MB
 const MAX_BANNER_SIZE = 10 * 1024 * 1024 // 10MB
 
+// Dimensiones recomendadas para logo (cuadrado)
+const LOGO_MIN_WIDTH = 200
+const LOGO_MIN_HEIGHT = 200
+const LOGO_MAX_WIDTH = 800
+const LOGO_MAX_HEIGHT = 800
+const LOGO_RECOMMENDED_SIZE = 400
+
+// Dimensiones recomendadas para banner (horizontal)
+const BANNER_MIN_WIDTH = 1200
+const BANNER_MIN_HEIGHT = 300
+const BANNER_MAX_WIDTH = 2400
+const BANNER_MAX_HEIGHT = 600
+
 const handleLogoFileSelect = (event) => {
   const file = event.target.files?.[0]
 
@@ -681,13 +717,65 @@ const handleLogoFileSelect = (event) => {
     return
   }
 
-  selectedLogoFile.value = file
+  // Validar dimensiones de la imagen
+  const img = new Image()
+  const objectUrl = URL.createObjectURL(file)
 
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    logoPreviewUrl.value = e.target.result
+  img.onload = () => {
+    URL.revokeObjectURL(objectUrl)
+
+    const width = img.width
+    const height = img.height
+
+    // Validar dimensiones mínimas
+    if (width < LOGO_MIN_WIDTH || height < LOGO_MIN_HEIGHT) {
+      notify({
+        message: `Logo muy pequeño. Mínimo ${LOGO_MIN_WIDTH}x${LOGO_MIN_HEIGHT}px. Tu imagen: ${width}x${height}px`,
+        color: 'warning',
+        duration: 4000
+      })
+      return
+    }
+
+    // Validar dimensiones máximas
+    if (width > LOGO_MAX_WIDTH || height > LOGO_MAX_HEIGHT) {
+      notify({
+        message: `Logo muy grande. Máximo ${LOGO_MAX_WIDTH}x${LOGO_MAX_HEIGHT}px. Tu imagen: ${width}x${height}px`,
+        color: 'warning',
+        duration: 4000
+      })
+      return
+    }
+
+    // Advertencia si no es cuadrado
+    const aspectRatio = width / height
+    if (aspectRatio < 0.9 || aspectRatio > 1.1) {
+      notify({
+        message: `Recomendación: usa un logo cuadrado (${LOGO_RECOMMENDED_SIZE}x${LOGO_RECOMMENDED_SIZE}px) para mejor visualización`,
+        color: 'info',
+        duration: 4000
+      })
+    }
+
+    // Si todo está bien, procesar el archivo
+    selectedLogoFile.value = file
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      logoPreviewUrl.value = e.target.result
+    }
+    reader.readAsDataURL(file)
   }
-  reader.readAsDataURL(file)
+
+  img.onerror = () => {
+    URL.revokeObjectURL(objectUrl)
+    notify({
+      message: 'Error al cargar la imagen',
+      color: 'danger',
+      duration: 3000
+    })
+  }
+
+  img.src = objectUrl
 }
 
 const handleBannerFileSelect = (event) => {
@@ -713,13 +801,65 @@ const handleBannerFileSelect = (event) => {
     return
   }
 
-  selectedBannerFile.value = file
+  // Validar dimensiones de la imagen
+  const img = new Image()
+  const objectUrl = URL.createObjectURL(file)
 
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    bannerPreviewUrl.value = e.target.result
+  img.onload = () => {
+    URL.revokeObjectURL(objectUrl)
+
+    const width = img.width
+    const height = img.height
+
+    // Validar dimensiones mínimas
+    if (width < BANNER_MIN_WIDTH || height < BANNER_MIN_HEIGHT) {
+      notify({
+        message: `Banner muy pequeño. Mínimo ${BANNER_MIN_WIDTH}x${BANNER_MIN_HEIGHT}px. Tu imagen: ${width}x${height}px`,
+        color: 'warning',
+        duration: 4000
+      })
+      return
+    }
+
+    // Validar dimensiones máximas
+    if (width > BANNER_MAX_WIDTH || height > BANNER_MAX_HEIGHT) {
+      notify({
+        message: `Banner muy grande. Máximo ${BANNER_MAX_WIDTH}x${BANNER_MAX_HEIGHT}px. Tu imagen: ${width}x${height}px`,
+        color: 'warning',
+        duration: 4000
+      })
+      return
+    }
+
+    // Advertencia si no tiene proporción horizontal adecuada
+    const aspectRatio = width / height
+    if (aspectRatio < 3.0 || aspectRatio > 5.0) {
+      notify({
+        message: `Recomendación: usa un banner horizontal (1920x400px) para mejor visualización`,
+        color: 'info',
+        duration: 4000
+      })
+    }
+
+    // Si todo está bien, procesar el archivo
+    selectedBannerFile.value = file
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      bannerPreviewUrl.value = e.target.result
+    }
+    reader.readAsDataURL(file)
   }
-  reader.readAsDataURL(file)
+
+  img.onerror = () => {
+    URL.revokeObjectURL(objectUrl)
+    notify({
+      message: 'Error al cargar la imagen',
+      color: 'danger',
+      duration: 3000
+    })
+  }
+
+  img.src = objectUrl
 }
 
 const clearLogoPreview = async () => {
@@ -1075,7 +1215,7 @@ const clearBannerPreview = async () => {
   border-radius: 12px;
   overflow: visible;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 6rem;
+  margin-bottom: 4rem;
   position: relative;
 }
 
@@ -1302,11 +1442,46 @@ const clearBannerPreview = async () => {
 }
 
 .help-text {
-  color: #999;
-  font-size: 0.8rem;
-  margin: 0.5rem 0 0 0;
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin: -2.5rem 0 0 0;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+}
+
+.requirement-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.requirement-row:last-of-type {
+  margin-bottom: 0.75rem;
+}
+
+.requirement-icon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.requirement-label {
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.optimization-note {
+  margin: 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+  color: #059669;
+  font-size: 0.7rem;
   text-align: center;
-  line-height: 1.4;
 }
 
 /* ========== VERIFICATION SECTION STYLES ========== */

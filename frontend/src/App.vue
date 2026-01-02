@@ -6,18 +6,55 @@
 </template>
 
 <script setup>
-import { onMounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useTokenRefresh } from '@/composables/useTokenRefresh'
 
 const authStore = useAuthStore()
 const { init, cleanup, startTokenRefresh, stopTokenRefresh } = useTokenRefresh()
 
+// Fix para tooltips que se quedan pegados
+let activeTooltipElement = null
+
+const hideTooltip = () => {
+  if (activeTooltipElement) {
+    activeTooltipElement.blur()
+    activeTooltipElement = null
+  }
+}
+
+const handleClick = (event) => {
+  // Si se hace clic en cualquier parte, ocultar tooltip activo
+  hideTooltip()
+
+  // Rastrear el nuevo elemento con tooltip si tiene
+  if (event.target.hasAttribute('title')) {
+    activeTooltipElement = event.target
+  }
+}
+
+const handleMouseLeave = (event) => {
+  // Si el mouse sale del elemento, limpiar referencia
+  if (event.target === activeTooltipElement) {
+    activeTooltipElement = null
+  }
+}
+
 // Inicializar sistema de auto-refresh cuando el usuario está autenticado
 onMounted(() => {
   if (authStore.isAuthenticated) {
     init()
   }
+
+  // Agregar listeners globales para manejar tooltips
+  document.addEventListener('click', handleClick)
+  document.addEventListener('mouseleave', handleMouseLeave, true)
+})
+
+onUnmounted(() => {
+  // Limpiar listeners
+  document.removeEventListener('click', handleClick)
+  document.removeEventListener('mouseleave', handleMouseLeave, true)
 })
 
 // Observar cambios en el estado de autenticación
