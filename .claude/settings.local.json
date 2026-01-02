@@ -71,7 +71,13 @@
       "Bash(\"env\\\\Scripts\\\\pip.exe\" install apscheduler)",
       "Bash(del backendrequirements.txt)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Configuración de limpieza automática de notificaciones\n\n✨ Funcionalidad:\n- Limpieza automática de notificaciones descartadas después de 30 días\n- Scheduler con APScheduler ejecutándose diariamente a las 3:00 AM\n- Compatible con Windows y Linux \\(reemplaza django-crontab\\)\n\n🔧 Cambios técnicos:\n- APScheduler instalado y configurado en notifications/apps.py\n- Scheduler se ejecuta solo en proceso principal \\(evita duplicados\\)\n- requirements.txt actualizado con apscheduler==3.11.2\n- Documentación actualizada en settings.py\n\n🎨 Frontend:\n- Eliminados emojis del filtro \"Tipo de notificación\"\n- UI más limpia y profesional\n\n📝 Notas de implementación:\n- El scheduler inicia automáticamente con Django\n- No requiere configuración adicional de cron\n- Funciona en desarrollo y producción\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(python test_application.py:*)",
+      "Bash(dir /s /b *.js)",
+      "Bash(timeout /t 1)",
+      "Bash(python remove_duplicates.py:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }
