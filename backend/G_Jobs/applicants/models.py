@@ -180,7 +180,7 @@ class ApplicantCV(models.Model):
     )
 
     # Constante para límite de CVs
-    MAX_SAVED_CVS = 10  # Aumentado temporalmente para testing
+    MAX_SAVED_CVS = 2  # Máximo de CVs guardados reutilizables
 
     class Meta:
         verbose_name = "CV de Postulante"
@@ -269,6 +269,19 @@ class JobApplication(models.Model):
         null=True,
         related_name='applications',
         verbose_name="CV Utilizado"
+    )
+
+    # CV adjunto directamente (sin guardar en ApplicantCV)
+    attached_cv_file = models.FileField(
+        upload_to='application_cvs/',
+        null=True,
+        blank=True,
+        validators=[
+            FileExtensionValidator(allowed_extensions=['pdf', 'doc', 'docx']),
+            validate_file_size
+        ],
+        verbose_name="CV Adjunto",
+        help_text="CV enviado directamente con esta postulación"
     )
 
     # Datos de la aplicación

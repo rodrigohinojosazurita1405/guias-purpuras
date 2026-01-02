@@ -704,31 +704,42 @@ export default {
 
     async handleApplicationSubmit(applicationData) {
       try {
-        // Primero guardar o crear el CV si es necesario
-        let cvId = null
+        let response
 
         if (applicationData.type === 'upload' && applicationData.uploadedFile) {
-          // Subir CV como archivo
-          const cvFormData = new FormData()
-          cvFormData.append('file', applicationData.uploadedFile)
-          cvFormData.append('name', `CV ${new Date().toLocaleDateString()}`)
+          // Enviar PDF directamente con la postulación (sin guardarlo como CV reutilizable)
+          const formData = new FormData()
+          formData.append('attached_cv', applicationData.uploadedFile)
+          formData.append('cover_letter', applicationData.coverLetter || '')
+          formData.append('screening_answers', JSON.stringify({}))
 
-          const cvResponse = await fetch('/api/cvs/save/', {
+          response = await fetch(`/api/apply/${applicationData.jobId}/`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${this.authStore.accessToken}`,
               'X-CSRFToken': this.getCsrfToken()
             },
-            body: cvFormData,
+            body: formData,
             credentials: 'include'
           })
-
-          if (cvResponse.ok) {
-            const cvData = await cvResponse.json()
-            cvId = cvData.cv.id
-          }
+        } else if (applicationData.type === 'select' && applicationData.selectedCvId) {
+          // Usar CV guardado (reutilizable)
+          response = await fetch(`/api/apply/${applicationData.jobId}/`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${this.authStore.accessToken}`,
+              'Content-Type': 'application/json',
+              'X-CSRFToken': this.getCsrfToken()
+            },
+            body: JSON.stringify({
+              cv_id: applicationData.selectedCvId,
+              cover_letter: applicationData.coverLetter || '',
+              screening_answers: {}
+            }),
+            credentials: 'include'
+          })
         } else if (applicationData.type === 'create' && applicationData.cvData) {
-          // Crear CV con datos
+          // Crear CV en el sistema (guardado reutilizable) y luego postular
           const cvResponse = await fetch('/api/cvs/save/', {
             method: 'POST',
             headers: {
@@ -744,29 +755,31 @@ export default {
             credentials: 'include'
           })
 
-          if (cvResponse.ok) {
-            const cvData = await cvResponse.json()
-            cvId = cvData.cv.id
+          if (!cvResponse.ok) {
+            const errorData = await cvResponse.json()
+            throw new Error(errorData.error || 'Error al guardar el CV')
           }
-        } else if (applicationData.type === 'select' && applicationData.selectedCvId) {
-          cvId = applicationData.selectedCvId
-        }
 
-        // Ahora enviar la postulación
-        const response = await fetch(`/api/apply/${applicationData.jobId}/`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.authStore.accessToken}`,
-            'Content-Type': 'application/json',
-            'X-CSRFToken': this.getCsrfToken()
-          },
-          body: JSON.stringify({
-            cv_id: cvId,
-            cover_letter: applicationData.coverLetter || '',
-            screening_answers: {}
-          }),
-          credentials: 'include'
-        })
+          const cvData = await cvResponse.json()
+
+          // Ahora enviar la postulación con el CV creado
+          response = await fetch(`/api/apply/${applicationData.jobId}/`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${this.authStore.accessToken}`,
+              'Content-Type': 'application/json',
+              'X-CSRFToken': this.getCsrfToken()
+            },
+            body: JSON.stringify({
+              cv_id: cvData.cv.id,
+              cover_letter: applicationData.coverLetter || '',
+              screening_answers: {}
+            }),
+            credentials: 'include'
+          })
+        } else {
+          throw new Error('Debes seleccionar o subir un CV para postularte')
+        }
 
         if (!response.ok) {
           const errorData = await response.json()

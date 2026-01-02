@@ -144,14 +144,19 @@ def save_cv(request):
         }, status=201)
 
     except ValidationError as e:
-        print(f"❌ ValidationError en save_cv: {str(e)}")
+        error_msg = str(e) if isinstance(e, str) else str(e.message_dict if hasattr(e, 'message_dict') else e)
+        print(f"❌ ValidationError en save_cv: {error_msg}")
         return JsonResponse({
             'success': False,
-            'error': str(e)
+            'error': error_msg
         }, status=400)
     except Exception as e:
         print(f"❌ Exception en save_cv: {str(e)}")
         print(f"   Tipo: {type(e).__name__}")
+        print(f"   Request user: {request.user}")
+        print(f"   Content-Type: {request.content_type}")
+        print(f"   FILES keys: {list(request.FILES.keys())}")
+        print(f"   POST keys: {list(request.POST.keys())}")
         import traceback
         traceback.print_exc()
         return JsonResponse({
@@ -407,22 +412,39 @@ def check_if_blocked(request, job_id):
         }, status=500)
 
 
-@require_authentication
 @csrf_exempt
+@require_authentication
 @require_http_methods(["POST"])
 def apply_to_job(request, job_id):
     """
     Postularse a un trabajo
 
-    Request Body:
+    Request Body (JSON si usa CV guardado):
     {
         "cv_id": "uuid",
         "cover_letter": "string",
         "screening_answers": {...}
     }
+
+    Request Body (Form-data si adjunta CV directamente):
+    {
+        "attached_cv": file,
+        "cover_letter": "string",
+        "screening_answers": "{...}"
+    }
     """
     try:
-        data = json.loads(request.body)
+        # Determinar si es JSON o FormData
+        if request.content_type and 'multipart/form-data' in request.content_type:
+            # Request con archivo adjunto
+            data = request.POST.dict()
+            screening_answers = json.loads(data.get('screening_answers', '{}'))
+            cv_file = request.FILES.get('attached_cv')
+        else:
+            # Request JSON con cv_id
+            data = json.loads(request.body)
+            screening_answers = data.get('screening_answers', {})
+            cv_file = None
 
         # Verificar que el trabajo existe y está activo
         job = get_object_or_404(Job, id=job_id, status='active')
@@ -469,7 +491,7 @@ def apply_to_job(request, job_id):
                 'blocked': True
             }, status=403)
 
-        # Verificar que el CV existe y pertenece al usuario
+        # Manejar CV: puede ser un cv_id (CV guardado) o un archivo adjunto
         cv_id = data.get('cv_id')
         cv = None
         if cv_id:
@@ -485,8 +507,9 @@ def apply_to_job(request, job_id):
             job=job,
             applicant=request.user,
             cv=cv,
+            attached_cv_file=cv_file if cv_file else None,
             cover_letter=data.get('cover_letter', ''),
-            screening_answers=data.get('screening_answers', {})
+            screening_answers=screening_answers
         )
 
         # Incrementar contador de aplicaciones en el trabajo
@@ -951,6 +974,7 @@ def get_job_applications(request, job_id):
             # Obtener información del CV
             cv_info = None
             if app.cv:
+                # CV guardado reutilizable
                 cv_info = {
                     'id': str(app.cv.id),
                     'name': app.cv.name,
@@ -959,6 +983,18 @@ def get_job_applications(request, job_id):
                     'file_name': app.cv.name,
                     'full_name': app.cv.cv_data.get('personalInfo', {}).get('fullName') if app.cv.cv_data else None,
                     'cv_data': app.cv.cv_data if app.cv.cv_type == 'created' else None
+                }
+            elif app.attached_cv_file:
+                # CV adjunto directamente a esta postulación
+                import os
+                cv_info = {
+                    'id': None,  # No tiene ID porque no está en ApplicantCV
+                    'name': os.path.basename(app.attached_cv_file.name),
+                    'type': 'uploaded',
+                    'file_url': app.attached_cv_file.url,
+                    'file_name': os.path.basename(app.attached_cv_file.name),
+                    'full_name': None,
+                    'cv_data': None
                 }
 
             # Obtener teléfono del perfil si existe

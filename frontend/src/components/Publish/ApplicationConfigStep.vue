@@ -257,13 +257,14 @@
           <va-icon name="phone" size="1.25rem" />
           Método de Postulación
         </h3>
-        <p class="section-description">
-          Seleccione un método por donde los candidatos podrán postular a su vacante laboral.
-        </p>
+    
 
         <!-- Selector de método de postulación -->
         <div class="form-row">
           <label class="form-label">Seleccione el método de postulación *</label>
+          <p class="section-description">
+          Seleccione un método por donde los candidatos podrán postular a su vacante laboral.
+        </p>
           <div class="contact-method-selector">
             <!-- Opción 1: URL Externa -->
             <label class="radio-option">
