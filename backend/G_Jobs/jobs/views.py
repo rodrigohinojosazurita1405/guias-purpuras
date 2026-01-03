@@ -366,6 +366,8 @@ def publish_job(request):
                 plan_order = PlanOrder.objects.create(
                     user=request.user,
                     job=job,
+                    company_name=job.companyName,
+                    job_title=job.title,
                     razon_social=razon_social,
                     nit=nit,
                     ci=ci,
@@ -637,6 +639,10 @@ def list_jobs(request):
 
         if contract_type:
             jobs = jobs.filter(contractType=contract_type)
+
+        modality = request.GET.get('modality')
+        if modality:
+            jobs = jobs.filter(modality=modality)
 
         if search:
             jobs = jobs.filter(

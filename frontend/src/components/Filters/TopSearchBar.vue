@@ -55,12 +55,6 @@
             </option>
           </select>
         </div>
-
-        <!-- Botón Buscar -->
-        <button class="search-cta-btn" @click="handleSearchClick">
-          <va-icon name="search" size="small" />
-          <span class="btn-text">Buscar</span>
-        </button>
       </div>
     </div>
 
@@ -176,6 +170,58 @@
                     @change="applyDateFilter"
                   />
                   <span>Todas las fechas</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtro: Modalidad -->
+          <div class="filter-dropdown">
+            <button
+              class="filter-btn"
+              :class="{ active: localFilters.modality }"
+              @click.stop="toggleDropdown('modality')"
+            >
+              <span>Modalidad</span>
+              <va-icon name="expand_more" size="small" />
+            </button>
+            <div v-if="activeDropdown === 'modality'" class="dropdown-menu">
+              <div class="dropdown-content">
+                <label class="dropdown-option">
+                  <input
+                    v-model="localFilters.modality"
+                    type="radio"
+                    value=""
+                    @change="applyModalityFilter"
+                  />
+                  <span>Todas las modalidades</span>
+                </label>
+                <label class="dropdown-option">
+                  <input
+                    v-model="localFilters.modality"
+                    type="radio"
+                    value="Presencial"
+                    @change="applyModalityFilter"
+                  />
+                  <span>Presencial</span>
+                </label>
+                <label class="dropdown-option">
+                  <input
+                    v-model="localFilters.modality"
+                    type="radio"
+                    value="Remoto"
+                    @change="applyModalityFilter"
+                  />
+                  <span>Remoto</span>
+                </label>
+                <label class="dropdown-option">
+                  <input
+                    v-model="localFilters.modality"
+                    type="radio"
+                    value="Hibrido"
+                    @change="applyModalityFilter"
+                  />
+                  <span>Híbrido</span>
                 </label>
               </div>
             </div>
@@ -459,6 +505,11 @@ export default {
       this.activeDropdown = null
     },
 
+    applyModalityFilter() {
+      this.emitFilters()
+      this.activeDropdown = null
+    },
+
     clearSearch() {
       this.localFilters.search = ''
       this.emitFilters()
@@ -572,7 +623,7 @@ export default {
   max-width: 1400px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 2fr 1.5fr auto;
+  grid-template-columns: 2fr 1fr;
   gap: 0.75rem;
   align-items: center;
 }
@@ -637,34 +688,6 @@ export default {
 
 .clear-btn:hover {
   color: #EF4444;
-}
-
-/* ========== BOTÓN CTA ========== */
-.search-cta-btn {
-  background: rgb(253, 197, 0); /* Amarillo oficial GP */
-  color: #1F2937;
-  border: none;
-  border-radius: 8px;
-  padding: 0.875rem 2rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(253, 197, 0, 0.3);
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.search-cta-btn:hover {
-  background: rgb(230, 180, 0);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(253, 197, 0, 0.4);
-}
-
-.search-cta-btn:active {
-  transform: translateY(0);
 }
 
 /* ========== SECCIÓN DE FILTROS ========== */
@@ -945,11 +968,6 @@ export default {
   .search-container {
     grid-template-columns: 1fr 1fr;
   }
-
-  .search-cta-btn {
-    grid-column: 1 / -1;
-    justify-content: center;
-  }
 }
 
 @media (max-width: 768px) {
@@ -974,15 +992,6 @@ export default {
   /* Ciudad ocupa todo el ancho disponible */
   .search-input-wrapper.secondary {
     flex: 1;
-  }
-
-  .btn-text {
-    display: none;
-  }
-
-  .search-cta-btn {
-    padding: 0.75rem;
-    justify-content: center;
   }
 
   .filters-section {

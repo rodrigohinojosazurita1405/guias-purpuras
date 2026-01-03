@@ -323,6 +323,20 @@ export default {
         })
       }
 
+      // Filtrar por modalidad (trabajos)
+      if (this.category === 'trabajos' && this.topFilters.modality) {
+        results = results.filter(listing => {
+          const normalizeText = (text) => {
+            if (!text) return ''
+            return text.toLowerCase().trim()
+          }
+
+          const listingModality = normalizeText(listing.modality)
+          const filterModality = normalizeText(this.topFilters.modality)
+          return listingModality === filterModality
+        })
+      }
+
       // Filtrar por subcategoría (otros)
       if (this.category !== 'trabajos' && this.topFilters.subcategory) {
         results = results.filter(listing => {
@@ -390,37 +404,37 @@ export default {
       // Filtrar por rango salarial
       if (this.sidebarFilters.salaryMin !== null || this.sidebarFilters.salaryMax !== null) {
         results = results.filter(listing => {
-          // Si el salario es "A convenir", incluirlo siempre
-          if (!listing.salary || listing.salary === 'A convenir') return true
-
-          // Intentar obtener el salario desde los campos directos del backend
+          // Obtener valores salariales del listing
           let listingMin = listing.salaryMin
           let listingMax = listing.salaryMax
+          let listingFixed = listing.salaryFixed
 
-          // Si no existen, extraer del string formateado
-          if (!listingMin || !listingMax) {
-            const salaryMatch = listing.salary.match(/[\d,]+/g)
-            if (!salaryMatch) return true
-
-            const listingSalaries = salaryMatch.map(s => parseFloat(s.replace(/,/g, '')))
-            listingMin = Math.min(...listingSalaries)
-            listingMax = Math.max(...listingSalaries)
+          // Si tiene salario fijo, usar ese valor para min y max
+          if (listing.salaryType === 'fijo' && listingFixed) {
+            listingMin = listingFixed
+            listingMax = listingFixed
           }
 
-          // Lógica de filtrado mejorada:
-          // Mostrar el anuncio si hay CUALQUIER superposición entre los rangos
+          // Si no hay valores numéricos, EXCLUIR (no mostrar "A convenir" cuando hay filtro activo)
+          if (!listingMin && !listingMax && !listingFixed) return false
+
+          // Determinar el rango salarial del trabajo
+          const jobMinSalary = listingMin || listingFixed || 0
+          const jobMaxSalary = listingMax || listingFixed || Infinity
+
+          // Filtrado exacto:
           let matches = true
 
           // Si el usuario especifica salario mínimo:
-          // Mostrar anuncios cuyo salario máximo sea >= al mínimo buscado
+          // El salario máximo del trabajo debe ser >= al mínimo buscado
           if (this.sidebarFilters.salaryMin !== null) {
-            matches = matches && listingMax >= this.sidebarFilters.salaryMin
+            matches = matches && jobMaxSalary >= this.sidebarFilters.salaryMin
           }
 
           // Si el usuario especifica salario máximo:
-          // Mostrar anuncios cuyo salario mínimo sea <= al máximo buscado
+          // El salario mínimo del trabajo debe ser <= al máximo buscado
           if (this.sidebarFilters.salaryMax !== null) {
-            matches = matches && listingMin <= this.sidebarFilters.salaryMax
+            matches = matches && jobMinSalary <= this.sidebarFilters.salaryMax
           }
 
           return matches

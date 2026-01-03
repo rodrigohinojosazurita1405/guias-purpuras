@@ -29,46 +29,88 @@
             </div>
             <h2 class="section-title">¿Por qué creamos Guías Púrpuras?</h2>
             <div class="text-content">
-              <p>
-                <strong> El Problema que Vimos:</strong><i> El Caos Oculta el Talento:</i><br>
-                Creemos firmemente que Bolivia está llena de talento, esfuerzo y una creatividad que merece ser vista. 
-                Sin embargo, ese potencial a menudo se diluye y se pierde en el ruido caótico de redes sociales impersonales y 
-                plataformas digitales dispersas, a menudo miles de usuarios en Bolivia recurren a grupos de Facebook como 
-                ¿Alguien sabe?, ¿Alguien conoce? o variantes similares buscando información, recomendaciones, lugares entre otros. 
-                Es ahí donde encontramos una profunda necesidad de orden y claridad.
-              </p>
-              <p>
-               <strong> La Inspiración en las Clásicas Guias Telofónicas:</strong> <i>Recuperando la Confianza:</i> <br>
-                Nuestra base conceptual rinde homenaje a la utilidad y la confiabilidad de las antiguas guías telefónicas. 
-                Eran la herramienta esencial: lo buscabas, lo encontrabas y funcionaba. 
-                <strong>Guías Púrpuras</strong> nace con el compromiso de replicar esa sensación de acceso fácil y seguro, 
-                pero modernizada para la era digital. 
-                Nuestro objetivo es devolver la confianza al encuentro entre quienes buscan y quienes ofrecen.
-              </p>
-               <p>
-               <strong>El Color que lo Transforma Todo:</strong><i> La Filosofía de la Vaca Púrpura:</i> <br>
-                Una guía útil es buena, pero una Guía Púrpura es inolvidable.
-                El color púrpura es nuestro compromiso con la diferenciación. 
-                Inspirados en el concepto de la Vaca Púrpura de Seth Godin, nos negamos a ser otra plataforma genérica como los muchos
-                que existen en Bolivia, ocea (una "vaca marrón"). 
-                <b><i> "Somos el destino donde lo extraordinario se encuentra con la utilidad".</i></b> <br>
-                <b>Para el usuario:</b> Somos el filtro que destaca lo mejor de Bolivia. <br>
-                <b>Para el negocio Boliviano:</b> Somos la plataforma que te ayuda a ser esa Vaca Púrpura, la opción visible y preferida en tu mercado.
-              </p>
-              <p>
-                Por eso creamos <strong>Guías Púrpuras</strong>, un ecosistema digital diseñado 
-                para ordenar el caos y conectar a las personas con oportunidades reales.
-              </p>
-              <p>
-                
-              </p>
-              <p>
-                No somos una simple app de comidas o un portal de empleos. Somos una red viva de servicios profesionales, 
-                empresas PyMe, ofertas laborales y gastronomía, organizada, clara y moderna.
-              </p>
-              <p>
-                Un espacio donde lo Boliviano se ve bien, se encuentra fácil y se valora.
-              </p>
+              <div class="story-block">
+                <div class="story-icon">
+                  <va-icon name="warning_amber" size="medium" />
+                </div>
+                <div class="story-text">
+                  <h3 class="story-subtitle">El problema que vimos</h3>
+                  <h4 class="story-concept">El caos oculta el talento</h4>
+                  <p>
+                    Creemos firmemente que Bolivia está llena de talento, esfuerzo y creatividad que merece ser vista.
+                    Sin embargo, ese potencial a menudo se diluye en el ruido caótico de redes sociales impersonales y
+                    plataformas digitales dispersas.
+                  </p>
+                  <p>
+                    Miles de usuarios en Bolivia recurren diariamente a grupos de Facebook como
+                    "¿Alguien sabe?", "¿Alguien conoce?" o similares, buscando información, recomendaciones y lugares.
+                    Es ahí donde encontramos una profunda necesidad de orden y claridad.
+                  </p>
+                </div>
+              </div>
+
+              <div class="story-block">
+                <div class="story-icon">
+                  <va-icon name="menu_book" size="medium" />
+                </div>
+                <div class="story-text">
+                  <h3 class="story-subtitle">La inspiración</h3>
+                  <h4 class="story-concept">Las clásicas guías telefónicas</h4>
+                  <p>
+                    Nuestra base conceptual rinde homenaje a la utilidad y confiabilidad de las antiguas guías telefónicas.
+                    Eran la herramienta esencial: lo buscabas, lo encontrabas y funcionaba.
+                  </p>
+                  <p>
+                    <strong>Guías Púrpuras</strong> nace con el compromiso de replicar esa sensación de acceso fácil y seguro,
+                    pero modernizada para la era digital. Nuestro objetivo es devolver la confianza al encuentro entre quienes
+                    buscan y quienes ofrecen.
+                  </p>
+                </div>
+              </div>
+
+              <div class="story-block highlight-block">
+                <div class="story-icon">
+                  <va-icon name="auto_awesome" size="medium" />
+                </div>
+                <div class="story-text">
+                  <h3 class="story-subtitle">El color que lo transforma todo</h3>
+                  <h4 class="story-concept">La filosofía de la vaca púrpura</h4>
+                  <p>
+                    Una guía útil es buena, pero una Guía Púrpura es inolvidable.
+                    El color púrpura es nuestro compromiso con la diferenciación.
+                  </p>
+                  <p>
+                    Inspirados en el concepto de la Vaca Púrpura de Seth Godin, nos negamos a ser otra plataforma genérica
+                    como las muchas que existen en Bolivia, es decir, una "vaca marrón".
+                  </p>
+                  <blockquote class="purple-quote">
+                    "Somos el destino donde lo extraordinario se encuentra con la utilidad"
+                  </blockquote>
+                  <ul class="benefits-list">
+                    <li><strong>Para el usuario:</strong> Somos el filtro que destaca lo mejor de Bolivia.</li>
+                    <li><strong>Para el negocio boliviano:</strong> Somos la plataforma que te ayuda a ser esa Vaca Púrpura,
+                    la opción visible y preferida en tu mercado.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="story-block">
+                <div class="story-icon">
+                  <va-icon name="rocket_launch" size="medium" />
+                </div>
+                <div class="story-text">
+                  <h3 class="story-subtitle">Nuestro ecosistema digital</h3>
+                  <p>
+                    Por eso creamos <strong>Guías Púrpuras</strong>, un ecosistema digital diseñado
+                    para ordenar el caos y conectar a las personas con oportunidades reales.
+                  </p>
+                  <p>
+                    No somos una simple app de comidas o un portal de empleos. Somos una red viva de servicios profesionales,
+                    empresas PyME, ofertas laborales y gastronomía. Organizada, clara y moderna. Un espacio donde lo boliviano
+                    se ve bien, se encuentra fácil y se valora.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
           <div class="image-col">
@@ -218,22 +260,28 @@
             </div>
             <h4>Rodrigo Hinojosa Z.</h4>
             <p class="team-role">CEO & Fundador</p>
-            <p class="team-bio">Nacido en la bella Ciudad de Cochabamba, titulado de la carrera
-              de Sistemas Informáticos, Mercadotecnia y Abogado de profesión. 
+            <p class="team-bio">
+              Nacido en la bella ciudad de Cochabamba. Profesional con formación en Sistemas Informáticos,
+              Mercadotecnia y Derecho. Visionario detrás de Guías Púrpuras, comprometido con impulsar
+              el talento y las oportunidades en Bolivia a través de la tecnología.
             </p>
           </div>
 
           <div class="team-card">
             <div class="team-photo">
-              <img 
-                :src="teamMember2" 
-                alt="Director de Tecnología" 
+              <img
+                :src="teamMember2"
+                alt="Directora de Marketing"
                 class="team-image"
               />
             </div>
             <h4>María E. Varquera S.</h4>
             <p class="team-role">Directora de Marketing y Comunicación</p>
-            <p class="team-bio">Nacida en la bella ciudad  de Cochabamba: Experta en diseño publicitario influencer gastronómico y experta en atención al cliente</p>
+            <p class="team-bio">
+              Nacida en la bella ciudad de Cochabamba. Experta en diseño publicitario, influencer gastronómica
+              y especialista en atención al cliente. Su pasión por conectar marcas con personas impulsa
+              la comunicación estratégica de Guías Púrpuras.
+            </p>
           </div>
         </div>
       </div>
@@ -249,7 +297,7 @@
           </div>
           <h2 class="section-title">Construido con tecnología de vanguardia</h2>
           <p class="section-subtitle">
-            El Ecosistema digital Guías Purpuras utiliza tecnologias modernas acorde a nuestra época para garantizar velocidad, seguridad y escalabilidad.
+            El ecosistema digital Guías Púrpuras utiliza tecnologías modernas acorde a nuestra época para garantizar velocidad, seguridad y escalabilidad.
           </p>
         </div>
 
@@ -279,7 +327,7 @@
               <img :src="techLogos.git" alt="Git" class="tech-logo" />
             </div>
             <div class="tech-logo-item">
-              <img :src="techLogos.typescritp" alt="Typescript" class="tech-logo" />
+              <img :src="techLogos.typescript" alt="Typescript" class="tech-logo" />
             </div>
             <div class="tech-logo-item">
               <img :src="techLogos.nginx" alt="Nginx" class="tech-logo" />
@@ -315,7 +363,7 @@
               <img :src="techLogos.git" alt="Git" class="tech-logo" />
             </div>
             <div class="tech-logo-item">
-              <img :src="techLogos.typescritp" alt="Typescript" class="tech-logo" />
+              <img :src="techLogos.typescript" alt="Typescript" class="tech-logo" />
             </div>
             <div class="tech-logo-item">
               <img :src="techLogos.nginx" alt="Nginx" class="tech-logo" />
@@ -392,6 +440,7 @@ import MainLayout from '@/components/Layout/MainLayout.vue'
 import historyImage from '@/assets/images/amarillas.png'
 import teamMember1 from '@/assets/images/ceo.jpg'
 import teamMember2 from '@/assets/images/creativo.png'
+import heroBg from '@/assets/images/bg1.jpg'
 
 // ============================================
 // IMPORTAR LOGOS DE TECNOLOGÍAS
@@ -416,7 +465,7 @@ const techLogos = {
   postgresql: postgresqlLogoImg,
   graphql: graphqlLogoImg,
   git: gitLogoImg,
-  typescritp: typescriptLogoImg,
+  typescript: typescriptLogoImg,
   nginx: nginxLogoImg,
   aws: awsLogoImg,
   mongo: mongoLogoImg,
@@ -429,7 +478,7 @@ const goToPublish = () => {
 }
 
 const goToHome = () => {
-  router.push('/')
+  router.push('/guias/trabajos')
 }
 
 // ============================================
@@ -491,12 +540,38 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-purple-dark) 0%, var(--color-purple) 100%);
+  background-image: linear-gradient(135deg, rgba(92, 0, 153, 0.92) 0%, rgba(124, 58, 237, 0.88) 100%);
   overflow: hidden;
   padding: 4rem 2rem;
 }
 
+.about-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(135deg, rgba(92, 0, 153, 0.88) 0%, rgba(124, 58, 237, 0.82) 50%, rgba(109, 40, 217, 0.85) 100%),
+                    url('@/assets/images/bg6.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  z-index: 0;
+}
+
 .hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(92, 0, 153, 0.3) 100%);
+  z-index: 1;
+}
+
+.hero-overlay::after {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
@@ -530,15 +605,19 @@ onBeforeUnmount(() => {
 }
 
 .hero-title {
-  font-size: 3.5rem;
+  font-size: 2.75rem;
   font-weight: 800;
   color: white;
   margin-bottom: 1.5rem;
-  line-height: 1.2;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .hero-title .highlight {
   color: var(--color-yellow-primary);
+  position: relative;
+  display: inline-block;
 }
 
 .hero-subtitle {
@@ -574,11 +653,12 @@ onBeforeUnmount(() => {
 }
 
 .section-title {
-  font-size: 2.5rem;
+  font-size: 2.25rem;
   font-weight: 800;
   color: var(--color-purple-darkest);
   margin-bottom: 1.5rem;
-  line-height: 1.2;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .section-subtitle {
@@ -608,15 +688,131 @@ onBeforeUnmount(() => {
 }
 
 .text-content p {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   line-height: 1.8;
   color: #555;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
 }
 
 .text-content strong {
   color: var(--color-purple);
   font-weight: 700;
+}
+
+/* Story Blocks - Nuevo diseño */
+.story-block {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: white;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.story-block:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.story-icon {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(92, 0, 153, 0.05) 100%);
+  border-radius: 12px;
+  color: var(--color-purple);
+}
+
+.story-text {
+  flex: 1;
+}
+
+.story-subtitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-purple);
+  margin-bottom: 0.5rem;
+}
+
+.story-concept {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-purple-darkest);
+  margin-bottom: 1rem;
+  line-height: 1.3;
+  text-transform: capitalize;
+}
+
+.story-text p {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+.story-text p:last-of-type {
+  margin-bottom: 0;
+}
+
+/* Highlight Block */
+.highlight-block {
+  background: linear-gradient(135deg, #f3e8ff 0%, #faf5ff 100%);
+ 
+}
+
+.purple-quote {
+  font-size: 1.25rem;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--color-purple);
+  text-align: center;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);
+  position: relative;
+}
+
+.purple-quote::before {
+  content: '"';
+  font-size: 4rem;
+  position: absolute;
+  top: -1rem;
+  left: 1rem;
+  color: var(--color-purple);
+  opacity: 0.2;
+  font-family: Georgia, serif;
+}
+
+.benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0 0;
+}
+
+.benefits-list li {
+  padding: 0.75rem 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #555;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.benefits-list li::before {
+  content: "→";
+  color: var(--color-purple);
+  font-weight: 700;
+  font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .image-card {
