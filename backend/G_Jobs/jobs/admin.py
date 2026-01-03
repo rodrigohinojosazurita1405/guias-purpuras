@@ -460,7 +460,7 @@ class JobAdmin(admin.ModelAdmin):
     proof_of_payment_preview.short_description = 'Vista Previa'
 
     def description_preview(self, obj):
-        """Muestra un preview con HTML renderizado de la descripción"""
+        """Muestra un preview con HTML renderizado de la descripción con soporte completo para Quill Editor"""
         if not obj.description:
             return format_html(
                 '<div style="background-color: #FEE2E2; padding: 12px; border-radius: 6px; '
@@ -472,20 +472,81 @@ class JobAdmin(admin.ModelAdmin):
         clean_text = re.sub(r'\s+', ' ', clean_text).strip()
         char_count = len(clean_text)
 
-        # Renderizar HTML con estilos seguros
+        # Estilos CSS inline para renderizar HTML de Quill correctamente
+        quill_styles = """
+        <style>
+            .job-description-preview p { margin-bottom: 0.75rem; }
+            .job-description-preview strong { font-weight: 700; color: #1E293B; }
+            .job-description-preview em { font-style: italic; }
+            .job-description-preview s { text-decoration: line-through; }
+            .job-description-preview u { text-decoration: underline; }
+            .job-description-preview ul, .job-description-preview ol {
+                margin-left: 1.5rem;
+                margin-bottom: 0.75rem;
+                padding-left: 0.5rem;
+            }
+            .job-description-preview ul { list-style-type: disc; }
+            .job-description-preview ol { list-style-type: decimal; }
+            .job-description-preview li {
+                margin-bottom: 0.5rem;
+                display: list-item;
+            }
+            .job-description-preview .ql-indent-1 { padding-left: 3rem; }
+            .job-description-preview .ql-indent-2 { padding-left: 6rem; }
+            .job-description-preview .ql-indent-3 { padding-left: 9rem; }
+            .job-description-preview .ql-indent-4 { padding-left: 12rem; }
+            .job-description-preview .ql-indent-5 { padding-left: 15rem; }
+            .job-description-preview .ql-indent-6 { padding-left: 18rem; }
+            .job-description-preview .ql-indent-7 { padding-left: 21rem; }
+            .job-description-preview .ql-indent-8 { padding-left: 24rem; }
+            .job-description-preview blockquote {
+                border-left: 4px solid #7C3AED;
+                padding-left: 1rem;
+                margin: 1rem 0;
+                font-style: italic;
+                color: #64748B;
+                background: #F5F3FF;
+                padding: 0.75rem 1rem;
+                border-radius: 4px;
+            }
+            .job-description-preview a {
+                color: #7C3AED;
+                text-decoration: underline;
+                font-weight: 500;
+            }
+            .job-description-preview a:hover {
+                color: #6D28D9;
+            }
+            .job-description-preview h1, .job-description-preview h2,
+            .job-description-preview h3, .job-description-preview h4,
+            .job-description-preview h5, .job-description-preview h6 {
+                font-size: 1rem !important;
+                font-weight: normal !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                line-height: 1.5 !important;
+                color: #475569 !important;
+                margin-bottom: 0.75rem !important;
+            }
+        </style>
+        """
+
+        # Renderizar HTML con estilos de Quill
         return format_html(
+            '{}'
             '<div style="background-color: #F9FAFB; padding: 16px; border-radius: 8px; '
             'border-left: 4px solid #7C3AED; max-height: 400px; overflow-y: auto;">'
-            '<div style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto; '
+            '<div class="job-description-preview" style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto; '
             'color: #374151; line-height: 1.6; font-size: 14px;">{}</div>'
             '<p style="margin: 12px 0 0 0; padding-top: 12px; border-top: 1px solid #E5E7EB; '
             'color: #9CA3AF; font-size: 12px; font-style: italic;">'
             'Total de caracteres: {}</p>'
             '</div>',
+            mark_safe(quill_styles),
             mark_safe(obj.description),
             char_count
         )
-    description_preview.short_description = 'Vista Previa de Descripción (Sin HTML)'
+    description_preview.short_description = 'Vista Previa de Descripción'
 
     def rejection_info_display(self, obj):
         """Muestra información detallada del rechazo con formato visual"""

@@ -161,6 +161,15 @@
                   <va-icon name="place" color="purple" />
                 </template>
               </va-input>
+              <p class="field-hint" style="margin-top: 0.25rem; color: #7C3AED; font-weight: 600;">
+                <va-icon name="calendar_today" size="12px" color="#7C3AED" />
+                <span v-if="selectedPlanData && selectedPlanData.durationDays">
+                  Tu plan permite publicar desde hoy hasta {{ selectedPlanData.durationDays }} días ({{ formatDate(minApplicationDeadline) }} - {{ formatDate(maxApplicationDeadline) }})
+                </span>
+                <span v-else>
+                  Tu plan permite publicar desde hoy hasta 15 días
+                </span>
+              </p>
             </div>
 
             <div class="form-row compact">
@@ -187,8 +196,8 @@
                   <va-icon name="event" color="purple" />
                 </template>
               </va-date-input>
-              <p class="field-hint">
-                <va-icon name="info" size="12px" color="#6B7280" />
+              <p class="field-hint" style="color: #7C3AED; font-weight: 600;">
+                <va-icon name="info" size="12px" color="#7C3AED" />
                 Fecha hasta la cual los candidatos pueden postular a esta oferta
               </p>
             </div>
@@ -495,6 +504,15 @@ const validateApplicationDeadline = (dateValue) => {
   }
 
   return true
+}
+
+// Función para formatear fechas en español
+const formatDate = (date) => {
+  if (!date) return ''
+  const d = new Date(date)
+  const day = d.getDate()
+  const month = d.toLocaleDateString('es-ES', { month: 'short' })
+  return `${day} ${month}`
 }
 
 // ========== MODAL DE ERRORES ==========

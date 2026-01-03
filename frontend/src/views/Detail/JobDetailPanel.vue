@@ -1482,6 +1482,119 @@ export default {
   line-height: 1.7;
 }
 
+/* Estilos para renderizar HTML de Quill Editor */
+.description-text :deep(p) {
+  margin-bottom: 0.75rem;
+}
+
+.description-text :deep(strong) {
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.description-text :deep(em) {
+  font-style: italic;
+}
+
+.description-text :deep(s) {
+  text-decoration: line-through;
+}
+
+.description-text :deep(u) {
+  text-decoration: underline;
+}
+
+.description-text :deep(ul),
+.description-text :deep(ol) {
+  margin-left: 1.5rem;
+  margin-bottom: 0.75rem;
+  padding-left: 0.5rem;
+}
+
+.description-text :deep(ul) {
+  list-style-type: disc;
+}
+
+.description-text :deep(ol) {
+  list-style-type: decimal;
+}
+
+.description-text :deep(li) {
+  margin-bottom: 0.5rem;
+  display: list-item;
+}
+
+/* Indentación de listas */
+.description-text :deep(.ql-indent-1) {
+  padding-left: 3rem;
+}
+
+.description-text :deep(.ql-indent-2) {
+  padding-left: 6rem;
+}
+
+.description-text :deep(.ql-indent-3) {
+  padding-left: 9rem;
+}
+
+.description-text :deep(.ql-indent-4) {
+  padding-left: 12rem;
+}
+
+.description-text :deep(.ql-indent-5) {
+  padding-left: 15rem;
+}
+
+.description-text :deep(.ql-indent-6) {
+  padding-left: 18rem;
+}
+
+.description-text :deep(.ql-indent-7) {
+  padding-left: 21rem;
+}
+
+.description-text :deep(.ql-indent-8) {
+  padding-left: 24rem;
+}
+
+.description-text :deep(blockquote) {
+  border-left: 4px solid #7C3AED;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #64748B;
+  background: #F5F3FF;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+}
+
+.description-text :deep(a) {
+  color: #7C3AED;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.description-text :deep(a:hover) {
+  color: #6D28D9;
+  text-decoration: underline;
+}
+
+/* Neutralizar headers - forzar estilo de párrafo normal (como en Quill editor) */
+.description-text :deep(h1),
+.description-text :deep(h2),
+.description-text :deep(h3),
+.description-text :deep(h4),
+.description-text :deep(h5),
+.description-text :deep(h6) {
+  font-size: 1rem !important;
+  font-weight: normal !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.5 !important;
+  color: #475569 !important;
+  margin-bottom: 0.75rem !important;
+}
+
 /* Info list */
 .info-list {
   display: flex;

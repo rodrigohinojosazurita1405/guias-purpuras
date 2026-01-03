@@ -3887,10 +3887,53 @@ watch(() => props.formData.coordinates, (newCoords) => {
 .job-description-html :deep(ol) {
   margin-left: 1.5rem;
   margin-bottom: 0.75rem;
+  padding-left: 0.5rem;
+}
+
+.job-description-html :deep(ul) {
+  list-style-type: disc;
+}
+
+.job-description-html :deep(ol) {
+  list-style-type: decimal;
 }
 
 .job-description-html :deep(li) {
   margin-bottom: 0.5rem;
+  display: list-item;
+}
+
+/* Indentación de listas */
+.job-description-html :deep(.ql-indent-1) {
+  padding-left: 3rem;
+}
+
+.job-description-html :deep(.ql-indent-2) {
+  padding-left: 6rem;
+}
+
+.job-description-html :deep(.ql-indent-3) {
+  padding-left: 9rem;
+}
+
+.job-description-html :deep(.ql-indent-4) {
+  padding-left: 12rem;
+}
+
+.job-description-html :deep(.ql-indent-5) {
+  padding-left: 15rem;
+}
+
+.job-description-html :deep(.ql-indent-6) {
+  padding-left: 18rem;
+}
+
+.job-description-html :deep(.ql-indent-7) {
+  padding-left: 21rem;
+}
+
+.job-description-html :deep(.ql-indent-8) {
+  padding-left: 24rem;
 }
 
 .job-description-html :deep(blockquote) {
@@ -3906,6 +3949,12 @@ watch(() => props.formData.coordinates, (newCoords) => {
 
 .job-description-html :deep(a) {
   color: #7C3AED;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.job-description-html :deep(a:hover) {
+  color: #6D28D9;
   text-decoration: underline;
 }
 
