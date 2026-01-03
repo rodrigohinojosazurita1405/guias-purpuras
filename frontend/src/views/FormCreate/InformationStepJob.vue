@@ -226,124 +226,142 @@
         <!-- SEPARADOR VISUAL -->
         <div class="field-separator"></div>
 
-        <!-- GRUPO 3: COMPENSACIÓN Y VACANTES (COMPACTO) -->
+        <!-- GRUPO 3: COMPENSACIÓN Y VACANTES -->
         <div class="field-group">
           <h4 class="group-subtitle">
             <va-icon name="attach_money" size="1rem" />
             Compensación Económica y Vacantes Disponibles
           </h4>
 
-          <!-- GRID COMPACTO: VACANTES + TIPO SALARIO -->
-          <div class="form-grid compact-compensation-grid">
-            <!-- VACANTES -->
-            <div class="form-row compact">
-              <label class="form-label">Vacantes *</label>
-              <div class="vacancy-input-group compact">
-                <button
-                  type="button"
-                  class="vacancy-btn-sm"
-                  @click="decrementVacancies"
-                  :disabled="localFormData.vacancies <= 1"
-                >
-                  −
-                </button>
-                <input
-                  v-model.number="localFormData.vacancies"
-                  type="number"
-                  min="1"
-                  max="100"
-                  class="vacancy-input-sm"
-                  @input="(e) => updateVacancies(parseInt(e.target.value) || 1)"
-                />
-                <button
-                  type="button"
-                  class="vacancy-btn-sm"
-                  @click="incrementVacancies"
-                  :disabled="localFormData.vacancies >= 100"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <!-- TIPO SALARIO -->
-            <div class="form-row compact">
-              <label class="form-label">Salario *</label>
-              <div class="salary-type-compact">
-                <label class="radio-label-compact">
-                  <va-radio
-                    v-model="localFormData.salaryType"
-                    option="range"
-                    label=""
-                  />
-                  <span>Rango</span>
-                </label>
-                <label class="radio-label-compact">
-                  <va-radio
-                    v-model="localFormData.salaryType"
-                    option="fixed"
-                    label=""
-                  />
-                  <span>Fijo</span>
-                </label>
-                <label class="radio-label-compact">
-                  <va-radio
-                    v-model="localFormData.salaryType"
-                    option="negotiable"
-                    label=""
-                  />
-                  <span>A convenir</span>
-                </label>
-                <label class="radio-label-compact">
-                  <va-radio
-                    v-model="localFormData.salaryType"
-                    option="pretension_salarial"
-                    label=""
-                  />
-                  <span>Pretensión Salarial</span>
-                </label>
-              </div>
+          <!-- 1. TIPO DE SALARIO -->
+          <div class="form-row compact">
+            <label class="form-label">Tipo de Salario *</label>
+            <div class="salary-type-buttons">
+              <button
+                type="button"
+                class="salary-type-btn"
+                :class="{ active: localFormData.salaryType === 'range' }"
+                @click="localFormData.salaryType = 'range'"
+              >
+                <va-icon name="trending_up" size="1.2rem" />
+                <span>Rango</span>
+              </button>
+              <button
+                type="button"
+                class="salary-type-btn"
+                :class="{ active: localFormData.salaryType === 'fixed' }"
+                @click="localFormData.salaryType = 'fixed'"
+              >
+                <va-icon name="payments" size="1.2rem" />
+                <span>Fijo</span>
+              </button>
+              <button
+                type="button"
+                class="salary-type-btn"
+                :class="{ active: localFormData.salaryType === 'negotiable' }"
+                @click="localFormData.salaryType = 'negotiable'"
+              >
+                <va-icon name="handshake" size="1.2rem" />
+                <span>A convenir</span>
+              </button>
+              <button
+                type="button"
+                class="salary-type-btn"
+                :class="{ active: localFormData.salaryType === 'pretension_salarial' }"
+                @click="localFormData.salaryType = 'pretension_salarial'"
+              >
+                <va-icon name="request_quote" size="1.2rem" />
+                <span>Pretensión Salarial</span>
+              </button>
             </div>
           </div>
 
-          <!-- SALARIO - RANGO (INLINE) -->
-          <div v-if="localFormData.salaryType === 'range'" class="salary-inputs-inline">
-            <div class="form-field-inline">
-              <label class="form-label-sm">Mín (Bs.) *</label>
+          <!-- 2. CAMPOS DE SALARIO SEGÚN TIPO -->
+          <!-- SALARIO - RANGO -->
+          <div v-if="localFormData.salaryType === 'range'" class="form-grid" style="margin-top: 1rem;">
+            <div class="form-row compact">
+              <label class="form-label">Salario Mínimo (Bs.) *</label>
               <va-input
                 v-model.number="localFormData.salaryMin"
                 type="number"
-                placeholder="Min"
-                :rules="[(v) => !!v || 'Requerido']"
+                placeholder="Ej: 3000"
+                :rules="[(v) => !!v || 'El salario mínimo es requerido']"
                 size="small"
-              />
+              >
+                <template #prepend>
+                  <va-icon name="attach_money" color="purple" />
+                </template>
+              </va-input>
             </div>
-            <span class="separator">−</span>
-            <div class="form-field-inline">
-              <label class="form-label-sm">Máx (Bs.) *</label>
+
+            <div class="form-row compact">
+              <label class="form-label">Salario Máximo (Bs.) *</label>
               <va-input
                 v-model.number="localFormData.salaryMax"
                 type="number"
-                placeholder="Max"
+                placeholder="Ej: 5000"
                 :rules="[
-                  (v) => !!v || 'Requerido',
-                  (v) => !localFormData.salaryMin || v > localFormData.salaryMin || 'Debe ser mayor'
+                  (v) => !!v || 'El salario máximo es requerido',
+                  (v) => !localFormData.salaryMin || v > localFormData.salaryMin || 'Debe ser mayor al mínimo'
                 ]"
                 size="small"
-              />
+              >
+                <template #prepend>
+                  <va-icon name="attach_money" color="purple" />
+                </template>
+              </va-input>
             </div>
           </div>
 
-          <!-- SALARIO - FIJO (INLINE) -->
-          <div v-if="localFormData.salaryType === 'fixed'" class="form-row compact">
-            <label class="form-label-sm">Salario (Bs.) *</label>
+          <!-- SALARIO - FIJO -->
+          <div v-if="localFormData.salaryType === 'fixed'" class="form-row compact" style="margin-top: 1rem;">
+            <label class="form-label">Salario Fijo (Bs.) *</label>
             <va-input
               v-model.number="localFormData.salaryFixed"
               type="number"
-              placeholder="Salario fijo"
-              :rules="[(v) => !!v || 'Requerido']"
+              placeholder="Ej: 4000"
+              :rules="[(v) => !!v || 'El salario es requerido']"
               size="small"
-            />
+            >
+              <template #prepend>
+                <va-icon name="attach_money" color="purple" />
+              </template>
+            </va-input>
+          </div>
+
+          <!-- 3. VACANTES -->
+          <div class="form-row compact" style="margin-top: 1rem;">
+            <label class="form-label">Número de Vacantes *</label>
+            <div class="vacancy-input-group">
+              <button
+                type="button"
+                class="vacancy-btn"
+                @click="decrementVacancies"
+                :disabled="localFormData.vacancies <= 1"
+              >
+                <va-icon name="remove" size="1rem" />
+              </button>
+              <input
+                v-model.number="localFormData.vacancies"
+                type="number"
+                min="1"
+                max="100"
+                class="vacancy-input"
+                @input="(e) => updateVacancies(parseInt(e.target.value) || 1)"
+              />
+              <button
+                type="button"
+                class="vacancy-btn"
+                @click="incrementVacancies"
+                :disabled="localFormData.vacancies >= 100"
+              >
+                <va-icon name="add" size="1rem" />
+              </button>
+            </div>
+            <p class="field-hint" style="margin-top: 0.25rem; color: #7C3AED; font-weight: 600;">
+              <va-icon name="info" size="12px" color="#7C3AED" />
+              Indica cuántas personas necesitas contratar para este puesto
+            </p>
           </div>
         </div>
 
@@ -1332,112 +1350,109 @@ textarea {
 }
 
 /* ========== COMPENSATION & VACANCIES ========== */
-.form-grid.compact-compensation-grid {
+/* Botones de tipo de salario */
+.salary-type-buttons {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
 }
 
-.vacancy-input-group.compact {
+.salary-type-btn {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid #E2E8F0;
+  background: white;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  color: #64748B;
+  font-size: 0.9rem;
 }
 
-.vacancy-btn-sm {
-  width: 36px;
-  height: 36px;
-  border: 1px solid #E2E8F0;
-  background: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
+.salary-type-btn:hover {
+  border-color: #C4B5FD;
+  background: #FAF5FF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(124, 58, 237, 0.15);
+}
+
+.salary-type-btn.active {
+  border-color: #7C3AED;
+  background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%);
   color: #7C3AED;
-  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+.salary-type-btn.active :deep(.va-icon) {
+  color: #7C3AED;
+}
+
+.salary-type-btn :deep(.va-icon) {
+  color: #94A3B8;
+  transition: all 0.3s ease;
+}
+
+.salary-type-btn:hover :deep(.va-icon) {
+  color: #7C3AED;
+}
+
+/* Grupo de input de vacantes */
+.vacancy-input-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 200px;
+}
+
+.vacancy-btn {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #E2E8F0;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #7C3AED;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
-.vacancy-btn-sm:hover:not(:disabled) {
-  background: #F8FAFC;
+.vacancy-btn:hover:not(:disabled) {
+  background: #F5F3FF;
   border-color: #7C3AED;
-  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
 }
 
-.vacancy-btn-sm:disabled {
+.vacancy-btn:disabled {
   color: #CBD5E1;
   cursor: not-allowed;
   border-color: #E2E8F0;
+  background: #F8FAFC;
 }
 
-.vacancy-input-sm {
-  width: 60px;
-  padding: 0.5rem;
-  border: 1px solid #E2E8F0;
-  border-radius: 6px;
+.vacancy-input {
+  width: 80px;
+  height: 40px;
+  padding: 0 1rem;
+  border: 2px solid #E2E8F0;
+  border-radius: 8px;
   text-align: center;
-  font-weight: 600;
+  font-weight: 700;
   color: #7C3AED;
-  font-size: 0.95rem;
-  transition: all 0.2s;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  background: white;
 }
 
-.vacancy-input-sm:focus {
+.vacancy-input:focus {
   outline: none;
   border-color: #7C3AED;
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-}
-
-.salary-type-compact {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.radio-label-compact {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.9rem;
-  cursor: pointer;
-  font-weight: 500;
-  color: #1E293B;
-}
-
-.radio-label-compact:hover {
-  color: #7C3AED;
-}
-
-.salary-inputs-inline {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.75rem;
-  margin-top: 0.75rem;
-}
-
-.form-field-inline {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  min-width: 0;
-}
-
-.form-label-sm {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #1E293B;
-}
-
-.separator {
-  color: #7C3AED;
-  font-weight: 600;
-  padding-bottom: 0.5rem;
-  line-height: 1;
 }
 
 /* ========== NAVIGATION BUTTONS ========== */
