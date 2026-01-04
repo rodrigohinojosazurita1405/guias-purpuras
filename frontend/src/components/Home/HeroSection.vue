@@ -43,8 +43,8 @@
 
         <!-- Barra de Búsqueda Principal -->
         <div class="search-card">
-          <!-- Tabs compactos arriba del buscador -->
-          <div class="search-tabs">
+          <!-- Tabs compactos arriba del buscador (Desktop) -->
+          <div class="search-tabs desktop-tabs">
             <button
               v-for="contractType in contractTypes"
               :key="contractType.value"
@@ -54,6 +54,24 @@
               <va-icon :name="contractType.icon" size="16px" />
               <span>{{ contractType.text }}</span>
             </button>
+          </div>
+
+          <!-- Dropdown para móvil -->
+          <div class="mobile-contract-select">
+            <va-icon name="work" class="input-icon" />
+            <select
+              v-model="searchStore.selectedContractType"
+              class="search-input contract-select"
+              @change="selectContractType(searchStore.selectedContractType)"
+            >
+              <option
+                v-for="contractType in contractTypes"
+                :key="contractType.value"
+                :value="contractType.value"
+              >
+                {{ contractType.text }}
+              </option>
+            </select>
           </div>
 
           <!-- Inputs de búsqueda -->
@@ -414,12 +432,35 @@ onUnmounted(() => {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
-/* Tabs de búsqueda (arriba del input) */
-.search-tabs {
+/* Tabs de búsqueda (arriba del input) - Solo Desktop */
+.search-tabs.desktop-tabs {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.25rem;
   flex-wrap: wrap;
+}
+
+/* Dropdown móvil - Oculto por defecto */
+.mobile-contract-select {
+  display: none;
+  position: relative;
+  align-items: center;
+  background: #F9FAFB;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.mobile-contract-select:focus-within {
+  border-color: var(--color-purple);
+  background: white;
+}
+
+.mobile-contract-select .contract-select {
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .search-tab {
@@ -834,16 +875,21 @@ onUnmounted(() => {
   }
 
   .search-card {
-    padding: 1.25rem;
+    padding: 1rem;
   }
 
-  .search-tabs {
-    gap: 0.375rem;
+  /* Ocultar tabs en móvil */
+  .search-tabs.desktop-tabs {
+    display: none;
   }
 
-  .search-tab {
-    font-size: 0.8125rem;
-    padding: 0.4rem 0.75rem;
+  /* Mostrar dropdown en móvil */
+  .mobile-contract-select {
+    display: flex;
+  }
+
+  .search-inputs {
+    gap: 0.625rem;
   }
 
   .hero-stats {
@@ -884,17 +930,13 @@ onUnmounted(() => {
   }
 
   .search-card {
-    padding: 1rem;
+    padding: 0.875rem;
   }
 
-  .search-tabs {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .search-tab {
-    width: 100%;
-    justify-content: center;
+  /* Dropdown móvil más compacto */
+  .mobile-contract-select {
+    padding: 0.625rem 0.875rem;
+    margin-bottom: 0.625rem;
   }
 
   .search-inputs {
@@ -910,7 +952,7 @@ onUnmounted(() => {
   }
 
   .search-btn {
-    padding: 0.625rem 1.5rem;
+    padding: 0.75rem 1.5rem;
     font-size: 0.875rem;
   }
 
