@@ -416,6 +416,7 @@ export default {
 
     hasActiveFilters() {
       return (
+        // Filtros locales del TopSearchBar
         this.localFilters.search ||
         this.localFilters.city ||
         this.localFilters.category ||
@@ -424,7 +425,11 @@ export default {
         this.sidebarFilters.publishDate ||
         this.sidebarFilters.salaryMin ||
         this.sidebarFilters.salaryMax ||
-        this.sidebarFilters.education
+        this.sidebarFilters.education ||
+        // Filtros del HeroSection (store global)
+        this.searchStore.searchQuery ||
+        this.searchStore.selectedCity ||
+        this.searchStore.selectedContractType
       )
     }
   },
@@ -516,6 +521,7 @@ export default {
     },
 
     clearFilters() {
+      // Limpiar filtros locales
       this.localFilters = {
         search: '',
         city: '',
@@ -529,6 +535,14 @@ export default {
         salaryMax: null,
         education: ''
       }
+
+      // Limpiar el store global (filtros del HeroSection)
+      this.searchStore.clearAllFilters()
+
+      // Limpiar query params de la URL
+      this.$router.push({ query: {} })
+
+      // Emitir filtros vacíos
       this.emitFilters()
     },
 

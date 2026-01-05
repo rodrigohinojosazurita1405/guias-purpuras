@@ -3,8 +3,9 @@
     <div class="section-header">
       <h1>Mis CVs Profesionales</h1>
       <p class="subtitle">
-        Crea y gestiona hasta 2 currículums en <strong>formato Harvard</strong>,
-        el estándar preferido por reclutadores y empresas líderes.
+        Crea y gestiona hasta 2 currículums en <strong>formato Harvard</strong>, 
+        el estándar preferido por reclutadores y empresas líderes, o sube
+        uno propio en formato PDF para ser reutilizado en tus postulaciones.
       </p>
       <div class="info-badges">
         <span class="info-badge">
@@ -34,18 +35,44 @@
       <div class="action-buttons">
         <button
           class="create-cv-btn"
-          :disabled="cvs.length >= maxCVs"
+          :disabled="createdCVsCount >= maxCreatedCVs"
           @click="goToCreateCV"
         >
           <va-icon name="add_circle" size="20px" />
           Crear CV en Plataforma
+          <span v-if="createdCVsCount > 0" class="cv-count-badge">{{ createdCVsCount }}/{{ maxCreatedCVs }}</span>
         </button>
+
+        <button
+          class="upload-cv-btn"
+          :disabled="uploadedCVsCount >= maxUploadedCVs || isUploading"
+          @click="triggerFileUpload"
+        >
+          <va-progress-circle v-if="isUploading" indeterminate size="20px" :thickness="0.2" color="#ffffff" />
+          <va-icon v-else name="upload_file" size="20px" />
+          {{ isUploading ? 'Subiendo...' : 'Subir PDF Externo' }}
+          <span v-if="uploadedCVsCount > 0 && !isUploading" class="cv-count-badge">{{ uploadedCVsCount }}/{{ maxUploadedCVs }}</span>
+        </button>
+
+        <!-- Hidden file input -->
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".pdf,.doc,.docx"
+          @change="handleFileUpload"
+          style="display: none"
+        />
       </div>
 
-      <!-- CVs Limit Warning -->
-      <div v-if="cvs.length >= maxCVs" class="warning-message">
+      <!-- CVs Limit Warnings -->
+      <div v-if="createdCVsCount >= maxCreatedCVs" class="warning-message">
         <va-icon name="warning" color="warning" />
-        <span>Has alcanzado el límite de {{ maxCVs }} CVs. Elimina uno para agregar otro.</span>
+        <span>Has alcanzado el límite de {{ maxCreatedCVs }} CVs creados. Elimina uno para agregar otro.</span>
+      </div>
+
+      <div v-if="uploadedCVsCount >= maxUploadedCVs" class="warning-message">
+        <va-icon name="warning" color="warning" />
+        <span>Ya tienes un PDF guardado. Elimina el PDF existente para subir uno nuevo.</span>
       </div>
 
       <!-- Empty State -->
@@ -119,14 +146,23 @@
               </div>
             </div>
 
+            <!-- CV Type Badge -->
+            <div class="cv-type-badge" :class="cv.cv_type">
+              <va-icon
+                :name="cv.cv_type === 'created' ? 'code' : 'upload_file'"
+                size="14px"
+              />
+              <span>{{ cv.cv_type === 'created' ? 'CV Creado en Plataforma' : 'CV PDF Externo' }}</span>
+            </div>
+
             <div class="cv-meta">
               <div class="meta-item">
                 <va-icon name="schedule" size="small" color="#666" />
-                <span>Creado: {{ formatDate(cv.created_at) }}</span>
+                <span>Creado: {{ formatDateTime(cv.created_at) }}</span>
               </div>
               <div v-if="cv.updated_at !== cv.created_at" class="meta-item">
                 <va-icon name="update" size="small" color="#666" />
-                <span>Actualizado: {{ formatDate(cv.updated_at) }}</span>
+                <span>Actualizado: {{ formatDateTime(cv.updated_at) }}</span>
               </div>
             </div>
           </div>
@@ -171,7 +207,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useToast } from 'vuestic-ui'
@@ -181,13 +217,25 @@ const authStore = useAuthStore()
 const { init: initToast } = useToast()
 
 // Constants
-const maxCVs = 2
+const maxCreatedCVs = 2
+const maxUploadedCVs = 1
 
 // State
 const cvs = ref([])
 const isLoading = ref(false)
 const editingCVId = ref(null)
 const editingName = ref('')
+const fileInput = ref(null)
+const isUploading = ref(false)
+
+// Computed
+const createdCVsCount = computed(() => {
+  return cvs.value.filter(cv => cv.cv_type === 'created').length
+})
+
+const uploadedCVsCount = computed(() => {
+  return cvs.value.filter(cv => cv.cv_type === 'uploaded').length
+})
 
 // Methods
 const loadCVs = async () => {
@@ -270,6 +318,108 @@ const goToCreateCV = () => {
   router.push('/dashboard/cv/builder')
 }
 
+const triggerFileUpload = () => {
+  fileInput.value.click()
+}
+
+const getCsrfToken = () => {
+  const name = 'csrftoken'
+  let cookieValue = null
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';')
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim()
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+        break
+      }
+    }
+  }
+  return cookieValue
+}
+
+const handleFileUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  // Prevent multiple simultaneous uploads
+  if (isUploading.value) {
+    console.log('Upload already in progress, skipping...')
+    return
+  }
+
+  // Validate file
+  const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
+  const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+
+  if (!allowedTypes.includes(file.type)) {
+    initToast({
+      message: 'Solo se permiten archivos PDF, DOC o DOCX',
+      color: 'danger',
+      duration: 3000
+    })
+    fileInput.value.value = ''
+    return
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    initToast({
+      message: 'El archivo no debe superar los 5 MB',
+      color: 'danger',
+      duration: 3000
+    })
+    fileInput.value.value = ''
+    return
+  }
+
+  // Upload file
+  isUploading.value = true
+  try {
+    console.log('Starting upload for file:', file.name)
+
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('name', file.name.replace(/\.[^/.]+$/, ''))
+
+    const response = await fetch('http://localhost:8000/api/cvs/save/', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'X-CSRFToken': getCsrfToken()
+      },
+      body: formData,
+      credentials: 'include'
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.error || 'Error al guardar el PDF')
+    }
+
+    console.log('Upload successful')
+
+    initToast({
+      message: 'PDF guardado exitosamente',
+      color: 'success',
+      duration: 3000
+    })
+
+    // Reload CVs
+    await loadCVs()
+  } catch (error) {
+    console.error('Error uploading PDF:', error)
+    initToast({
+      message: error.message || 'Error al subir el PDF',
+      color: 'danger',
+      duration: 3000
+    })
+  } finally {
+    // Reset file input and uploading flag
+    fileInput.value.value = ''
+    isUploading.value = false
+  }
+}
+
 const editCV = (cv) => {
   router.push({
     path: '/dashboard/cv/builder',
@@ -289,9 +439,15 @@ const previewCV = (cv) => {
   }
 }
 
-const formatDate = (dateString) => {
+const formatDateTime = (dateString) => {
   const date = new Date(dateString)
-  return date.toLocaleDateString('es-BO', { year: 'numeric', month: 'short', day: 'numeric' })
+  return date.toLocaleString('es-BO', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 // Badge helper functions
@@ -496,6 +652,46 @@ onMounted(() => {
 .create-cv-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.upload-cv-btn {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border: none;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.upload-cv-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+}
+
+.upload-cv-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cv-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-left: 4px;
 }
 
 .cv-icon-container {
@@ -706,6 +902,39 @@ onMounted(() => {
   background: #f3f4f6;
   padding: 12px 16px;
   border-radius: 8px;
+}
+
+.cv-type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  transition: all 0.3s ease;
+}
+
+.cv-type-badge.created {
+  background: linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%);
+  color: #7C3AED;
+  border: 1.5px solid #C4B5FD;
+}
+
+.cv-type-badge.uploaded {
+  background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+  color: #2563EB;
+  border: 1.5px solid #93C5FD;
+}
+
+.cv-type-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .meta-item {

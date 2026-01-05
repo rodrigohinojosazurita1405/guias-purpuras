@@ -25,6 +25,20 @@ class PlanOrder(models.Model):
         verbose_name="Usuario"
     )
 
+    # Información de la empresa y el anuncio (almacenada para referencia histórica)
+    company_name = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Nombre de la Empresa",
+        help_text="Nombre de la empresa que publicó el anuncio"
+    )
+    job_title = models.CharField(
+        max_length=300,
+        blank=True,
+        verbose_name="Título del Anuncio",
+        help_text="Título del trabajo asociado a esta orden"
+    )
+
     # Datos de facturación
     razon_social = models.CharField(
         max_length=200,
@@ -109,4 +123,6 @@ class PlanOrder(models.Model):
         db_table = 'jobs_planorder'  # Mantener nombre de tabla original
 
     def __str__(self):
-        return f"Orden {self.id} - {self.razon_social} - {self.selected_plan}"
+        company = self.company_name or self.razon_social
+        job = self.job_title or "Sin anuncio"
+        return f"Orden {self.id} - {company} - {job} ({self.get_selected_plan_display()})"

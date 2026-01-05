@@ -293,10 +293,10 @@ const handleSearch = () => {
 // LIFECYCLE HOOKS
 // ==========================================
 onMounted(async () => {
-  // 🎯 CARGAR TIPOS DE CONTRATO DESDE BACKEND
+  // CARGAR TIPOS DE CONTRATO DESDE BACKEND
   await fetchContractTypes()
 
-  // 🎯 NO DETECTAR UBICACIÓN EN HOME - El usuario verá todos los anuncios de Bolivia
+  // NO DETECTAR UBICACIÓN EN HOME - El usuario verá todos los anuncios de Bolivia
   // La geolocalización se maneja en GuideView con el switch toggle
 
   // Iniciar rotación de background

@@ -90,6 +90,8 @@
       </select>
 
       <select v-model="sortBy" class="filter-select">
+        <option value="job-recent">Anuncios más recientes primero</option>
+        <option value="job-oldest">Anuncios más antiguos primero</option>
         <option value="date-desc">Aplicaciones recientes primero</option>
         <option value="date-asc">Aplicaciones antiguas primero</option>
         <option value="rating-desc">Mejor calificados primero (5→1)</option>
@@ -360,7 +362,7 @@
       <h3>No hay candidatos registrados</h3>
       <p>Los candidatos aparecerán aquí cuando postulen a tus publicaciones</p>
       <p style="font-size: 0.9rem; color: #9CA3AF; margin-top: 1rem;">
-        💡 Tip: Publica un anuncio de trabajo para empezar a recibir candidatos
+        Tip: Publica un anuncio de trabajo para empezar a recibir candidatos
       </p>
     </div>
 
@@ -890,6 +892,7 @@ const groupedApplications = computed(() => {
       grouped[jobId] = {
         jobId: jobId,
         jobTitle: app.jobTitle,
+        jobCreatedAt: app.jobCreatedAt,
         applications: []
       }
     }
@@ -942,8 +945,23 @@ const groupedApplications = computed(() => {
     })
   })
 
-  // Convertir a array y ordenar por número de solicitudes (descendente)
-  return Object.values(grouped).sort((a, b) => b.applications.length - a.applications.length)
+  // Convertir a array y ordenar según el criterio seleccionado
+  return Object.values(grouped).sort((a, b) => {
+    if (sortBy.value === 'job-recent') {
+      // Anuncios más recientes primero
+      const dateA = a.jobCreatedAt ? new Date(a.jobCreatedAt) : new Date(0)
+      const dateB = b.jobCreatedAt ? new Date(b.jobCreatedAt) : new Date(0)
+      return dateB - dateA
+    } else if (sortBy.value === 'job-oldest') {
+      // Anuncios más antiguos primero
+      const dateA = a.jobCreatedAt ? new Date(a.jobCreatedAt) : new Date(0)
+      const dateB = b.jobCreatedAt ? new Date(b.jobCreatedAt) : new Date(0)
+      return dateA - dateB
+    } else {
+      // Por defecto: ordenar por número de solicitudes (descendente)
+      return b.applications.length - a.applications.length
+    }
+  })
 })
 
 // Contador de aplicaciones totales

@@ -17,17 +17,27 @@
 
       <!-- Form Content -->
       <div class="cv-builder-content">
-        <!-- Step 0: Información Personal -->
+        <!-- Step 0: Información Personal + Perfil Profesional -->
         <div v-if="currentStep === 0" class="step-content">
-          <h2 class="step-heading">Información Personal</h2>
-          <p class="step-description">Proporciona tus datos de contacto principales</p>
+          <h2 class="step-heading">Información Personal y Perfil</h2>
+          <p class="step-description">Proporciona tus datos de contacto y un resumen profesional</p>
 
+          <!-- Información Personal -->
+          <div class="subsection-divider">
+            <h3 class="subsection-title">Datos de Contacto</h3>
+          </div>
           <div class="form-grid">
             <va-input
               v-model="cvFormData.personalInfo.fullName"
               label="Nombre Completo"
               placeholder="Ej: Juan Carlos Pérez López"
               required-mark
+              class="full-width"
+            />
+            <va-input
+              v-model="cvFormData.personalInfo.title"
+              label="Título Profesional / Cargo Objetivo"
+              placeholder="Ej: Ingeniero de Software, Analista de Datos, Diseñador UX/UI"
               class="full-width"
             />
             <va-input
@@ -59,31 +69,31 @@
               placeholder="www.misitioweb.com"
             />
           </div>
-        </div>
 
-        <!-- Step 1: Perfil Profesional -->
-        <div v-if="currentStep === 1" class="step-content">
-          <h2 class="step-heading">Perfil Profesional</h2>
-          <p class="step-description">Resume tu experiencia y valor profesional en 3-4 líneas</p>
-
+          <!-- Perfil Profesional -->
+          <div class="subsection-divider">
+            <h3 class="subsection-title">Perfil Profesional (Summary Statement)</h3>
+          </div>
           <va-textarea
             v-model="cvFormData.professionalProfile"
-            placeholder="Resuma su experiencia, fortalezas clave y el valor que aporta. Ej: 'Profesional con 5+ años de experiencia en gestión comercial, especializado en desarrollo de estrategias y liderazgo de equipos. Comprobada capacidad para superar objetivos y aumentar la rentabilidad en un 30%.'"
+            placeholder="Resumen ejecutivo de 3-4 líneas destacando su experiencia, competencias clave y logros cuantificables. Use verbos de acción y enfoque en resultados medibles. Ej: 'Gerente de Ventas con 7+ años aumentando ingresos en sectores B2B. Logré incremento de 45% en ventas regionales mediante implementación de estrategias de retención de clientes. Especializado en análisis de mercado, negociación y desarrollo de equipos de alto rendimiento.'"
             :min-rows="6"
             :max-rows="10"
             counter
             :max-length="500"
           />
-          <p class="field-hint">Enfóquese en logros cuantificables y el impacto de su trabajo.</p>
+          <p class="field-hint"><strong>Formato Harvard:</strong> Use verbos de acción (Logré, Incrementé, Desarrollé) + resultados cuantificables (%, números, tiempo).</p>
         </div>
 
-        <!-- Step 2: Experiencia Profesional -->
-        <div v-if="currentStep === 2" class="step-content">
-          <div class="step-header-section">
-            <div>
-              <h2 class="step-heading">Experiencia Profesional</h2>
-              <p class="step-description">Orden cronológico inverso. Enfatice logros medibles e impacto.</p>
-            </div>
+        <!-- Step 1: Experiencia Profesional -->
+        <div v-if="currentStep === 1" class="step-content">
+          <h2 class="step-heading">Experiencia Profesional (Work Experience)</h2>
+          <p class="step-description" style="margin-bottom: 1.5rem;">
+            Cronología inversa (más reciente primero). <br>
+            <strong>Formato Harvard:</strong> Verbo de acción + Resultado cuantificable + Método/Contexto.
+          </p>
+
+          <div class="step-header-actions">
             <button class="add-btn" @click="addExperience">
               <va-icon name="add" size="small" />
               Agregar Experiencia
@@ -123,11 +133,12 @@
               <va-input v-model="exp.company" label="Empresa" placeholder="Nombre de la empresa" class="full-width" />
 
               <div class="achievements-section full-width">
-                <label class="achievements-label">Logros y Resultados (3-4 puntos clave)</label>
+                <label class="achievements-label">Logros Cuantificables (3-4 bullet points - Formato Harvard)</label>
+                <p class="achievement-hint">Cada logro debe seguir: VERBO DE ACCIÓN + RESULTADO MEDIBLE + MÉTODO. Ej: "Incrementé ventas en 35% mediante implementación de CRM"</p>
                 <div v-for="(achievement, achIndex) in exp.achievements" :key="achIndex" class="achievement-input-wrapper">
                   <va-input
                     v-model="exp.achievements[achIndex]"
-                    :placeholder="`Logro ${achIndex + 1}: Ej: 'Lideré equipo de 8 personas que superó las metas trimestrales en un 40%'`"
+                    :placeholder="`• Verbo + Resultado + Método: 'Reduje costos operativos en 25% optimizando procesos de compras'`"
                   >
                     <template #append>
                       <button v-if="exp.achievements.length > 1" class="remove-achievement-btn" @click="removeAchievement(index, achIndex)">
@@ -145,13 +156,15 @@
           </div>
         </div>
 
-        <!-- Step 3: Educación -->
-        <div v-if="currentStep === 3" class="step-content">
-          <div class="step-header-section">
-            <div>
-              <h2 class="step-heading">Educación</h2>
-              <p class="step-description">Orden cronológico inverso (más reciente primero)</p>
-            </div>
+        <!-- Step 2: Educación + Habilidades -->
+        <div v-if="currentStep === 2" class="step-content">
+          <!-- Educación -->
+          <h2 class="step-heading">Educación (Education)</h2>
+          <p class="step-description" style="margin-bottom: 1.5rem;">
+            Cronología inversa. Incluya título, institución, años, y honores/logros relevantes.
+          </p>
+
+          <div class="step-header-actions">
             <button class="add-btn" @click="addEducation">
               <va-icon name="add" size="small" />
               Agregar Educación
@@ -179,16 +192,21 @@
               <va-textarea v-model="edu.achievements" label="Logros o Detalles Relevantes" placeholder="Ej: Graduado con mención honorífica" :min-rows="2" class="full-width" />
             </div>
           </div>
-        </div>
 
-        <!-- Step 4: Habilidades -->
-        <div v-if="currentStep === 4" class="step-content">
-          <h2 class="step-heading">Habilidades</h2>
-          <p class="step-description">Agrega tus habilidades técnicas y blandas más relevantes</p>
+          <!-- Habilidades -->
+          <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #E5E7EB;">
+            <h2 class="step-heading" style="margin-bottom: 1rem;">Habilidades (Skills)</h2>
+            <p class="step-description" style="margin-bottom: 2rem; line-height: 1.8;">
+              <strong>Formato Harvard:</strong> Priorice habilidades relevantes para el puesto objetivo.
+              <br><br>
+              Liste primero las técnicas/específicas, luego las transferibles.
+            </p>
+          </div>
 
           <!-- Habilidades Técnicas -->
           <div class="skills-subsection">
-            <label class="subsection-label">Habilidades Técnicas</label>
+            <label class="subsection-label">Habilidades Técnicas (Technical/Hard Skills)</label>
+            <p class="skills-hint">Software, herramientas, sistemas, certificaciones técnicas específicas de su industria</p>
             <div class="skills-input-wrapper">
               <va-input
                 v-model="newTechnicalSkill"
@@ -214,7 +232,8 @@
 
           <!-- Habilidades Blandas -->
           <div class="skills-subsection">
-            <label class="subsection-label">Habilidades Blandas</label>
+            <label class="subsection-label">Habilidades Transferibles / Blandas (Soft/Transferable Skills)</label>
+            <p class="skills-hint">Competencias interpersonales y de gestión aplicables a diversos contextos laborales</p>
             <div class="skills-input-wrapper">
               <va-input
                 v-model="newSoftSkill"
@@ -328,45 +347,108 @@
           </div>
         </div>
 
-        <!-- Step 5: Vista Previa -->
-        <div v-if="currentStep === 5" class="step-content">
+        <!-- Step 3: Vista Previa -->
+        <div v-if="currentStep === 3" class="step-content">
           <h2 class="step-heading">Vista Previa</h2>
-          <p class="step-description">Revisa tu información antes de guardar</p>
+          <p class="step-description">Revisa tu CV antes de guardar</p>
 
-          <div class="preview-container">
-            <div class="preview-section">
-              <h3>📋 Información Personal</h3>
-              <p><strong>Nombre:</strong> {{ cvFormData.personalInfo.fullName || 'Sin especificar' }}</p>
-              <p><strong>Email:</strong> {{ cvFormData.personalInfo.email || 'Sin especificar' }}</p>
-              <p><strong>Teléfono:</strong> {{ cvFormData.personalInfo.phone || 'Sin especificar' }}</p>
-              <p v-if="cvFormData.personalInfo.location"><strong>Ubicación:</strong> {{ cvFormData.personalInfo.location }}</p>
+          <!-- CV Preview Container - Estilo impreso -->
+          <div class="cv-preview-paper">
+            <!-- Header: Nombre y Contacto -->
+            <div class="cv-header">
+              <h1 class="cv-name">{{ cvFormData.personalInfo.fullName || 'TU NOMBRE' }}</h1>
+              <p class="cv-title">{{ cvFormData.personalInfo.title || 'Título Profesional' }}</p>
+              <p class="cv-contact">
+                {{ cvFormData.personalInfo.phone || '+123-456-7890' }}
+                <span class="cv-dot">•</span>
+                {{ cvFormData.personalInfo.email || 'email@ejemplo.com' }}
+                <span class="cv-dot" v-if="cvFormData.personalInfo.location">•</span>
+                {{ cvFormData.personalInfo.location }}
+              </p>
             </div>
 
-            <div class="preview-section" v-if="cvFormData.professionalProfile">
-              <h3>💼 Perfil Profesional</h3>
-              <p>{{ cvFormData.professionalProfile }}</p>
+            <!-- Summary / Perfil Profesional -->
+            <div class="cv-section" v-if="cvFormData.professionalProfile">
+              <h2 class="cv-section-title">Perfil Profesional</h2>
+              <p class="cv-summary">{{ cvFormData.professionalProfile }}</p>
             </div>
 
-            <div class="preview-section" v-if="cvFormData.experience.length > 0">
-              <h3>🏢 Experiencia ({{ cvFormData.experience.length }})</h3>
-              <div v-for="(exp, i) in cvFormData.experience" :key="i" class="preview-item">
-                <p><strong>{{ exp.position }}</strong> en {{ exp.company }}</p>
-                <p class="text-muted">{{ exp.startYear }} - {{ exp.current ? 'Actual' : exp.endYear }}</p>
+            <!-- Skills -->
+            <div class="cv-section" v-if="cvFormData.technicalSkills.length > 0 || cvFormData.softSkills.length > 0">
+              <h2 class="cv-section-title">Habilidades</h2>
+              <div class="cv-skills-group" v-if="cvFormData.technicalSkills.length > 0">
+                <span class="cv-skills-label">Técnicas:</span>
+                <span class="cv-skills-list">{{ cvFormData.technicalSkills.join(' · ') }}</span>
+              </div>
+              <div class="cv-skills-group" v-if="cvFormData.softSkills.length > 0">
+                <span class="cv-skills-label">Blandas:</span>
+                <span class="cv-skills-list">{{ cvFormData.softSkills.join(' · ') }}</span>
               </div>
             </div>
 
-            <div class="preview-section" v-if="cvFormData.education.length > 0">
-              <h3>🎓 Educación ({{ cvFormData.education.length }})</h3>
-              <div v-for="(edu, i) in cvFormData.education" :key="i" class="preview-item">
-                <p><strong>{{ edu.degree }}</strong></p>
-                <p class="text-muted">{{ edu.institution }} ({{ edu.startYear }} - {{ edu.endYear }})</p>
+            <!-- Experience -->
+            <div class="cv-section" v-if="cvFormData.experience.length > 0">
+              <h2 class="cv-section-title">Experiencia</h2>
+              <div v-for="(exp, i) in cvFormData.experience" :key="i" class="cv-experience-item">
+                <div class="cv-exp-header">
+                  <span class="cv-exp-company">{{ exp.company }}</span>
+                  <span class="cv-exp-location">{{ exp.location }}</span>
+                </div>
+                <div class="cv-exp-role">
+                  <span class="cv-exp-position">{{ exp.position }}</span>
+                  <span class="cv-exp-dates">{{ exp.startYear }} - {{ exp.current ? 'Actual' : exp.endYear }}</span>
+                </div>
+                <ul class="cv-exp-bullets" v-if="exp.description">
+                  <li v-for="(line, idx) in exp.description.split('\n').filter(l => l.trim())" :key="idx">
+                    {{ line.trim() }}
+                  </li>
+                </ul>
               </div>
             </div>
 
-            <div class="preview-section" v-if="cvFormData.technicalSkills.length > 0 || cvFormData.softSkills.length > 0">
-              <h3>💡 Habilidades</h3>
-              <p v-if="cvFormData.technicalSkills.length > 0"><strong>Técnicas:</strong> {{ cvFormData.technicalSkills.join(', ') }}</p>
-              <p v-if="cvFormData.softSkills.length > 0"><strong>Blandas:</strong> {{ cvFormData.softSkills.join(', ') }}</p>
+            <!-- Education -->
+            <div class="cv-section" v-if="cvFormData.education.length > 0">
+              <h2 class="cv-section-title">Educación</h2>
+              <div v-for="(edu, i) in cvFormData.education" :key="i" class="cv-education-item">
+                <div class="cv-edu-header">
+                  <span class="cv-edu-institution">{{ edu.institution }}</span>
+                  <span class="cv-edu-location">{{ edu.location }}</span>
+                </div>
+                <div class="cv-edu-degree">
+                  <span class="cv-edu-title">{{ edu.degree }}</span>
+                  <span class="cv-edu-dates">{{ edu.startYear }} - {{ edu.endYear }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Certifications -->
+            <div class="cv-section" v-if="cvFormData.certifications.length > 0">
+              <h2 class="cv-section-title">Cursos y Certificaciones</h2>
+              <div v-for="(cert, i) in cvFormData.certifications" :key="i" class="cv-cert-item">
+                {{ cert.name }} — <strong>{{ cert.institution }}</strong>, {{ cert.year }}
+              </div>
+            </div>
+
+            <!-- Languages -->
+            <div class="cv-section" v-if="cvFormData.languages.length > 0">
+              <h2 class="cv-section-title">Idiomas</h2>
+              <div class="cv-languages-list">
+                <span v-for="(lang, i) in cvFormData.languages" :key="i" class="cv-language-item">
+                  <strong>{{ lang.name }}:</strong> {{ lang.level }}<span v-if="i < cvFormData.languages.length - 1"> · </span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Projects -->
+            <div class="cv-section" v-if="cvFormData.projects.length > 0">
+              <h2 class="cv-section-title">Proyectos</h2>
+              <div v-for="(proj, i) in cvFormData.projects" :key="i" class="cv-project-item">
+                <div class="cv-project-header">
+                  <span class="cv-project-name">{{ proj.name }}</span>
+                  <span class="cv-project-year">{{ proj.year }}</span>
+                </div>
+                <p class="cv-project-desc" v-if="proj.description">{{ proj.description }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -374,13 +456,15 @@
 
       <!-- Navigation Buttons -->
       <div class="cv-builder-actions">
+        <div class="spacer"></div>
+
         <button
           v-if="currentStep > 0"
           class="action-btn secondary-btn"
           @click="previousStep"
         >
           <va-icon name="arrow_back" size="18px" />
-          Anterior
+          Atrás
         </button>
 
         <button
@@ -407,7 +491,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useToast } from 'vuestic-ui'
@@ -417,6 +501,8 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const { init: initToast } = useToast()
+
+const DRAFT_KEY = 'cv_builder_draft'
 
 // State
 const currentStep = ref(0)
@@ -448,11 +534,9 @@ const newSoftSkill = ref('')
 
 // Steps configuration
 const cvSteps = [
-  { name: 'Información Personal', description: 'Datos básicos' },
-  { name: 'Perfil Profesional', description: 'Sobre ti' },
+  { name: 'Información y Perfil', description: 'Datos personales y resumen' },
   { name: 'Experiencia', description: 'Historial laboral' },
-  { name: 'Educación', description: 'Formación académica' },
-  { name: 'Habilidades', description: 'Competencias' },
+  { name: 'Educación y Habilidades', description: 'Formación y competencias' },
   { name: 'Vista Previa', description: 'Revisión final' }
 ]
 
@@ -468,10 +552,109 @@ const isValidCV = computed(() => {
   )
 })
 
+// Validación por pasos
+const canProceedToNextStep = computed(() => {
+  switch (currentStep.value) {
+    case 0: // Información Personal + Perfil
+      return (
+        cvFormData.value.personalInfo.fullName?.trim() &&
+        cvFormData.value.personalInfo.email?.trim() &&
+        cvFormData.value.personalInfo.phone?.trim()
+      )
+    case 1: // Experiencia
+      // No es obligatorio tener experiencia, pero si tiene, debe estar completa
+      if (cvFormData.value.experience.length === 0) return true
+      return cvFormData.value.experience.every(exp =>
+        exp.position?.trim() && exp.company?.trim()
+      )
+    case 2: // Educación y Habilidades
+      // No es obligatorio, pero si tiene educación, debe estar completa
+      if (cvFormData.value.education.length === 0) return true
+      return cvFormData.value.education.every(edu =>
+        edu.degree?.trim() && edu.institution?.trim()
+      )
+    default:
+      return true
+  }
+})
+
+// Auto-save to localStorage
+watch(cvFormData, (newData) => {
+  if (!isEditing.value) {
+    saveDraft(newData)
+  }
+}, { deep: true })
+
+const saveDraft = (data) => {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      data,
+      currentStep: currentStep.value,
+      timestamp: Date.now()
+    }))
+  } catch (error) {
+    console.error('Error saving draft:', error)
+  }
+}
+
+const loadDraft = () => {
+  try {
+    const draft = localStorage.getItem(DRAFT_KEY)
+    if (draft) {
+      const { data, currentStep: savedStep, timestamp } = JSON.parse(draft)
+
+      // Solo cargar si el borrador tiene menos de 7 días
+      const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000
+      if (Date.now() - timestamp < sevenDaysInMs) {
+        cvFormData.value = data
+        currentStep.value = savedStep
+
+        initToast({
+          message: 'Se restauró tu borrador guardado',
+          color: 'info',
+          duration: 3000
+        })
+      } else {
+        // Borrador muy antiguo, eliminarlo
+        localStorage.removeItem(DRAFT_KEY)
+      }
+    }
+  } catch (error) {
+    console.error('Error loading draft:', error)
+  }
+}
+
+const clearDraft = () => {
+  localStorage.removeItem(DRAFT_KEY)
+}
+
 // Methods
 const nextStep = () => {
+  if (!canProceedToNextStep.value) {
+    let message = ''
+    switch (currentStep.value) {
+      case 0:
+        message = 'Por favor completa: Nombre completo, Email y Teléfono antes de continuar'
+        break
+      case 1:
+        message = 'Por favor completa el Cargo y Empresa en todas las experiencias agregadas'
+        break
+      case 2:
+        message = 'Por favor completa el Título y la Institución en toda la educación agregada'
+        break
+    }
+
+    initToast({
+      message,
+      color: 'warning',
+      duration: 4000
+    })
+    return
+  }
+
   if (currentStep.value < cvSteps.length - 1) {
     currentStep.value++
+    saveDraft(cvFormData.value)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
@@ -479,12 +662,16 @@ const nextStep = () => {
 const previousStep = () => {
   if (currentStep.value > 0) {
     currentStep.value--
+    saveDraft(cvFormData.value)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 
 const handleBack = () => {
-  if (confirm('¿Estás seguro? Se perderán todos los cambios no guardados.')) {
+  const hasDraft = localStorage.getItem(DRAFT_KEY)
+  if (hasDraft && confirm('Tienes un borrador guardado. ¿Deseas salir sin finalizar? Podrás continuar más tarde.')) {
+    router.push('/dashboard/cv')
+  } else if (!hasDraft) {
     router.push('/dashboard/cv')
   }
 }
@@ -597,9 +784,9 @@ const removeProject = (index) => {
 const saveCV = async () => {
   if (!isValidCV.value) {
     initToast({
-      message: 'Por favor completa los campos obligatorios (Nombre, Email, Teléfono)',
+      message: 'Por favor completa la información requerida: Nombre completo, Email y Teléfono',
       color: 'warning',
-      duration: 3000
+      duration: 4000
     })
     return
   }
@@ -623,11 +810,13 @@ const saveCV = async () => {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Error al actualizar CV')
+        throw new Error(errorData.error || 'No se pudo actualizar el CV. Por favor, intenta nuevamente.')
       }
 
+      clearDraft() // Limpiar borrador al guardar exitosamente
+
       initToast({
-        message: 'CV actualizado exitosamente',
+        message: 'Tu CV ha sido actualizado correctamente',
         color: 'success',
         duration: 3000
       })
@@ -648,29 +837,31 @@ const saveCV = async () => {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Error al guardar CV')
+        throw new Error(errorData.error || 'No se pudo guardar el CV. Por favor, intenta nuevamente.')
       }
 
+      clearDraft() // Limpiar borrador al guardar exitosamente
+
       initToast({
-        message: 'CV creado exitosamente',
+        message: 'Tu CV ha sido creado exitosamente',
         color: 'success',
         duration: 3000
       })
     }
 
     // Redirect back to CVs list
-    router.push('/dashboard')
+    router.push('/dashboard/cv')
   } catch (error) {
     console.error('Error saving CV:', error)
     initToast({
-      message: error.message,
+      message: error.message || 'Ocurrió un error al procesar tu solicitud',
       color: 'danger',
-      duration: 3000
+      duration: 4000
     })
   }
 }
 
-// Load CV if editing
+// Load CV if editing or load draft
 onMounted(async () => {
   const cvId = route.query.edit
   if (cvId) {
@@ -685,7 +876,7 @@ onMounted(async () => {
       })
 
       if (!response.ok) {
-        throw new Error('Error al cargar CV')
+        throw new Error('No se pudo cargar el CV para editar')
       }
 
       const data = await response.json()
@@ -693,11 +884,14 @@ onMounted(async () => {
     } catch (error) {
       console.error('Error loading CV:', error)
       initToast({
-        message: 'Error al cargar CV para edición',
+        message: error.message || 'No se pudo cargar el CV. Por favor, intenta nuevamente.',
         color: 'danger',
-        duration: 3000
+        duration: 4000
       })
     }
+  } else {
+    // Si no está editando, intentar cargar borrador
+    loadDraft()
   }
 })
 </script>
@@ -772,11 +966,16 @@ onMounted(async () => {
 .cv-builder-actions {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 1rem;
   padding: 1.5rem;
   background: white;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.spacer {
+  flex: 1;
 }
 
 .action-btn {
@@ -857,11 +1056,33 @@ onMounted(async () => {
   margin: -0.5rem 0 0;
 }
 
+.subsection-divider {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #E5E7EB;
+}
+
+.subsection-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
 .step-header-section {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
+}
+
+.step-header-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
 }
 
 .field-hint {
@@ -876,6 +1097,13 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
+}
+
+.form-grid :deep(.va-input-wrapper__field),
+.form-grid :deep(.va-input-wrapper__text),
+.form-grid :deep(input),
+.form-grid :deep(textarea) {
+  background-color: white !important;
 }
 
 .full-width {
@@ -1102,6 +1330,18 @@ onMounted(async () => {
   font-size: 0.9375rem;
   font-weight: 600;
   color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.achievement-hint {
+  font-size: 0.8125rem;
+  color: #7c3aed;
+  margin: 0 0 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  background: rgba(124, 58, 237, 0.05);
+  border-left: 3px solid #7c3aed;
+  border-radius: 4px;
+  font-style: italic;
 }
 
 .achievement-input-wrapper {
@@ -1163,6 +1403,14 @@ onMounted(async () => {
   font-size: 1rem;
   font-weight: 600;
   color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.skills-hint {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0 0 0.75rem 0;
+  font-style: italic;
 }
 
 .skills-input-wrapper {
@@ -1345,7 +1593,7 @@ onMounted(async () => {
 
 .form-grid-mini {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1.5fr 1fr;
   gap: 0.75rem;
 }
 
@@ -1364,14 +1612,21 @@ onMounted(async () => {
 
 .custom-select {
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding: 0.625rem 2rem 0.625rem 0.875rem;
   font-size: 1rem;
   color: #1f2937;
   background-color: white;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 .custom-select:hover {
@@ -1385,45 +1640,246 @@ onMounted(async () => {
 }
 
 /* Preview */
-.preview-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+/* CV Preview - Estilo impreso profesional */
+.cv-preview-paper {
+  max-width: 850px;
+  margin: 0 auto;
+  background: white;
+  padding: 3rem 3.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.5;
+  color: #1a1a1a;
 }
 
-.preview-section {
-  padding: 1.5rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+/* Header */
+.cv-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 0.5rem;
 }
 
-.preview-section h3 {
-  font-size: 1.25rem;
+.cv-name {
+  font-size: 2rem;
   font-weight: 700;
-  color: #111827;
-  margin: 0 0 1rem 0;
+  letter-spacing: 1px;
+  margin: 0 0 0.25rem 0;
+  color: #000;
+  text-transform: uppercase;
 }
 
-.preview-section p {
-  font-size: 0.9375rem;
-  color: #374151;
-  margin: 0.5rem 0;
+.cv-title {
+  font-size: 1rem;
+  color: #4a4a4a;
+  margin: 0 0 0.5rem 0;
+  font-weight: 400;
+}
+
+.cv-contact {
+  font-size: 0.875rem;
+  color: #4a4a4a;
+  margin: 0;
+}
+
+.cv-dot {
+  margin: 0 0.5rem;
+}
+
+/* Secciones */
+.cv-section {
+  margin-bottom: 1.75rem;
+}
+
+.cv-section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: capitalize;
+  margin: 0 0 0.75rem 0;
+  padding-bottom: 0.375rem;
+  border-bottom: 2px solid #000;
+  color: #000;
+}
+
+/* Summary */
+.cv-summary {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  text-align: justify;
+  margin: 0;
+  color: #2a2a2a;
+}
+
+/* Skills */
+.cv-skills-group {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.cv-skills-label {
+  font-weight: 600;
+  color: #2a2a2a;
+}
+
+.cv-skills-list {
+  color: #4a4a4a;
+  margin-left: 0.25rem;
+}
+
+/* Experience */
+.cv-experience-item {
+  margin-bottom: 1.25rem;
+}
+
+.cv-experience-item:last-child {
+  margin-bottom: 0;
+}
+
+.cv-exp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.125rem;
+}
+
+.cv-exp-company {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #000;
+}
+
+.cv-exp-location {
+  font-size: 0.875rem;
+  color: #4a4a4a;
+  text-align: right;
+}
+
+.cv-exp-role {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+
+.cv-exp-position {
+  font-weight: 600;
+  font-style: italic;
+  font-size: 0.9rem;
+  color: #2a2a2a;
+}
+
+.cv-exp-dates {
+  font-size: 0.875rem;
+  color: #4a4a4a;
+  text-align: right;
+}
+
+.cv-exp-bullets {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  color: #2a2a2a;
   line-height: 1.6;
 }
 
-.preview-item {
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #e5e7eb;
+.cv-exp-bullets li {
+  margin-bottom: 0.25rem;
 }
 
-.preview-item:last-child {
-  border-bottom: none;
+/* Education */
+.cv-education-item {
+  margin-bottom: 0.875rem;
 }
 
-.text-muted {
-  color: #6b7280 !important;
-  font-size: 0.875rem !important;
+.cv-education-item:last-child {
+  margin-bottom: 0;
+}
+
+.cv-edu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.cv-edu-institution {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #000;
+}
+
+.cv-edu-location {
+  font-size: 0.875rem;
+  color: #4a4a4a;
+  text-align: right;
+}
+
+.cv-edu-degree {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.9rem;
+}
+
+.cv-edu-title {
+  color: #2a2a2a;
+}
+
+.cv-edu-dates {
+  font-size: 0.875rem;
+  color: #4a4a4a;
+  text-align: right;
+}
+
+/* Certifications */
+.cv-cert-item {
+  font-size: 0.875rem;
+  margin-bottom: 0.375rem;
+  color: #2a2a2a;
+  line-height: 1.5;
+}
+
+/* Languages */
+.cv-languages-list {
+  font-size: 0.9rem;
+  color: #2a2a2a;
+}
+
+.cv-language-item strong {
+  color: #000;
+}
+
+/* Projects */
+.cv-project-item {
+  margin-bottom: 1rem;
+}
+
+.cv-project-item:last-child {
+  margin-bottom: 0;
+}
+
+.cv-project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.25rem;
+}
+
+.cv-project-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #000;
+}
+
+.cv-project-year {
+  font-size: 0.875rem;
+  color: #4a4a4a;
+}
+
+.cv-project-desc {
+  font-size: 0.875rem;
+  color: #2a2a2a;
+  margin: 0;
+  line-height: 1.6;
 }
 
 /* Responsive */
@@ -1477,6 +1933,37 @@ onMounted(async () => {
 
   .step-heading {
     font-size: 1.5rem;
+  }
+
+  /* CV Preview responsive */
+  .cv-preview-paper {
+    padding: 2rem 1.5rem;
+  }
+
+  .cv-name {
+    font-size: 1.5rem;
+  }
+
+  .cv-contact {
+    font-size: 0.8rem;
+  }
+
+  .cv-exp-header,
+  .cv-exp-role,
+  .cv-edu-header,
+  .cv-edu-degree,
+  .cv-project-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cv-exp-location,
+  .cv-exp-dates,
+  .cv-edu-location,
+  .cv-edu-dates,
+  .cv-project-year {
+    text-align: left;
+    margin-top: 0.125rem;
   }
 }
 </style>

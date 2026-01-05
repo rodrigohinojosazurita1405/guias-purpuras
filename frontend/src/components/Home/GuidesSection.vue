@@ -169,18 +169,34 @@ const fetchFeaturedJobs = async () => {
     // La respuesta tiene estructura: {success, count, jobs: [...]}
     const allJobs = response.data.jobs || response.data || []
 
-    // Filtrar solo los trabajos con plan purpura o impulso
-    const featuredJobs = allJobs.filter(job =>
-      job.plan === 'purpura' || job.plan === 'impulso'
-    )
+    // Fecha de hoy (sin hora para que sea consistente todo el día)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    // Filtrar trabajos destacados dentro del período de visibilidad
+    const featuredJobs = allJobs.filter(job => {
+      const createdDate = new Date(job.createdAt)
+      createdDate.setHours(0, 0, 0, 0)
+
+      const diffTime = today - createdDate
+      const daysSinceCreated = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+      // Plan Impulso: destacado por 10 días
+      if (job.plan === 'impulso') {
+        return daysSinceCreated <= 10
+      }
+
+      // Plan Púrpura: destacado por 6 días
+      if (job.plan === 'purpura') {
+        return daysSinceCreated <= 6
+      }
+
+      return false
+    })
 
     // Separar por tipo de plan
     const impulsoJobs = featuredJobs.filter(job => job.plan === 'impulso')
     const purpuraJobs = featuredJobs.filter(job => job.plan === 'purpura')
-
-    // Fecha de hoy (sin hora para que sea consistente todo el día)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
 
     // Mezclar cada grupo de forma determinística basada en la fecha de hoy
     const shuffledImpulso = shuffleWithDateSeed(impulsoJobs, today)
@@ -192,7 +208,7 @@ const fetchFeaturedJobs = async () => {
 
     jobs.value = rotatedJobs
 
-    console.log(`📊 Empleos destacados cargados: ${rotatedJobs.length} (${impulsoJobs.length} Patrocinados, ${purpuraJobs.length} Destacados)`)
+    console.log(`📊 Empleos destacados cargados: ${rotatedJobs.length} (${impulsoJobs.length} Patrocinados ≤10 días, ${purpuraJobs.length} Destacados ≤6 días)`)
     console.log(`🎲 Rotación diaria activa - Seed: ${today.toISOString().split('T')[0]}`)
   } catch (err) {
     console.error('Error fetching featured jobs:', err)

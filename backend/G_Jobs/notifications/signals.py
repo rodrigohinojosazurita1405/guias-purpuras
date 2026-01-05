@@ -292,3 +292,97 @@ def customuser_pre_save(sender, instance, **kwargs):
             _audit_state.customuser_old_state[instance.pk] = old_instance
         except sender.DoesNotExist:
             pass
+
+
+# ========== NOTIFICACIONES DE FACTURACIÓN ==========
+
+@receiver(post_save, sender='payments.PlanOrder')
+def notify_invoice_created(sender, instance, created, **kwargs):
+    """
+    Notificar al usuario cuando se crea una orden de facturación
+    """
+    if not created:
+        return
+
+    try:
+        # Crear notificación para el usuario que solicitó la factura
+        Notification.create_notification(
+            user=instance.user,
+            notification_type='invoice_created',
+            title='Orden de facturación creada',
+            message=f'Tu orden de facturación para el plan {instance.get_selected_plan_display()} ha sido creada exitosamente. Razón Social: {instance.razon_social}',
+            metadata={
+                'order_id': str(instance.id),
+                'plan': instance.selected_plan,
+                'razon_social': instance.razon_social,
+                'nit': instance.nit,
+                'plan_price': str(instance.plan_price),
+                'job_id': str(instance.job.id) if instance.job else None
+            }
+        )
+
+        print(f'[NOTIFICATION] Orden de facturación creada: {instance.razon_social} - Plan: {instance.selected_plan}')
+
+    except Exception as e:
+        print(f'[NOTIFICATION ERROR] Error al crear notificación de orden de facturación: {e}')
+        import traceback
+        traceback.print_exc()
+
+
+@receiver(post_save, sender='payments.PlanOrder')
+def notify_invoice_completed(sender, instance, created, **kwargs):
+    """
+    Notificar al usuario cuando su orden de facturación es completada
+    """
+    if created:
+        return
+
+    try:
+        # Capturar estado anterior
+        if not hasattr(instance, '_old_status'):
+            # Intentar obtener del estado anterior
+            from G_Jobs.audit.signals import _audit_state
+            if hasattr(_audit_state, 'planorder_old_state') and instance.pk in _audit_state.planorder_old_state:
+                old_instance = _audit_state.planorder_old_state[instance.pk]
+                instance._old_status = old_instance.status
+
+        if not hasattr(instance, '_old_status'):
+            return
+
+        old_status = instance._old_status
+        new_status = instance.status
+
+        # Detectar cambio de processing -> completed
+        if new_status == 'completed' and old_status == 'processing':
+            Notification.create_notification(
+                user=instance.user,
+                notification_type='invoice_completed',
+                title='Facturación completada',
+                message=f'Tu factura para el plan {instance.get_selected_plan_display()} ha sido procesada exitosamente',
+                metadata={
+                    'order_id': str(instance.id),
+                    'plan': instance.selected_plan,
+                    'razon_social': instance.razon_social,
+                    'nit': instance.nit,
+                    'job_id': str(instance.job.id) if instance.job else None
+                }
+            )
+
+            print(f'[NOTIFICATION] Facturación completada: {instance.razon_social} - Orden ID: {instance.id}')
+
+    except Exception as e:
+        print(f'[NOTIFICATION ERROR] Error al crear notificación de facturación completada: {e}')
+        import traceback
+        traceback.print_exc()
+
+
+@receiver(pre_save, sender='payments.PlanOrder')
+def planorder_pre_save(sender, instance, **kwargs):
+    """Capturar estado anterior de PlanOrder antes de guardar"""
+    if instance.pk:
+        try:
+            old_instance = sender.objects.get(pk=instance.pk)
+            # Guardar en el atributo de la instancia
+            instance._old_status = old_instance.status
+        except sender.DoesNotExist:
+            pass

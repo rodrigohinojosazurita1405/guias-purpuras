@@ -36,7 +36,7 @@
           :class="{ active: activeSection === 'profile' }"
         >
           <va-icon name="person" />
-          <span>Editar Perfil Personal</span>
+          <span>Perfil</span>
         </router-link>
 
         <!-- Mi CV: Solo para postulantes -->
@@ -92,6 +92,7 @@
           >
             <va-icon name="people" />
             <span>Solicitudes Recibidas</span>
+            <span v-if="newApplications > 0" class="notification-badge applications-badge">{{ newApplications }}</span>
           </router-link>
 
           <router-link
@@ -101,6 +102,7 @@
           >
             <va-icon name="work" />
             <span>Órdenes de Facturación</span>
+            <span v-if="pendingOrders > 0" class="notification-badge orders-badge">{{ pendingOrders }}</span>
           </router-link>
         </template>
 
@@ -291,6 +293,8 @@ const showChangePassword = ref(false)
 const showMenu = ref(false)
 const sidebarOpen = ref(false)
 const unreadNotifications = ref(0)
+const pendingOrders = ref(0)
+const newApplications = ref(0)
 const passwordForm = ref({
   current: '',
   new: '',
@@ -305,8 +309,20 @@ onMounted(() => {
   // Cargar contador de notificaciones no leídas
   fetchUnreadCount()
 
-  // Actualizar contador cada 30 segundos
-  const intervalId = setInterval(fetchUnreadCount, 30000)
+  // Cargar contadores solo para empresas
+  if (authStore.user?.role === 'company') {
+    fetchPendingOrdersCount()
+    fetchNewApplicationsCount()
+  }
+
+  // Actualizar contadores cada 30 segundos
+  const intervalId = setInterval(() => {
+    fetchUnreadCount()
+    if (authStore.user?.role === 'company') {
+      fetchPendingOrdersCount()
+      fetchNewApplicationsCount()
+    }
+  }, 30000)
 
   // Limpiar intervalo al desmontar
   onUnmounted(() => {
@@ -357,6 +373,46 @@ const fetchUnreadCount = async () => {
     }
   } catch (error) {
     console.error('Error al obtener contador de notificaciones:', error)
+  }
+}
+
+const fetchPendingOrdersCount = async () => {
+  try {
+    const response = await fetch('/api/user/orders/pending-count/', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      pendingOrders.value = data.count || 0
+    }
+  } catch (error) {
+    console.error('Error al obtener contador de órdenes pendientes:', error)
+  }
+}
+
+const fetchNewApplicationsCount = async () => {
+  try {
+    const response = await fetch('/api/applications/unviewed-count/', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      newApplications.value = data.count || 0
+    }
+  } catch (error) {
+    console.error('Error al obtener contador de nuevas aplicaciones:', error)
   }
 }
 
@@ -649,6 +705,7 @@ const handleLogout = () => {
   transition: all 0.2s ease;
   text-decoration: none;
   color: white;
+  
 }
 
 .navbar-btn-primary {
@@ -1034,12 +1091,40 @@ const handleLogout = () => {
   height: 20px;
   padding: 0 6px;
   margin-left: auto;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: white;
   border-radius: 10px;
   font-size: 0.7rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.notification-badge.orders-badge {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  animation: pulse-orders 2s ease-in-out infinite;
+}
+
+@keyframes pulse-orders {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+}
+
+.notification-badge.applications-badge {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  animation: pulse-applications 2s ease-in-out infinite;
+}
+
+@keyframes pulse-applications {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+  }
 }
 
 .menu-item {

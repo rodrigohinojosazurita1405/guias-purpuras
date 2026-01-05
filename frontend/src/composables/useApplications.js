@@ -126,6 +126,7 @@ export function useApplications() {
                 ...app,
                 jobTitle: job.title,
                 jobId: job.id,
+                jobCreatedAt: job.createdAt || null,
                 companyProfile: job.companyProfile || null,
                 companyLogo: job.companyLogo || null,
                 companyName: job.companyName || null,

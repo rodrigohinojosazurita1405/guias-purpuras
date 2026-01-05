@@ -204,6 +204,8 @@ const notificationTypes = [
   { value: 'new_application', text: 'Nueva aplicación' },
   { value: 'payment_verified', text: 'Pago verificado' },
   { value: 'payment_rejected', text: 'Pago rechazado' },
+  { value: 'invoice_created', text: 'Orden de facturación creada' },
+  { value: 'invoice_completed', text: 'Facturación completada' },
   { value: 'job_expiring_soon', text: 'Anuncio por vencer' },
   { value: 'application_sent', text: 'Aplicación enviada' },
   { value: 'saved_job_closed', text: 'Trabajo cerrado' },
@@ -412,6 +414,8 @@ const getNotificationIcon = (type) => {
     'new_application': 'person_add',
     'payment_verified': 'verified',
     'payment_rejected': 'cancel',
+    'invoice_created': 'receipt',
+    'invoice_completed': 'receipt_long',
     'job_expiring_soon': 'schedule',
     'job_expired': 'event_busy',
     'application_sent': 'send',
@@ -794,6 +798,14 @@ onMounted(() => {
 
 .notification-icon.type-password_changed {
   background: linear-gradient(135deg, #0891b2, #0e7490);
+}
+
+.notification-icon.type-invoice_created {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.notification-icon.type-invoice_completed {
+  background: linear-gradient(135deg, #10b981, #059669);
 }
 
 .notification-content {

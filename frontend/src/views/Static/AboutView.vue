@@ -37,14 +37,22 @@
                   <h3 class="story-subtitle">El problema que vimos</h3>
                   <h4 class="story-concept">El caos oculta el talento</h4>
                   <p>
-                    Creemos firmemente que Bolivia está llena de talento, esfuerzo y creatividad que merece ser vista.
-                    Sin embargo, ese potencial a menudo se diluye en el ruido caótico de redes sociales impersonales y
-                    plataformas digitales dispersas.
+                    Creemos firmemente que Bolivia está llena de talento, esfuerzo y creatividad que merece ser visto y valorado. <br>
+                    En cada ciudad de nuestra amada Bolivia, hay personas que trabajan con pasión, que emprenden con ingenio y que crean 
+                    soluciones únicas. Sin embargo, ese potencial a menudo se diluye en el ruido caótico de redes sociales impersonales
+                    y en plataformas digitales dispersas, donde lo valioso se pierde entre publicaciones efímeras y mensajes desordenados.
                   </p>
                   <p>
-                    Miles de usuarios en Bolivia recurren diariamente a grupos de Facebook como
-                    "¿Alguien sabe?", "¿Alguien conoce?" o similares, buscando información, recomendaciones y lugares.
-                    Es ahí donde encontramos una profunda necesidad de orden y claridad.
+                    Hoy, miles de usuarios en Bolivia recurren diariamente a grupos de Facebook como "¿Alguien sabe?" o "¿Alguien conoce?","Trabajos Bolivia" o 
+                    similares, buscando información, recomendaciones y lugares. Esa práctica refleja una realidad: la gente necesita respuestas, orientación 
+                    y oportunidades, pero se ve obligada a navegar en espacios sin estructura, donde la información se repite, se contradice o 
+                    simplemente desaparece. <br>
+                    <strong>Detrás de cada pregunta en esos grupos hay una necesidad genuina:</strong> Encontrar un servicio confiable, descubrir un negocio local, 
+                    acceder a una oportunidad laboral o simplemente conectar con alguien que pueda ayudar. Lo que falta no es talento ni iniciativa, 
+                    sino un espacio organizado, transparente y accesible que convierta ese caos en claridad.
+                    Bolivia no carece de creatividad ni de esfuerzo; lo que falta es un canal que ordene, que dé visibilidad y que potencie 
+                    lo que ya existe. Un lugar donde las personas puedan mostrar lo que hacen, donde los usuarios encuentren lo que buscan sin 
+                    perderse en el ruido, y donde el talento boliviano pueda brillar con la fuerza que merece.
                   </p>
                 </div>
               </div>
@@ -61,9 +69,19 @@
                     Eran la herramienta esencial: lo buscabas, lo encontrabas y funcionaba.
                   </p>
                   <p>
-                    <strong>Guías Púrpuras</strong> nace con el compromiso de replicar esa sensación de acceso fácil y seguro,
+                    <strong>Guías Púrpuras Bolivia</strong> nace con el compromiso de replicar esa sensación de acceso fácil y seguro,
                     pero modernizada para la era digital. Nuestro objetivo es devolver la confianza al encuentro entre quienes
                     buscan y quienes ofrecen.
+                  </p>
+                  <p>
+                    En esta primera etapa hemos decidido enfocarnos en lo esencial: las <strong>Guías de Trabajo.</strong> Creemos que el empleo y las 
+                    oportunidades laborales son el punto de partida más urgente y valioso para miles de personas en Bolivia. 
+                    Por eso, nuestro MVP se centra en ofrecer un espacio confiable y organizado donde los usuarios puedan encontrar 
+                    trabajos, publicar ofertas y conectar con quienes buscan talento.
+                    Este es solo el comienzo. Las Guías de Trabajo son la primera pieza de un ecosistema mucho más amplio que 
+                    iremos desplegando paso a paso. Después vendrán las demás guías que ampliarán el alcance y convertirán la plataforma en un verdadero mapa digital de oportunidades. <br>
+                    <strong>Nuestro enfoque es claro:</strong> Empezar por lo que más impacto genera hoy, validar la experiencia con los usuarios 
+                    y luego expandir hacia nuevas áreas, siempre manteniendo orden, transparencia y relevancia.
                   </p>
                 </div>
               </div>
@@ -87,8 +105,8 @@
                     "Somos el destino donde lo extraordinario se encuentra con la utilidad"
                   </blockquote>
                   <ul class="benefits-list">
-                    <li><strong>Para el usuario:</strong> Somos el filtro que destaca lo mejor de Bolivia.</li>
-                    <li><strong>Para el negocio boliviano:</strong> Somos la plataforma que te ayuda a ser esa Vaca Púrpura,
+                    <li><strong>Para el Usuario:</strong> Somos el filtro que destaca lo mejor de Bolivia.</li>
+                    <li><strong>Para el Empresario Boliviano:</strong> Somos la plataforma que te ayuda a ser esa Vaca Púrpura,
                     la opción visible y preferida en tu mercado.</li>
                   </ul>
                 </div>

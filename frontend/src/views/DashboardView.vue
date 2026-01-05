@@ -286,13 +286,8 @@ const handleProfileUpdated = (profile) => {
   if (authStore.user) {
     authStore.user.name = profile.fullName || profile.name
     authStore.user.email = profile.email
-  }
-  // Actualizar también en localStorage
-  const storedUser = localStorage.getItem('authUser')
-  if (storedUser) {
-    const user = JSON.parse(storedUser)
-    user.name = profile.fullName || profile.name
-    localStorage.setItem('authUser', JSON.stringify(user))
+    // Guardar también en localStorage
+    localStorage.setItem('auth_user', JSON.stringify(authStore.user))
   }
   // Ir al home para ver los cambios
   closeEditor()

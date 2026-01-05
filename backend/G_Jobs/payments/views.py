@@ -176,6 +176,40 @@ def get_order_detail(request, order_id):
 
 
 @token_required
+@require_http_methods(["GET"])
+@csrf_exempt
+def get_pending_orders_count(request):
+    """
+    Obtener el conteo de órdenes pendientes (processing) del usuario
+    GET /api/user/orders/pending-count/
+
+    Returns:
+    {
+        'success': bool,
+        'count': int
+    }
+    """
+    try:
+        # Contar órdenes en estado 'processing'
+        count = PlanOrder.objects.filter(
+            user=request.user,
+            status='processing'
+        ).count()
+
+        return JsonResponse({
+            'success': True,
+            'count': count
+        }, status=200)
+
+    except Exception as e:
+        print(f'[ORDERS] Error al obtener conteo de órdenes pendientes: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'count': 0
+        }, status=200)  # Devolver 200 con count 0 en vez de error
+
+
+@token_required
 @require_http_methods(["POST"])
 @csrf_exempt
 def resend_invoice(request, order_id):

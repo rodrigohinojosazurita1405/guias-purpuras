@@ -17,6 +17,7 @@ urlpatterns = [
     path('applications/', views.get_user_applications, name='get_user_applications'),
     path('applications/<uuid:application_id>/', views.get_application_detail, name='get_application_detail'),
     path('applications/<uuid:application_id>/withdraw/', views.withdraw_application, name='withdraw_application'),
+    path('applications/unviewed-count/', views.get_unviewed_applications_count, name='get_unviewed_applications_count'),
 
     # ========== Trabajos Guardados Endpoints ==========
     path('saved-jobs/save/', views.save_job, name='save_job'),

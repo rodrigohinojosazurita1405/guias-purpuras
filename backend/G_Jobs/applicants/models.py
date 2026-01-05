@@ -12,6 +12,18 @@ def validate_file_size(value):
         raise ValidationError("El archivo no debe superar los 5 MB")
 
 
+def cv_upload_path(instance, filename):
+    """
+    Determinar la ruta de subida según el tipo de CV
+    - CVs creados en builder: applicant_cvs_builder/
+    - PDFs subidos externos: applicant_cvs_uploaded/
+    """
+    if instance.cv_type == 'created':
+        return f'applicant_cvs_builder/{filename}'
+    else:  # uploaded
+        return f'applicant_cvs_uploaded/{filename}'
+
+
 class ApplicantProfile(models.Model):
     """
     Perfil extendido para usuarios postulantes
@@ -148,7 +160,7 @@ class ApplicantCV(models.Model):
 
     # Archivo subido
     file = models.FileField(
-        upload_to='applicant_cvs/',
+        upload_to=cv_upload_path,
         null=True,
         blank=True,
         validators=[
@@ -179,8 +191,9 @@ class ApplicantCV(models.Model):
         verbose_name="Fecha de eliminación"
     )
 
-    # Constante para límite de CVs
-    MAX_SAVED_CVS = 2  # Máximo de CVs guardados reutilizables
+    # Constantes para límite de CVs
+    MAX_CREATED_CVS = 2  # Máximo de CVs creados en plataforma
+    MAX_UPLOADED_CVS = 1  # Máximo de PDFs externos subidos
 
     class Meta:
         verbose_name = "CV de Postulante"
@@ -198,18 +211,35 @@ class ApplicantCV(models.Model):
         """Validación personalizada"""
         super().clean()
 
-        # Validar que el usuario no tenga más de 2 CVs
+        # Validar límites según el tipo de CV
         if not self.pk:  # Solo en creación
-            existing_cvs = ApplicantCV.objects.filter(
-                applicant=self.applicant,
-                is_deleted=False
-            ).count()
+            if self.cv_type == 'created':
+                # Validar máximo de CVs creados
+                existing_created = ApplicantCV.objects.filter(
+                    applicant=self.applicant,
+                    cv_type='created',
+                    is_deleted=False
+                ).count()
 
-            if existing_cvs >= self.MAX_SAVED_CVS:
-                raise ValidationError(
-                    f"No puedes tener más de {self.MAX_SAVED_CVS} CVs guardados. "
-                    f"Elimina uno existente antes de crear uno nuevo."
-                )
+                if existing_created >= self.MAX_CREATED_CVS:
+                    raise ValidationError(
+                        f"No puedes tener más de {self.MAX_CREATED_CVS} CVs creados. "
+                        f"Elimina uno existente antes de crear uno nuevo."
+                    )
+
+            elif self.cv_type == 'uploaded':
+                # Validar máximo de PDFs subidos
+                existing_uploaded = ApplicantCV.objects.filter(
+                    applicant=self.applicant,
+                    cv_type='uploaded',
+                    is_deleted=False
+                ).count()
+
+                if existing_uploaded >= self.MAX_UPLOADED_CVS:
+                    raise ValidationError(
+                        f"Ya tienes un PDF guardado. "
+                        f"Elimina el PDF existente antes de subir uno nuevo."
+                    )
 
         # Validar que el tipo de CV tenga los datos correspondientes
         if self.cv_type == 'created' and not self.cv_data:

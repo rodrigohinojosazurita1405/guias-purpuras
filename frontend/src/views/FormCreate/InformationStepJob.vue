@@ -1022,7 +1022,7 @@ defineExpose({
 .field-separator {
   height: 1px;
   background: linear-gradient(90deg, transparent, #E9D5FF, transparent);
-  margin: 0.75rem 0;
+  margin: 0.25rem 0;
 }
 
 .group-subtitle {

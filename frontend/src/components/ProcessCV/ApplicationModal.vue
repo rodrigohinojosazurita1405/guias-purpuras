@@ -63,16 +63,18 @@
           >
             <va-icon name="folder" size="small" />
             Mis CVs
-            <span v-if="savedCVs.length > 0" class="cv-count">{{ savedCVs.length }}/2</span>
+            <span v-if="savedCVs.length > 0" class="cv-count">{{ savedCVs.length }}/{{ maxTotalCVs }}</span>
           </button>
 
           <button
             class="tab-btn"
-            :class="{ active: activeTab === 'upload' }"
-            @click="activeTab = 'upload'"
+            :class="{ active: activeTab === 'upload', disabled: hasUploadedPDF }"
+            @click="!hasUploadedPDF && (activeTab = 'upload')"
+            :disabled="hasUploadedPDF"
           >
             <va-icon name="upload_file" size="small" />
             Subir PDF
+            <span v-if="hasUploadedPDF" class="cv-count disabled">1/1</span>
           </button>
         </div>
 
@@ -86,6 +88,7 @@
       <!-- Tab: Mis CVs Guardados -->
       <div v-if="activeTab === 'saved'" class="saved-cvs-container">
         <p class="tab-intro">Selecciona un CV guardado para usar en tu postulación</p>
+        <p class="tab-hint">Puedes modificar o eliminar tus CVs desde Panel de Control / Mis CVs</p>
 
         <div v-if="isLoadingCVs" class="loading-state">
           <va-icon name="sync" size="large" class="spinning" />
@@ -131,6 +134,22 @@
                 size="large"
               />
             </div>
+          </div>
+
+          <!-- Cover Letter Section -->
+          <div class="cover-letter-section">
+            <label class="section-label">
+              <va-icon name="edit_note" size="small" />
+              Carta de Presentación o Pretensión Salarial (Opcional)
+            </label>
+            <va-textarea
+              v-model="coverLetter"
+              placeholder="Destaca tu interés en la posición, por qué eres el candidato ideal, o indica tu pretensión salarial..."
+              :min-rows="2"
+              :max-rows="4"
+              counter
+              :max-length="500"
+            />
           </div>
         </div>
       </div>
@@ -351,11 +370,28 @@ const resetModalData = () => {
 
 const hasSavedCVs = computed(() => savedCVs.value.length > 0)
 
+// Verificar si ya tiene un PDF externo guardado
+const hasUploadedPDF = computed(() => {
+  return savedCVs.value.some(cv => cv.cv_type === 'uploaded')
+})
+
+// Contar CVs creados y PDFs
+const createdCVsCount = computed(() => {
+  return savedCVs.value.filter(cv => cv.cv_type === 'created').length
+})
+
+const uploadedPDFsCount = computed(() => {
+  return savedCVs.value.filter(cv => cv.cv_type === 'uploaded').length
+})
+
+// Máximo total de CVs (2 creados + 1 PDF)
+const maxTotalCVs = computed(() => 3)
+
 const canSubmit = computed(() => {
   if (activeTab.value === 'saved') {
     return selectedSavedCV.value !== null
   } else if (activeTab.value === 'upload') {
-    return uploadedFile.value !== null
+    return uploadedFile.value !== null && !hasUploadedPDF.value
   }
   return false
 })
@@ -369,38 +405,82 @@ const handleOverlayClick = () => {
   // No hacer nada - bloqueamos el cierre al hacer click fuera
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   /**
-   * Estructura de datos emitida al backend:
-   *
-   * Si type === 'saved' (CV de plataforma):
-   * {
-   *   jobId: Number,
-   *   type: 'saved',
-   *   savedCVId: String (UUID del CV guardado),
-   *   uploadedFile: null,
-   *   coverLetter: null
-   * }
-   *
-   * Si type === 'upload' (PDF externo):
-   * {
-   *   jobId: Number,
-   *   type: 'upload',
-   *   uploadedFile: File (PDF),
-   *   coverLetter: String | null,
-   *   savedCVId: null
-   * }
+   * Nueva lógica:
+   * 1. Si usa CV guardado (tab 'saved') → Enviar referencia directamente
+   * 2. Si sube PDF (tab 'upload') → Guardar PDF en biblioteca primero, luego enviar referencia
    */
-  const applicationData = {
-    jobId: props.job.id,
-    type: activeTab.value,
-    savedCVId: activeTab.value === 'saved' ? selectedSavedCV.value?.id : null,
-    uploadedFile: activeTab.value === 'upload' ? uploadedFile.value : null,
-    coverLetter: activeTab.value === 'upload' ? coverLetter.value : null
+
+  if (activeTab.value === 'saved') {
+    // Usar CV guardado directamente
+    const applicationData = {
+      jobId: props.job.id,
+      type: 'select',
+      selectedCvId: selectedSavedCV.value?.id,
+      coverLetter: coverLetter.value
+    }
+    emit('submit', applicationData)
+    handleClose()
+  } else if (activeTab.value === 'upload' && uploadedFile.value) {
+    // Guardar PDF en biblioteca primero
+    try {
+      const savedCV = await savePDFToLibrary(uploadedFile.value)
+
+      // Luego usar la referencia del CV guardado para postular
+      const applicationData = {
+        jobId: props.job.id,
+        type: 'select',
+        selectedCvId: savedCV.id,
+        coverLetter: coverLetter.value
+      }
+      emit('submit', applicationData)
+      handleClose()
+    } catch (error) {
+      console.error('Error al guardar PDF:', error)
+      // Mostrar error al usuario si falla
+    }
+  }
+}
+
+/**
+ * Guardar PDF en la biblioteca del usuario
+ */
+const savePDFToLibrary = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('name', file.name.replace(/\.[^/.]+$/, '')) // Nombre sin extensión
+
+  const response = await fetch('/api/cvs/save/', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${authStore.accessToken}`,
+      'X-CSRFToken': getCsrfToken()
+    },
+    body: formData,
+    credentials: 'include'
+  })
+
+  if (!response.ok) {
+    const data = await response.json()
+    throw new Error(data.error || 'Error al guardar el PDF')
   }
 
-  emit('submit', applicationData)
-  handleClose()
+  const data = await response.json()
+  return data.cv
+}
+
+/**
+ * Obtener CSRF token
+ */
+const getCsrfToken = () => {
+  const name = 'csrftoken'
+  const cookies = document.cookie.split(';')
+  for (let cookie of cookies) {
+    const [key, value] = cookie.trim().split('=')
+    if (key === name) return value
+  }
+  return ''
 }
 
 // Función para redirigir al dashboard si no tiene CVs
@@ -606,6 +686,17 @@ const goToDashboard = () => {
   border-bottom-color: #7C3AED;
 }
 
+.tab-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.tab-btn.disabled:hover {
+  background: transparent;
+  color: #6B7280;
+}
+
 .close-btn {
   position: absolute;
   top: 0.75rem;
@@ -721,10 +812,18 @@ const goToDashboard = () => {
 }
 
 .tab-intro {
-  margin: 0 0 1.5rem;
+  margin: 0 0 0.5rem;
   font-size: 0.9375rem;
   color: #6B7280;
   text-align: center;
+}
+
+.tab-hint {
+  margin: 0 0 1.5rem;
+  font-size: 0.8125rem;
+  color: #9CA3AF;
+  text-align: center;
+  font-style: italic;
 }
 
 .loading-state,
@@ -866,6 +965,38 @@ const goToDashboard = () => {
   display: flex;
   align-items: center;
   gap: 0.375rem;
+}
+
+.cover-letter-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E5E7EB;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.cover-letter-section :deep(.va-textarea) {
+  background: white;
+}
+
+.cover-letter-section :deep(textarea) {
+  min-height: 60px !important;
+  max-height: 120px !important;
+  font-size: 0.875rem !important;
+}
+
+.cover-letter-section :deep(.va-input-wrapper__container) {
+  margin-bottom: 0 !important;
 }
 
 .btn-save-cv {

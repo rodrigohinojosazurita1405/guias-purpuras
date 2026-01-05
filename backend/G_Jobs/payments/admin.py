@@ -9,6 +9,8 @@ class PlanOrderAdmin(admin.ModelAdmin):
 
     list_display = (
         'order_id_display',
+        'company_name_display',
+        'job_title_display',
         'razon_social_display',
         'plan_display',
         'amount_display',
@@ -24,6 +26,8 @@ class PlanOrderAdmin(admin.ModelAdmin):
     )
 
     search_fields = (
+        'company_name',
+        'job_title',
         'razon_social',
         'nit',
         'ci',
@@ -39,7 +43,7 @@ class PlanOrderAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Información General', {
-            'fields': ('id', 'user', 'job', 'selected_plan', 'plan_price', 'status')
+            'fields': ('id', 'user', 'job', 'company_name', 'job_title', 'selected_plan', 'plan_price', 'status')
         }),
         ('Datos de Factura', {
             'fields': ('razon_social', 'nit', 'ci', 'ci_complement')
@@ -57,6 +61,26 @@ class PlanOrderAdmin(admin.ModelAdmin):
         """Muestra el ID de orden"""
         return f"#{obj.id}"
     order_id_display.short_description = 'N.º Orden'
+
+    def company_name_display(self, obj):
+        """Muestra el nombre de la empresa"""
+        if obj.company_name:
+            return format_html(
+                '<span style="font-weight: 600; color: #1F2937;">{}</span>',
+                obj.company_name
+            )
+        return format_html('<span style="color: #9CA3AF; font-style: italic;">Sin empresa</span>')
+    company_name_display.short_description = 'Empresa'
+
+    def job_title_display(self, obj):
+        """Muestra el título del anuncio"""
+        if obj.job_title:
+            return format_html(
+                '<span style="color: #7C3AED;">{}</span>',
+                obj.job_title[:50] + '...' if len(obj.job_title) > 50 else obj.job_title
+            )
+        return format_html('<span style="color: #9CA3AF; font-style: italic;">Sin anuncio</span>')
+    job_title_display.short_description = 'Anuncio'
 
     def razon_social_display(self, obj):
         """Muestra la razón social de la empresa"""

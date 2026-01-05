@@ -211,6 +211,16 @@
         </div>
       </div>
 
+      <!-- Tip Section -->
+      <div class="tip-box">
+        <va-icon name="info" size="small" />
+        <p>
+          <strong>Consejo Profesional:</strong> Un logo y banner profesionales son fundamentales para destacar en tus publicaciones de empleo.
+          Estas imágenes se mostrarán en todos tus anuncios y generarán confianza inmediata en los candidatos, aumentando significativamente
+          la cantidad y calidad de postulaciones recibidas.
+        </p>
+      </div>
+
       <!-- Nombre de Empresa -->
       <div class="form-group">
         <label class="form-label">Nombre de la Empresa *</label>
@@ -406,14 +416,14 @@
 
       <!-- Submit Button -->
       <div class="form-actions">
-        <button type="submit" class="purple-btn-gradient" :disabled="companyStore.isLoading">
+        <button type="submit" class="btn-save" :disabled="companyStore.isLoading">
           <va-icon name="save" />
-          {{ companyStore.isLoading ? 'Guardando...' : 'Guardar Cambios' }}
+          {{ companyStore.isLoading ? 'Guardando...' : 'Guardar' }}
         </button>
 
         <button
           type="button"
-          class="red-btn-gradient"
+          class="btn-cancel"
           @click="$emit('close')"
           :disabled="companyStore.isLoading"
         >
@@ -963,7 +973,7 @@ const clearBannerPreview = async () => {
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: none;
+  border: 1px solid #E5E7EB;
   background: #F3F4F6;
   border-radius: 50%;
   cursor: pointer;
@@ -973,12 +983,12 @@ const clearBannerPreview = async () => {
 
 .close-btn:hover {
   background: #FEE2E2;
+  border-color: #FCA5A5;
   color: #DC2626;
-  transform: rotate(90deg);
 }
 
 .close-btn:active {
-  transform: rotate(90deg) scale(0.95);
+  background: #FECACA;
 }
 
 .close-btn svg {
@@ -1102,6 +1112,35 @@ const clearBannerPreview = async () => {
   letter-spacing: 0.5px;
 }
 
+.tip-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #F3E8FF, #EDE9FE);
+  border-left: 4px solid #7c3aed;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.tip-box .va-icon {
+  color: #7c3aed;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.tip-box p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #4C1D95;
+}
+
+.tip-box strong {
+  color: #6d28d9;
+  font-weight: 700;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -1155,6 +1194,74 @@ const clearBannerPreview = async () => {
   justify-content: flex-start;
 }
 
+/* Save Button */
+.btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+}
+
+.btn-save:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6d28d9, #5b21b6);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-save:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(124, 58, 237, 0.25);
+}
+
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Cancel Button */
+.btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  background: #DC2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: #B91C1C;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-cancel:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(220, 38, 38, 0.25);
+}
+
+.btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .purple-btn-gradient {
   display: inline-flex;
   align-items: center;
@@ -1177,33 +1284,6 @@ const clearBannerPreview = async () => {
 }
 
 .purple-btn-gradient:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.red-btn-gradient {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.red-btn-gradient:hover:not(:disabled) {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-  transform: translateY(-2px);
-}
-
-.red-btn-gradient:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;

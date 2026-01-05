@@ -704,82 +704,21 @@ export default {
 
     async handleApplicationSubmit(applicationData) {
       try {
-        let response
-
-        if (applicationData.type === 'upload' && applicationData.uploadedFile) {
-          // Enviar PDF directamente con la postulación (sin guardarlo como CV reutilizable)
-          const formData = new FormData()
-          formData.append('attached_cv', applicationData.uploadedFile)
-          formData.append('cover_letter', applicationData.coverLetter || '')
-          formData.append('screening_answers', JSON.stringify({}))
-
-          response = await fetch(`/api/apply/${applicationData.jobId}/`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${this.authStore.accessToken}`,
-              'X-CSRFToken': this.getCsrfToken()
-            },
-            body: formData,
-            credentials: 'include'
-          })
-        } else if (applicationData.type === 'select' && applicationData.selectedCvId) {
-          // Usar CV guardado (reutilizable)
-          response = await fetch(`/api/apply/${applicationData.jobId}/`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${this.authStore.accessToken}`,
-              'Content-Type': 'application/json',
-              'X-CSRFToken': this.getCsrfToken()
-            },
-            body: JSON.stringify({
-              cv_id: applicationData.selectedCvId,
-              cover_letter: applicationData.coverLetter || '',
-              screening_answers: {}
-            }),
-            credentials: 'include'
-          })
-        } else if (applicationData.type === 'create' && applicationData.cvData) {
-          // Crear CV en el sistema (guardado reutilizable) y luego postular
-          const cvResponse = await fetch('/api/cvs/save/', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${this.authStore.accessToken}`,
-              'Content-Type': 'application/json',
-              'X-CSRFToken': this.getCsrfToken()
-            },
-            body: JSON.stringify({
-              cv_type: 'created',
-              name: `CV ${applicationData.cvData.personalInfo?.fullName || 'Profesional'}`,
-              cv_data: applicationData.cvData
-            }),
-            credentials: 'include'
-          })
-
-          if (!cvResponse.ok) {
-            const errorData = await cvResponse.json()
-            throw new Error(errorData.error || 'Error al guardar el CV')
-          }
-
-          const cvData = await cvResponse.json()
-
-          // Ahora enviar la postulación con el CV creado
-          response = await fetch(`/api/apply/${applicationData.jobId}/`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${this.authStore.accessToken}`,
-              'Content-Type': 'application/json',
-              'X-CSRFToken': this.getCsrfToken()
-            },
-            body: JSON.stringify({
-              cv_id: cvData.cv.id,
-              cover_letter: applicationData.coverLetter || '',
-              screening_answers: {}
-            }),
-            credentials: 'include'
-          })
-        } else {
-          throw new Error('Debes seleccionar o subir un CV para postularte')
-        }
+        // Siempre usar CV guardado (referencia) - El modal ya se encarga de guardar PDFs primero
+        const response = await fetch(`/api/apply/${applicationData.jobId}/`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.authStore.accessToken}`,
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this.getCsrfToken()
+          },
+          body: JSON.stringify({
+            cv_id: applicationData.selectedCvId,
+            cover_letter: applicationData.coverLetter || '',
+            screening_answers: {}
+          }),
+          credentials: 'include'
+        })
 
         if (!response.ok) {
           const errorData = await response.json()

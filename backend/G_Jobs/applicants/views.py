@@ -84,17 +84,10 @@ def save_cv(request):
         print(f"Content-Type: {request.content_type}")
         print(f"Files: {request.FILES.keys() if request.FILES else 'None'}")
         print(f"============================\n")
-        # Verificar límite de CVs
-        existing_cvs = ApplicantCV.objects.filter(
-            applicant=request.user,
-            is_deleted=False
-        ).count()
 
-        if existing_cvs >= ApplicantCV.MAX_SAVED_CVS:
-            return JsonResponse({
-                'success': False,
-                'error': f'No puedes tener más de {ApplicantCV.MAX_SAVED_CVS} CVs guardados. Elimina uno existente antes de crear uno nuevo.'
-            }, status=400)
+        # Nota: La validación de límites se maneja en el modelo (clean method)
+        # - Máximo 2 CVs creados (MAX_CREATED_CVS)
+        # - Máximo 1 PDF subido (MAX_UPLOADED_CVS)
 
         # Determinar tipo de CV
         if request.content_type == 'application/json':
@@ -119,6 +112,20 @@ def save_cv(request):
             file = request.FILES['file']
             name = request.POST.get('name', f'CV {file.name}')
 
+            # IMPORTANTE: Validar límites ANTES de guardar el archivo
+            existing_uploaded = ApplicantCV.objects.filter(
+                applicant=request.user,
+                cv_type='uploaded',
+                is_deleted=False
+            ).count()
+
+            if existing_uploaded >= ApplicantCV.MAX_UPLOADED_CVS:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Ya tienes un PDF guardado. Elimina el PDF existente antes de subir uno nuevo.'
+                }, status=400)
+
+            # Ahora sí crear el CV (el archivo se guardará al crear el objeto)
             cv = ApplicantCV.objects.create(
                 applicant=request.user,
                 cv_type='uploaded',
@@ -170,8 +177,7 @@ def save_cv(request):
 @require_http_methods(["GET"])
 def list_cvs(request):
     """
-    Listar SOLO los CVs creados en plataforma (formato Harvard)
-    NO incluye PDFs subidos, solo CVs con cv_type='created'
+    Listar TODOS los CVs guardados del usuario (creados + PDFs subidos)
 
     Response:
     {
@@ -182,17 +188,25 @@ def list_cvs(request):
                 "cv_type": "created",
                 "created_at": "2025-01-15T10:00:00Z",
                 "updated_at": "2025-01-15T10:00:00Z"
+            },
+            {
+                "id": "uuid",
+                "name": "Mi CV.pdf",
+                "cv_type": "uploaded",
+                "file_url": "/media/applicant_cvs_uploaded/Mi_CV.pdf",
+                "created_at": "2025-01-15T10:00:00Z",
+                "updated_at": "2025-01-15T10:00:00Z"
             }
         ],
         "count": 2,
-        "max_cvs": 2
+        "max_created_cvs": 2,
+        "max_uploaded_cvs": 1
     }
     """
     try:
-        # SOLO CVs creados en plataforma, NO PDFs subidos
+        # TODOS los CVs guardados (creados + PDFs subidos)
         cvs = ApplicantCV.objects.filter(
             applicant=request.user,
-            cv_type='created',  # FILTRO: solo CVs creados en plataforma
             is_deleted=False
         ).order_by('-created_at')
 
@@ -215,7 +229,8 @@ def list_cvs(request):
             'success': True,
             'cvs': cvs_data,
             'count': len(cvs_data),
-            'max_cvs': ApplicantCV.MAX_SAVED_CVS
+            'max_created_cvs': ApplicantCV.MAX_CREATED_CVS,
+            'max_uploaded_cvs': ApplicantCV.MAX_UPLOADED_CVS
         })
 
     except Exception as e:
@@ -331,7 +346,7 @@ def update_cv(request, cv_id):
 @require_http_methods(["DELETE"])
 def delete_cv(request, cv_id):
     """
-    Eliminar un CV (soft delete)
+    Eliminar un CV (soft delete + eliminar archivo físico si existe)
     """
     try:
         cv = get_object_or_404(
@@ -341,7 +356,18 @@ def delete_cv(request, cv_id):
             is_deleted=False
         )
 
-        # Soft delete
+        # Eliminar archivo físico si existe (para PDFs subidos)
+        if cv.file and hasattr(cv.file, 'path'):
+            try:
+                import os
+                if os.path.exists(cv.file.path):
+                    os.remove(cv.file.path)
+                    print(f"Archivo fisico eliminado: {cv.file.path}")
+            except Exception as file_error:
+                print(f"Error al eliminar archivo fisico: {file_error}")
+                # Continuar con soft delete aunque falle eliminación de archivo
+
+        # Soft delete en base de datos
         cv.is_deleted = True
         cv.deleted_at = timezone.now()
         cv.save()
@@ -419,32 +445,20 @@ def apply_to_job(request, job_id):
     """
     Postularse a un trabajo
 
-    Request Body (JSON si usa CV guardado):
+    IMPORTANTE: Solo acepta CVs guardados (referencias).
+    Si el usuario sube un PDF, debe guardarlo primero en /api/cvs/save/
+
+    Request Body (JSON):
     {
         "cv_id": "uuid",
         "cover_letter": "string",
         "screening_answers": {...}
     }
-
-    Request Body (Form-data si adjunta CV directamente):
-    {
-        "attached_cv": file,
-        "cover_letter": "string",
-        "screening_answers": "{...}"
-    }
     """
     try:
-        # Determinar si es JSON o FormData
-        if request.content_type and 'multipart/form-data' in request.content_type:
-            # Request con archivo adjunto
-            data = request.POST.dict()
-            screening_answers = json.loads(data.get('screening_answers', '{}'))
-            cv_file = request.FILES.get('attached_cv')
-        else:
-            # Request JSON con cv_id
-            data = json.loads(request.body)
-            screening_answers = data.get('screening_answers', {})
-            cv_file = None
+        # Solo acepta JSON con cv_id
+        data = json.loads(request.body)
+        screening_answers = data.get('screening_answers', {})
 
         # Verificar que el trabajo existe y está activo
         job = get_object_or_404(Job, id=job_id, status='active')
@@ -491,23 +505,27 @@ def apply_to_job(request, job_id):
                 'blocked': True
             }, status=403)
 
-        # Manejar CV: puede ser un cv_id (CV guardado) o un archivo adjunto
+        # Obtener CV guardado (requerido)
         cv_id = data.get('cv_id')
-        cv = None
-        if cv_id:
-            cv = get_object_or_404(
-                ApplicantCV,
-                id=cv_id,
-                applicant=request.user,
-                is_deleted=False
-            )
+        if not cv_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Debes seleccionar un CV guardado para postularte'
+            }, status=400)
 
-        # Crear la postulación
+        cv = get_object_or_404(
+            ApplicantCV,
+            id=cv_id,
+            applicant=request.user,
+            is_deleted=False
+        )
+
+        # Crear la postulación (solo con referencia de CV)
         application = JobApplication.objects.create(
             job=job,
             applicant=request.user,
             cv=cv,
-            attached_cv_file=cv_file if cv_file else None,
+            attached_cv_file=None,  # Ya no se usa, siempre None
             cover_letter=data.get('cover_letter', ''),
             screening_answers=screening_answers
         )
@@ -1105,3 +1123,40 @@ def update_application_status(request, job_id, application_id):
             'success': False,
             'error': f'Error al actualizar postulación: {str(e)}'
         }, status=500)
+
+
+@csrf_exempt
+@require_authentication
+@require_http_methods(["GET"])
+def get_unviewed_applications_count(request):
+    """
+    Obtener el conteo de aplicaciones no vistas por el reclutador
+    GET /api/applications/unviewed-count/
+
+    Returns:
+    {
+        'success': bool,
+        'count': int
+    }
+    """
+    try:
+        # Obtener todos los jobs del usuario
+        user_jobs = Job.objects.filter(email=request.user.email).values_list('id', flat=True)
+
+        # Contar aplicaciones no vistas en esos jobs
+        count = JobApplication.objects.filter(
+            job_id__in=user_jobs,
+            viewed_by_employer=False
+        ).count()
+
+        return JsonResponse({
+            'success': True,
+            'count': count
+        }, status=200)
+
+    except Exception as e:
+        print(f'[APPLICATIONS] Error al obtener conteo de aplicaciones no vistas: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'count': 0
+        }, status=200)  # Devolver 200 con count 0 en vez de error

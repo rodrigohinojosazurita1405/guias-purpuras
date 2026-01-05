@@ -15,6 +15,8 @@ class Notification(models.Model):
         ('new_application', 'Nueva postulación recibida'),
         ('payment_verified', 'Pago verificado'),
         ('payment_rejected', 'Pago rechazado'),
+        ('invoice_created', 'Orden de facturación creada'),
+        ('invoice_completed', 'Facturación completada'),
         ('job_expiring_soon', 'Anuncio próximo a vencer'),
         ('job_expired', 'Anuncio vencido'),
 

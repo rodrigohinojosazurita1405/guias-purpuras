@@ -13,7 +13,7 @@
           <strong>guiaspurpuras.com.bo</strong>, cuyo responsable es:
         </p>
         <ul>
-          <li><strong>Razón Social:</strong> Rodrigo Hinojosa Z.</li>
+          <li><strong>Razón Social:</strong> Guias Púrpuras Bolivia</li>
           <li><strong>NIT:</strong> 8012570</li>
           <li><strong>Domicilio Comercial:</strong> Calle Ladislao Cabrera entre 16 de Julio y Antezana, Oficina 11, Ciudad de Cochabamba, Bolivia</li>
           <li><strong>Correo Electrónico:</strong> info@guiaspurpuras.com.bo</li>
@@ -114,7 +114,7 @@
           viola la legislación aplicable.
         </p>
         <p>
-          Guías Púrpuras se reserva el derecho de revisar, moderar, editar o eliminar cualquier contenido
+          Guías Púrpuras Bolivia se reserva el derecho de revisar, moderar, editar o eliminar cualquier contenido
           que considere inapropiado, ilegal o que viole estos Términos y Condiciones, sin previo aviso y
           sin responsabilidad alguna.
         </p>
@@ -123,8 +123,8 @@
       <section class="terms-section">
         <h2>4. Limitación de Responsabilidad</h2>
         <p>
-          <strong>Rodrigo Hinojosa Zurita</strong>, con <strong>NIT 8012570</strong>, en su calidad de 
-          responsable de la plataforma Guías Púrpuras, declara expresamente que:
+          <strong>Guías Púrpuras Bolivia</strong>, con <strong>NIT 8012570</strong>, en su calidad de 
+          responsable de la plataforma digital, declara expresamente que:
         </p>
 
         <h3>4.1 Limitaciones Generales</h3>
@@ -146,21 +146,23 @@
           <li>Ataques informáticos, virus, malware o acciones de terceros que afecten la plataforma.</li>
           <li>Problemas de conectividad de internet o infraestructura de terceros.</li>
           <li>Pérdida de datos ocasionada por fallas técnicas o errores del usuario.</li>
+          <li>Cualquier problema técnico que pudieran surgir respecto al servidor que nos proporciona el servicio de Hosting, dado que 
+          nuestros proveedores se encuentran en el extranjero.</li>
         </ul>
 
         <h3>4.3 Enlaces Externos y Servicios de Terceros</h3>
         <p>
           La plataforma puede contener enlaces a sitios web de terceros o integrar servicios externos. 
-          Guías Púrpuras no controla ni asume responsabilidad alguna por el contenido, políticas de 
+          Guías Púrpuras Bolivia no controla ni asume responsabilidad alguna por el contenido, políticas de 
           privacidad, prácticas o disponibilidad de estos sitios o servicios externos. El acceso a enlaces 
           de terceros es bajo el propio riesgo del usuario.
         </p>
 
         <h3>4.4 Exclusión de Garantías</h3>
         <p>
-          La plataforma se proporciona "tal cual" y "según disponibilidad", sin garantías de ningún tipo, 
+          <u>La plataforma se proporciona "tal cual" y "según disponibilidad", sin garantías de ningún tipo, 
           expresas o implícitas, incluyendo pero no limitándose a garantías de comerciabilidad, idoneidad 
-          para un propósito particular o no violación de derechos de terceros.
+          para un propósito particular o no violación de derechos de terceros.</u>
         </p>
       </section>
 
@@ -170,12 +172,15 @@
           Todos los elementos que conforman la plataforma <strong>guiaspurpuras.com.bo</strong>, incluyendo 
           pero no limitándose a software, código fuente, diseño gráfico, logotipos, marcas, nombres comerciales, 
           textos, imágenes, videos, bases de datos, estructura de navegación redes sociales y demás contenidos, son propiedad 
-          exclusiva de Rodrigo Hinojosa Z.
+          exclusiva de Rodrigo Hinojosa Z. siendo este el CEO y Fundador de Guías Púrpuras Bolivia.
         </p>
         <p>
           Estos elementos están protegidos por la legislación Boliviana e internacional en materia de propiedad 
-          intelectual, incluyendo pero no limitándose a la Ley de Derechos de Autor boliviana, tratados 
-          internacionales y convenios sobre propiedad intelectual.
+          intelectual, incluyendo pero no limitándose a la Ley de Derechos de Autor Boliviana, tratados 
+          internacionales y convenios sobre propiedad intelectual. <br>
+           El uso no autorizado será sancionado por el SENAPI (Servicio Nacional de Propiedad Intelectual) conforme a la Ley 1322 
+           y normativa andina, pudiendo incluir el cese de actos infractores y la destrucción del material ilegal, que se efectuen 
+           de forma perjudicial y dolosa.
         </p>
 
         <h3>5.1 Prohibiciones</h3>
@@ -185,7 +190,7 @@
           <li>Utilizar, descargar o exportar el contenido con fines comerciales no autorizados.</li>
           <li>Realizar ingeniería inversa, descompilar o desensamblar el software de la plataforma.</li>
           <li>Eliminar, alterar u ocultar avisos de propiedad intelectual, derechos de autor o marcas registradas.</li>
-          <li>Usar la marca "Guías Púrpuras", su logotipo o elementos identificativos sin autorización.</li>
+          <li>Usar la marca "Guías Púrpuras", "Guías Púrpuras Bolivia" su logotipo o elementos identificativos sin autorización.</li>
         </ul>
 
         <h3>5.2 Licencia de Uso Limitada</h3>
@@ -231,13 +236,13 @@
         
         <h3>7.1 Servicios y Tarifas</h3>
         <p>
-          La plataforma Guías Púrpuras puede ofrecer servicios gratuitos y servicios de pago (planes premium, 
-          publicaciones destacadas, funcionalidades adicionales, etc.). Las tarifas, características y 
+          La plataforma Guías Púrpuras Bolivia puede ofrecer algunos servicios fremium y servicios de pago (planes premium, 
+          publicaciones destacadas, patrocinadas, funcionalidades adicionales, etc.). Las tarifas, características y 
           condiciones de cada servicio estarán claramente especificadas en la plataforma al momento de la 
           contratación en el apartado Planes.
         </p>
         <p>
-          Guías Púrpuras se reserva el derecho de modificar las tarifas y condiciones de los servicios de 
+          Guías Púrpuras Bolivia se reserva el derecho de modificar las tarifas y condiciones de los servicios de 
           pago en cualquier momento, notificando a los usuarios con la debida antelación. Las modificaciones 
           no afectarán los servicios ya contratados y pagados.
         </p>
@@ -246,26 +251,38 @@
         <p>
           Los pagos por servicios de la plataforma se realizarán mediante los métodos de pago autorizados 
           y disponibles en el sitio. Al realizar un pago, el usuario acepta proporcionar información de 
-          pago válida y exacta.
+          pago válida y exacta además de adjuntar el comprobante de pago mediante nuestro sistema.
         </p>
         <p>
-          Los pagos son procesados por proveedores de servicios de pago externos. Guías Púrpuras no almacena 
-          información sensible de tarjetas de crédito o medios de pago. El usuario debe revisar las políticas 
+          Los pagos son procesados por proveedores de servicios de pago externos mediante QR. Guías Púrpuras Bolivia no almacena 
+          información sensible de tarjetas de crédito/debito o medios de pago. El usuario debe revisar las políticas 
           de privacidad y términos de uso de los procesadores de pago.
         </p>
 
         <h3>7.3 Facturación</h3>
         <p>
           Se emitirá la factura o comprobante fiscal correspondiente conforme a la legislación tributaria 
-          boliviana vigente. El usuario debe proporcionar sus datos fiscales correctos al momento de realizar 
-          el pago.
+          Boliviana vigente. El usuario debe proporcionar sus datos fiscales (Razón Social, NIT, C.I etc.) correctos al momento de realizar 
+          el pago para le emisión de su factura digital, este será enviado al medio selecionado que el usuario eligío (E-mail, Whatsapp).
+        </p>
+        <p> Guías Púrpuras Bolivia no se hará responsable por errores tipográficos o númericos en los datos de facturación ingresados por el usuario 
+          (Razón Social, NIT/CI, Complemento, Email, Celular). El usuario tiene la obligación y responsabilidad de verificar que todos los datos 
+          ingresados sean correctos antes de publicar el anuncio, nuestro sistema utilizará los datos ingresados por el usuario para la emisión de su 
+          factura electrónica según el normativa del SIN Bolivia. Una vez ingresado todos los datos y realizado el pago del anuncio, este será 
+          verificado aprobado y/o rechazado por nuestro equipo, le enviaremos su factura digital al medio solicitado por el usuario en un plazo 
+          máximo de 24 horas desde la aprobación del anuncio, en horarios de oficina vale decir de lunes a Sábado de 8:00 am - 17:30 pm.
         </p>
 
         <h3>7.4 Política de Devoluciones y Cancelaciones</h3>
         <p>
-          Las solicitudes de devolución o cancelación de servicios contratados estarán sujetas a las 
-          condiciones específicas de cada servicio y a la legislación boliviana aplicable, particularmente 
-          el Código de Comercio y normativa de protección al consumidor.
+          Las solicitudes de devolución o cancelación de servicios contratados estarán sujetas a las condiciones específicas de cada servicio y a la 
+          legislación boliviana aplicable, particularmente el Código de Comercio y la normativa de protección al consumidor. <br>
+          La publicación de anuncios en la plataforma constituye un servicio efectivamente prestado, independientemente de la cantidad o perfil 
+          de postulantes recibidos, visitas o cualquier otra métrica.  <br> 
+          La empresa no garantiza resultados específicos en cuanto a postulaciones, contrataciones o desempeño de los candidatos, 
+          dado que estos dependen de factores externos como la naturaleza del puesto, requisitos solicitados y condiciones del mercado laboral. <br>
+          En consecuencia, no procederán devoluciones ni cancelaciones por falta de postulantes o por considerar que el anuncio no generó el resultado esperado, 
+          salvo que exista incumplimiento comprobado en la prestación del servicio segun el plan elegido por parte de la plataforma.
         </p>
         <p>
           Las devoluciones, cuando procedan, se realizarán mediante el mismo medio de pago utilizado en la 
@@ -274,7 +291,7 @@
 
         <h3>7.5 Suspensión de Servicios</h3>
         <p>
-          Guías Púrpuras se reserva el derecho de suspender o cancelar el acceso a los servicios de pago 
+          Guías Púrpuras Bolivia se reserva el derecho de suspender o cancelar el acceso a los servicios de pago 
           en caso de incumplimiento de estos Términos y Condiciones, falta de pago, uso fraudulento o 
           cualquier actividad que viole la legislación aplicable.
         </p>
@@ -283,7 +300,7 @@
       <section class="terms-section">
         <h2>8. Suspensión y Terminación de Cuentas</h2>
         <p>
-          Guías Púrpuras se reserva el derecho de suspender temporal o permanentemente, o de dar por 
+          Guías Púrpuras Bolivia se reserva el derecho de suspender temporal o permanentemente, o de dar por 
           terminada la cuenta de cualquier usuario, sin previo aviso y sin responsabilidad alguna, en los 
           siguientes casos:
         </p>
@@ -305,11 +322,9 @@
 
       <section class="terms-section">
         <h2>9. Indemnización</h2>
-        <p>
-          El usuario se compromete a indemnizar, defender y mantener indemne a Rodrigo Hinojosa Zurita 
-          (NIT 8012570), sus empleados, colaboradores y representantes, frente a cualquier reclamación, 
-          demanda, acción legal, pérdida, daño, responsabilidad, costo o gasto (incluyendo honorarios 
-          legales razonables) que surjan de o estén relacionados con:
+        <p>El usuario se obliga a indemnizar, defender y mantener indemne a Guías Púrpuras Bolivia (NIT 8012570), 
+          así como a sus empleados, colaboradores y representantes, frente a cualquier reclamación, demanda, acción legal, 
+          pérdida, daño, responsabilidad, costo o gasto (incluyendo honorarios legales razonables) que surjan de, o estén relacionados con:
         </p>
         <ul>
           <li>El uso indebido de la plataforma por parte del usuario.</li>
@@ -323,7 +338,7 @@
       <section class="terms-section">
         <h2>10. Modificaciones de los Términos y Condiciones</h2>
         <p>
-          Guías Púrpuras se reserva el derecho de modificar, actualizar, complementar o sustituir estos 
+          Guías Púrpuras Bolivia se reserva el derecho de modificar, actualizar, complementar o sustituir estos 
           Términos y Condiciones en cualquier momento, sin previo aviso, cuando lo considere necesario para 
           adaptarse a cambios legislativos, mejoras en los servicios, nuevas funcionalidades o por cualquier 
           otra razón.
@@ -363,6 +378,7 @@
           <li>Código Civil boliviano</li>
           <li>Ley General de Protección a Usuarios y Consumidores</li>
           <li>Demás legislación boliviana aplicable</li>
+          <li>Ley de Propiedad Intelectual Nº 1322</li>
         </ul>
         <p>
           Para cualquier controversia, conflicto o reclamación derivada de o relacionada con estos Términos 
@@ -398,9 +414,11 @@
 
         <h3>12.3 Acuerdo Completo</h3>
         <p>
-          Estos Términos y Condiciones, junto con la Política de Privacidad y demás documentos legales 
-          referenciados, constituyen el acuerdo completo entre el usuario y Guías Púrpuras respecto al 
-          uso de la plataforma, y reemplazan cualquier acuerdo o entendimiento previo, oral o escrito.
+          Estos Términos y Condiciones, junto con la Política de Privacidad y demás documentos legales referenciados, 
+          constituyen el acuerdo completo entre el usuario y Guías Púrpuras respecto al uso de la plataforma, y reemplazan 
+          cualquier acuerdo o entendimiento previo, oral o escrito. Al registrarse, acceder o utilizar la plataforma, el usuario 
+          declara haber leído, comprendido y aceptado íntegramente estos Términos y Condiciones, así como la Política de Privacidad 
+          y demás documentos aplicables.
         </p>
 
         <h3>12.4 Cesión</h3>
@@ -431,11 +449,11 @@
           </div>
           <div class="contact-item">
             <strong>Correo Electrónico:</strong>
-            <p>contacto@guiaspurpuras.com.bo</p>
+            <p>info@guiaspurpuras.com.bo</p>
           </div>
           <div class="contact-item">
-            <strong>Teléfono:</strong>
-            <p>+591 [número de contacto]</p>
+            <strong>Celular:</strong>
+            <p>+591 63356311</p>
           </div>
           <div class="contact-item">
             <strong>Horario de Atención:</strong>
@@ -456,8 +474,8 @@
         </p>
         <p>
           El usuario reconoce que ha tenido la oportunidad de revisar estos términos detenidamente y de 
-          consultar cualquier duda antes de aceptarlos. La aceptación de estos términos es voluntaria y 
-          constituye un acuerdo legalmente vinculante entre el usuario y Guías Púrpuras.
+          consultar cualquier duda antes de aceptarlos. La aceptación de estos términos es voluntaria, libre de todo vicio del concentimiento alguno y 
+          constituye un acuerdo legalmente vinculante entre el usuario y Guías Púrpuras Bolivia.
         </p>
       </section>
     </div>

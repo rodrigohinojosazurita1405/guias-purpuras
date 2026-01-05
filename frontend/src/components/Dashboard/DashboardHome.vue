@@ -4,7 +4,7 @@
     <!-- Header -->
     <div class="dashboard-header">
       <div>
-        <h1 class="header-title">Bienvenido, {{ userName }}</h1>
+        <h1 class="header-title">{{ greeting }}, {{ userName }}</h1>
         <p class="header-subtitle">Aquí está tu resumen de actividad</p>
       </div>
       <div class="header-date">
@@ -263,6 +263,7 @@ const dashboardActivities = useDashboardActivities()
 // ========== DATA ==========
 const userName = ref('Usuario')
 const currentDate = ref('')
+const greeting = ref('Bienvenido')
 
 // Variables para asegurar reactividad
 const stats = ref({
@@ -281,6 +282,7 @@ const activities = ref([])
 onMounted(() => {
   initializeDashboard()
   setCurrentDate()
+  setGreeting()
 })
 
 // Observar cambios en el nombre del usuario
@@ -340,6 +342,21 @@ const setCurrentDate = () => {
   }
   const today = new Date()
   currentDate.value = today.toLocaleDateString('es-ES', options)
+}
+
+const setGreeting = () => {
+  // Obtener hora en La Paz, Bolivia (UTC-4)
+  const now = new Date()
+  const laPazTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/La_Paz' }))
+  const hour = laPazTime.getHours()
+
+  if (hour >= 5 && hour < 12) {
+    greeting.value = 'Buenos días'
+  } else if (hour >= 12 && hour < 19) {
+    greeting.value = 'Buenas tardes'
+  } else {
+    greeting.value = 'Buenas noches'
+  }
 }
 
 const goToSection = (section) => {

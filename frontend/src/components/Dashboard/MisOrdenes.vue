@@ -3,7 +3,7 @@
   <div class="mis-ordenes-container">
     <!-- Header -->
     <div class="section-header">
-      <h2>Mis Órdenes</h2>
+      <h2>Mis Órdenes de Facturación Digital</h2>
       <p class="section-subtitle">Historial de compras de planes y gestión de facturas</p>
     </div>
 
