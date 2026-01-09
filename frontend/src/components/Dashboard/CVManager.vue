@@ -203,6 +203,149 @@
       </div>
     </div>
 
+    <!-- Modal de Vista Previa -->
+    <va-modal
+      v-model="showPreviewModal"
+      size="large"
+      :fullscreen="true"
+      hide-default-actions
+      no-padding
+    >
+      <template #header>
+        <h2 class="modal-title">Vista Previa del CV</h2>
+      </template>
+
+      <div class="preview-modal-content">
+        <div v-if="previewedCV" class="cv-preview-container">
+          <!-- Header del CV -->
+          <div class="cv-section">
+            <h1 class="preview-name">{{ previewedCV.cv_data.personalInfo.fullName }}</h1>
+            <p v-if="previewedCV.cv_data.personalInfo.title" class="preview-title">
+              {{ previewedCV.cv_data.personalInfo.title }}
+            </p>
+            <div class="preview-contact">
+              <span>{{ previewedCV.cv_data.personalInfo.phone }}</span>
+              <span v-if="previewedCV.cv_data.personalInfo.email"> • {{ previewedCV.cv_data.personalInfo.email }}</span>
+              <span v-if="previewedCV.cv_data.personalInfo.location"> • {{ previewedCV.cv_data.personalInfo.location }}</span>
+            </div>
+            <div v-if="previewedCV.cv_data.personalInfo.linkedin || previewedCV.cv_data.personalInfo.portfolio" class="preview-links">
+              <span v-if="previewedCV.cv_data.personalInfo.linkedin">{{ previewedCV.cv_data.personalInfo.linkedin }}</span>
+              <span v-if="previewedCV.cv_data.personalInfo.portfolio"> • {{ previewedCV.cv_data.personalInfo.portfolio }}</span>
+            </div>
+          </div>
+
+          <!-- Perfil Profesional -->
+          <div v-if="previewedCV.cv_data.professionalProfile" class="cv-section">
+            <p class="preview-profile">{{ previewedCV.cv_data.professionalProfile }}</p>
+          </div>
+
+          <!-- Experiencia -->
+          <div v-if="previewedCV.cv_data.experience?.length > 0" class="cv-section">
+            <h2 class="section-title">Experiencia</h2>
+            <div v-for="(exp, index) in previewedCV.cv_data.experience" :key="index" class="experience-item">
+              <div class="exp-header">
+                <strong>{{ exp.company }}</strong>
+                <span v-if="exp.location" class="location">{{ exp.location }}</span>
+              </div>
+              <div class="exp-role">
+                <em>{{ exp.position }}</em>
+                <span class="dates">{{ exp.startYear }} - {{ exp.current ? 'Actual' : exp.endYear }}</span>
+              </div>
+              <ul v-if="exp.achievements && exp.achievements.length > 0" class="achievements">
+                <li v-for="(achievement, idx) in exp.achievements" :key="idx">{{ achievement }}</li>
+              </ul>
+              <div v-if="exp.supervisorName || exp.supervisorPhone" class="reference">
+                <strong>Referencia:</strong>
+                <span v-if="exp.supervisorName">{{ exp.supervisorName }}</span>
+                <span v-if="exp.supervisorPhone"> • {{ exp.supervisorPhone }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Educación -->
+          <div v-if="previewedCV.cv_data.education?.length > 0" class="cv-section">
+            <h2 class="section-title">Educación</h2>
+            <div v-for="(edu, index) in previewedCV.cv_data.education" :key="index" class="education-item">
+              <div class="edu-header">
+                <strong>{{ edu.institution }}</strong>
+                <span v-if="edu.location" class="location">{{ edu.location }}</span>
+              </div>
+              <div class="edu-degree">
+                <em>{{ edu.degree }}</em>
+                <span class="dates">{{ edu.startYear }} - {{ edu.endYear }}</span>
+              </div>
+              <p v-if="edu.achievements" class="edu-achievements">{{ edu.achievements }}</p>
+            </div>
+          </div>
+
+          <!-- Habilidades -->
+          <div v-if="previewedCV.cv_data.technicalSkills?.length > 0 || previewedCV.cv_data.softSkills?.length > 0" class="cv-section">
+            <h2 class="section-title">Habilidades</h2>
+            <div class="skills-grid">
+              <div v-if="previewedCV.cv_data.technicalSkills?.length > 0" class="skills-column">
+                <h3>Habilidades Técnicas</h3>
+                <div class="skills-tags">
+                  <span v-for="(skill, index) in previewedCV.cv_data.technicalSkills" :key="index" class="skill-tag">{{ skill }}</span>
+                </div>
+              </div>
+              <div v-if="previewedCV.cv_data.softSkills?.length > 0" class="skills-column">
+                <h3>Habilidades Blandas</h3>
+                <div class="skills-tags">
+                  <span v-for="(skill, index) in previewedCV.cv_data.softSkills" :key="index" class="skill-tag">{{ skill }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Certificaciones -->
+          <div v-if="previewedCV.cv_data.certifications?.length > 0" class="cv-section">
+            <h2 class="section-title">Cursos y Certificaciones</h2>
+            <div v-for="(cert, index) in previewedCV.cv_data.certifications" :key="index" class="cert-item">
+              <div class="cert-header">
+                <strong>{{ cert.name }}</strong>
+                <span v-if="cert.year" class="cert-year">{{ cert.year }}</span>
+              </div>
+              <p>{{ cert.institution }}</p>
+            </div>
+          </div>
+
+          <!-- Idiomas -->
+          <div v-if="previewedCV.cv_data.languages?.length > 0" class="cv-section">
+            <h2 class="section-title">Idiomas</h2>
+            <div class="languages-list">
+              <span v-for="(lang, index) in previewedCV.cv_data.languages" :key="index" class="language-item">
+                <strong>{{ lang.name }}</strong>: {{ lang.level }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Proyectos -->
+          <div v-if="previewedCV.cv_data.projects?.length > 0" class="cv-section">
+            <h2 class="section-title">Proyectos Relevantes</h2>
+            <div v-for="(project, index) in previewedCV.cv_data.projects" :key="index" class="project-item">
+              <div class="project-header">
+                <strong>{{ project.name }}</strong>
+                <span v-if="project.year" class="project-year">{{ project.year }}</span>
+              </div>
+              <p v-if="project.description">{{ project.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="modal-footer">
+          <va-button color="secondary" @click="showPreviewModal = false">
+            Cerrar
+          </va-button>
+          <va-button v-if="previewedCV?.file" color="primary" @click="downloadPreviewedCV">
+            <va-icon name="download" size="16px" />
+            Descargar PDF
+          </va-button>
+        </div>
+      </template>
+    </va-modal>
+
   </div>
 </template>
 
@@ -210,11 +353,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useToast } from 'vuestic-ui'
+import { useToast, useModal } from 'vuestic-ui'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { init: initToast } = useToast()
+const { confirm } = useModal()
 
 // Constants
 const maxCreatedCVs = 2
@@ -227,6 +371,8 @@ const editingCVId = ref(null)
 const editingName = ref('')
 const fileInput = ref(null)
 const isUploading = ref(false)
+const showPreviewModal = ref(false)
+const previewedCV = ref(null)
 
 // Computed
 const createdCVsCount = computed(() => {
@@ -242,14 +388,14 @@ const loadCVs = async () => {
   isLoading.value = true
 
   try {
-    const response = await fetch('http://localhost:8000/api/cvs/list/', {
+    const response = await fetch('/api/cvs/list/', {
       headers: {
         'Authorization': `Bearer ${authStore.accessToken}`
       }
     })
 
     if (!response.ok) {
-      throw new Error('Error al cargar CVs')
+      throw new Error('No se pudieron cargar tus CVs. Por favor, recarga la página.')
     }
 
     const data = await response.json()
@@ -257,9 +403,9 @@ const loadCVs = async () => {
   } catch (error) {
     console.error('Error loading CVs:', error)
     initToast({
-      message: 'Error al cargar CVs',
+      message: error.message || 'No se pudieron cargar tus CVs. Verifica tu conexión a internet.',
       color: 'danger',
-      duration: 3000
+      duration: 4000
     })
   } finally {
     isLoading.value = false
@@ -267,12 +413,25 @@ const loadCVs = async () => {
 }
 
 const deleteCV = async (cv) => {
-  if (!confirm(`¿Estás seguro de que deseas eliminar "${cv.name}"?`)) {
+  const confirmMessage = cv.cv_type === 'uploaded'
+    ? `Esta acción eliminará permanentemente el archivo PDF.`
+    : `Esta acción no se puede deshacer.`
+
+  const agreed = await confirm({
+    title: 'Eliminar CV',
+    message: `¿Estás seguro de que deseas eliminar "${cv.name}"?\n\n${confirmMessage}`,
+    okText: 'Eliminar',
+    cancelText: 'Cancelar',
+    size: 'small',
+    maxWidth: '380px'
+  })
+
+  if (!agreed) {
     return
   }
 
   try {
-    const response = await fetch(`http://localhost:8000/api/cvs/${cv.id}/delete/`, {
+    const response = await fetch(`/api/cvs/${cv.id}/delete/`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${authStore.accessToken}`
@@ -280,11 +439,12 @@ const deleteCV = async (cv) => {
     })
 
     if (!response.ok) {
-      throw new Error('Error al eliminar CV')
+      const data = await response.json().catch(() => ({}))
+      throw new Error(data.error || 'No se pudo eliminar el CV. Por favor, intenta nuevamente.')
     }
 
     initToast({
-      message: 'CV eliminado exitosamente',
+      message: `"${cv.name}" ha sido eliminado correctamente`,
       color: 'success',
       duration: 3000
     })
@@ -293,9 +453,9 @@ const deleteCV = async (cv) => {
   } catch (error) {
     console.error('Error deleting CV:', error)
     initToast({
-      message: 'Error al eliminar CV',
+      message: error.message || 'Ocurrió un error al eliminar el CV. Por favor, verifica tu conexión e intenta nuevamente.',
       color: 'danger',
-      duration: 3000
+      duration: 4000
     })
   }
 }
@@ -381,7 +541,7 @@ const handleFileUpload = async (event) => {
     formData.append('file', file)
     formData.append('name', file.name.replace(/\.[^/.]+$/, ''))
 
-    const response = await fetch('http://localhost:8000/api/cvs/save/', {
+    const response = await fetch('/api/cvs/save/', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${authStore.accessToken}`,
@@ -392,14 +552,14 @@ const handleFileUpload = async (event) => {
     })
 
     if (!response.ok) {
-      const data = await response.json()
-      throw new Error(data.error || 'Error al guardar el PDF')
+      const data = await response.json().catch(() => ({}))
+      throw new Error(data.error || 'No se pudo guardar el PDF. Verifica que el archivo sea válido.')
     }
 
     console.log('Upload successful')
 
     initToast({
-      message: 'PDF guardado exitosamente',
+      message: `"${file.name}" se guardó correctamente`,
       color: 'success',
       duration: 3000
     })
@@ -429,13 +589,24 @@ const editCV = (cv) => {
 
 const previewCV = (cv) => {
   if (cv.cv_type === 'uploaded' && cv.file) {
+    // Para PDFs subidos, abrir en nueva pestaña
     window.open(cv.file, '_blank')
+  } else if (cv.cv_type === 'created' && cv.cv_data) {
+    // Para CVs creados, mostrar modal con preview
+    previewedCV.value = cv
+    showPreviewModal.value = true
   } else {
     initToast({
-      message: 'Vista previa próximamente disponible',
-      color: 'info',
+      message: 'No se puede previsualizar este CV',
+      color: 'warning',
       duration: 3000
     })
+  }
+}
+
+const downloadPreviewedCV = () => {
+  if (previewedCV.value?.file) {
+    window.open(previewedCV.value.file, '_blank')
   }
 }
 
@@ -501,7 +672,7 @@ const saveName = async (cv) => {
   }
 
   try {
-    const response = await fetch(`http://localhost:8000/api/cvs/${cv.id}/update/`, {
+    const response = await fetch(`/api/cvs/${cv.id}/update/`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${authStore.accessToken}`,
@@ -513,11 +684,12 @@ const saveName = async (cv) => {
     })
 
     if (!response.ok) {
-      throw new Error('Error al actualizar nombre del CV')
+      const data = await response.json().catch(() => ({}))
+      throw new Error(data.error || 'No se pudo actualizar el nombre del CV.')
     }
 
     initToast({
-      message: 'Nombre actualizado exitosamente',
+      message: `Nombre actualizado a "${newName}"`,
       color: 'success',
       duration: 3000
     })
@@ -528,9 +700,9 @@ const saveName = async (cv) => {
   } catch (error) {
     console.error('Error updating CV name:', error)
     initToast({
-      message: 'Error al actualizar nombre del CV',
+      message: error.message || 'No se pudo actualizar el nombre. Intenta nuevamente.',
       color: 'danger',
-      duration: 3000
+      duration: 4000
     })
   }
 }
@@ -1037,6 +1209,247 @@ onMounted(() => {
 
   .cvs-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Modal de Vista Previa */
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.preview-modal-content {
+  padding: 2rem;
+  background: #f9fafb;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.cv-preview-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  padding: 3rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.cv-section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 3px solid #7c3aed;
+}
+
+.cv-section:last-child {
+  border-bottom: none;
+}
+
+.preview-name {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.preview-title {
+  font-size: 1.25rem;
+  color: #7c3aed;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.preview-contact,
+.preview-links {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
+}
+
+.preview-profile {
+  font-size: 1rem;
+  color: #2d3748;
+  line-height: 1.6;
+  text-align: justify;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #7c3aed;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  letter-spacing: 0.5px;
+}
+
+.experience-item,
+.education-item,
+.cert-item,
+.project-item {
+  margin-bottom: 1.5rem;
+}
+
+.experience-item:last-child,
+.education-item:last-child,
+.cert-item:last-child,
+.project-item:last-child {
+  margin-bottom: 0;
+}
+
+.exp-header,
+.edu-header,
+.cert-header,
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.25rem;
+}
+
+.exp-header strong,
+.edu-header strong,
+.cert-header strong,
+.project-header strong {
+  font-size: 1.1rem;
+  color: #1a1a1a;
+}
+
+.location,
+.cert-year,
+.project-year {
+  font-size: 0.9rem;
+  color: #718096;
+}
+
+.exp-role,
+.edu-degree {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+
+.exp-role em,
+.edu-degree em {
+  font-size: 1rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.dates {
+  font-size: 0.9rem;
+  color: #718096;
+}
+
+.achievements {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #2d3748;
+  line-height: 1.6;
+}
+
+.achievements li {
+  margin-bottom: 0.25rem;
+}
+
+.reference {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #f7fafc;
+  border-left: 4px solid #7c3aed;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.reference strong {
+  color: #2d3748;
+}
+
+.edu-achievements {
+  color: #4a5568;
+  line-height: 1.5;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.skills-column h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 0.75rem;
+}
+
+.skills-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skill-tag {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  background: #e2e8f0;
+  color: #2d3748;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.cert-item p,
+.project-item p {
+  color: #4a5568;
+  line-height: 1.5;
+  margin-top: 0.25rem;
+}
+
+.languages-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.language-item {
+  font-size: 0.95rem;
+  color: #2d3748;
+}
+
+.language-item strong {
+  color: #1a1a1a;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+@media (max-width: 768px) {
+  .cv-preview-container {
+    padding: 1.5rem;
+  }
+
+  .preview-name {
+    font-size: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+  }
+
+  .skills-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }
 </style>

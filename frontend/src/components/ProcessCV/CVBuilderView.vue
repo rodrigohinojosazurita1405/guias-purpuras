@@ -33,12 +33,14 @@
               placeholder="Ej: Juan Carlos Pérez López"
               required-mark
               class="full-width"
+              @blur="cvFormData.personalInfo.fullName = capitalizeWords(cvFormData.personalInfo.fullName)"
             />
             <va-input
               v-model="cvFormData.personalInfo.title"
               label="Título Profesional / Cargo Objetivo"
               placeholder="Ej: Ingeniero de Software, Analista de Datos, Diseñador UX/UI"
               class="full-width"
+              @blur="cvFormData.personalInfo.title = capitalizeWords(cvFormData.personalInfo.title)"
             />
             <va-input
               v-model="cvFormData.personalInfo.phone"
@@ -57,6 +59,7 @@
               v-model="cvFormData.personalInfo.location"
               label="Ciudad y País"
               placeholder="La Paz, Bolivia"
+              @blur="cvFormData.personalInfo.location = capitalizeWords(cvFormData.personalInfo.location)"
             />
             <va-input
               v-model="cvFormData.personalInfo.linkedin"
@@ -89,7 +92,8 @@
         <div v-if="currentStep === 1" class="step-content">
           <h2 class="step-heading">Experiencia Profesional (Work Experience)</h2>
           <p class="step-description" style="margin-bottom: 1.5rem;">
-            Cronología inversa (más reciente primero). <br>
+            <strong>IMPORTANTE - Cronología inversa:</strong> Comience por su trabajo actual o más reciente y continúe hacia atrás en el tiempo.
+            <br>
             <strong>Formato Harvard:</strong> Verbo de acción + Resultado cuantificable + Método/Contexto.
           </p>
 
@@ -105,15 +109,33 @@
             <p>No ha agregado experiencia profesional</p>
           </div>
 
-          <div v-for="(exp, index) in cvFormData.experience" :key="index" class="item-card">
-            <div class="item-header">
-              <span class="item-number">{{ index + 1 }}</span>
-              <button class="remove-btn" @click="removeExperience(index)">
-                <va-icon name="close" size="small" />
-              </button>
+          <div v-for="(exp, index) in cvFormData.experience" :key="index" class="accordion-item">
+            <div class="accordion-header" @click="toggleExperience(index)">
+              <div class="accordion-header-left">
+                <span class="mini-number">{{ index + 1 }}</span>
+                <span class="accordion-title">
+                  {{ exp.position || 'Nueva experiencia' }}
+                  <span v-if="exp.company" class="accordion-subtitle">- {{ exp.company }}</span>
+                </span>
+              </div>
+              <div class="accordion-header-right">
+                <button
+                  class="remove-btn-mini"
+                  @click.stop="removeExperience(index)"
+                  title="Eliminar"
+                >
+                  <va-icon name="close" size="12px" />
+                </button>
+                <va-icon
+                  :name="expandedExpIndex === index ? 'expand_less' : 'expand_more'"
+                  size="20px"
+                  class="accordion-icon"
+                />
+              </div>
             </div>
-
-            <div class="form-grid">
+            <va-collapse :model-value="expandedExpIndex === index">
+              <div class="accordion-content">
+                <div class="form-grid">
               <va-input v-model="exp.startYear" label="Año Inicio" placeholder="YYYY" />
               <va-input v-model="exp.endYear" label="Año Fin" placeholder="YYYY o 'Actual'" :disabled="exp.current" />
 
@@ -129,8 +151,29 @@
                 </span>
               </div>
 
-              <va-input v-model="exp.position" label="Cargo" placeholder="Ej: Gerente de Ventas Regional" class="full-width" />
-              <va-input v-model="exp.company" label="Empresa" placeholder="Nombre de la empresa" class="full-width" />
+              <va-input v-model="exp.position" label="Cargo" placeholder="Ej: Gerente de Ventas Regional" class="full-width" @blur="exp.position = capitalizeWords(exp.position)" />
+              <va-input v-model="exp.company" label="Empresa" placeholder="Nombre de la empresa" class="full-width" @blur="exp.company = capitalizeWords(exp.company)" />
+
+              <!-- Referencias Laborales -->
+              <div class="references-section full-width">
+                <label class="references-label">
+                  <va-icon name="person" size="small" />
+                  Referencias Laborales (Opcional pero recomendado)
+                </label>
+                <div class="references-grid">
+                  <va-input
+                    v-model="exp.supervisorName"
+                    label="Nombre del Supervisor/Jefe"
+                    placeholder="Ej: Juan Pérez"
+                    @blur="exp.supervisorName = capitalizeWords(exp.supervisorName)"
+                  />
+                  <va-input
+                    v-model="exp.supervisorPhone"
+                    label="Teléfono de Referencia"
+                    placeholder="Ej: +591 12345678"
+                  />
+                </div>
+              </div>
 
               <div class="achievements-section full-width">
                 <label class="achievements-label">Logros Cuantificables (3-4 bullet points - Formato Harvard)</label>
@@ -139,6 +182,7 @@
                   <va-input
                     v-model="exp.achievements[achIndex]"
                     :placeholder="`• Verbo + Resultado + Método: 'Reduje costos operativos en 25% optimizando procesos de compras'`"
+                    @blur="exp.achievements[achIndex] = capitalizeFirstLetter(exp.achievements[achIndex])"
                   >
                     <template #append>
                       <button v-if="exp.achievements.length > 1" class="remove-achievement-btn" @click="removeAchievement(index, achIndex)">
@@ -152,7 +196,9 @@
                   Agregar logro
                 </button>
               </div>
-            </div>
+                </div>
+              </div>
+            </va-collapse>
           </div>
         </div>
 
@@ -161,7 +207,9 @@
           <!-- Educación -->
           <h2 class="step-heading">Educación (Education)</h2>
           <p class="step-description" style="margin-bottom: 1.5rem;">
-            Cronología inversa. Incluya título, institución, años, y honores/logros relevantes.
+            <strong>IMPORTANTE - Cronología inversa:</strong> Comience por su formación más reciente (último título/curso/diplomado) y continúe hacia atrás en el tiempo.
+            <br>
+            Incluya título, institución, años, y honores/logros relevantes (menciones honoríficas, becas, proyectos destacados).
           </p>
 
           <div class="step-header-actions">
@@ -176,21 +224,41 @@
             <p>No ha agregado formación académica</p>
           </div>
 
-          <div v-for="(edu, index) in cvFormData.education" :key="index" class="item-card">
-            <div class="item-header">
-              <span class="item-number">{{ index + 1 }}</span>
-              <button class="remove-btn" @click="removeEducation(index)">
-                <va-icon name="close" size="small" />
-              </button>
+          <div v-for="(edu, index) in cvFormData.education" :key="index" class="accordion-item">
+            <div class="accordion-header" @click="toggleEducation(index)">
+              <div class="accordion-header-left">
+                <span class="mini-number">{{ index + 1 }}</span>
+                <span class="accordion-title">
+                  {{ edu.degree || 'Nueva educación' }}
+                  <span v-if="edu.institution" class="accordion-subtitle">- {{ edu.institution }}</span>
+                </span>
+              </div>
+              <div class="accordion-header-right">
+                <button
+                  class="remove-btn-mini"
+                  @click.stop="removeEducation(index)"
+                  title="Eliminar"
+                >
+                  <va-icon name="close" size="12px" />
+                </button>
+                <va-icon
+                  :name="expandedEduIndex === index ? 'expand_less' : 'expand_more'"
+                  size="20px"
+                  class="accordion-icon"
+                />
+              </div>
             </div>
-
-            <div class="form-grid">
-              <va-input v-model="edu.startYear" label="Año Inicio" placeholder="YYYY" />
-              <va-input v-model="edu.endYear" label="Año Fin" placeholder="YYYY o 'Actual'" />
-              <va-input v-model="edu.degree" label="Título Obtenido" placeholder="Ej: Licenciatura en Administración de Empresas" class="full-width" />
-              <va-input v-model="edu.institution" label="Institución" placeholder="Nombre de la universidad/instituto" class="full-width" />
-              <va-textarea v-model="edu.achievements" label="Logros o Detalles Relevantes" placeholder="Ej: Graduado con mención honorífica" :min-rows="2" class="full-width" />
-            </div>
+            <va-collapse :model-value="expandedEduIndex === index">
+              <div class="accordion-content">
+                <div class="form-grid">
+                  <va-input v-model="edu.startYear" label="Año Inicio" placeholder="YYYY" />
+                  <va-input v-model="edu.endYear" label="Año Fin" placeholder="YYYY o 'Actual'" />
+                  <va-input v-model="edu.degree" label="Título Obtenido" placeholder="Ej: Licenciatura en Administración de Empresas" class="full-width" @blur="edu.degree = capitalizeWords(edu.degree)" />
+                  <va-input v-model="edu.institution" label="Institución" placeholder="Nombre de la universidad/instituto" class="full-width" @blur="edu.institution = capitalizeWords(edu.institution)" />
+                  <va-textarea v-model="edu.achievements" label="Logros o Detalles Relevantes" placeholder="Ej: Graduado con mención honorífica" :min-rows="2" class="full-width" @blur="edu.achievements = capitalizeFirstLetter(edu.achievements)" />
+                </div>
+              </div>
+            </va-collapse>
           </div>
 
           <!-- Habilidades -->
@@ -199,7 +267,7 @@
             <p class="step-description" style="margin-bottom: 2rem; line-height: 1.8;">
               <strong>Formato Harvard:</strong> Priorice habilidades relevantes para el puesto objetivo.
               <br><br>
-              Liste primero las técnicas/específicas, luego las transferibles.
+              Liste primero las técnicas/específicas, luego las transferibles o Blandas.
             </p>
           </div>
 
@@ -270,18 +338,39 @@
               <div v-if="cvFormData.certifications.length === 0" class="mini-empty-state">
                 <p>Sin certificaciones</p>
               </div>
-              <div v-for="(cert, index) in cvFormData.certifications" :key="index" class="mini-item">
-                <div class="mini-item-header">
-                  <span class="mini-number">{{ index + 1 }}</span>
-                  <button class="remove-btn-mini" @click="removeCertification(index)">
-                    <va-icon name="close" size="12px" />
-                  </button>
+              <div v-for="(cert, index) in cvFormData.certifications" :key="index" class="accordion-item">
+                <div class="accordion-header" @click="toggleCertification(index)">
+                  <div class="accordion-header-left">
+                    <span class="mini-number">{{ index + 1 }}</span>
+                    <span class="accordion-title">
+                      {{ cert.name || 'Nueva certificación' }}
+                      <span v-if="cert.institution" class="accordion-subtitle">- {{ cert.institution }}</span>
+                    </span>
+                  </div>
+                  <div class="accordion-header-right">
+                    <button
+                      class="remove-btn-mini"
+                      @click.stop="removeCertification(index)"
+                      title="Eliminar"
+                    >
+                      <va-icon name="close" size="12px" />
+                    </button>
+                    <va-icon
+                      :name="expandedCertIndex === index ? 'expand_less' : 'expand_more'"
+                      size="20px"
+                      class="accordion-icon"
+                    />
+                  </div>
                 </div>
-                <div class="form-grid-mini">
-                  <va-input v-model="cert.year" label="Año" placeholder="YYYY" />
-                  <va-input v-model="cert.name" label="Certificación" placeholder="Nombre" class="full-width" />
-                  <va-input v-model="cert.institution" label="Institución" placeholder="Institución" class="full-width" />
-                </div>
+                <va-collapse :model-value="expandedCertIndex === index">
+                  <div class="accordion-content">
+                    <div class="form-grid-mini">
+                      <va-input v-model="cert.year" label="Año" placeholder="YYYY" />
+                      <va-input v-model="cert.name" label="Certificación" placeholder="Nombre" class="full-width" @blur="cert.name = capitalizeWords(cert.name)" />
+                      <va-input v-model="cert.institution" label="Institución" placeholder="Institución" class="full-width" @blur="cert.institution = capitalizeWords(cert.institution)" />
+                    </div>
+                  </div>
+                </va-collapse>
               </div>
             </div>
 
@@ -296,26 +385,47 @@
               <div v-if="cvFormData.languages.length === 0" class="mini-empty-state">
                 <p>Sin idiomas</p>
               </div>
-              <div v-for="(lang, index) in cvFormData.languages" :key="index" class="mini-item">
-                <div class="mini-item-header">
-                  <span class="mini-number">{{ index + 1 }}</span>
-                  <button class="remove-btn-mini" @click="removeLanguage(index)">
-                    <va-icon name="close" size="12px" />
-                  </button>
+              <div v-for="(lang, index) in cvFormData.languages" :key="index" class="accordion-item-ultra-compact">
+                <div class="accordion-header-compact" @click="toggleLanguage(index)">
+                  <div class="accordion-header-left">
+                    <span class="mini-number-small">{{ index + 1 }}</span>
+                    <span class="accordion-title-compact">
+                      {{ lang.name || 'Nuevo idioma' }}
+                      <span v-if="lang.level" class="level-badge">{{ lang.level }}</span>
+                    </span>
+                  </div>
+                  <div class="accordion-header-right">
+                    <button
+                      class="remove-btn-mini"
+                      @click.stop="removeLanguage(index)"
+                      title="Eliminar"
+                    >
+                      <va-icon name="close" size="12px" />
+                    </button>
+                    <va-icon
+                      :name="expandedLangIndex === index ? 'expand_less' : 'expand_more'"
+                      size="18px"
+                      class="accordion-icon"
+                    />
+                  </div>
                 </div>
-                <div class="form-grid-mini">
-                  <va-input v-model="lang.name" label="Idioma" placeholder="Ej: Español" />
-                  <div class="select-wrapper">
-                    <label class="select-label">Nivel</label>
-                    <select v-model="lang.level" class="custom-select">
-                      <option value="" disabled>Selecciona</option>
+                <va-collapse :model-value="expandedLangIndex === index">
+                  <div class="accordion-body-compact">
+                    <va-input
+                      v-model="lang.name"
+                      placeholder="Ej: Español"
+                      size="small"
+                      @blur="lang.name = capitalizeWords(lang.name)"
+                    />
+                    <select v-model="lang.level" class="select-compact-inline">
+                      <option value="" disabled>Nivel</option>
                       <option value="Básico">Básico</option>
                       <option value="Intermedio">Intermedio</option>
                       <option value="Avanzado">Avanzado</option>
                       <option value="Nativo / Bilingüe">Nativo / Bilingüe</option>
                     </select>
                   </div>
-                </div>
+                </va-collapse>
               </div>
             </div>
 
@@ -330,18 +440,38 @@
               <div v-if="cvFormData.projects.length === 0" class="mini-empty-state">
                 <p>Sin proyectos</p>
               </div>
-              <div v-for="(project, index) in cvFormData.projects" :key="index" class="mini-item">
-                <div class="mini-item-header">
-                  <span class="mini-number">{{ index + 1 }}</span>
-                  <button class="remove-btn-mini" @click="removeProject(index)">
-                    <va-icon name="close" size="12px" />
-                  </button>
+              <div v-for="(project, index) in cvFormData.projects" :key="index" class="accordion-item">
+                <div class="accordion-header" @click="toggleProject(index)">
+                  <div class="accordion-header-left">
+                    <span class="mini-number">{{ index + 1 }}</span>
+                    <span class="accordion-title">
+                      {{ project.name || 'Nuevo proyecto' }}
+                    </span>
+                  </div>
+                  <div class="accordion-header-right">
+                    <button
+                      class="remove-btn-mini"
+                      @click.stop="removeProject(index)"
+                      title="Eliminar"
+                    >
+                      <va-icon name="close" size="12px" />
+                    </button>
+                    <va-icon
+                      :name="expandedProjectIndex === index ? 'expand_less' : 'expand_more'"
+                      size="20px"
+                      class="accordion-icon"
+                    />
+                  </div>
                 </div>
-                <div class="form-grid-mini">
-                  <va-input v-model="project.year" label="Año" placeholder="YYYY" />
-                  <va-input v-model="project.name" label="Proyecto" placeholder="Nombre" class="full-width" />
-                  <va-textarea v-model="project.description" label="Descripción" placeholder="Impacto y resultados" :min-rows="2" class="full-width" />
-                </div>
+                <va-collapse :model-value="expandedProjectIndex === index">
+                  <div class="accordion-content">
+                    <div class="form-grid-mini">
+                      <va-input v-model="project.year" label="Año" placeholder="YYYY" />
+                      <va-input v-model="project.name" label="Proyecto" placeholder="Nombre" class="full-width" @blur="project.name = capitalizeWords(project.name)" />
+                      <va-textarea v-model="project.description" label="Descripción" placeholder="Impacto y resultados" :min-rows="2" class="full-width" @blur="project.description = capitalizeFirstLetter(project.description)" />
+                    </div>
+                  </div>
+                </va-collapse>
               </div>
             </div>
           </div>
@@ -349,8 +479,7 @@
 
         <!-- Step 3: Vista Previa -->
         <div v-if="currentStep === 3" class="step-content">
-          <h2 class="step-heading">Vista Previa</h2>
-          <p class="step-description">Revisa tu CV antes de guardar</p>
+          <h2 class="step-heading centered">Vista Previa - Revisa tu CV antes de guardar</h2>
 
           <!-- CV Preview Container - Estilo impreso -->
           <div class="cv-preview-paper">
@@ -359,11 +488,26 @@
               <h1 class="cv-name">{{ cvFormData.personalInfo.fullName || 'TU NOMBRE' }}</h1>
               <p class="cv-title">{{ cvFormData.personalInfo.title || 'Título Profesional' }}</p>
               <p class="cv-contact">
-                {{ cvFormData.personalInfo.phone || '+123-456-7890' }}
-                <span class="cv-dot">•</span>
-                {{ cvFormData.personalInfo.email || 'email@ejemplo.com' }}
-                <span class="cv-dot" v-if="cvFormData.personalInfo.location">•</span>
-                {{ cvFormData.personalInfo.location }}
+                <template v-if="cvFormData.personalInfo.phone">
+                  {{ cvFormData.personalInfo.phone }}
+                  <span class="cv-dot">•</span>
+                </template>
+                <template v-if="cvFormData.personalInfo.email">
+                  {{ cvFormData.personalInfo.email }}
+                </template>
+                <template v-if="cvFormData.personalInfo.location">
+                  <span class="cv-dot">•</span>
+                  {{ cvFormData.personalInfo.location }}
+                </template>
+              </p>
+              <p class="cv-contact" v-if="cvFormData.personalInfo.linkedin || cvFormData.personalInfo.portfolio">
+                <template v-if="cvFormData.personalInfo.linkedin">
+                  {{ cvFormData.personalInfo.linkedin }}
+                </template>
+                <template v-if="cvFormData.personalInfo.portfolio">
+                  <span class="cv-dot" v-if="cvFormData.personalInfo.linkedin">•</span>
+                  {{ cvFormData.personalInfo.portfolio }}
+                </template>
               </p>
             </div>
 
@@ -398,11 +542,16 @@
                   <span class="cv-exp-position">{{ exp.position }}</span>
                   <span class="cv-exp-dates">{{ exp.startYear }} - {{ exp.current ? 'Actual' : exp.endYear }}</span>
                 </div>
-                <ul class="cv-exp-bullets" v-if="exp.description">
-                  <li v-for="(line, idx) in exp.description.split('\n').filter(l => l.trim())" :key="idx">
-                    {{ line.trim() }}
+                <ul class="cv-exp-bullets" v-if="exp.achievements && exp.achievements.some(a => a?.trim())">
+                  <li v-for="(achievement, idx) in exp.achievements.filter(a => a?.trim())" :key="idx">
+                    {{ achievement }}
                   </li>
                 </ul>
+                <div class="cv-reference" v-if="exp.supervisorName || exp.supervisorPhone">
+                  <span class="cv-reference-label">Referencia:</span>
+                  <span v-if="exp.supervisorName">{{ exp.supervisorName }}</span>
+                  <span v-if="exp.supervisorPhone"> • {{ exp.supervisorPhone }}</span>
+                </div>
               </div>
             </div>
 
@@ -451,6 +600,11 @@
               </div>
             </div>
           </div>
+
+          <!-- Watermark -->
+          <div class="cv-watermark">
+            Powered by Guías Púrpuras Bolivia
+          </div>
         </div>
       </div>
 
@@ -483,7 +637,7 @@
           :disabled="!isValidCV"
         >
           <va-icon name="save" size="18px" />
-          {{ isEditing ? 'Actualizar CV' : 'Guardar CV' }}
+          Guardar
         </button>
       </div>
     </div>
@@ -494,13 +648,14 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useToast } from 'vuestic-ui'
+import { useToast, useModal } from 'vuestic-ui'
 import CVStepsIndicator from './CVStepsIndicator.vue'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const { init: initToast } = useToast()
+const { confirm } = useModal()
 
 const DRAFT_KEY = 'cv_builder_draft'
 
@@ -509,6 +664,7 @@ const currentStep = ref(0)
 const cvFormData = ref({
   personalInfo: {
     fullName: '',
+    title: '',
     phone: '',
     email: '',
     location: '',
@@ -531,6 +687,28 @@ const editingCVId = ref(null)
 // Skills state
 const newTechnicalSkill = ref('')
 const newSoftSkill = ref('')
+
+// Accordion state for certifications, languages, projects, experience, and education
+const expandedCertIndex = ref(null)
+const expandedLangIndex = ref(null)
+const expandedProjectIndex = ref(null)
+const expandedExpIndex = ref(null)
+const expandedEduIndex = ref(null)
+
+// Capitalization functions
+const capitalizeWords = (str) => {
+  if (!str) return ''
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
+const capitalizeFirstLetter = (str) => {
+  if (!str) return ''
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+}
 
 // Steps configuration
 const cvSteps = [
@@ -559,20 +737,43 @@ const canProceedToNextStep = computed(() => {
       return (
         cvFormData.value.personalInfo.fullName?.trim() &&
         cvFormData.value.personalInfo.email?.trim() &&
-        cvFormData.value.personalInfo.phone?.trim()
+        cvFormData.value.personalInfo.phone?.trim() &&
+        cvFormData.value.professionalProfile?.trim()
       )
     case 1: // Experiencia
-      // No es obligatorio tener experiencia, pero si tiene, debe estar completa
-      if (cvFormData.value.experience.length === 0) return true
-      return cvFormData.value.experience.every(exp =>
-        exp.position?.trim() && exp.company?.trim()
-      )
-    case 2: // Educación y Habilidades
-      // No es obligatorio, pero si tiene educación, debe estar completa
-      if (cvFormData.value.education.length === 0) return true
-      return cvFormData.value.education.every(edu =>
+      // Requerido: Al menos 1 experiencia profesional con al menos 1 logro
+      if (cvFormData.value.experience.length === 0) return false
+      return cvFormData.value.experience.every(exp => {
+        const hasBasicInfo = exp.position?.trim() && exp.company?.trim()
+        const hasAtLeastOneAchievement = exp.achievements?.some(ach => ach?.trim())
+        return hasBasicInfo && hasAtLeastOneAchievement
+      })
+    case 2: // Educación, Habilidades, Certificaciones e Idiomas
+      // Validar educación: mínimo 1
+      if (cvFormData.value.education.length === 0) return false
+      const educationValid = cvFormData.value.education.every(edu =>
         edu.degree?.trim() && edu.institution?.trim()
       )
+
+      // Validar habilidades técnicas: mínimo 3
+      const technicalSkillsValid = cvFormData.value.technicalSkills.length >= 3
+
+      // Validar habilidades blandas: mínimo 3
+      const softSkillsValid = cvFormData.value.softSkills.length >= 3
+
+      // Validar certificaciones: mínimo 2
+      if (cvFormData.value.certifications.length < 2) return false
+      const certificationsValid = cvFormData.value.certifications.every(cert =>
+        cert.name?.trim() && cert.institution?.trim()
+      )
+
+      // Validar idiomas: mínimo 1
+      if (cvFormData.value.languages.length < 1) return false
+      const languagesValid = cvFormData.value.languages.every(lang =>
+        lang.name?.trim() && lang.level?.trim()
+      )
+
+      return educationValid && technicalSkillsValid && softSkillsValid && certificationsValid && languagesValid
     default:
       return true
   }
@@ -634,13 +835,54 @@ const nextStep = () => {
     let message = ''
     switch (currentStep.value) {
       case 0:
-        message = 'Por favor completa: Nombre completo, Email y Teléfono antes de continuar'
+        message = 'Por favor completa: Nombre completo, Email, Teléfono y Perfil Profesional antes de continuar'
         break
       case 1:
-        message = 'Por favor completa el Cargo y Empresa en todas las experiencias agregadas'
+        if (cvFormData.value.experience.length === 0) {
+          message = 'Por favor agrega al menos 1 experiencia profesional para continuar'
+        } else {
+          const hasIncompleteBasicInfo = cvFormData.value.experience.some(exp => !exp.position?.trim() || !exp.company?.trim())
+          const hasNoAchievements = cvFormData.value.experience.some(exp => !exp.achievements?.some(ach => ach?.trim()))
+
+          if (hasIncompleteBasicInfo) {
+            message = 'Por favor completa el Cargo y Empresa en todas las experiencias'
+          } else if (hasNoAchievements) {
+            message = 'Por favor agrega al menos 1 logro cuantificable en cada experiencia'
+          }
+        }
         break
       case 2:
-        message = 'Por favor completa el Título y la Institución en toda la educación agregada'
+        const errors = []
+
+        if (cvFormData.value.education.length === 0) {
+          errors.push('al menos 1 educación')
+        } else if (cvFormData.value.education.some(edu => !edu.degree?.trim() || !edu.institution?.trim())) {
+          errors.push('completa el Título e Institución en todas las educaciones')
+        }
+
+        if (cvFormData.value.technicalSkills.length < 3) {
+          errors.push(`${cvFormData.value.technicalSkills.length}/3 habilidades técnicas`)
+        }
+
+        if (cvFormData.value.softSkills.length < 3) {
+          errors.push(`${cvFormData.value.softSkills.length}/3 habilidades blandas`)
+        }
+
+        if (cvFormData.value.certifications.length < 2) {
+          errors.push(`${cvFormData.value.certifications.length}/2 certificaciones`)
+        } else if (cvFormData.value.certifications.some(cert => !cert.name?.trim() || !cert.institution?.trim())) {
+          errors.push('completa Nombre e Institución en todas las certificaciones')
+        }
+
+        if (cvFormData.value.languages.length < 1) {
+          errors.push('al menos 1 idioma')
+        } else if (cvFormData.value.languages.some(lang => !lang.name?.trim() || !lang.level?.trim())) {
+          errors.push('completa Idioma y Nivel en todos los idiomas')
+        }
+
+        message = errors.length > 0
+          ? `Por favor agrega: ${errors.join(', ')}`
+          : 'Completa todos los campos requeridos'
         break
     }
 
@@ -667,11 +909,23 @@ const previousStep = () => {
   }
 }
 
-const handleBack = () => {
+const handleBack = async () => {
   const hasDraft = localStorage.getItem(DRAFT_KEY)
-  if (hasDraft && confirm('Tienes un borrador guardado. ¿Deseas salir sin finalizar? Podrás continuar más tarde.')) {
-    router.push('/dashboard/cv')
-  } else if (!hasDraft) {
+
+  if (hasDraft) {
+    const agreed = await confirm({
+      title: 'Salir del CV Builder',
+      message: 'Tienes un borrador guardado. ¿Deseas salir sin finalizar?\n\nPodrás continuar más tarde desde donde lo dejaste.',
+      okText: 'Salir',
+      cancelText: 'Continuar editando',
+      size: 'small',
+      maxWidth: '400px'
+    })
+
+    if (agreed) {
+      router.push('/dashboard/cv')
+    }
+  } else {
     router.push('/dashboard/cv')
   }
 }
@@ -685,10 +939,36 @@ const addEducation = () => {
     institution: '',
     achievements: ''
   })
+  // Auto-expand the newly added education
+  expandedEduIndex.value = cvFormData.value.education.length - 1
 }
 
-const removeEducation = (index) => {
+const removeEducation = async (index) => {
+  const edu = cvFormData.value.education[index]
+  const eduTitle = edu.degree || edu.institution || 'esta educación'
+
+  const agreed = await confirm({
+    title: 'Eliminar Educación',
+    message: `¿Estás seguro de que deseas eliminar "${eduTitle}"?\n\nEsta acción no se puede deshacer.`,
+    okText: 'Eliminar',
+    cancelText: 'Cancelar',
+    size: 'small',
+    maxWidth: '380px'
+  })
+
+  if (!agreed) return
+
   cvFormData.value.education.splice(index, 1)
+  // Reset expanded index if we removed the expanded item
+  if (expandedEduIndex.value === index) {
+    expandedEduIndex.value = null
+  } else if (expandedEduIndex.value > index) {
+    expandedEduIndex.value -= 1
+  }
+}
+
+const toggleEducation = (index) => {
+  expandedEduIndex.value = expandedEduIndex.value === index ? null : index
 }
 
 // Experience functions
@@ -699,12 +979,40 @@ const addExperience = () => {
     current: false,
     position: '',
     company: '',
+    supervisorName: '',
+    supervisorPhone: '',
     achievements: ['', '', '']
   })
+  // Auto-expand the newly added experience
+  expandedExpIndex.value = cvFormData.value.experience.length - 1
 }
 
-const removeExperience = (index) => {
+const removeExperience = async (index) => {
+  const exp = cvFormData.value.experience[index]
+  const expTitle = exp.position || exp.company || 'esta experiencia'
+
+  const agreed = await confirm({
+    title: 'Eliminar Experiencia Laboral',
+    message: `¿Estás seguro de que deseas eliminar "${expTitle}"?\n\nEsta acción no se puede deshacer.`,
+    okText: 'Eliminar',
+    cancelText: 'Cancelar',
+    size: 'small',
+    maxWidth: '380px'
+  })
+
+  if (!agreed) return
+
   cvFormData.value.experience.splice(index, 1)
+  // Reset expanded index if we removed the expanded item
+  if (expandedExpIndex.value === index) {
+    expandedExpIndex.value = null
+  } else if (expandedExpIndex.value > index) {
+    expandedExpIndex.value -= 1
+  }
+}
+
+const toggleExperience = (index) => {
+  expandedExpIndex.value = expandedExpIndex.value === index ? null : index
 }
 
 const addAchievement = (expIndex) => {
@@ -721,7 +1029,7 @@ const removeAchievement = (expIndex, achIndex) => {
 const addTechnicalSkill = () => {
   const skill = newTechnicalSkill.value.trim()
   if (skill && !cvFormData.value.technicalSkills.includes(skill)) {
-    cvFormData.value.technicalSkills.push(skill)
+    cvFormData.value.technicalSkills.push(capitalizeWords(skill))
     newTechnicalSkill.value = ''
   }
 }
@@ -734,7 +1042,7 @@ const removeTechnicalSkill = (index) => {
 const addSoftSkill = () => {
   const skill = newSoftSkill.value.trim()
   if (skill && !cvFormData.value.softSkills.includes(skill)) {
-    cvFormData.value.softSkills.push(skill)
+    cvFormData.value.softSkills.push(capitalizeWords(skill))
     newSoftSkill.value = ''
   }
 }
@@ -750,10 +1058,22 @@ const addCertification = () => {
     name: '',
     institution: ''
   })
+  // Auto-expand the newly added certification
+  expandedCertIndex.value = cvFormData.value.certifications.length - 1
 }
 
 const removeCertification = (index) => {
   cvFormData.value.certifications.splice(index, 1)
+  // Reset expanded index if we removed the expanded item
+  if (expandedCertIndex.value === index) {
+    expandedCertIndex.value = null
+  } else if (expandedCertIndex.value > index) {
+    expandedCertIndex.value -= 1
+  }
+}
+
+const toggleCertification = (index) => {
+  expandedCertIndex.value = expandedCertIndex.value === index ? null : index
 }
 
 // Languages functions
@@ -762,10 +1082,22 @@ const addLanguage = () => {
     name: '',
     level: 'Básico'
   })
+  // Auto-expand the newly added language
+  expandedLangIndex.value = cvFormData.value.languages.length - 1
 }
 
 const removeLanguage = (index) => {
   cvFormData.value.languages.splice(index, 1)
+  // Reset expanded index if we removed the expanded item
+  if (expandedLangIndex.value === index) {
+    expandedLangIndex.value = null
+  } else if (expandedLangIndex.value > index) {
+    expandedLangIndex.value -= 1
+  }
+}
+
+const toggleLanguage = (index) => {
+  expandedLangIndex.value = expandedLangIndex.value === index ? null : index
 }
 
 // Projects functions
@@ -775,16 +1107,28 @@ const addProject = () => {
     name: '',
     description: ''
   })
+  // Auto-expand the newly added project
+  expandedProjectIndex.value = cvFormData.value.projects.length - 1
 }
 
 const removeProject = (index) => {
   cvFormData.value.projects.splice(index, 1)
+  // Reset expanded index if we removed the expanded item
+  if (expandedProjectIndex.value === index) {
+    expandedProjectIndex.value = null
+  } else if (expandedProjectIndex.value > index) {
+    expandedProjectIndex.value -= 1
+  }
+}
+
+const toggleProject = (index) => {
+  expandedProjectIndex.value = expandedProjectIndex.value === index ? null : index
 }
 
 const saveCV = async () => {
   if (!isValidCV.value) {
     initToast({
-      message: 'Por favor completa la información requerida: Nombre completo, Email y Teléfono',
+      message: 'Por favor completa la información requerida: Nombre completo, Email, Teléfono y Perfil Profesional',
       color: 'warning',
       duration: 4000
     })
@@ -793,6 +1137,7 @@ const saveCV = async () => {
 
   try {
     const cvName = `CV - ${cvFormData.value.personalInfo.fullName}`
+    let cvId = null
 
     if (isEditing.value && editingCVId.value) {
       // Update existing CV
@@ -813,12 +1158,12 @@ const saveCV = async () => {
         throw new Error(errorData.error || 'No se pudo actualizar el CV. Por favor, intenta nuevamente.')
       }
 
-      clearDraft() // Limpiar borrador al guardar exitosamente
+      cvId = editingCVId.value
 
       initToast({
-        message: 'Tu CV ha sido actualizado correctamente',
-        color: 'success',
-        duration: 3000
+        message: 'CV guardado. Generando PDF...',
+        color: 'info',
+        duration: 2000
       })
     } else {
       // Create new CV
@@ -840,14 +1185,42 @@ const saveCV = async () => {
         throw new Error(errorData.error || 'No se pudo guardar el CV. Por favor, intenta nuevamente.')
       }
 
-      clearDraft() // Limpiar borrador al guardar exitosamente
+      const data = await response.json()
+      cvId = data.cv.id
 
       initToast({
-        message: 'Tu CV ha sido creado exitosamente',
+        message: 'CV creado. Generando PDF...',
+        color: 'info',
+        duration: 2000
+      })
+    }
+
+    // Generar PDF
+    const pdfResponse = await fetch(`http://localhost:8000/api/cvs/${cvId}/generate-pdf/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`
+      }
+    })
+
+    if (!pdfResponse.ok) {
+      const errorData = await pdfResponse.json()
+      console.error('Error generando PDF:', errorData)
+      // No lanzar error, solo advertir
+      initToast({
+        message: 'CV guardado pero hubo un error al generar el PDF',
+        color: 'warning',
+        duration: 4000
+      })
+    } else {
+      initToast({
+        message: isEditing.value ? 'CV actualizado y PDF generado exitosamente' : 'CV creado y PDF generado exitosamente',
         color: 'success',
         duration: 3000
       })
     }
+
+    clearDraft() // Limpiar borrador al guardar exitosamente
 
     // Redirect back to CVs list
     router.push('/dashboard/cv')
@@ -1048,6 +1421,11 @@ onMounted(async () => {
   font-weight: 700;
   color: #111827;
   margin: 0;
+}
+
+.step-heading.centered {
+  text-align: center;
+  margin-bottom: 1.5rem;
 }
 
 .step-description {
@@ -1316,6 +1694,33 @@ onMounted(async () => {
 }
 
 /* Achievements */
+/* References Section */
+.references-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.references-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.references-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
 .achievements-section {
   display: flex;
   flex-direction: column;
@@ -1550,6 +1955,187 @@ onMounted(async () => {
   margin-bottom: 0;
 }
 
+/* Accordion styles */
+.accordion-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.accordion-item:last-child {
+  margin-bottom: 0;
+}
+
+.accordion-item:hover {
+  border-color: #d1d5db;
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.accordion-header:hover {
+  background-color: #f9fafb;
+}
+
+.accordion-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.accordion-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accordion-subtitle {
+  font-weight: 400;
+  color: #6b7280;
+  margin-left: 0.25rem;
+}
+
+.accordion-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.accordion-icon {
+  color: #9ca3af;
+  transition: transform 0.2s ease;
+}
+
+.accordion-content {
+  padding: 0 0.875rem 0.875rem 0.875rem;
+}
+
+/* Ultra compact accordion for languages */
+.accordion-item-ultra-compact {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.accordion-item-ultra-compact:last-child {
+  margin-bottom: 0;
+}
+
+.accordion-item-ultra-compact:hover {
+  border-color: #d1d5db;
+}
+
+.accordion-header-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+  min-height: 36px;
+}
+
+.accordion-header-compact:hover {
+  background-color: #f9fafb;
+}
+
+.accordion-title-compact {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mini-number-small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 0.25rem;
+  background: #7c3aed;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.level-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.accordion-body-compact {
+  padding: 0.5rem 0.75rem 0.75rem 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.accordion-body-compact .va-input-wrapper {
+  flex: 1;
+}
+
+.select-compact-inline {
+  flex: 1;
+  padding: 0.5rem 1.75rem 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  color: #1f2937;
+  background-color: white;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236b7280' d='M5 7.5L1 3.5h8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  height: 32px;
+}
+
+.select-compact-inline:hover {
+  border-color: #9ca3af;
+}
+
+.select-compact-inline:focus {
+  outline: none;
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+}
+
 .mini-item-header {
   display: flex;
   justify-content: space-between;
@@ -1642,14 +2228,31 @@ onMounted(async () => {
 /* Preview */
 /* CV Preview - Estilo impreso profesional */
 .cv-preview-paper {
+  width: 8.5in;
+  min-height: 11in;
   max-width: 850px;
   margin: 0 auto;
   background: white;
-  padding: 3rem 3.5rem;
+  padding: 0.75in;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.5;
   color: #1a1a1a;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Watermark */
+.cv-watermark {
+  text-align: right;
+  margin-top: auto;
+  padding-top: 1.5rem;
+  font-size: 9px;
+  color: rgba(124, 58, 237, 0.35);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  font-style: italic;
 }
 
 /* Header */
@@ -1784,6 +2387,24 @@ onMounted(async () => {
 
 .cv-exp-bullets li {
   margin-bottom: 0.25rem;
+}
+
+.cv-reference {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #f9fafb;
+  border-left: 3px solid #7c3aed;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  color: #4b5563;
+  display: flex;
+  gap: 0.375rem;
+  align-items: center;
+}
+
+.cv-reference-label {
+  font-weight: 600;
+  color: #374151;
 }
 
 /* Education */
@@ -1964,6 +2585,86 @@ onMounted(async () => {
   .cv-project-year {
     text-align: left;
     margin-top: 0.125rem;
+  }
+}
+
+/* ========================================
+   ESTILOS DE IMPRESIÓN - Tamaño Carta
+   ======================================== */
+@media print {
+  /* Configuración de página tamaño Carta (Letter) */
+  @page {
+    size: letter; /* 8.5in x 11in */
+    margin: 0.75in; /* Márgenes estándar */
+  }
+
+  /* Ajustar el contenedor del CV para impresión */
+  .cv-preview-paper {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    background: white;
+  }
+
+  /* Evitar saltos de página dentro de elementos */
+  .cv-section,
+  .cv-exp-item,
+  .cv-edu-item,
+  .cv-project-item {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Permitir salto de página después de secciones si es necesario */
+  .cv-section {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  /* Evitar que el encabezado se repita en cada página */
+  .cv-header {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* Asegurar que los títulos de sección no queden huérfanos */
+  .cv-section-title {
+    page-break-after: avoid;
+    break-after: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Ocultar elementos que no deben imprimirse */
+  .cv-builder-header,
+  .cv-builder-footer,
+  .step-navigation,
+  button,
+  .back-button {
+    display: none !important;
+  }
+
+  /* Ajustar tamaños de fuente para impresión */
+  body {
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+
+  .cv-name {
+    font-size: 18pt;
+  }
+
+  .cv-title {
+    font-size: 12pt;
+  }
+
+  .cv-section-title {
+    font-size: 13pt;
+  }
+
+  .cv-contact {
+    font-size: 10pt;
   }
 }
 </style>

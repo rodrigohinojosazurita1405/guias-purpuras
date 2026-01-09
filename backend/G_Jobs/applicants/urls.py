@@ -10,6 +10,7 @@ urlpatterns = [
     path('cvs/<uuid:cv_id>/', views.get_cv_detail, name='get_cv_detail'),
     path('cvs/<uuid:cv_id>/update/', views.update_cv, name='update_cv'),
     path('cvs/<uuid:cv_id>/delete/', views.delete_cv, name='delete_cv'),
+    path('cvs/<uuid:cv_id>/generate-pdf/', views.generate_cv_pdf, name='generate_cv_pdf'),
 
     # ========== Postulaciones Endpoints ==========
     path('jobs/<str:job_id>/check-blocked/', views.check_if_blocked, name='check_if_blocked'),

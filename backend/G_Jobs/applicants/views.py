@@ -5,14 +5,18 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+from django.core.files.base import ContentFile
 from .models import ApplicantProfile, ApplicantCV, JobApplication, SavedJob
 from G_Jobs.jobs.models import Job
 from G_Jobs.moderation.models import BlockedUser
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.contrib.auth import get_user_model
+from xhtml2pdf import pisa
 import json
 import uuid
+import io
 
 User = get_user_model()
 
@@ -220,8 +224,13 @@ def list_cvs(request):
                 'updated_at': cv.updated_at.isoformat()
             }
 
-            if cv.cv_type == 'uploaded' and cv.file:
-                cv_info['file_url'] = cv.file.url
+            # Incluir cv_data para CVs creados (necesario para vista previa)
+            if cv.cv_type == 'created' and cv.cv_data:
+                cv_info['cv_data'] = cv.cv_data
+
+            # Incluir file_url para CVs subidos y creados (PDF generado)
+            if cv.file:
+                cv_info['file'] = cv.file.url
 
             cvs_data.append(cv_info)
 
@@ -1160,3 +1169,106 @@ def get_unviewed_applications_count(request):
             'success': False,
             'count': 0
         }, status=200)  # Devolver 200 con count 0 en vez de error
+
+
+@csrf_exempt
+@require_authentication
+@require_http_methods(["POST"])
+def generate_cv_pdf(request, cv_id):
+    """
+    Generar PDF del CV usando xhtml2pdf
+
+    Este endpoint se llama después de guardar/actualizar el CV
+    - Renderiza el template HTML con los datos del CV
+    - Genera el PDF con xhtml2pdf
+    - Elimina el PDF antiguo si existe
+    - Guarda el nuevo PDF en media/applicant_cvs_builder/
+    """
+    try:
+        print(f"\n========== GENERATE CV PDF ==========")
+        print(f"User: {request.user.email}")
+        print(f"CV ID: {cv_id}")
+
+        # Obtener el CV
+        cv = get_object_or_404(
+            ApplicantCV,
+            id=cv_id,
+            applicant=request.user,
+            cv_type='created',
+            is_deleted=False
+        )
+
+        print(f"CV encontrado: {cv.name}")
+
+        # Renderizar template HTML
+        html_content = render_to_string('applicants/cv_template.html', {
+            'cv_data': cv.cv_data
+        })
+
+        print("HTML renderizado correctamente")
+
+        # Generar PDF con xhtml2pdf
+        pdf_buffer = io.BytesIO()
+        pisa_status = pisa.CreatePDF(
+            io.BytesIO(html_content.encode('UTF-8')),
+            dest=pdf_buffer
+        )
+
+        if pisa_status.err:
+            raise Exception("Error al generar el PDF")
+
+        pdf_bytes = pdf_buffer.getvalue()
+        pdf_buffer.close()
+
+        print(f"PDF generado: {len(pdf_bytes)} bytes")
+
+        # Eliminar PDF antiguo si existe
+        if cv.file:
+            try:
+                import os
+                if os.path.exists(cv.file.path):
+                    os.remove(cv.file.path)
+                    print(f"PDF antiguo eliminado: {cv.file.path}")
+            except Exception as e:
+                print(f"Error al eliminar PDF antiguo: {e}")
+
+        # Sanitizar nombre del CV para el archivo
+        import re
+        safe_name = re.sub(r'[^\w\s-]', '', cv.name)  # Remover caracteres especiales
+        safe_name = re.sub(r'[-\s]+', '_', safe_name)  # Reemplazar espacios/guiones con _
+        safe_name = safe_name[:50]  # Limitar longitud
+
+        # Guardar nuevo PDF con nombre legible
+        pdf_filename = f"{safe_name}.pdf"
+        cv.file.save(pdf_filename, ContentFile(pdf_bytes), save=True)
+
+        print(f"Nuevo PDF guardado: {cv.file.name}")
+        print(f"PDF URL: {cv.file.url}")
+        print(f"====================================\n")
+
+        return JsonResponse({
+            'success': True,
+            'message': 'PDF generado exitosamente',
+            'pdf_url': cv.file.url,
+            'cv': {
+                'id': str(cv.id),
+                'name': cv.name,
+                'pdf_url': cv.file.url,
+                'updated_at': cv.updated_at.isoformat()
+            }
+        })
+
+    except ApplicantCV.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'CV no encontrado'
+        }, status=404)
+
+    except Exception as e:
+        print(f"ERROR al generar PDF: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'error': f'Error al generar PDF: {str(e)}'
+        }, status=500)

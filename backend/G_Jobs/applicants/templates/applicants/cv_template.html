@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV - {{ cv_data.personalInfo.fullName }}</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.75in;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #000000;
+            font-size: 11pt;
+        }
+
+        .cv-container {
+            width: 100%;
+            min-height: 11in;
+            position: relative;
+        }
+
+        /* Header */
+        .cv-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .cv-name {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .cv-title {
+            font-size: 12pt;
+            color: #4a5568;
+            font-weight: normal;
+            margin-bottom: 12px;
+        }
+
+        .cv-contact {
+            font-size: 10pt;
+            color: #000000;
+            margin-bottom: 5px;
+        }
+
+        .cv-dot {
+            margin: 0 5px;
+            color: #000000;
+            font-weight: normal;
+        }
+
+        /* Professional Profile */
+        .cv-profile {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #000000;
+        }
+
+        .cv-profile-text {
+            font-size: 10pt;
+            color: #000000;
+            text-align: justify;
+            line-height: 1.6;
+        }
+
+        /* Section */
+        .cv-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #000000;
+            page-break-inside: avoid;
+        }
+
+        .cv-section:last-child {
+            border-bottom: none;
+        }
+
+        .cv-section-title {
+            font-size: 13pt;
+            font-weight: bold;
+            color: #000000;
+            text-transform: capitalize;
+            letter-spacing: 0px;
+            margin-bottom: 15px;
+            padding-bottom: 0px;
+            border-bottom: none;
+            text-align: center;
+        }
+
+        /* Experience */
+        .cv-experience-item {
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+        }
+
+        .cv-experience-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .cv-exp-header {
+            margin-bottom: 3px;
+        }
+
+        .cv-exp-company {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #000000;
+            display: inline;
+        }
+
+        .cv-exp-location {
+            font-size: 10pt;
+            color: #000000;
+            display: inline;
+            margin-left: 10px;
+        }
+
+        .cv-exp-role {
+            margin-bottom: 8px;
+        }
+
+        .cv-exp-position {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #000000;
+            font-style: italic;
+            display: inline;
+        }
+
+        .cv-exp-dates {
+            font-size: 10pt;
+            color: #000000;
+            display: inline;
+            margin-left: 10px;
+        }
+
+        .cv-exp-bullets {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 10pt;
+            color: #000000;
+            line-height: 1.5;
+        }
+
+        .cv-exp-bullets li {
+            margin-bottom: 4px;
+        }
+
+        .cv-reference {
+            margin-top: 8px;
+            padding: 0;
+            background-color: transparent;
+            border-left: none;
+            font-size: 9pt;
+            color: #4a5568;
+            font-style: italic;
+        }
+
+        .cv-reference-label {
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        /* Education */
+        .cv-education-item {
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+        }
+
+        .cv-education-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .cv-edu-header {
+            margin-bottom: 3px;
+        }
+
+        .cv-edu-institution {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #000000;
+            display: inline;
+        }
+
+        .cv-edu-location {
+            font-size: 10pt;
+            color: #000000;
+            display: inline;
+            margin-left: 10px;
+        }
+
+        .cv-edu-degree {
+            margin-bottom: 6px;
+        }
+
+        .cv-edu-title {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #000000;
+            font-style: italic;
+            display: inline;
+        }
+
+        .cv-edu-dates {
+            font-size: 10pt;
+            color: #000000;
+            display: inline;
+            margin-left: 10px;
+        }
+
+        .cv-edu-achievements {
+            font-size: 10pt;
+            color: #000000;
+            line-height: 1.5;
+        }
+
+        /* Skills */
+        .cv-skills-grid {
+            width: 100%;
+        }
+
+        .cv-skills-column {
+            margin-bottom: 10px;
+        }
+
+        .cv-skills-column h3 {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 8px;
+        }
+
+        .cv-skills-list {
+            line-height: 1.8;
+            font-size: 10pt;
+            color: #000000;
+        }
+
+        /* Certifications */
+        .cv-cert-item {
+            margin-bottom: 8px;
+            page-break-inside: avoid;
+        }
+
+        .cv-cert-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .cv-cert-header {
+            margin-bottom: 2px;
+        }
+
+        .cv-cert-name {
+            font-size: 10pt;
+            font-weight: normal;
+            color: #000000;
+            display: inline;
+        }
+
+        .cv-cert-year {
+            font-size: 10pt;
+            color: #000000;
+            font-weight: bold;
+        }
+
+        .cv-cert-institution {
+            font-size: 10pt;
+            color: #4a5568;
+            font-style: italic;
+        }
+
+        /* Languages */
+        .cv-languages-list {
+            line-height: 1.8;
+        }
+
+        .cv-language-item {
+            font-size: 10pt;
+            color: #000000;
+            display: inline-block;
+            margin-right: 20px;
+        }
+
+        .cv-language-name {
+            font-weight: bold;
+            color: #000000;
+        }
+
+        .cv-language-level {
+            color: #7c3aed;
+            font-weight: normal;
+        }
+
+        /* Projects */
+        .cv-project-item {
+            margin-bottom: 12px;
+            page-break-inside: avoid;
+        }
+
+        .cv-project-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .cv-project-header {
+            margin-bottom: 3px;
+        }
+
+        .cv-project-name {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #000000;
+            display: inline;
+        }
+
+        .cv-project-year {
+            font-size: 10pt;
+            color: #000000;
+            display: inline;
+            margin-left: 10px;
+        }
+
+        .cv-project-description {
+            font-size: 10pt;
+            color: #000000;
+            line-height: 1.5;
+        }
+
+        /* Watermark */
+        .cv-watermark {
+            text-align: center;
+            padding-top: 20px;
+            font-size: 8pt;
+            color: #999999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="cv-container">
+        <!-- Header -->
+        <div class="cv-header">
+            <h1 class="cv-name">{{ cv_data.personalInfo.fullName }}</h1>
+            {% if cv_data.personalInfo.title %}
+            <p class="cv-title">{{ cv_data.personalInfo.title }}</p>
+            {% endif %}
+            <p class="cv-contact">
+                {{ cv_data.personalInfo.phone }}
+                {% if cv_data.personalInfo.email %}
+                <span class="cv-dot">•</span>
+                {{ cv_data.personalInfo.email }}
+                {% endif %}
+                {% if cv_data.personalInfo.location %}
+                <span class="cv-dot">•</span>
+                {{ cv_data.personalInfo.location }}
+                {% endif %}
+            </p>
+            {% if cv_data.personalInfo.linkedin or cv_data.personalInfo.portfolio %}
+            <p class="cv-contact">
+                {% if cv_data.personalInfo.linkedin %}
+                {{ cv_data.personalInfo.linkedin }}
+                {% endif %}
+                {% if cv_data.personalInfo.portfolio %}
+                    {% if cv_data.personalInfo.linkedin %}
+                    <span class="cv-dot">•</span>
+                    {% endif %}
+                {{ cv_data.personalInfo.portfolio }}
+                {% endif %}
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Professional Profile -->
+        {% if cv_data.professionalProfile %}
+        <div class="cv-profile">
+            <h2 class="cv-section-title">Perfil Profesional</h2>
+            <p class="cv-profile-text">{{ cv_data.professionalProfile }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Experience -->
+        {% if cv_data.experience %}
+        <div class="cv-section">
+            <h2 class="cv-section-title">Experiencia</h2>
+            {% for exp in cv_data.experience %}
+            <div class="cv-experience-item">
+                <div class="cv-exp-header">
+                    <span class="cv-exp-company">{{ exp.company }}</span>
+                    {% if exp.location %}
+                    <span class="cv-exp-location">{{ exp.location }}</span>
+                    {% endif %}
+                </div>
+                <div class="cv-exp-role">
+                    <span class="cv-exp-position">{{ exp.position }}</span>
+                    <span class="cv-exp-dates">{{ exp.startYear }} - {% if exp.current %}Actual{% else %}{{ exp.endYear }}{% endif %}</span>
+                </div>
+                {% if exp.achievements %}
+                <ul class="cv-exp-bullets">
+                    {% for achievement in exp.achievements %}
+                        {% if achievement %}
+                        <li>{{ achievement }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if exp.supervisorName or exp.supervisorPhone %}
+                <div class="cv-reference">
+                    <span class="cv-reference-label">Referencia:</span>
+                    {% if exp.supervisorName %}{{ exp.supervisorName }}{% endif %}
+                    {% if exp.supervisorPhone %} • {{ exp.supervisorPhone }}{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Education -->
+        {% if cv_data.education %}
+        <div class="cv-section">
+            <h2 class="cv-section-title">Educación</h2>
+            {% for edu in cv_data.education %}
+            <div class="cv-education-item">
+                <div class="cv-edu-header">
+                    <span class="cv-edu-institution">{{ edu.institution }}</span>
+                    {% if edu.location %}
+                    <span class="cv-edu-location">{{ edu.location }}</span>
+                    {% endif %}
+                </div>
+                <div class="cv-edu-degree">
+                    <span class="cv-edu-title">{{ edu.degree }}</span>
+                    <span class="cv-edu-dates">{{ edu.startYear }} - {{ edu.endYear }}</span>
+                </div>
+                {% if edu.achievements %}
+                <p class="cv-edu-achievements">{{ edu.achievements }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Skills -->
+        {% if cv_data.technicalSkills or cv_data.softSkills %}
+        <div class="cv-section">
+            <h2 class="cv-section-title">Habilidades</h2>
+            <div class="cv-skills-grid">
+                {% if cv_data.technicalSkills %}
+                <div class="cv-skills-column">
+                    <h3>Técnicas:</h3>
+                    <span class="cv-skills-list">
+                        {% for skill in cv_data.technicalSkills %}
+                            {{ skill }}{% if not loop.last %} · {% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+                {% endif %}
+                {% if cv_data.softSkills %}
+                <div class="cv-skills-column">
+                    <h3>Blandas:</h3>
+                    <span class="cv-skills-list">
+                        {% for skill in cv_data.softSkills %}
+                            {{ skill }}{% if not loop.last %} · {% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Certifications -->
+        {% if cv_data.certifications %}
+        <div class="cv-section">
+            <h2 class="cv-section-title">Cursos y Certificaciones</h2>
+            {% for cert in cv_data.certifications %}
+            <div class="cv-cert-item">
+                <div class="cv-cert-header">
+                    <span class="cv-cert-name">{{ cert.name }}</span>
+                    {% if cert.year %}
+                     — <span class="cv-cert-year">{{ cert.year }}</span>
+                    {% endif %}
+                </div>
+                <div class="cv-cert-institution">{{ cert.institution }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Languages -->
+        {% if cv_data.languages %}
+        <div class="cv-section">
+            <h2 class="cv-section-title">Idiomas</h2>
+            <div class="cv-languages-list">
+                {% for lang in cv_data.languages %}
+                <div class="cv-language-item">
+                    <span class="cv-language-name">{{ lang.name }}</span> : <span class="cv-language-level">{{ lang.level }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Projects -->
+        {% if cv_data.projects %}
+        <div class="cv-section">
+            <h2 class="cv-section-title">Proyectos Relevantes</h2>
+            {% for project in cv_data.projects %}
+            <div class="cv-project-item">
+                <div class="cv-project-header">
+                    <span class="cv-project-name">{{ project.name }}</span>
+                    {% if project.year %}
+                    <span class="cv-project-year">{{ project.year }}</span>
+                    {% endif %}
+                </div>
+                {% if project.description %}
+                <p class="cv-project-description">{{ project.description }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Watermark -->
+        <div class="cv-watermark">
+            Powered by Guías Púrpuras Bolivia
+        </div>
+    </div>
+</body>
+</html>
