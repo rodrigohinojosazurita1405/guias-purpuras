@@ -618,30 +618,71 @@ const goToPublish = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #E4E7EC;
+  padding: 2rem 2.5rem;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efecto de brillo sutil en el header */
+.dashboard-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 .header-title {
   margin: 0 0 0.5rem;
   font-size: 2rem;
   font-weight: 700;
-  color: #1F2937;
+  color: white;
   letter-spacing: -0.5px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 1;
 }
 
 .header-subtitle {
   margin: 0;
   font-size: 0.95rem;
-  color: #6B7280;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
+  position: relative;
+  z-index: 1;
 }
 
 .header-date {
   font-size: 0.95rem;
-  color: #9CA3AF;
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
   white-space: nowrap;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 1;
 }
 
 /* ========== PROFILE WARNING ALERT ========== */
