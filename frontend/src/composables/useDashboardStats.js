@@ -10,11 +10,17 @@ export function useDashboardStats() {
 
   // ========== DATA ==========
   const stats = ref({
+    // Campos para empresas
     totalPublished: 0,
     activeListings: 0,
+    totalViews: 0,
+    // Campos para postulantes
     totalApplications: 0,
     newApplications: 0,
-    totalViews: 0,
+    pendingApplications: 0,
+    savedJobs: 0,
+    cvCount: 0,
+    // Perfil
     profileComplete: false,
     profilePercentage: 0
   })
@@ -87,11 +93,19 @@ export function useDashboardStats() {
           if (data.success && data.statistics) {
             // Mapear datos del backend a nuestro formato genérico
             stats.value = {
+              // Campos para empresas
               totalPublished: data.statistics.totalPublished || data.statistics.jobsPublished || 0,
               activeListings: data.statistics.activeListings || data.statistics.jobsActive || 0,
-              totalApplications: data.statistics.totalApplications || data.statistics.applications || 0,
-              newApplications: data.statistics.newApplications || data.statistics.applicationsNew || 0,
               totalViews: data.statistics.totalViews || 0,
+
+              // Campos para postulantes
+              totalApplications: data.statistics.totalApplications || 0,
+              newApplications: data.statistics.newApplications || 0,
+              pendingApplications: data.statistics.pendingApplications || 0,
+              savedJobs: data.statistics.savedJobs || 0,
+              cvCount: data.statistics.cvCount || 0,
+
+              // Perfil
               profileComplete: data.statistics.profileComplete || false,
               profilePercentage: data.statistics.profilePercentage || (data.statistics.profileComplete ? 100 : 0)
             }
@@ -127,6 +141,9 @@ export function useDashboardStats() {
       totalApplications: 12,
       newApplications: 3,
       totalViews: 124,
+      pendingApplications: 5,
+      savedJobs: 8,
+      cvCount: 2,
       profileComplete: true,
       profilePercentage: 85
     }
@@ -142,6 +159,9 @@ export function useDashboardStats() {
       totalApplications: 0,
       newApplications: 0,
       totalViews: 0,
+      pendingApplications: 0,
+      savedJobs: 0,
+      cvCount: 0,
       profileComplete: false,
       profilePercentage: 0
     }

@@ -251,29 +251,28 @@
       </div>
     </div>
 
-    <!-- Recent Activity -->
-    <div class="recent-activity">
-      <h2>Actividad Reciente</h2>
-      <div v-if="activities.length > 0" class="activity-list">
-        <div v-for="activity in activities.slice(0, 5)" :key="activity.id" class="activity-item">
-          <div class="activity-icon" :class="activity.type">
-            <va-icon :name="dashboardActivities.getActivityIcon(activity.type)" />
-          </div>
-          <div class="activity-content">
-            <p class="activity-title">{{ activity.title }}</p>
-            <p class="activity-time">{{ dashboardActivities.formatTime(activity.date) }}</p>
-          </div>
+    <!-- Tips Section - POSTULANTE -->
+    <div v-if="authStore.user?.role === 'applicant'" class="tips-section">
+      <h2>Consejos para Postulantes</h2>
+      <div class="tips-grid">
+        <div class="tip-card">
+          <h4>Perfil completo</h4>
+          <p>Un perfil con toda la información aumenta tus posibilidades de ser contactado</p>
         </div>
-      </div>
-      <div v-else class="empty-state">
-        <va-icon name="history" size="2rem" />
-        <p>No hay actividad aún</p>
+        <div class="tip-card">
+          <h4>CV actualizado</h4>
+          <p>Mantén tu CV actualizado con tu experiencia y habilidades más recientes</p>
+        </div>
+        <div class="tip-card">
+          <h4>Postula con criterio</h4>
+          <p>Lee bien los requisitos antes de postular y personaliza tu aplicación</p>
+        </div>
       </div>
     </div>
 
-    <!-- Tips Section -->
-    <div class="tips-section">
-      <h2>Consejos</h2>
+    <!-- Tips Section - EMPRESA -->
+    <div v-else-if="authStore.user?.role === 'company'" class="tips-section">
+      <h2>Consejos para Empresas</h2>
       <div class="tips-grid">
         <div class="tip-card">
           <h4>Contenido de calidad</h4>
@@ -285,7 +284,7 @@
         </div>
         <div class="tip-card">
           <h4>Responde rápido</h4>
-          <p>Los usuarios valoran las respuestas inmediatas</p>
+          <p>Los candidatos valoran las respuestas inmediatas a sus postulaciones</p>
         </div>
       </div>
     </div>

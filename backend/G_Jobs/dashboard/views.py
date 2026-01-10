@@ -11,6 +11,7 @@ from G_Jobs.jobs.models import Job
 from profiles.models import CompanyProfile, UserProfile
 from G_Jobs.plans.models import Plan
 from auth_api.models import CustomUser
+from G_Jobs.applicants.models import JobApplication, SavedJob, ApplicantCV
 
 
 @require_http_methods(["GET"])
@@ -101,8 +102,36 @@ def get_user_statistics(request):
                     print(f'📊 [STATS] Perfil postulante: {user_profile.fullName}')
                     print(f'📊 [STATS] Campos obligatorios: {completed_required}/{len(required_fields)}')
                     print(f'📊 [STATS] Porcentaje: {profilePercentage}% | Puede postular: {profileComplete}')
+
+                    # ========== ESTADÍSTICAS DEL POSTULANTE ==========
+                    # Contar postulaciones del usuario
+                    applicant_total_applications = JobApplication.objects.filter(applicant=user).count()
+
+                    # Contar postulaciones pendientes (submitted)
+                    applicant_pending = JobApplication.objects.filter(
+                        applicant=user,
+                        status='submitted'
+                    ).count()
+
+                    # Contar trabajos guardados/favoritos
+                    applicant_saved_jobs = SavedJob.objects.filter(user=user).count()
+
+                    # Contar CVs creados (no eliminados)
+                    applicant_cv_count = ApplicantCV.objects.filter(
+                        applicant=user,
+                        is_deleted=False
+                    ).count()
+
+                    print(f'📊 [STATS] Total postulaciones: {applicant_total_applications}')
+                    print(f'📊 [STATS] Postulaciones pendientes: {applicant_pending}')
+                    print(f'📊 [STATS] Trabajos guardados: {applicant_saved_jobs}')
+                    print(f'📊 [STATS] CVs creados: {applicant_cv_count}')
                 else:
                     print(f'📊 [STATS] No se encontró perfil de usuario para {email}')
+                    applicant_total_applications = 0
+                    applicant_pending = 0
+                    applicant_saved_jobs = 0
+                    applicant_cv_count = 0
 
             # ========== PERFIL DE EMPRESA ==========
             elif user_role == 'company':
@@ -153,23 +182,38 @@ def get_user_statistics(request):
         except Exception as profile_err:
             print(f'⚠️ [STATS] Error calculando perfil: {profile_err}')
 
-        return JsonResponse({
-            'success': True,
-            'statistics': {
-                # Nombres agnósticos para cualquier tipo de guía
+        # Construir respuesta según el rol
+        response_data = {
+            'profileComplete': profileComplete,
+            'profilePercentage': profilePercentage,
+        }
+
+        # Datos específicos para postulantes
+        if user_role == 'applicant':
+            response_data.update({
+                'totalApplications': applicant_total_applications,
+                'pendingApplications': applicant_pending,
+                'savedJobs': applicant_saved_jobs,
+                'cvCount': applicant_cv_count,
+            })
+        # Datos específicos para empresas
+        elif user_role == 'company':
+            response_data.update({
                 'totalPublished': jobsPublished,
                 'activeListings': jobsActive,
                 'totalApplications': totalApplications,
                 'newApplications': newApplications,
                 'totalViews': totalViews,
-                'profileComplete': profileComplete,
-                'profilePercentage': profilePercentage,
                 # Mantener nombres antiguos para compatibilidad
                 'jobsPublished': jobsPublished,
                 'jobsActive': jobsActive,
                 'applications': totalApplications,
                 'applicationsNew': newApplications
-            }
+            })
+
+        return JsonResponse({
+            'success': True,
+            'statistics': response_data
         }, status=200)
 
     except Exception as e:
