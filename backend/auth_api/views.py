@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from auth_api.models import CustomUser
+from auth_api.decorators import token_required
 
 
 @require_http_methods(["POST"])
@@ -733,4 +734,133 @@ def change_password(request):
         return JsonResponse({
             'success': False,
             'message': f'Error: {str(e)}'
+        }, status=500)
+
+
+@token_required
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def delete_account(request):
+    """
+    Endpoint para eliminar permanentemente la cuenta del usuario
+    DELETE /api/auth/delete-account
+
+    Body: { "email": "user@example.com" }
+
+    IMPORTANTE: Esta acción es IRREVERSIBLE
+    - Elimina el usuario de CustomUser
+    - Elimina todos los perfiles relacionados (UserProfile / CompanyProfile)
+    - Elimina trabajos publicados (si es empresa)
+    - Elimina postulaciones y CVs (si es postulante)
+    """
+    try:
+        data = json.loads(request.body)
+        email = data.get('email')
+
+        print(f'\n🗑️ [DELETE ACCOUNT] =================================')
+        print(f'🗑️ [DELETE ACCOUNT] Solicitud de eliminación para: {email}')
+
+        if not email:
+            return JsonResponse({
+                'success': False,
+                'message': 'Email es requerido'
+            }, status=400)
+
+        # Verificar que el usuario existe
+        from auth_api.models import CustomUser
+        from profiles.models import UserProfile, CompanyProfile
+        from G_Jobs.jobs.models import Job
+        from G_Jobs.applicants.models import JobApplication, SavedJob, ApplicantCV
+
+        user = CustomUser.objects.filter(email=email).first()
+
+        if not user:
+            print(f'❌ [DELETE ACCOUNT] Usuario no encontrado: {email}')
+            return JsonResponse({
+                'success': False,
+                'message': 'Usuario no encontrado'
+            }, status=404)
+
+        # Verificar que el usuario autenticado es el dueño de la cuenta
+        if request.user.email != email:
+            print(f'❌ [DELETE ACCOUNT] Intento de eliminar cuenta ajena')
+            return JsonResponse({
+                'success': False,
+                'message': 'No tienes permiso para eliminar esta cuenta'
+            }, status=403)
+
+        user_role = user.role
+        print(f'🗑️ [DELETE ACCOUNT] Rol: {user_role}')
+
+        # ELIMINAR DATOS RELACIONADOS
+        deleted_stats = {
+            'jobs': 0,
+            'applications': 0,
+            'saved_jobs': 0,
+            'cvs': 0,
+            'profiles': 0
+        }
+
+        # Si es EMPRESA: Eliminar trabajos publicados
+        if user_role == 'company':
+            jobs_deleted = Job.objects.filter(email=email).delete()
+            deleted_stats['jobs'] = jobs_deleted[0] if jobs_deleted else 0
+            print(f'🗑️ [DELETE ACCOUNT] Trabajos eliminados: {deleted_stats["jobs"]}')
+
+            # Eliminar perfil de empresa
+            company_profile = CompanyProfile.objects.filter(email=email).first()
+            if company_profile:
+                company_profile.delete()
+                deleted_stats['profiles'] += 1
+                print(f'🗑️ [DELETE ACCOUNT] Perfil de empresa eliminado')
+
+        # Si es POSTULANTE: Eliminar postulaciones, CVs, favoritos
+        elif user_role == 'applicant':
+            # Eliminar postulaciones
+            applications_deleted = JobApplication.objects.filter(applicant=user).delete()
+            deleted_stats['applications'] = applications_deleted[0] if applications_deleted else 0
+            print(f'🗑️ [DELETE ACCOUNT] Postulaciones eliminadas: {deleted_stats["applications"]}')
+
+            # Eliminar trabajos guardados
+            saved_jobs_deleted = SavedJob.objects.filter(user=user).delete()
+            deleted_stats['saved_jobs'] = saved_jobs_deleted[0] if saved_jobs_deleted else 0
+            print(f'🗑️ [DELETE ACCOUNT] Favoritos eliminados: {deleted_stats["saved_jobs"]}')
+
+            # Eliminar CVs
+            cvs_deleted = ApplicantCV.objects.filter(applicant=user).delete()
+            deleted_stats['cvs'] = cvs_deleted[0] if cvs_deleted else 0
+            print(f'🗑️ [DELETE ACCOUNT] CVs eliminados: {deleted_stats["cvs"]}')
+
+        # Eliminar UserProfile (común para ambos roles)
+        user_profile = UserProfile.objects.filter(email=email).first()
+        if user_profile:
+            user_profile.delete()
+            deleted_stats['profiles'] += 1
+            print(f'🗑️ [DELETE ACCOUNT] UserProfile eliminado')
+
+        # FINALMENTE: Eliminar el usuario de CustomUser
+        user.delete()
+        print(f'✅ [DELETE ACCOUNT] Usuario eliminado exitosamente: {email}')
+        print(f'🗑️ [DELETE ACCOUNT] Estadísticas: {deleted_stats}')
+        print(f'🗑️ [DELETE ACCOUNT] =================================\n')
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Cuenta eliminada permanentemente',
+            'deleted_stats': deleted_stats
+        }, status=200)
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Error: formato JSON inválido'
+        }, status=400)
+
+    except Exception as e:
+        print(f'❌ [DELETE ACCOUNT] Error: {str(e)}')
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al eliminar cuenta: {str(e)}'
         }, status=500)

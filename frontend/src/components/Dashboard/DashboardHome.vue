@@ -5,7 +5,7 @@
     <div class="dashboard-header">
       <div>
         <h1 class="header-title">{{ greeting }}, {{ userName }}</h1>
-        <p class="header-subtitle">Aquí está tu resumen de actividad</p>
+        <p class="header-subtitle">Aquí está tu resumen de tus actividades</p>
       </div>
       <div class="header-date">
         {{ currentDate }}
@@ -39,7 +39,7 @@
     <!-- Stats Grid - EMPRESA -->
     <div v-if="authStore.user?.role === 'company'" class="stats-grid">
       <!-- Card: Publicaciones -->
-      <div class="stat-card" @click="goToSection('jobs')">
+      <div class="stat-card stat-card-with-chart" @click="goToSection('jobs')">
         <div class="stat-icon jobs">
           <va-icon name="list_alt" />
         </div>
@@ -48,11 +48,18 @@
           <div class="stat-number">{{ stats.totalPublished }}</div>
           <p class="stat-subtitle">{{ stats.activeListings }} activas</p>
         </div>
+        <div class="stat-chart">
+          <mini-donut-chart
+            :value="stats.activeListings"
+            :total="stats.totalPublished || 1"
+            color="#7c3aed"
+          />
+        </div>
         <va-icon name="arrow_forward" class="stat-arrow" />
       </div>
 
       <!-- Card: Interacciones -->
-      <div class="stat-card" @click="goToSection('candidates')">
+      <div class="stat-card stat-card-with-chart" @click="goToSection('candidates')">
         <div class="stat-icon applications">
           <va-icon name="people" />
         </div>
@@ -61,11 +68,18 @@
           <div class="stat-number">{{ stats.totalApplications }}</div>
           <p class="stat-subtitle">{{ stats.newApplications }} nuevas</p>
         </div>
+        <div class="stat-chart">
+          <mini-donut-chart
+            :value="stats.newApplications"
+            :total="stats.totalApplications || 1"
+            color="#3B82F6"
+          />
+        </div>
         <va-icon name="arrow_forward" class="stat-arrow" />
       </div>
 
       <!-- Card: Vistas -->
-      <div class="stat-card">
+      <div class="stat-card stat-card-with-chart">
         <div class="stat-icon views">
           <va-icon name="visibility" />
         </div>
@@ -74,11 +88,18 @@
           <div class="stat-number">{{ stats.totalViews }}</div>
           <p class="stat-subtitle">Esta semana</p>
         </div>
+        <div class="stat-chart">
+          <mini-bar-chart
+            :value="stats.totalViews"
+            :total="500"
+            color="#F59E0B"
+          />
+        </div>
         <va-icon name="arrow_forward" class="stat-arrow" />
       </div>
 
       <!-- Card: Perfil Completado -->
-      <div class="stat-card" :class="{ incomplete: !stats.profileComplete }" @click="goToSection('profile')">
+      <div class="stat-card stat-card-with-chart" :class="{ incomplete: !stats.profileComplete }" @click="goToSection('profile')">
         <div class="stat-icon profile" :class="{ incomplete: !stats.profileComplete }">
           <va-icon :name="stats.profileComplete ? 'check_circle' : 'person'" />
         </div>
@@ -87,6 +108,13 @@
           <div class="stat-number">{{ stats.profilePercentage }}%</div>
           <p class="stat-subtitle" v-if="!stats.profileComplete">Completa tu perfil</p>
           <p class="stat-subtitle" v-else>Perfil completo</p>
+        </div>
+        <div class="stat-chart">
+          <mini-bar-chart
+            :value="stats.profilePercentage"
+            :total="100"
+            color="#10B981"
+          />
         </div>
         <va-icon name="arrow_forward" class="stat-arrow" />
       </div>
@@ -95,7 +123,7 @@
     <!-- Stats Grid - POSTULANTE -->
     <div v-else-if="authStore.user?.role === 'applicant'" class="stats-grid">
       <!-- Card: Mis Postulaciones -->
-      <div class="stat-card" @click="goToSection('applications')">
+      <div class="stat-card stat-card-with-chart" @click="goToSection('applications')">
         <div class="stat-icon applications">
           <va-icon name="assignment" />
         </div>
@@ -104,11 +132,18 @@
           <div class="stat-number">{{ stats.totalApplications }}</div>
           <p class="stat-subtitle">{{ stats.pendingApplications }} pendientes</p>
         </div>
+        <div class="stat-chart">
+          <mini-donut-chart
+            :value="stats.pendingApplications"
+            :total="stats.totalApplications || 1"
+            color="#7c3aed"
+          />
+        </div>
         <va-icon name="arrow_forward" class="stat-arrow" />
       </div>
 
       <!-- Card: Favoritos -->
-      <div class="stat-card" @click="goToSection('shortlisted')">
+      <div class="stat-card stat-card-with-chart" @click="goToSection('shortlisted')">
         <div class="stat-icon views">
           <va-icon name="bookmark" />
         </div>
@@ -117,11 +152,18 @@
           <div class="stat-number">{{ stats.savedJobs }}</div>
           <p class="stat-subtitle">Anuncios guardados</p>
         </div>
+        <div class="stat-chart">
+          <mini-bar-chart
+            :value="stats.savedJobs"
+            :total="10"
+            color="#F59E0B"
+          />
+        </div>
         <va-icon name="arrow_forward" class="stat-arrow" />
       </div>
 
       <!-- Card: Perfil Completado -->
-      <div class="stat-card" :class="{ incomplete: !stats.profileComplete }" @click="goToSection('profile')">
+      <div class="stat-card stat-card-with-chart" :class="{ incomplete: !stats.profileComplete }" @click="goToSection('profile')">
         <div class="stat-icon profile" :class="{ incomplete: !stats.profileComplete }">
           <va-icon :name="stats.profileComplete ? 'check_circle' : 'person'" />
         </div>
@@ -131,11 +173,18 @@
           <p class="stat-subtitle" v-if="!stats.profileComplete">Completa tu perfil</p>
           <p class="stat-subtitle" v-else>Perfil completo</p>
         </div>
+        <div class="stat-chart">
+          <mini-bar-chart
+            :value="stats.profilePercentage"
+            :total="100"
+            color="#10B981"
+          />
+        </div>
         <va-icon name="arrow_forward" class="stat-arrow" />
       </div>
 
       <!-- Card: CV -->
-      <div class="stat-card" @click="goToSection('cv')">
+      <div class="stat-card stat-card-with-chart" @click="goToSection('cv')">
         <div class="stat-icon jobs">
           <va-icon name="description" />
         </div>
@@ -143,6 +192,13 @@
           <h3>Mi CV</h3>
           <div class="stat-number">{{ stats.cvCount }}</div>
           <p class="stat-subtitle">CV creados</p>
+        </div>
+        <div class="stat-chart">
+          <mini-donut-chart
+            :value="stats.cvCount"
+            :total="2"
+            color="#7c3aed"
+          />
         </div>
         <va-icon name="arrow_forward" class="stat-arrow" />
       </div>
@@ -265,7 +321,7 @@
         </div>
         <div class="tip-card">
           <h4>Postula con criterio</h4>
-          <p>Lee bien los requisitos antes de postular y personaliza tu aplicación</p>
+          <p>Lee bien los requisitos antes de postular y personaliza tu postulación</p>
         </div>
       </div>
     </div>
@@ -332,6 +388,8 @@ import { useToast } from 'vuestic-ui'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useDashboardActivities } from '@/composables/useDashboardActivities'
+import MiniDonutChart from './MiniDonutChart.vue'
+import MiniBarChart from './MiniBarChart.vue'
 // import DoughnutChart from './Charts/DoughnutChart.vue'
 // import BarChart from './Charts/BarChart.vue'
 // import ProfileProgress from './ProfileProgress.vue'
@@ -884,6 +942,23 @@ const goToPublish = () => {
 
 .stat-card:hover .stat-arrow {
   color: var(--color-purple);
+}
+
+/* ========== MINI CHART IN STAT CARD ========== */
+.stat-card-with-chart {
+  position: relative;
+}
+
+.stat-chart {
+  position: absolute;
+  top: 1rem;
+  right: 3.5rem;
+  opacity: 0.15;
+  transition: opacity 0.2s ease;
+}
+
+.stat-card-with-chart:hover .stat-chart {
+  opacity: 0.25;
 }
 
 /* ========== CHARTS SECTION ========== */

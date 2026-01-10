@@ -213,6 +213,11 @@
                 <span>Cambiar Contraseña</span>
               </div>
 
+              <div class="dropdown-item dropdown-item-delete" @click="handleDeleteAccount">
+                <va-icon name="delete_forever" size="small" />
+                <span>Eliminar Cuenta</span>
+              </div>
+
               <div class="dropdown-item dropdown-item-logout" @click="handleLogout">
                 <va-icon name="logout" size="small" />
                 <span>Cerrar Sesión</span>
@@ -263,6 +268,63 @@
         </div>
       </div>
     </va-modal>
+
+    <!-- Delete Account Modal -->
+    <transition name="modal-fade">
+      <div v-if="showDeleteModal" class="modal-overlay" @click.self="closeDeleteModal">
+        <div class="modal-container delete-account-modal">
+          <!-- Header -->
+          <div class="modal-header">
+            <div class="modal-icon-warning">
+              <va-icon name="warning" size="large" />
+            </div>
+            <h3 class="modal-title">¿Eliminar tu cuenta?</h3>
+            <button @click="closeDeleteModal" class="modal-close-btn">
+              <va-icon name="close" />
+            </button>
+          </div>
+
+          <!-- Content -->
+          <div class="modal-content">
+            <p class="warning-text">
+              <strong>Esta acción es permanente y no se puede deshacer.</strong>
+            </p>
+            <p class="warning-description">Al eliminar tu cuenta:</p>
+            <ul class="warning-list">
+              <li>Se eliminarán todos tus datos personales</li>
+              <li v-if="authStore.user?.role === 'company'">Se eliminarán todas tus publicaciones de trabajo</li>
+              <li v-if="authStore.user?.role === 'applicant'">Se eliminarán tus postulaciones y CVs</li>
+              <li>Perderás acceso inmediato a la plataforma</li>
+              <li>No podrás recuperar tu cuenta ni tus datos</li>
+            </ul>
+
+            <!-- Checkbox de Confirmación -->
+            <div class="confirmation-checkbox">
+              <label class="checkbox-label">
+                <input type="checkbox" v-model="deleteConfirmed" class="checkbox-input" />
+                <span class="checkbox-text">
+                  Entiendo que esta acción es permanente y deseo eliminar mi cuenta
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="modal-actions">
+            <button @click="closeDeleteModal" class="btn-cancel">Cancelar</button>
+            <button
+              @click="confirmDeleteAccount"
+              class="btn-delete"
+              :disabled="!deleteConfirmed"
+              :class="{ disabled: !deleteConfirmed }"
+            >
+              <va-icon name="delete_forever" size="small" />
+              Eliminar Cuenta Permanentemente
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -300,6 +362,10 @@ const passwordForm = ref({
   new: '',
   confirm: ''
 })
+
+// Delete Account Modal
+const showDeleteModal = ref(false)
+const deleteConfirmed = ref(false)
 
 // ========== LIFECYCLE ==========
 onMounted(() => {
@@ -508,6 +574,59 @@ const handleChangePassword = async () => {
       duration: 4000
     })
     return false
+  }
+}
+
+// Delete Account Handlers
+const handleDeleteAccount = () => {
+  showMenu.value = false
+  showDeleteModal.value = true
+  deleteConfirmed.value = false
+}
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false
+  deleteConfirmed.value = false
+}
+
+const confirmDeleteAccount = async () => {
+  if (!deleteConfirmed.value) return
+
+  try {
+    const accessToken = authStore.accessToken || localStorage.getItem('access_token')
+    const email = authStore.user?.email
+
+    if (!email || !accessToken) {
+      notify({ message: 'Error: No se pudo autenticar', color: 'danger', duration: 3000 })
+      return
+    }
+
+    console.log('🗑️ Eliminando cuenta:', email)
+
+    const response = await fetch('/api/auth/delete-account', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({ email })
+    })
+
+    const data = await response.json()
+
+    if (response.ok && data.success) {
+      notify({ message: 'Cuenta eliminada exitosamente', color: 'success', duration: 3000 })
+      closeDeleteModal()
+      authStore.logout()
+      setTimeout(() => {
+        window.location.href = '/'
+      }, 1500)
+    } else {
+      notify({ message: data.message || 'Error al eliminar la cuenta', color: 'danger', duration: 4000 })
+    }
+  } catch (error) {
+    console.error('Error eliminando cuenta:', error)
+    notify({ message: 'Error de conexión al eliminar la cuenta', color: 'danger', duration: 4000 })
   }
 }
 
@@ -1179,5 +1298,280 @@ const handleLogout = () => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+/* DELETE ACCOUNT ITEM */
+.dropdown-item-delete {
+  color: #DC2626;
+}
+
+.dropdown-item-delete::before {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+}
+
+.dropdown-item-delete:hover {
+  background: #FEF2F2;
+  color: #B91C1C;
+}
+
+.dropdown-item-delete:hover .va-icon {
+  color: #DC2626;
+}
+
+/* ========== DELETE ACCOUNT MODAL ========== */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.modal-container {
+  background: white;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-50px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.delete-account-modal .modal-header {
+  background: linear-gradient(135deg, #DC2626, #B91C1C);
+  color: white;
+  padding: 2rem;
+  border-radius: 16px 16px 0 0;
+  position: relative;
+  text-align: center;
+}
+
+.modal-icon-warning {
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  animation: warningPulse 2s ease-in-out infinite;
+}
+
+@keyframes warningPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
+}
+
+.modal-icon-warning .va-icon {
+  color: white;
+  font-size: 2rem;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: white;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.delete-account-modal .modal-content {
+  padding: 2rem;
+}
+
+.warning-text {
+  font-size: 1rem;
+  color: #374151;
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+.warning-text strong {
+  color: #DC2626;
+}
+
+.warning-description {
+  font-size: 0.95rem;
+  color: #6B7280;
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+
+.warning-list {
+  margin: 0 0 1.5rem 0;
+  padding-left: 1.5rem;
+  color: #4B5563;
+}
+
+.warning-list li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.confirmation-checkbox {
+  background: #FEF2F2;
+  border: 2px solid #FEE2E2;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1.5rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-input {
+  margin-top: 0.25rem;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #DC2626;
+  flex-shrink: 0;
+}
+
+.checkbox-text {
+  color: #374151;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.delete-account-modal .modal-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem 2rem 2rem;
+  border-top: 1px solid #F3F4F6;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  background: #F3F4F6;
+  color: #374151;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  background: #E5E7EB;
+  border-color: #D1D5DB;
+}
+
+.btn-delete {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #DC2626, #B91C1C);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-delete:hover:not(.disabled) {
+  background: linear-gradient(135deg, #B91C1C, #991B1B);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.btn-delete.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #D1D5DB;
+  color: #9CA3AF;
+}
+
+@media (max-width: 768px) {
+  .modal-container {
+    max-width: 95%;
+    margin: 1rem;
+  }
+
+  .delete-account-modal .modal-header {
+    padding: 1.5rem;
+  }
+
+  .delete-account-modal .modal-content {
+    padding: 1.5rem;
+  }
+
+  .delete-account-modal .modal-actions {
+    flex-direction: column;
+    padding: 1rem 1.5rem 1.5rem;
+  }
+
+  .btn-cancel,
+  .btn-delete {
+    width: 100%;
+  }
 }
 </style>
