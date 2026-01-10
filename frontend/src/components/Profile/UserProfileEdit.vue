@@ -51,6 +51,98 @@
         />
       </div>
 
+      <!-- CI / Cédula de Identidad -->
+      <div class="form-group">
+        <label class="form-label">Cédula de Identidad (C.I.)</label>
+        <va-input
+          v-model="formData.ci"
+          placeholder="12345678 LP"
+          class="form-input"
+        />
+        <p class="field-hint">Número de carnet de identidad</p>
+      </div>
+
+      <!-- Nacionalidad -->
+      <div class="form-group">
+        <label class="form-label">Nacionalidad</label>
+        <va-input
+          v-model="formData.nationality"
+          placeholder="Boliviana"
+          class="form-input"
+        />
+      </div>
+
+      <!-- Licencia de Conducir -->
+      <div class="form-group">
+        <label class="form-label">Licencia de Conducir</label>
+        <div class="checkbox-options">
+          <label class="radio-option">
+            <input
+              type="radio"
+              v-model="formData.hasDriverLicense"
+              :value="true"
+              name="driverLicense"
+            />
+            <span>Sí, tengo licencia de conducir</span>
+          </label>
+          <label class="radio-option">
+            <input
+              type="radio"
+              v-model="formData.hasDriverLicense"
+              :value="false"
+              name="driverLicense"
+            />
+            <span>No tengo licencia de conducir</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Categoría de Licencia (solo si tiene licencia) -->
+      <div v-if="formData.hasDriverLicense" class="form-group license-category-group">
+        <label class="form-label">Categoría de Licencia</label>
+        <va-select
+          v-model="formData.driverLicenseCategory"
+          :options="[
+            { value: 'M', text: 'Cat-M - Motocicletas' },
+            { value: 'P', text: 'Cat-P - Particular (Autos/Camionetas)' },
+            { value: 'A', text: 'Cat-A - Transporte público liviano' },
+            { value: 'B', text: 'Cat-B - Transporte público' },
+            { value: 'C', text: 'Cat-C - Transporte masivo/Carga pesada' },
+            { value: 'T', text: 'Cat-T - Maquinaria pesada' }
+          ]"
+          placeholder="Selecciona tu categoría de licencia"
+          class="form-input"
+          text-by="text"
+          value-by="value"
+        />
+      </div>
+
+      <!-- Antecedentes Penales -->
+      <div class="form-group">
+        <label class="form-label">Antecedentes Penales</label>
+        <div class="checkbox-options">
+          <label class="radio-option">
+            <input
+              type="radio"
+              v-model="formData.hasCriminalRecord"
+              :value="false"
+              name="criminalRecord"
+            />
+            <span>No tengo antecedentes penales</span>
+          </label>
+          <label class="radio-option">
+            <input
+              type="radio"
+              v-model="formData.hasCriminalRecord"
+              :value="true"
+              name="criminalRecord"
+            />
+            <span>Sí, tengo antecedentes penales</span>
+          </label>
+        </div>
+        <p class="field-hint">Esta información es confidencial y solo se compartirá si el empleador lo requiere</p>
+      </div>
+
       <!-- WhatsApp -->
       <div class="form-group">
         <label class="form-label">WhatsApp</label>
@@ -134,6 +226,11 @@ const emit = defineEmits(['close', 'updated'])
 const formData = ref({
   fullName: '',
   email: '',
+  ci: '',
+  nationality: 'Boliviana',
+  hasDriverLicense: false,
+  driverLicenseCategory: '',
+  hasCriminalRecord: false,
   phone: '',
   location: '',
   bio: ''
@@ -161,6 +258,11 @@ const loadUserProfile = async () => {
     formData.value = {
       fullName: result.profile.fullName,
       email: result.profile.email,
+      ci: result.profile.ci || '',
+      nationality: result.profile.nationality || 'Boliviana',
+      hasDriverLicense: result.profile.hasDriverLicense || false,
+      driverLicenseCategory: result.profile.driverLicenseCategory || '',
+      hasCriminalRecord: result.profile.hasCriminalRecord || false,
       phone: result.profile.phone || '',
       location: result.profile.location || '',
       bio: result.profile.bio || ''
@@ -188,6 +290,11 @@ const handleSaveProfile = async () => {
 
     const result = await profileStore.updateProfile(props.userProfileId, {
       fullName: formData.value.fullName,
+      ci: formData.value.ci,
+      nationality: formData.value.nationality,
+      hasDriverLicense: formData.value.hasDriverLicense,
+      driverLicenseCategory: formData.value.driverLicenseCategory,
+      hasCriminalRecord: formData.value.hasCriminalRecord,
       phone: formData.value.phone,
       location: formData.value.location,
       bio: formData.value.bio
@@ -224,7 +331,7 @@ const handleSaveProfile = async () => {
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   padding: 2.5rem;
-  max-width: 600px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -274,9 +381,19 @@ const handleSaveProfile = async () => {
 }
 
 .profile-form {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem 2rem;
+}
+
+/* Elementos que ocupan todo el ancho */
+.avatar-section,
+.tip-box,
+.form-group:has(textarea),
+.form-group:has(.checkbox-options),
+.license-category-group,
+.form-actions {
+  grid-column: 1 / -1;
 }
 
 .avatar-section {
@@ -367,6 +484,115 @@ const handleSaveProfile = async () => {
   min-height: 100px;
 }
 
+.checkbox-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.radio-option:hover {
+  background-color: #f8f9fa;
+}
+
+.radio-option input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #7c3aed;
+}
+
+.radio-option span {
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.license-category-group {
+  margin-left: 1.5rem;
+  padding: 1rem 1.5rem;
+  border-left: 3px solid #7c3aed;
+  background: #f9f7ff;
+  border-radius: 8px;
+  margin-top: 0.75rem;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.category-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.category-option:hover {
+  border-color: #7c3aed;
+  background: #faf5ff;
+}
+
+.category-option:has(input:checked) {
+  border-color: #7c3aed;
+  background: #faf5ff;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.category-option input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #7c3aed;
+  flex-shrink: 0;
+}
+
+.category-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.category-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  flex: 1;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
 .form-actions {
   display: flex;
   gap: 1rem;
@@ -450,6 +676,11 @@ const handleSaveProfile = async () => {
     padding: 1.5rem;
   }
 
+  .profile-form {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
   .edit-header {
     flex-direction: column;
     align-items: flex-start;
@@ -458,6 +689,10 @@ const handleSaveProfile = async () => {
 
   .edit-header h2 {
     font-size: 1.25rem;
+  }
+
+  .license-category-group {
+    margin-left: 0;
   }
 }
 </style>

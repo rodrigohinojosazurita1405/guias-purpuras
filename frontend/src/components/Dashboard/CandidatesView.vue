@@ -1120,7 +1120,7 @@ const changeStatus = async (application, newStatus) => {
     )
 
     notify({
-      message: `✅ Estado actualizado a ${getStatusLabel(newStatus)}`,
+      message: `Estado actualizado a ${getStatusLabel(newStatus)}`,
       color: 'success',
       duration: 3000
     })
@@ -2229,6 +2229,12 @@ const closeBlockModal = () => {
 .status-badge.status-rejected {
   background: #FEE2E2;
   color: #991B1B;
+}
+
+.status-badge.status-withdrawn {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: white;
+  font-weight: 600;
 }
 
 .expand-btn {

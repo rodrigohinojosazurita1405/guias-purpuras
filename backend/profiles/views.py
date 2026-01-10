@@ -26,6 +26,26 @@ def get_absolute_media_url(media_path):
     return f"http://localhost:8000{settings.MEDIA_URL}{media_path}"
 
 
+def serialize_user_profile(user_profile):
+    """Serializa un UserProfile a dict con todos los campos"""
+    return {
+        'id': user_profile.id,
+        'fullName': user_profile.fullName,
+        'email': user_profile.email,
+        'phone': user_profile.phone,
+        'ci': user_profile.ci,
+        'nationality': user_profile.nationality,
+        'hasDriverLicense': user_profile.hasDriverLicense,
+        'driverLicenseCategory': user_profile.driverLicenseCategory,
+        'hasCriminalRecord': user_profile.hasCriminalRecord,
+        'location': user_profile.location,
+        'bio': user_profile.bio,
+        'profilePhoto': get_absolute_media_url(user_profile.profilePhoto),
+        'createdAt': user_profile.createdAt.isoformat(),
+        'updatedAt': user_profile.updatedAt.isoformat()
+    }
+
+
 # ========== USER PROFILE ENDPOINTS ==========
 
 @api_view(['GET', 'POST'])
@@ -56,17 +76,7 @@ def get_or_create_my_profile(request):
 
         return JsonResponse({
             'success': True,
-            'profile': {
-                'id': user_profile.id,
-                'fullName': user_profile.fullName,
-                'email': user_profile.email,
-                'phone': user_profile.phone,
-                'location': user_profile.location,
-                'bio': user_profile.bio,
-                'profilePhoto': get_absolute_media_url(user_profile.profilePhoto),
-                'createdAt': user_profile.createdAt.isoformat(),
-                'updatedAt': user_profile.updatedAt.isoformat()
-            }
+            'profile': serialize_user_profile(user_profile)
         })
 
     except Exception as e:
@@ -121,6 +131,11 @@ def create_user_profile(request):
             fullName=data.get('fullName'),
             email=data.get('email'),
             phone=data.get('phone', ''),
+            ci=data.get('ci', ''),
+            nationality=data.get('nationality', 'Boliviana'),
+            hasDriverLicense=data.get('hasDriverLicense', False),
+            driverLicenseCategory=data.get('driverLicenseCategory', ''),
+            hasCriminalRecord=data.get('hasCriminalRecord', False),
             location=data.get('location', ''),
             bio=data.get('bio', '')
         )
@@ -128,15 +143,7 @@ def create_user_profile(request):
         return JsonResponse({
             'success': True,
             'message': '¡Perfil de usuario creado exitosamente!',
-            'profile': {
-                'id': user_profile.id,
-                'fullName': user_profile.fullName,
-                'email': user_profile.email,
-                'phone': user_profile.phone,
-                'location': user_profile.location,
-                'bio': user_profile.bio,
-                'createdAt': user_profile.createdAt.isoformat()
-            }
+            'profile': serialize_user_profile(user_profile)
         }, status=201)
 
     except json.JSONDecodeError:
@@ -163,17 +170,7 @@ def get_user_profile(request, user_id):
 
         return JsonResponse({
             'success': True,
-            'profile': {
-                'id': user_profile.id,
-                'fullName': user_profile.fullName,
-                'email': user_profile.email,
-                'phone': user_profile.phone,
-                'location': user_profile.location,
-                'bio': user_profile.bio,
-                'profilePhoto': get_absolute_media_url(user_profile.profilePhoto),
-                'createdAt': user_profile.createdAt.isoformat(),
-                'updatedAt': user_profile.updatedAt.isoformat()
-            }
+            'profile': serialize_user_profile(user_profile)
         })
 
     except UserProfile.DoesNotExist:
@@ -199,17 +196,7 @@ def get_user_profile_by_email(request, email):
 
         return JsonResponse({
             'success': True,
-            'profile': {
-                'id': user_profile.id,
-                'fullName': user_profile.fullName,
-                'email': user_profile.email,
-                'phone': user_profile.phone,
-                'location': user_profile.location,
-                'bio': user_profile.bio,
-                'profilePhoto': get_absolute_media_url(user_profile.profilePhoto),
-                'createdAt': user_profile.createdAt.isoformat(),
-                'updatedAt': user_profile.updatedAt.isoformat()
-            }
+            'profile': serialize_user_profile(user_profile)
         })
 
     except UserProfile.DoesNotExist:
@@ -243,9 +230,22 @@ def update_user_profile(request, user_id):
         user_profile = UserProfile.objects.get(id=user_id)
         data = json.loads(request.body) if request.body else {}
 
-        # Actualizar campos
+        # Actualizar campos básicos
         if 'fullName' in data:
             user_profile.fullName = data['fullName']
+
+        # Nuevos campos personales
+        if 'ci' in data:
+            user_profile.ci = data['ci']
+        if 'nationality' in data:
+            user_profile.nationality = data['nationality']
+        if 'hasDriverLicense' in data:
+            user_profile.hasDriverLicense = data['hasDriverLicense']
+        if 'driverLicenseCategory' in data:
+            user_profile.driverLicenseCategory = data['driverLicenseCategory']
+        if 'hasCriminalRecord' in data:
+            user_profile.hasCriminalRecord = data['hasCriminalRecord']
+
         if 'phone' in data:
             user_profile.phone = data['phone']
 
@@ -278,16 +278,7 @@ def update_user_profile(request, user_id):
         return JsonResponse({
             'success': True,
             'message': 'Perfil de usuario actualizado exitosamente',
-            'profile': {
-                'id': user_profile.id,
-                'fullName': user_profile.fullName,
-                'email': user_profile.email,
-                'phone': user_profile.phone,
-                'location': user_profile.location,
-                'bio': user_profile.bio,
-                'profilePhoto': get_absolute_media_url(user_profile.profilePhoto),
-                'updatedAt': user_profile.updatedAt.isoformat()
-            }
+            'profile': serialize_user_profile(user_profile)
         })
 
     except UserProfile.DoesNotExist:

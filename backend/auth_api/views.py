@@ -108,8 +108,15 @@ def register(request):
         from django.conf import settings
 
         profile_photo = None
+        full_name = user.get_full_name() or user.username  # Valor por defecto
+
         try:
             user_profile = UserProfile.objects.get(email=user.email)
+
+            # IMPORTANTE: Usar el nombre del perfil (fullName) si existe
+            # Esto asegura que se muestre el nombre exactamente como el usuario lo guardó
+            if user_profile.fullName:
+                full_name = user_profile.fullName
 
             # Si es empresa, buscar el logo de la empresa
             if user.role == 'company':
@@ -128,7 +135,7 @@ def register(request):
                 else:
                     profile_photo = photo_path
         except UserProfile.DoesNotExist:
-            # No hay perfil, la foto será None
+            # No hay perfil, usar el nombre del usuario de autenticación
             pass
 
         return JsonResponse({
@@ -137,7 +144,7 @@ def register(request):
             'user': {
                 'id': user.id,
                 'email': user.email,
-                'name': user.get_full_name() or user.username,
+                'name': full_name,
                 'role': user.role,
                 'profilePhoto': profile_photo
             },
@@ -203,8 +210,15 @@ def login(request):
         from django.conf import settings
 
         profile_photo = None
+        full_name = user.get_full_name() or user.username  # Valor por defecto
+
         try:
             user_profile = UserProfile.objects.get(email=user.email)
+
+            # IMPORTANTE: Usar el nombre del perfil (fullName) si existe
+            # Esto asegura que se muestre el nombre exactamente como el usuario lo guardó
+            if user_profile.fullName:
+                full_name = user_profile.fullName
 
             # Si es empresa, buscar el logo de la empresa
             if user.role == 'company':
@@ -223,7 +237,7 @@ def login(request):
                 else:
                     profile_photo = photo_path
         except UserProfile.DoesNotExist:
-            # No hay perfil, la foto será None
+            # No hay perfil, usar el nombre del usuario de autenticación
             pass
 
         return JsonResponse({
@@ -232,7 +246,7 @@ def login(request):
             'user': {
                 'id': user.id,
                 'email': user.email,
-                'name': user.get_full_name() or user.username,
+                'name': full_name,
                 'role': user.role,
                 'profilePhoto': profile_photo
             },

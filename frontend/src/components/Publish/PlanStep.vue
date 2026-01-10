@@ -80,7 +80,7 @@
 
       <!-- Comparison Table (Dinámico) -->
       <div v-if="!isLoading" class="comparison-section">
-        <h3 class="comparison-title">Comparación de Planes</h3>
+        <h3 class="comparison-title">Comparación y Caracteristicas de los Planes</h3>
 
         <div class="comparison-table-wrapper">
           <table class="comparison-table">

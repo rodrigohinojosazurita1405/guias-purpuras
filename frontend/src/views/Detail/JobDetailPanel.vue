@@ -587,6 +587,12 @@ export default {
         return
       }
 
+      // VALIDACIÓN CRÍTICA 2: Verificar completitud del perfil (80% mínimo)
+      const profileCompletionCheck = await this.checkProfileCompletion()
+      if (!profileCompletionCheck.canApply) {
+        return // El método ya muestra el modal de advertencia
+      }
+
       // Verificar si el usuario está bloqueado por la empresa
       const isBlocked = await this.checkIfBlocked()
       if (isBlocked) {
@@ -639,6 +645,127 @@ export default {
       } else if (this.listing.applicationType === 'email') {
         window.location.href = `mailto:${this.listing.email}?subject=Postulación - ${this.listing.title}`
       }
+    },
+
+    async checkProfileCompletion() {
+      try {
+        // Obtener perfil del usuario
+        const email = this.authStore.user?.email
+        if (!email) {
+          return { canApply: false, percentage: 0, missingFields: ['Email no encontrado'] }
+        }
+
+        const response = await fetch(`/api/profiles/user/email/${email}/`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${this.authStore.accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        })
+
+        if (!response.ok) {
+          console.error('Error al obtener perfil del usuario')
+          return { canApply: true, percentage: 100 } // Permitir postular en caso de error
+        }
+
+        const data = await response.json()
+        const profile = data.profile
+
+        if (!profile) {
+          return { canApply: false, percentage: 0, missingFields: ['Perfil no encontrado'] }
+        }
+
+        // Campos obligatorios para poder postular (80% mínimo)
+        const requiredFields = [
+          {
+            key: 'profilePhoto',
+            label: 'Foto de perfil',
+            value: profile.profilePhoto,
+            check: (val) => val && val.trim() !== ''
+          },
+          {
+            key: 'fullName',
+            label: 'Nombre completo',
+            value: profile.fullName,
+            check: (val) => val && val.trim() !== ''
+          },
+          {
+            key: 'ci',
+            label: 'Cédula de Identidad (C.I.)',
+            value: profile.ci,
+            check: (val) => val && val.trim() !== ''
+          },
+          {
+            key: 'nationality',
+            label: 'Nacionalidad',
+            value: profile.nationality,
+            check: (val) => val && val.trim() !== ''
+          },
+          {
+            key: 'phone',
+            label: 'WhatsApp',
+            value: profile.phone,
+            check: (val) => val && val.trim() !== ''
+          }
+        ]
+
+        // Calcular campos completados
+        const completedFields = requiredFields.filter(field => field.check(field.value))
+        const missingFields = requiredFields
+          .filter(field => !field.check(field.value))
+          .map(field => field.label)
+
+        // Calcular porcentaje
+        const percentage = Math.round((completedFields.length / requiredFields.length) * 100)
+
+        // Puede postular si tiene al menos 80% completado (4 de 5 campos)
+        const canApply = percentage >= 80
+
+        if (!canApply) {
+          // Mostrar modal de advertencia con tema púrpura
+          this.showProfileIncompleteModal(percentage, missingFields)
+        }
+
+        return { canApply, percentage, missingFields }
+      } catch (error) {
+        console.error('Error verificando completitud del perfil:', error)
+        return { canApply: true, percentage: 100 } // Permitir postular en caso de error
+      }
+    },
+
+    showProfileIncompleteModal(percentage, missingFields) {
+      this.$vaModal.init({
+        message: `
+          <div style="text-align: left;">
+            <p style="margin-bottom: 1rem; font-size: 1rem; color: #1F2937;">
+              <strong>Tu perfil está completo al ${percentage}%.</strong>
+            </p>
+            <p style="margin-bottom: 1rem; color: #4B5563;">
+              Para postular a ofertas laborales, necesitas completar al menos el <strong>80%</strong> de tu perfil.
+            </p>
+            <p style="margin-bottom: 0.5rem; color: #1F2937; font-weight: 600;">
+              Campos faltantes:
+            </p>
+            <ul style="margin: 0.5rem 0 1.5rem 1.5rem; color: #4B5563; line-height: 1.8;">
+              ${missingFields.map(field => `<li>${field}</li>`).join('')}
+            </ul>
+            <p style="margin: 0; color: #6D28D9; font-weight: 600;">
+              Por favor, completa tu perfil en "Mi Perfil" para empezar a postular.
+            </p>
+          </div>
+        `,
+        title: '⚠️ Perfil Incompleto',
+        okText: 'Ir a Mi Perfil',
+        cancelText: 'Ahora no',
+        color: '#7c3aed', // Color púrpura
+        size: 'medium',
+        blur: true,
+        onOk: () => {
+          // Redirigir al perfil
+          this.$router.push('/dashboard/profile')
+        }
+      })
     },
 
     async checkIfBlocked() {

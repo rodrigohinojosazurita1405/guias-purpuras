@@ -22,6 +22,11 @@ class Notification(models.Model):
 
         # Notificaciones para postulantes
         ('application_sent', 'Postulación enviada'),
+        ('application_reviewing', 'Postulación en revisión'),
+        ('application_shortlisted', 'Pre-seleccionado'),
+        ('application_interviewed', 'Invitado a entrevista'),
+        ('application_accepted', 'Postulación aceptada'),
+        ('application_rejected', 'Postulación rechazada'),
         ('saved_job_closed', 'Trabajo guardado cerrado'),
         ('blocked_attempt', 'Intento de postulación bloqueado'),
 

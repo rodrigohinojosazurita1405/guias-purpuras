@@ -36,6 +36,38 @@ class ApplicantProfile(models.Model):
         verbose_name="Usuario"
     )
 
+    # Información personal
+    ci = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name="Cédula de Identidad",
+        help_text="Número de CI o documento de identidad"
+    )
+    nationality = models.CharField(
+        max_length=100,
+        blank=True,
+        default="Boliviana",
+        verbose_name="Nacionalidad"
+    )
+
+    # Licencia de conducir
+    has_driver_license = models.BooleanField(
+        default=False,
+        verbose_name="¿Tiene licencia de conducir?"
+    )
+    driver_license_category = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Categoría de licencia",
+        help_text="Ej: A, B, C, Profesional"
+    )
+
+    # Antecedentes penales
+    has_criminal_record = models.BooleanField(
+        default=False,
+        verbose_name="¿Tiene antecedentes penales?"
+    )
+
     # Información de contacto adicional
     # IMPORTANTE: Estos campos se usan en CandidatesView.vue para mostrar contacto en dashboard de reclutadores
     phone = models.CharField(

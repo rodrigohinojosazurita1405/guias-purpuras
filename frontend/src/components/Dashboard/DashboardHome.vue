@@ -12,6 +12,30 @@
       </div>
     </div>
 
+    <!-- Alerta de Perfil Incompleto - POSTULANTE -->
+    <div
+      v-if="authStore.user?.role === 'applicant' && !stats.profileComplete && stats.profilePercentage < 80"
+      class="profile-warning-alert"
+    >
+      <div class="alert-icon">
+        <va-icon name="warning" size="large" />
+      </div>
+      <div class="alert-content">
+        <h3 class="alert-title">⚠️ Completa tu perfil para postular</h3>
+        <p class="alert-message">
+          Tu perfil está completo al <strong>{{ stats.profilePercentage }}%</strong>.
+          Necesitas al menos <strong>80%</strong> para poder postular a ofertas laborales.
+        </p>
+        <p class="alert-info">
+          <strong>Campos obligatorios:</strong> Foto de perfil, Nombre completo, Cédula de Identidad (C.I.), Nacionalidad y WhatsApp
+        </p>
+      </div>
+      <button class="alert-btn" @click="goToSection('profile')">
+        <va-icon name="person" />
+        <span>Completar Perfil</span>
+      </button>
+    </div>
+
     <!-- Stats Grid - EMPRESA -->
     <div v-if="authStore.user?.role === 'company'" class="stats-grid">
       <!-- Card: Publicaciones -->
@@ -54,7 +78,7 @@
       </div>
 
       <!-- Card: Perfil Completado -->
-      <div class="stat-card" :class="{ incomplete: !stats.profileComplete }">
+      <div class="stat-card" :class="{ incomplete: !stats.profileComplete }" @click="goToSection('profile')">
         <div class="stat-icon profile" :class="{ incomplete: !stats.profileComplete }">
           <va-icon :name="stats.profileComplete ? 'check_circle' : 'person'" />
         </div>
@@ -97,7 +121,7 @@
       </div>
 
       <!-- Card: Perfil Completado -->
-      <div class="stat-card" :class="{ incomplete: !stats.profileComplete }">
+      <div class="stat-card" :class="{ incomplete: !stats.profileComplete }" @click="goToSection('profile')">
         <div class="stat-icon profile" :class="{ incomplete: !stats.profileComplete }">
           <va-icon :name="stats.profileComplete ? 'check_circle' : 'person'" />
         </div>
@@ -123,6 +147,63 @@
         <va-icon name="arrow_forward" class="stat-arrow" />
       </div>
     </div>
+
+    <!-- Charts Section - POSTULANTE -->
+    <!-- TEMPORALMENTE COMENTADO PARA DEBUGGING
+    <div v-if="authStore.user?.role === 'applicant'" class="charts-section">
+      <div class="charts-grid">
+        <profile-progress
+          :percentage="stats.profilePercentage"
+          :required-fields="profileFields"
+          @go-to-profile="goToSection('profile')"
+        />
+
+        <div class="chart-card">
+          <h3 class="chart-title">
+            <va-icon name="pie_chart" size="small" />
+            <span>Estado de Postulaciones</span>
+          </h3>
+          <doughnut-chart :data="applicationsChartData" />
+        </div>
+      </div>
+
+      <div class="chart-card chart-wide">
+        <h3 class="chart-title">
+          <va-icon name="bar_chart" size="small" />
+          <span>Actividad del Último Mes</span>
+        </h3>
+        <bar-chart :data="activityChartData" />
+      </div>
+    </div>
+
+    <div v-else-if="authStore.user?.role === 'company'" class="charts-section">
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3 class="chart-title">
+            <va-icon name="pie_chart" size="small" />
+            <span>Estado de Publicaciones</span>
+          </h3>
+          <doughnut-chart :data="jobsChartData" />
+        </div>
+
+        <div class="chart-card">
+          <h3 class="chart-title">
+            <va-icon name="pie_chart" size="small" />
+            <span>Candidatos por Estado</span>
+          </h3>
+          <doughnut-chart :data="candidatesChartData" />
+        </div>
+      </div>
+
+      <div class="chart-card chart-wide">
+        <h3 class="chart-title">
+          <va-icon name="bar_chart" size="small" />
+          <span>Vistas del Último Mes</span>
+        </h3>
+        <bar-chart :data="viewsChartData" />
+      </div>
+    </div>
+    -->
 
     <!-- Quick Actions - EMPRESA -->
     <div v-if="authStore.user?.role === 'company'" class="quick-actions">
@@ -246,12 +327,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vuestic-ui'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useDashboardActivities } from '@/composables/useDashboardActivities'
+// import DoughnutChart from './Charts/DoughnutChart.vue'
+// import BarChart from './Charts/BarChart.vue'
+// import ProfileProgress from './ProfileProgress.vue'
 
 // ========== COMPOSABLES ==========
 const router = useRouter()
@@ -273,10 +357,138 @@ const stats = ref({
   newApplications: 0,
   totalViews: 0,
   profileComplete: false,
-  profilePercentage: 0
+  profilePercentage: 0,
+  pendingApplications: 0,
+  savedJobs: 0,
+  cvCount: 0
 })
 
 const activities = ref([])
+
+// ========== COMPUTED - DATOS DE GRÁFICOS ==========
+
+// Campos obligatorios del perfil para el componente ProfileProgress
+// Estimación basada en el porcentaje (cada campo vale 20%)
+const profileFields = computed(() => {
+  const percentage = stats.value.profilePercentage || 0
+  const completedCount = Math.round(percentage / 20)
+
+  return [
+    {
+      key: 'profilePhoto',
+      label: 'Foto de perfil',
+      completed: completedCount >= 1
+    },
+    {
+      key: 'fullName',
+      label: 'Nombre completo',
+      completed: completedCount >= 2
+    },
+    {
+      key: 'ci',
+      label: 'Cédula de Identidad',
+      completed: completedCount >= 3
+    },
+    {
+      key: 'nationality',
+      label: 'Nacionalidad',
+      completed: completedCount >= 4
+    },
+    {
+      key: 'phone',
+      label: 'WhatsApp',
+      completed: completedCount >= 5
+    }
+  ]
+})
+
+// Gráfico de postulaciones para postulantes
+const applicationsChartData = computed(() => {
+  const total = stats.value.totalApplications || 0
+  // Si no hay datos reales, usar datos de ejemplo
+  if (total === 0) {
+    return {
+      labels: ['Pendientes', 'En Revisión', 'Entrevista', 'Aceptadas', 'Rechazadas'],
+      values: [5, 3, 2, 1, 1],
+      colors: ['#7c3aed', '#3B82F6', '#F59E0B', '#10B981', '#EF4444']
+    }
+  }
+
+  return {
+    labels: ['Pendientes', 'En Revisión', 'Entrevista', 'Aceptadas', 'Rechazadas'],
+    values: [
+      stats.value.pendingApplications || Math.floor(total * 0.4),
+      Math.floor(total * 0.3),
+      Math.floor(total * 0.2),
+      Math.floor(total * 0.06),
+      Math.floor(total * 0.04)
+    ],
+    colors: ['#7c3aed', '#3B82F6', '#F59E0B', '#10B981', '#EF4444']
+  }
+})
+
+// Gráfico de publicaciones para empresas
+const jobsChartData = computed(() => ({
+  labels: ['Activas', 'Pausadas', 'Vencidas'],
+  values: [
+    stats.value.activeListings || 2,
+    Math.max(stats.value.totalPublished - stats.value.activeListings - 1, 1),
+    1
+  ],
+  colors: ['#10B981', '#F59E0B', '#EF4444']
+}))
+
+// Gráfico de candidatos para empresas
+const candidatesChartData = computed(() => ({
+  labels: ['Nuevos', 'En Revisión', 'Entrevista', 'Seleccionados'],
+  values: [
+    stats.value.newApplications || 3,
+    Math.floor(stats.value.totalApplications * 0.4) || 5,
+    Math.floor(stats.value.totalApplications * 0.3) || 3,
+    Math.floor(stats.value.totalApplications * 0.2) || 2
+  ],
+  colors: ['#7c3aed', '#3B82F6', '#F59E0B', '#10B981']
+}))
+
+// Gráfico de actividad mensual para postulantes
+const activityChartData = computed(() => {
+  const labels = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4']
+  return {
+    labels,
+    datasets: [
+      {
+        label: 'Postulaciones',
+        data: [3, 5, 4, 8],
+        color: '#7c3aed'
+      },
+      {
+        label: 'Favoritos',
+        data: [2, 4, 3, 6],
+        color: '#F59E0B'
+      }
+    ]
+  }
+})
+
+// Gráfico de vistas para empresas
+const viewsChartData = computed(() => {
+  const labels = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4']
+  return {
+    labels,
+    datasets: [
+      {
+        label: 'Vistas',
+        data: [120, 180, 150, 250],
+        color: '#3B82F6'
+      },
+      {
+        label: 'Aplicaciones',
+        data: [15, 25, 20, 35],
+        color: '#10B981'
+      }
+    ]
+  }
+})
 
 // ========== LIFECYCLE ==========
 onMounted(() => {
@@ -289,14 +501,15 @@ onMounted(() => {
 watch(() => authStore.user?.name, (newName) => {
   if (newName) {
     userName.value = newName
-    console.log('Nombre actualizado en DashboardHome:', newName)
   }
 })
 
 // ========== METHODS ==========
+
 const initializeDashboard = async () => {
   try {
     // Obtener nombre del usuario desde authStore (tiene prioridad)
+    // El backend ahora envía el nombre directamente desde UserProfile.fullName
     if (authStore.user?.name) {
       userName.value = authStore.user.name
     } else {
@@ -305,14 +518,21 @@ const initializeDashboard = async () => {
       if (storedUser) {
         const user = JSON.parse(storedUser)
         userName.value = user.name || 'Usuario'
+      } else {
+        userName.value = 'Usuario'
       }
     }
 
     // Cargar estadísticas
     await dashboardStats.loadStats()
-    console.log('📊 [DashboardHome] Stats después de loadStats:', JSON.parse(JSON.stringify(dashboardStats.stats.value)))
-    // Copiar datos a nuestra variable local reactiva
-    stats.value = { ...dashboardStats.stats.value }
+    // Copiar datos a nuestra variable local reactiva Y agregar campos que no vienen del backend
+    stats.value = {
+      ...dashboardStats.stats.value,
+      // Mantener valores por defecto para campos que no vienen del backend
+      pendingApplications: dashboardStats.stats.value.pendingApplications || 0,
+      savedJobs: dashboardStats.stats.value.savedJobs || 0,
+      cvCount: dashboardStats.stats.value.cvCount || 0
+    }
 
     // Cargar actividades (con manejo seguro)
     try {
@@ -365,7 +585,8 @@ const goToSection = (section) => {
     candidates: '/dashboard/candidates',
     profile: '/dashboard/profile',
     applications: '/dashboard/applications',
-    cv: '/dashboard/cv'
+    cv: '/dashboard/cv',
+    shortlisted: '/dashboard/shortlisted'
   }
   if (routes[section]) {
     router.push(routes[section])
@@ -422,6 +643,103 @@ const goToPublish = () => {
   color: #9CA3AF;
   font-weight: 500;
   white-space: nowrap;
+}
+
+/* ========== PROFILE WARNING ALERT ========== */
+.profile-warning-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%);
+  border-left: 4px solid #7c3aed;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  border-radius: 12px;
+  color: white;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #4C1D95;
+}
+
+.alert-message {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #6D28D9;
+}
+
+.alert-message strong {
+  color: #5B21B6;
+  font-weight: 700;
+}
+
+.alert-info {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #7C3AED;
+  font-style: italic;
+}
+
+.alert-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.alert-btn:hover {
+  background: linear-gradient(135deg, #6d28d9, #5b21b6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+.alert-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(124, 58, 237, 0.3);
 }
 
 /* ========== STATS GRID ========== */
@@ -526,6 +844,50 @@ const goToPublish = () => {
 
 .stat-card:hover .stat-arrow {
   color: var(--color-purple);
+}
+
+/* ========== CHARTS SECTION ========== */
+.charts-section {
+  margin-bottom: 2.5rem;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.chart-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.chart-wide {
+  grid-column: 1 / -1;
+}
+
+.chart-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.25rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.chart-title .va-icon {
+  color: #7c3aed;
 }
 
 /* ========== QUICK ACTIONS ========== */

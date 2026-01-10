@@ -97,9 +97,11 @@
       </div>
 
       <!-- Help Text -->
-      <p class="help-text">
-        JPG, PNG o GIF. Máximo 5MB.
-      </p>
+      <div class="help-text">
+        <p><strong>Formato:</strong> JPG, PNG o GIF. Máximo 5MB.</p>
+        <p><strong>Dimensiones ideales:</strong> 400x400 píxeles (cuadrada)</p>
+        <p class="help-note">Nota: Las imágenes se ajustarán automáticamente a 400x400px</p>
+      </div>
     </div>
   </div>
 </template>
@@ -405,9 +407,38 @@ const formatFileSize = (bytes) => {
 }
 
 .help-text {
-  color: #999;
-  font-size: 0.85rem;
-  margin: 0;
+  text-align: left;
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 3px solid #7c3aed;
+}
+
+.help-text p {
+  color: #4b5563;
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+  line-height: 1.5;
+}
+
+.help-text p:first-child {
+  margin-top: 0;
+}
+
+.help-text p:last-child {
+  margin-bottom: 0;
+}
+
+.help-text strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.help-note {
+  color: #7c3aed !important;
+  font-size: 0.8rem !important;
+  font-style: italic;
+  margin-top: 0.75rem !important;
 }
 
 @media (max-width: 600px) {

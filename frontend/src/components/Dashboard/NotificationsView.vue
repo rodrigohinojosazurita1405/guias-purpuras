@@ -82,15 +82,14 @@
         </va-select>
       </div>
 
-      <va-button
+      <button
         v-if="unreadCount > 0"
-        color="success"
+        class="btn-mark-all-read"
         @click="markAllAsRead"
-        size="small"
-        icon="done_all"
       >
-        Marcar todas como leídas
-      </va-button>
+        <va-icon name="done_all" size="1rem" />
+        <span>Marcar todas como leídas</span>
+      </button>
     </div>
 
     <!-- Loading State -->
@@ -202,12 +201,17 @@ const filterType = ref(null)
 // Opciones de tipos de notificaciones
 const notificationTypes = [
   { value: 'new_application', text: 'Nueva aplicación' },
+  { value: 'application_sent', text: 'Aplicación enviada' },
+  { value: 'application_reviewing', text: 'En revisión' },
+  { value: 'application_shortlisted', text: 'Pre-seleccionado' },
+  { value: 'application_interviewed', text: 'Invitado a entrevista' },
+  { value: 'application_accepted', text: 'Aceptado' },
+  { value: 'application_rejected', text: 'Rechazado' },
   { value: 'payment_verified', text: 'Pago verificado' },
   { value: 'payment_rejected', text: 'Pago rechazado' },
   { value: 'invoice_created', text: 'Orden de facturación creada' },
   { value: 'invoice_completed', text: 'Facturación completada' },
   { value: 'job_expiring_soon', text: 'Anuncio por vencer' },
-  { value: 'application_sent', text: 'Aplicación enviada' },
   { value: 'saved_job_closed', text: 'Trabajo cerrado' },
   { value: 'password_changed', text: 'Contraseña cambiada' }
 ]
@@ -412,13 +416,18 @@ const handleNotificationClick = (notification) => {
 const getNotificationIcon = (type) => {
   const icons = {
     'new_application': 'person_add',
+    'application_sent': 'send',
+    'application_reviewing': 'search',
+    'application_shortlisted': 'star',
+    'application_interviewed': 'event',
+    'application_accepted': 'check_circle',
+    'application_rejected': 'cancel',
     'payment_verified': 'verified',
     'payment_rejected': 'cancel',
     'invoice_created': 'receipt',
     'invoice_completed': 'receipt_long',
     'job_expiring_soon': 'schedule',
     'job_expired': 'event_busy',
-    'application_sent': 'send',
     'saved_job_closed': 'work_off',
     'blocked_attempt': 'block',
     'password_changed': 'lock',
@@ -597,6 +606,34 @@ onMounted(() => {
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+/* Botón Marcar todas como leídas */
+.btn-mark-all-read {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-mark-all-read:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btn-mark-all-read:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
 }
 
 /* Filter Chips */
@@ -806,6 +843,26 @@ onMounted(() => {
 
 .notification-icon.type-invoice_completed {
   background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.notification-icon.type-application_reviewing {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.notification-icon.type-application_shortlisted {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.notification-icon.type-application_interviewed {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.notification-icon.type-application_accepted {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.notification-icon.type-application_rejected {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
 }
 
 .notification-content {

@@ -174,7 +174,7 @@
           <router-link
             v-if="authStore.user?.role === 'applicant'"
             to="/guias/trabajos"
-            class="navbar-btn navbar-btn-secondary"
+            class="navbar-btn navbar-btn-primary"
           >
             <va-icon name="work" />
             <span>Buscar Trabajos</span>
@@ -981,15 +981,16 @@ const handleLogout = () => {
 
   .navbar-btn {
     flex: 1;
-    padding: 0.625rem;
-    font-size: 0.75rem;
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
     min-width: 0;
-    flex-direction: column;
-    gap: 0.25rem;
+    flex-direction: row;
+    gap: 0.5rem;
+    justify-content: center;
   }
 
   .navbar-btn span {
-    font-size: 0.7rem;
+    font-size: 0.875rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -998,7 +999,15 @@ const handleLogout = () => {
 
   .navbar-btn :deep(.va-icon) {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
+  }
+
+  .navbar-btn-primary {
+    box-shadow: 0 3px 10px rgba(124, 58, 237, 0.3);
+  }
+
+  .navbar-btn-primary:hover {
+    transform: translateY(-1px);
   }
 
   .navbar-menu {

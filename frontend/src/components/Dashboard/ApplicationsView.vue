@@ -125,6 +125,8 @@
               v-model="sortBy"
               :options="sortOptions"
               placeholder="Más reciente"
+              text-by="text"
+              value-by="value"
               class="filter-select"
             />
           </div>
@@ -236,10 +238,28 @@
       </div>
       <template #footer>
         <div class="modal-actions">
-          <va-button class="btn-modal-cancel" @click="cancelWithdraw">
+          <va-button
+            class="btn-modal-cancel"
+            @click="cancelWithdraw"
+            :style="{
+              background: 'linear-gradient(135deg, #FDE68A 0%, #FCD34D 100%)',
+              color: '#92400E',
+              border: '1px solid #FBBF24',
+              boxShadow: '0 2px 8px rgba(251, 191, 36, 0.3)'
+            }"
+          >
             Cancelar
           </va-button>
-          <va-button class="btn-modal-withdraw" @click="confirmWithdraw">
+          <va-button
+            class="btn-modal-withdraw"
+            @click="confirmWithdraw"
+            :style="{
+              background: 'linear-gradient(135deg, #A855F7 0%, #9333EA 100%)',
+              color: 'white',
+              border: 'none',
+              boxShadow: '0 2px 8px rgba(168, 85, 247, 0.3)'
+            }"
+          >
             Retirar Postulación
           </va-button>
         </div>
@@ -265,7 +285,7 @@
       </div>
       <template #footer>
         <div class="modal-actions">
-          <va-button color="success" @click="showSuccessModal = false">
+          <va-button color="primary" @click="showSuccessModal = false">
             Entendido
           </va-button>
         </div>
@@ -545,7 +565,7 @@ const confirmWithdraw = async () => {
 
   try {
     const response = await fetch(`/api/applications/${applicationToWithdraw.value.id}/withdraw/`, {
-      method: 'POST',
+      method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${authStore.accessToken}`,
         'Content-Type': 'application/json'
@@ -1331,22 +1351,22 @@ onUnmounted(() => {
 }
 
 .btn-modal-cancel {
-  background: linear-gradient(135deg, #FDE68A 0%, #FCD34D 100%);
-  color: #92400E;
-  border: 1px solid #FBBF24;
+  background: linear-gradient(135deg, #FDE68A 0%, #FCD34D 100%) !important;
+  color: #92400E !important;
+  border: 1px solid #FBBF24 !important;
   padding: 0.5rem 1.5rem;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 140px;
-  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3) !important;
 }
 
 .btn-modal-cancel:hover {
-  background: linear-gradient(135deg, #FCD34D 0%, #FBBF24 100%);
+  background: linear-gradient(135deg, #FCD34D 0%, #FBBF24 100%) !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4) !important;
 }
 
 .btn-modal-withdraw {

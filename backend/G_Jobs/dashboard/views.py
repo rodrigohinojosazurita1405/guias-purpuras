@@ -8,8 +8,9 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from auth_api.decorators import token_required
 from G_Jobs.jobs.models import Job
-from profiles.models import CompanyProfile
+from profiles.models import CompanyProfile, UserProfile
 from G_Jobs.plans.models import Plan
+from auth_api.models import CustomUser
 
 
 @require_http_methods(["GET"])
@@ -57,66 +58,98 @@ def get_user_statistics(request):
         # Contar vistas
         totalViews = sum(job.views for job in user_jobs)
 
-        # Calcular completitud del perfil de empresa
+        # Calcular completitud del perfil (empresa o postulante)
         profileComplete = False
         profilePercentage = 0
 
         try:
-            # Buscar perfil de empresa por email
-            company_profile = CompanyProfile.objects.filter(email=email).first()
+            # Detectar tipo de usuario (empresa o postulante)
+            user = CustomUser.objects.filter(email=email).first()
+            user_role = user.role if user else None
 
-            if company_profile:
-                # Campos obligatorios que se deben completar
-                required_fields = {
-                    'companyName': company_profile.companyName,
-                    'description': company_profile.description,
-                    'logo': company_profile.logo,
-                    'email': company_profile.email,
-                    'location': company_profile.location,
-                }
+            # Función helper para verificar si un campo está completo
+            def is_field_complete(value):
+                if value is None:
+                    return False
+                if isinstance(value, str):
+                    return bool(value.strip())  # String no vacío
+                return bool(value)  # Para archivos (logo, banner, foto)
 
-                # Campos opcionales que suman al porcentaje
-                optional_fields = {
-                    'banner': company_profile.banner,
-                    'contactEmail': company_profile.contactEmail,
-                    'phone': company_profile.phone,
-                    'website': company_profile.website,
-                    'city': company_profile.city,
-                }
+            # ========== PERFIL DE POSTULANTE ==========
+            if user_role == 'applicant':
+                user_profile = UserProfile.objects.filter(email=email).first()
 
-                # Función helper para verificar si un campo está completo
-                def is_field_complete(value):
-                    if value is None:
-                        return False
-                    if isinstance(value, str):
-                        return bool(value.strip())  # String no vacío
-                    return bool(value)  # Para archivos (logo, banner)
+                if user_profile:
+                    # Campos obligatorios para poder postular (80% mínimo)
+                    required_fields = {
+                        'profilePhoto': user_profile.profilePhoto,
+                        'fullName': user_profile.fullName,
+                        'ci': user_profile.ci,
+                        'nationality': user_profile.nationality,
+                        'phone': user_profile.phone,  # WhatsApp
+                    }
 
-                # Contar campos completados
-                completed_required = sum(1 for v in required_fields.values() if is_field_complete(v))
-                completed_optional = sum(1 for v in optional_fields.values() if is_field_complete(v))
+                    # Contar campos completados
+                    completed_required = sum(1 for v in required_fields.values() if is_field_complete(v))
 
-                total_fields = len(required_fields) + len(optional_fields)
-                completed_fields = completed_required + completed_optional
+                    # Calcular porcentaje (cada campo vale 20%)
+                    profilePercentage = int((completed_required / len(required_fields)) * 100)
 
-                # Calcular porcentaje (60% peso a obligatorios, 40% a opcionales)
-                required_weight = 0.6
-                optional_weight = 0.4
+                    # Puede postular si tiene al menos 80% completado (4 de 5 campos)
+                    profileComplete = profilePercentage >= 80
 
-                required_percentage = (completed_required / len(required_fields)) * required_weight
-                optional_percentage = (completed_optional / len(optional_fields)) * optional_weight
+                    print(f'📊 [STATS] Perfil postulante: {user_profile.fullName}')
+                    print(f'📊 [STATS] Campos obligatorios: {completed_required}/{len(required_fields)}')
+                    print(f'📊 [STATS] Porcentaje: {profilePercentage}% | Puede postular: {profileComplete}')
+                else:
+                    print(f'📊 [STATS] No se encontró perfil de usuario para {email}')
 
-                profilePercentage = int((required_percentage + optional_percentage) * 100)
+            # ========== PERFIL DE EMPRESA ==========
+            elif user_role == 'company':
+                company_profile = CompanyProfile.objects.filter(email=email).first()
 
-                # Perfil completo si tiene al menos 80% y todos los campos obligatorios
-                profileComplete = (profilePercentage >= 80 and completed_required == len(required_fields))
+                if company_profile:
+                    # Campos obligatorios que se deben completar
+                    required_fields = {
+                        'companyName': company_profile.companyName,
+                        'description': company_profile.description,
+                        'logo': company_profile.logo,
+                        'email': company_profile.email,
+                        'location': company_profile.location,
+                    }
 
-                print(f'📊 [STATS] Perfil encontrado: {company_profile.companyName}')
-                print(f'📊 [STATS] Campos obligatorios: {completed_required}/{len(required_fields)}')
-                print(f'📊 [STATS] Campos opcionales: {completed_optional}/{len(optional_fields)}')
-                print(f'📊 [STATS] Porcentaje: {profilePercentage}% | Completo: {profileComplete}')
-            else:
-                print(f'📊 [STATS] No se encontró perfil de empresa para {email}')
+                    # Campos opcionales que suman al porcentaje
+                    optional_fields = {
+                        'banner': company_profile.banner,
+                        'contactEmail': company_profile.contactEmail,
+                        'phone': company_profile.phone,
+                        'website': company_profile.website,
+                        'city': company_profile.city,
+                    }
+
+                    # Contar campos completados
+                    completed_required = sum(1 for v in required_fields.values() if is_field_complete(v))
+                    completed_optional = sum(1 for v in optional_fields.values() if is_field_complete(v))
+
+                    # Calcular porcentaje (60% peso a obligatorios, 40% a opcionales)
+                    required_weight = 0.6
+                    optional_weight = 0.4
+
+                    required_percentage = (completed_required / len(required_fields)) * required_weight
+                    optional_percentage = (completed_optional / len(optional_fields)) * optional_weight
+
+                    profilePercentage = int((required_percentage + optional_percentage) * 100)
+
+                    # Perfil completo si tiene al menos 80% y todos los campos obligatorios
+                    profileComplete = (profilePercentage >= 80 and completed_required == len(required_fields))
+
+                    print(f'📊 [STATS] Perfil empresa: {company_profile.companyName}')
+                    print(f'📊 [STATS] Campos obligatorios: {completed_required}/{len(required_fields)}')
+                    print(f'📊 [STATS] Campos opcionales: {completed_optional}/{len(optional_fields)}')
+                    print(f'📊 [STATS] Porcentaje: {profilePercentage}% | Completo: {profileComplete}')
+                else:
+                    print(f'📊 [STATS] No se encontró perfil de empresa para {email}')
+
         except Exception as profile_err:
             print(f'⚠️ [STATS] Error calculando perfil: {profile_err}')
 

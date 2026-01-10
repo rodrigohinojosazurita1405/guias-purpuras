@@ -310,7 +310,7 @@ const updateApplicationStatus = async (applicationId, newStatus) => {
       }
 
       notify({
-        message: '✅ Estado actualizado',
+        message: 'Estado actualizado',
         color: 'success',
         duration: 3000
       })

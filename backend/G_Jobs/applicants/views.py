@@ -604,16 +604,11 @@ def get_user_applications(request):
         for app in applications:
             applications_data.append({
                 'id': str(app.id),
-                'job': {
-                    'id': app.job.id,
-                    'title': app.job.title,
-                    'company': app.job.companyName,
-                    'city': app.job.city,
-                    'status': app.job.status
-                },
+                'job_id': app.job.id,  # Solo el ID del trabajo
                 'cv_name': app.cv.name if app.cv else None,
                 'status': app.status,
                 'applied_at': app.applied_at.isoformat(),
+                'updated_at': app.updated_at.isoformat(),
                 'viewed_by_employer': app.viewed_by_employer
             })
 
@@ -831,18 +826,104 @@ def get_saved_jobs(request):
         jobs_data = []
         for saved in saved_jobs:
             job = saved.job
+
+            # Obtener logo del perfil de empresa si existe
+            company_logo = None
+            company_profile = None
+
+            if job.companyProfile:
+                # Logo
+                if job.companyProfile.logo:
+                    logo_url = job.companyProfile.logo.url
+                    if logo_url and not logo_url.startswith('http'):
+                        company_logo = request.build_absolute_uri(logo_url)
+                    else:
+                        company_logo = logo_url
+
+                # Banner
+                company_banner = None
+                if job.companyProfile.banner:
+                    banner_url = job.companyProfile.banner.url
+                    if banner_url and not banner_url.startswith('http'):
+                        company_banner = request.build_absolute_uri(banner_url)
+                    else:
+                        company_banner = banner_url
+
+                # Perfil completo de la empresa
+                company_profile = {
+                    'id': job.companyProfile.id,
+                    'companyName': job.companyProfile.companyName,
+                    'description': job.companyProfile.description if job.companyProfile.description else None,
+                    'website': job.companyProfile.website if job.companyProfile.website else None,
+                    'phone': job.companyProfile.phone if job.companyProfile.phone else None,
+                    'email': job.companyProfile.email if job.companyProfile.email else None,
+                    'contactEmail': job.companyProfile.contactEmail if job.companyProfile.contactEmail else None,
+                    'location': job.companyProfile.location if job.companyProfile.location else None,
+                    'city': job.companyProfile.city if job.companyProfile.city else None,
+                    'category': job.companyProfile.get_category_display() if job.companyProfile.category else None,
+                    'verified': job.companyProfile.verified,
+                    'logo': company_logo,
+                    'banner': company_banner,
+                    'createdAt': job.companyProfile.createdAt.isoformat() if job.companyProfile.createdAt else None,
+                }
+
+            # Función para formatear salario
+            def format_salary(job):
+                if job.salaryType == 'range' and job.salaryMin and job.salaryMax:
+                    return f'Bs. {int(job.salaryMin)} - {int(job.salaryMax)}'
+                elif job.salaryType == 'fixed' and job.salaryFixed:
+                    return f'Bs. {int(job.salaryFixed)}'
+                elif job.salaryType == 'negotiable':
+                    return 'A convenir'
+                elif job.salaryType == 'pretension_salarial':
+                    return 'Indique su pretensión salarial'
+                else:
+                    return 'No Declarado'
+
+            # Función para calcular días desde publicación
+            def calculate_days_ago(date_obj):
+                from django.utils import timezone
+                now_local = timezone.localtime()
+                date_local = timezone.localtime(date_obj)
+                now_date = now_local.date()
+                created_date = date_local.date()
+                days = (now_date - created_date).days
+                return days
+
             jobs_data.append({
                 'saved_id': str(saved.id),
                 'saved_at': saved.saved_at.isoformat(),
                 'job': {
                     'id': job.id,
                     'title': job.title,
-                    'company': job.companyName,
+                    'companyName': job.companyName if not job.companyAnonymous else 'Empresa Confidencial',
+                    'companyAnonymous': job.companyAnonymous,
+                    'companyLogo': company_logo,
+                    'companyProfile': company_profile,
                     'city': job.city,
-                    'salary_type': job.salaryType,
-                    'modality': job.modality,
+                    'municipality': job.municipality if job.municipality else None,
+                    'contractType': job.contractType,
+                    'modality': job.modality.capitalize() if job.modality else 'Presencial',
+                    'jobCategory': job.jobCategory,
+                    'subcategory': job.subcategory if job.subcategory else None,
+                    'salary': format_salary(job),
+                    'salaryMin': float(job.salaryMin) if job.salaryMin else None,
+                    'salaryMax': float(job.salaryMax) if job.salaryMax else None,
+                    'salaryFixed': float(job.salaryFixed) if job.salaryFixed else None,
+                    'salaryType': job.salaryType,
+                    'description': job.description,
+                    'expiryDate': job.expiryDate.isoformat() if job.expiryDate else None,
+                    'applicationDeadline': job.applicationDeadline.isoformat() if job.applicationDeadline else None,
+                    'selectedPlan': job.selectedPlan,
+                    'planType': job.selectedPlan,  # Alias para compatibilidad
+                    'urgent': job.urgent if hasattr(job, 'urgent') else False,
+                    'paymentVerified': job.paymentVerified,
                     'status': job.status,
-                    'expiry_date': job.expiryDate.isoformat() if job.expiryDate else None
+                    'publishedDaysAgo': calculate_days_ago(job.createdAt),
+                    'views': job.views,
+                    'applications': job.applications,
+                    'createdAt': job.createdAt.isoformat() if job.createdAt else None,
+                    'updatedAt': job.updatedAt.isoformat() if job.updatedAt else None,
                 }
             })
 
@@ -901,7 +982,13 @@ def get_applicant_profile(request):
         return JsonResponse({
             'success': True,
             'profile': {
+                'ci': profile.ci,
+                'nationality': profile.nationality,
+                'hasDriverLicense': profile.has_driver_license,
+                'driverLicenseCategory': profile.driver_license_category,
+                'hasCriminalRecord': profile.has_criminal_record,
                 'phone': profile.phone,
+                'whatsapp': profile.whatsapp,
                 'linkedin_url': profile.linkedin_url,
                 'portfolio_url': profile.portfolio_url,
                 'desired_job_categories': profile.desired_job_categories,
@@ -927,7 +1014,13 @@ def update_applicant_profile(request):
 
     Request Body:
     {
+        "ci": "string",
+        "nationality": "string",
+        "hasDriverLicense": bool,
+        "driverLicenseCategory": "string",
+        "hasCriminalRecord": bool,
         "phone": "string",
+        "whatsapp": "string",
         "linkedin_url": "string",
         "portfolio_url": "string",
         "desired_job_categories": [],
@@ -939,13 +1032,29 @@ def update_applicant_profile(request):
         profile, created = ApplicantProfile.objects.get_or_create(user=request.user)
         data = json.loads(request.body)
 
-        # Actualizar campos si se proporcionan
+        # Actualizar nuevos campos personales
+        if 'ci' in data:
+            profile.ci = data['ci']
+        if 'nationality' in data:
+            profile.nationality = data['nationality']
+        if 'hasDriverLicense' in data:
+            profile.has_driver_license = data['hasDriverLicense']
+        if 'driverLicenseCategory' in data:
+            profile.driver_license_category = data['driverLicenseCategory']
+        if 'hasCriminalRecord' in data:
+            profile.has_criminal_record = data['hasCriminalRecord']
+
+        # Actualizar campos de contacto
         if 'phone' in data:
             profile.phone = data['phone']
+        if 'whatsapp' in data:
+            profile.whatsapp = data['whatsapp']
         if 'linkedin_url' in data:
             profile.linkedin_url = data['linkedin_url']
         if 'portfolio_url' in data:
             profile.portfolio_url = data['portfolio_url']
+
+        # Actualizar preferencias
         if 'desired_job_categories' in data:
             profile.desired_job_categories = data['desired_job_categories']
         if 'desired_cities' in data:
@@ -1085,6 +1194,7 @@ def update_application_status(request, job_id, application_id):
         data = json.loads(request.body)
 
         # Actualizar estado si se proporciona
+        old_status = application.status
         if 'status' in data:
             new_status = data['status']
             valid_statuses = ['submitted', 'reviewing', 'shortlisted', 'interviewed', 'accepted', 'rejected', 'withdrawn']
@@ -1115,6 +1225,63 @@ def update_application_status(request, job_id, application_id):
             application.viewed_by_employer = True
 
         application.save()
+
+        # Crear notificación para el postulante si el estado cambió
+        if 'status' in data and old_status != application.status:
+            try:
+                from G_Jobs.notifications.models import Notification
+
+                # Mapeo de estados a notificaciones
+                status_notifications = {
+                    'reviewing': {
+                        'type': 'application_reviewing',
+                        'title': 'Tu postulación está en revisión',
+                        'message': f'El reclutador está revisando tu postulación para el puesto de {job.title}.'
+                    },
+                    'shortlisted': {
+                        'type': 'application_shortlisted',
+                        'title': '¡Felicidades! Has sido pre-seleccionado',
+                        'message': f'Tu postulación para {job.title} ha sido pre-seleccionada. El reclutador podría contactarte pronto.'
+                    },
+                    'interviewed': {
+                        'type': 'application_interviewed',
+                        'title': '¡Invitación a entrevista!',
+                        'message': f'Has sido invitado a una entrevista para el puesto de {job.title}. El reclutador se pondrá en contacto contigo.'
+                    },
+                    'accepted': {
+                        'type': 'application_accepted',
+                        'title': '¡Felicidades! Tu postulación fue aceptada',
+                        'message': f'Tu postulación para {job.title} ha sido aceptada. El reclutador se comunicará contigo con los siguientes pasos.'
+                    },
+                    'rejected': {
+                        'type': 'application_rejected',
+                        'title': 'Actualización de tu postulación',
+                        'message': f'Lamentablemente, tu postulación para {job.title} no fue seleccionada en esta ocasión. Te animamos a seguir postulando a otras ofertas.'
+                    }
+                }
+
+                # Crear la notificación si el estado está en el mapeo
+                if application.status in status_notifications:
+                    notif_data = status_notifications[application.status]
+                    print(f"[NOTIFICATION] Creando notificación para {application.applicant.email}: {notif_data['type']}")
+                    Notification.create_notification(
+                        user=application.applicant,
+                        notification_type=notif_data['type'],
+                        title=notif_data['title'],
+                        message=notif_data['message'],
+                        metadata={
+                            'job_id': str(job.id),
+                            'application_id': str(application.id),
+                            'job_title': job.title,
+                            'company_name': job.companyName
+                        }
+                    )
+                    print(f"[NOTIFICATION] Notificación creada exitosamente")
+            except Exception as notif_error:
+                # Log el error pero no fallar la actualización del estado
+                print(f"[ERROR] Error al crear notificación: {str(notif_error)}")
+                import traceback
+                traceback.print_exc()
 
         return JsonResponse({
             'success': True,

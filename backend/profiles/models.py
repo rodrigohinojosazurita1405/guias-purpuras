@@ -22,6 +22,38 @@ class UserProfile(models.Model):
     email = models.EmailField(unique=True, verbose_name="Email")
     phone = models.CharField(max_length=20, blank=True, verbose_name="Teléfono")
 
+    # Información personal adicional
+    ci = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name="Cédula de Identidad",
+        help_text="Número de CI o documento de identidad"
+    )
+    nationality = models.CharField(
+        max_length=100,
+        blank=True,
+        default="Boliviana",
+        verbose_name="Nacionalidad"
+    )
+
+    # Licencia de conducir
+    hasDriverLicense = models.BooleanField(
+        default=False,
+        verbose_name="¿Tiene licencia de conducir?"
+    )
+    driverLicenseCategory = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Categoría de licencia",
+        help_text="Ej: A, B, C, Profesional"
+    )
+
+    # Antecedentes penales
+    hasCriminalRecord = models.BooleanField(
+        default=False,
+        verbose_name="¿Tiene antecedentes penales?"
+    )
+
     # Foto de perfil
     profilePhoto = models.ImageField(
         upload_to='profile_photos/',
@@ -45,6 +77,77 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.fullName} ({self.email})"
+
+    def compress_profile_photo(self):
+        """
+        Comprime y redimensiona la foto de perfil a 400x400px
+
+        Returns:
+            ContentFile con la imagen comprimida o None si no hay imagen
+        """
+        if not self.profilePhoto:
+            return None
+
+        try:
+            # Abrir la imagen
+            img = Image.open(self.profilePhoto)
+
+            # Convertir a RGB si es necesario (para soportar PNG con transparencia)
+            if img.mode in ('RGBA', 'LA', 'P'):
+                # Crear fondo blanco
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                img = background
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+
+            # Redimensionar a 400x400px (cuadrado) con crop inteligente
+            target_size = (400, 400)
+
+            # Calcular crop para mantener el centro
+            width, height = img.size
+
+            if width != height:
+                # Hacer la imagen cuadrada recortando desde el centro
+                min_dimension = min(width, height)
+                left = (width - min_dimension) / 2
+                top = (height - min_dimension) / 2
+                right = (width + min_dimension) / 2
+                bottom = (height + min_dimension) / 2
+
+                img = img.crop((left, top, right, bottom))
+
+            # Redimensionar con antialiasing de alta calidad
+            img = img.resize(target_size, Image.Resampling.LANCZOS)
+
+            # Guardar en buffer
+            output = BytesIO()
+            img.save(output, format='JPEG', quality=85, optimize=True)
+            output.seek(0)
+
+            # Obtener el nombre del archivo original
+            filename = os.path.basename(self.profilePhoto.name)
+            # Cambiar extensión a .jpg
+            filename = os.path.splitext(filename)[0] + '.jpg'
+
+            return ContentFile(output.read(), name=filename)
+
+        except Exception as e:
+            print(f"Error comprimiendo foto de perfil: {e}")
+            return None
+
+    def save(self, *args, **kwargs):
+        """Sobrescribe save() para comprimir foto de perfil antes de guardar"""
+
+        # Comprimir foto de perfil si existe
+        if self.profilePhoto:
+            compressed_photo = self.compress_profile_photo()
+            if compressed_photo:
+                self.profilePhoto = compressed_photo
+
+        super().save(*args, **kwargs)
 
 
 class CompanyProfile(models.Model):

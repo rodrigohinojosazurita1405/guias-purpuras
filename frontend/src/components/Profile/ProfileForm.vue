@@ -41,6 +41,102 @@
         </span>
       </div>
 
+      <!-- CI / Cédula de Identidad -->
+      <div class="form-group">
+        <label for="ci">Cédula de Identidad (C.I.)</label>
+        <input
+          v-model="formData.ci"
+          type="text"
+          id="ci"
+          placeholder="12345678 LP"
+          @blur="validateField('ci')"
+        />
+        <span class="help-text">Número de carnet de identidad</span>
+      </div>
+
+      <!-- Nacionalidad -->
+      <div class="form-group">
+        <label for="nationality">Nacionalidad</label>
+        <input
+          v-model="formData.nationality"
+          type="text"
+          id="nationality"
+          placeholder="Boliviana"
+        />
+      </div>
+
+      <!-- Licencia de Conducir -->
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input
+            v-model="formData.hasDriverLicense"
+            type="checkbox"
+            id="hasDriverLicense"
+          />
+          <span>¿Tiene licencia de conducir?</span>
+        </label>
+      </div>
+
+      <!-- Categoría de Licencia (solo si tiene licencia) -->
+      <div v-if="formData.hasDriverLicense" class="form-group form-group-indent">
+        <label for="driverLicenseCategory">Categoría de Licencia</label>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input
+              v-model="formData.driverLicenseCategory"
+              type="radio"
+              value="A"
+            />
+            <span>Categoría A (Motocicletas)</span>
+          </label>
+          <label class="radio-label">
+            <input
+              v-model="formData.driverLicenseCategory"
+              type="radio"
+              value="B"
+            />
+            <span>Categoría B (Automóviles)</span>
+          </label>
+          <label class="radio-label">
+            <input
+              v-model="formData.driverLicenseCategory"
+              type="radio"
+              value="C"
+            />
+            <span>Categoría C (Camiones)</span>
+          </label>
+          <label class="radio-label">
+            <input
+              v-model="formData.driverLicenseCategory"
+              type="radio"
+              value="Profesional"
+            />
+            <span>Profesional</span>
+          </label>
+          <label class="radio-label">
+            <input
+              v-model="formData.driverLicenseCategory"
+              type="radio"
+              value="Otra"
+            />
+            <span>Otra</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Antecedentes Penales -->
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input
+            v-model="formData.hasCriminalRecord"
+            type="checkbox"
+            id="hasCriminalRecord"
+          />
+          <span>¿Tiene antecedentes penales?</span>
+        </label>
+        <span class="help-text">Esta información es confidencial y solo se compartirá si el empleador lo requiere</span>
+      </div>
+
       <!-- Email -->
       <div class="form-group">
         <label for="email">Email *</label>
@@ -119,6 +215,11 @@ const authStore = useAuthStore()
 
 const formData = ref({
   fullName: '',
+  ci: '',
+  nationality: 'Boliviana',
+  hasDriverLicense: false,
+  driverLicenseCategory: '',
+  hasCriminalRecord: false,
   email: '',
   phone: '',
   location: '',
@@ -127,6 +228,7 @@ const formData = ref({
 
 const validationErrors = ref({
   fullName: '',
+  ci: '',
   email: '',
   phone: '',
   location: '',
@@ -188,6 +290,11 @@ const handleSubmit = async () => {
       profileStore.userProfile.id,
       {
         fullName: formData.value.fullName,
+        ci: formData.value.ci,
+        nationality: formData.value.nationality,
+        hasDriverLicense: formData.value.hasDriverLicense,
+        driverLicenseCategory: formData.value.driverLicenseCategory,
+        hasCriminalRecord: formData.value.hasCriminalRecord,
         phone: formData.value.phone,
         location: formData.value.location,
         bio: formData.value.bio
@@ -221,6 +328,11 @@ onMounted(async () => {
     if (result.success) {
       formData.value = {
         fullName: result.profile.fullName || '',
+        ci: result.profile.ci || '',
+        nationality: result.profile.nationality || 'Boliviana',
+        hasDriverLicense: result.profile.hasDriverLicense || false,
+        driverLicenseCategory: result.profile.driverLicenseCategory || '',
+        hasCriminalRecord: result.profile.hasCriminalRecord || false,
         email: result.profile.email || '',
         phone: result.profile.phone || '',
         location: result.profile.location || '',
@@ -233,7 +345,7 @@ onMounted(async () => {
 
 <style scoped>
 .profile-form-container {
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   background: white;
@@ -384,6 +496,67 @@ onMounted(async () => {
   font-size: 0.85rem;
   margin-top: 0.25rem;
   text-align: right;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #7c3aed;
+}
+
+.checkbox-label span {
+  font-size: 0.95rem;
+}
+
+.form-group-indent {
+  margin-left: 2rem;
+  padding-left: 1rem;
+  border-left: 3px solid #e2e8f0;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.radio-label:hover {
+  background-color: #f8f9fa;
+}
+
+.radio-label input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #7c3aed;
+}
+
+.radio-label span {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
 }
 
 .submit-btn {

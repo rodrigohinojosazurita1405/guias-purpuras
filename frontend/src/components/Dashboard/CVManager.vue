@@ -3,10 +3,14 @@
     <div class="section-header">
       <h1>Mis CVs Profesionales</h1>
       <p class="subtitle">
-        Crea y gestiona hasta 2 currículums en <strong>formato Harvard</strong>, 
+        Crea y gestiona hasta 2 currículums en <strong>formato Harvard</strong>,
         el estándar preferido por reclutadores y empresas líderes, o sube
         uno propio en formato PDF para ser reutilizado en tus postulaciones.
       </p>
+      <div class="free-service-notice">
+        <va-icon name="check_circle" size="18px" color="#10B981" />
+        <span><strong>100% Gratuito:</strong> Guías Púrpuras Bolivia no cobra por postulaciones, generación de CVs ni ningún otro servicio. Nuestra plataforma es completamente gratuita y nunca te pediremos dinero.</span>
+      </div>
       <div class="info-badges">
         <span class="info-badge">
           <va-icon name="verified" size="16px" color="#10B981" />
@@ -207,9 +211,8 @@
     <va-modal
       v-model="showPreviewModal"
       size="large"
-      :fullscreen="true"
       hide-default-actions
-      no-padding
+      max-width="1000px"
     >
       <template #header>
         <h2 class="modal-title">Vista Previa del CV</h2>
@@ -283,16 +286,20 @@
             <h2 class="section-title">Habilidades</h2>
             <div class="skills-grid">
               <div v-if="previewedCV.cv_data.technicalSkills?.length > 0" class="skills-column">
-                <h3>Habilidades Técnicas</h3>
-                <div class="skills-tags">
-                  <span v-for="(skill, index) in previewedCV.cv_data.technicalSkills" :key="index" class="skill-tag">{{ skill }}</span>
-                </div>
+                <h3>Técnicas:</h3>
+                <span class="skills-tags">
+                  <span v-for="(skill, index) in previewedCV.cv_data.technicalSkills" :key="index" class="skill-tag">
+                    {{ skill }}<template v-if="index < previewedCV.cv_data.technicalSkills.length - 1"> · </template>
+                  </span>
+                </span>
               </div>
               <div v-if="previewedCV.cv_data.softSkills?.length > 0" class="skills-column">
-                <h3>Habilidades Blandas</h3>
-                <div class="skills-tags">
-                  <span v-for="(skill, index) in previewedCV.cv_data.softSkills" :key="index" class="skill-tag">{{ skill }}</span>
-                </div>
+                <h3>Blandas:</h3>
+                <span class="skills-tags">
+                  <span v-for="(skill, index) in previewedCV.cv_data.softSkills" :key="index" class="skill-tag">
+                    {{ skill }}<template v-if="index < previewedCV.cv_data.softSkills.length - 1"> · </template>
+                  </span>
+                </span>
               </div>
             </div>
           </div>
@@ -302,8 +309,8 @@
             <h2 class="section-title">Cursos y Certificaciones</h2>
             <div v-for="(cert, index) in previewedCV.cv_data.certifications" :key="index" class="cert-item">
               <div class="cert-header">
-                <strong>{{ cert.name }}</strong>
-                <span v-if="cert.year" class="cert-year">{{ cert.year }}</span>
+                <span>{{ cert.name }}</span>
+                <span v-if="cert.year"> — <strong class="cert-year">{{ cert.year }}</strong></span>
               </div>
               <p>{{ cert.institution }}</p>
             </div>
@@ -314,7 +321,7 @@
             <h2 class="section-title">Idiomas</h2>
             <div class="languages-list">
               <span v-for="(lang, index) in previewedCV.cv_data.languages" :key="index" class="language-item">
-                <strong>{{ lang.name }}</strong>: {{ lang.level }}
+                <strong>{{ lang.name }}</strong> : <span style="color: #7c3aed;">{{ lang.level }}</span>
               </span>
             </div>
           </div>
@@ -335,13 +342,21 @@
 
       <template #footer>
         <div class="modal-footer">
-          <va-button color="secondary" @click="showPreviewModal = false">
+          <button class="modal-btn modal-btn-secondary" @click="showPreviewModal = false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
             Cerrar
-          </va-button>
-          <va-button v-if="previewedCV?.file" color="primary" @click="downloadPreviewedCV">
-            <va-icon name="download" size="16px" />
+          </button>
+          <button v-if="previewedCV?.file" class="modal-btn modal-btn-primary" @click="downloadPreviewedCV">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
             Descargar PDF
-          </va-button>
+          </button>
         </div>
       </template>
     </va-modal>
@@ -604,9 +619,72 @@ const previewCV = (cv) => {
   }
 }
 
-const downloadPreviewedCV = () => {
-  if (previewedCV.value?.file) {
-    window.open(previewedCV.value.file, '_blank')
+const downloadPreviewedCV = async () => {
+  if (!previewedCV.value?.id) return
+
+  try {
+    initToast({
+      message: 'Generando PDF...',
+      color: 'info',
+      duration: 2000
+    })
+
+    // Llamar al endpoint para generar el PDF fresco
+    const response = await fetch(`http://localhost:8000/api/cvs/${previewedCV.value.id}/generate-pdf/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Error al generar el PDF')
+    }
+
+    const data = await response.json()
+
+    // Ahora descargar el PDF generado
+    if (data.pdf_url) {
+      const pdfResponse = await fetch(`http://localhost:8000${data.pdf_url}`)
+
+      if (!pdfResponse.ok) {
+        throw new Error('Error al obtener el PDF generado')
+      }
+
+      const blob = await pdfResponse.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+
+      // Crear enlace de descarga
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = `${previewedCV.value.name || 'CV'}.pdf`
+
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      // Limpiar
+      setTimeout(() => {
+        window.URL.revokeObjectURL(blobUrl)
+      }, 100)
+
+      initToast({
+        message: 'PDF descargado exitosamente',
+        color: 'success',
+        duration: 2000
+      })
+    } else {
+      throw new Error('No se recibió la URL del PDF')
+    }
+  } catch (error) {
+    console.error('Error al descargar PDF:', error)
+    initToast({
+      message: error.message || 'Error al generar el PDF',
+      color: 'danger',
+      duration: 4000
+    })
   }
 }
 
@@ -751,6 +829,30 @@ onMounted(() => {
 
 .subtitle strong {
   color: #7C3AED;
+  font-weight: 700;
+}
+
+.free-service-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 2px solid #10B981;
+  border-radius: 12px;
+  margin: 20px auto;
+  max-width: 800px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+}
+
+.free-service-notice span {
+  font-size: 14px;
+  color: #065f46;
+  line-height: 1.5;
+}
+
+.free-service-notice strong {
+  color: #047857;
   font-weight: 700;
 }
 
@@ -1217,28 +1319,34 @@ onMounted(() => {
   font-size: 1.5rem;
   font-weight: 600;
   color: #2d3748;
+  padding: 0.5rem 0;
+  margin: 0;
 }
 
 .preview-modal-content {
-  padding: 2rem;
-  background: #f9fafb;
-  max-height: 80vh;
+  padding: 1.5rem;
+  background: #e5e7eb;
+  max-height: 70vh;
   overflow-y: auto;
+  margin: 0;
 }
 
 .cv-preview-container {
-  max-width: 800px;
+  max-width: 850px;
   margin: 0 auto;
   background: white;
   padding: 3rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+  color: #000000;
 }
 
 .cv-section {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 3px solid #7c3aed;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #000000;
 }
 
 .cv-section:last-child {
@@ -1246,52 +1354,54 @@ onMounted(() => {
 }
 
 .preview-name {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #000000;
   text-align: center;
   margin-bottom: 0.5rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
 }
 
 .preview-title {
-  font-size: 1.25rem;
-  color: #7c3aed;
+  font-size: 1rem;
+  color: #4a5568;
   text-align: center;
-  font-weight: 600;
-  margin-bottom: 1rem;
+  font-weight: normal;
+  margin-bottom: 0.75rem;
 }
 
 .preview-contact,
 .preview-links {
   text-align: center;
-  font-size: 0.95rem;
-  color: #4a5568;
-  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #000000;
+  margin-bottom: 0.35rem;
 }
 
 .preview-profile {
-  font-size: 1rem;
-  color: #2d3748;
+  font-size: 0.95rem;
+  color: #000000;
   line-height: 1.6;
   text-align: justify;
+  margin-top: 1rem;
 }
 
 .section-title {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #7c3aed;
-  text-transform: uppercase;
+  color: #000000;
+  text-transform: capitalize;
   margin-bottom: 1rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 0px;
+  text-align: center;
 }
 
 .experience-item,
 .education-item,
 .cert-item,
 .project-item {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .experience-item:last-child,
@@ -1308,22 +1418,23 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .exp-header strong,
 .edu-header strong,
 .cert-header strong,
 .project-header strong {
-  font-size: 1.1rem;
-  color: #1a1a1a;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #000000;
 }
 
 .location,
 .cert-year,
 .project-year {
-  font-size: 0.9rem;
-  color: #718096;
+  font-size: 0.875rem;
+  color: #000000;
 }
 
 .exp-role,
@@ -1336,21 +1447,23 @@ onMounted(() => {
 
 .exp-role em,
 .edu-degree em {
-  font-size: 1rem;
-  color: #4a5568;
-  font-weight: 500;
+  font-size: 0.95rem;
+  color: #000000;
+  font-weight: 700;
+  font-style: italic;
 }
 
 .dates {
-  font-size: 0.9rem;
-  color: #718096;
+  font-size: 0.875rem;
+  color: #000000;
 }
 
 .achievements {
   margin: 0;
   padding-left: 1.5rem;
-  color: #2d3748;
-  line-height: 1.6;
+  color: #000000;
+  line-height: 1.5;
+  font-size: 0.9rem;
 }
 
 .achievements li {
@@ -1358,51 +1471,57 @@ onMounted(() => {
 }
 
 .reference {
-  margin-top: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: #f7fafc;
-  border-left: 4px solid #7c3aed;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  padding: 0;
+  background: transparent;
+  border-left: none;
+  border-radius: 0;
+  font-size: 0.85rem;
   color: #4a5568;
+  font-style: italic;
 }
 
 .reference strong {
   color: #2d3748;
+  font-weight: 700;
 }
 
 .edu-achievements {
-  color: #4a5568;
+  color: #000000;
   line-height: 1.5;
+  font-size: 0.9rem;
 }
 
 .skills-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  display: block;
 }
 
-.skills-column h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #2d3748;
+.skills-column {
   margin-bottom: 0.75rem;
 }
 
+.skills-column h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #000000;
+  display: inline;
+  margin-right: 0.35rem;
+}
+
 .skills-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  display: inline;
+  font-size: 0.9rem;
+  color: #000000;
 }
 
 .skill-tag {
-  display: inline-block;
-  padding: 0.375rem 0.75rem;
-  background: #e2e8f0;
-  color: #2d3748;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  display: inline;
+  padding: 0;
+  background: transparent;
+  color: #000000;
+  border-radius: 0;
+  font-size: 0.9rem;
+  font-weight: normal;
 }
 
 .cert-item p,
@@ -1410,28 +1529,86 @@ onMounted(() => {
   color: #4a5568;
   line-height: 1.5;
   margin-top: 0.25rem;
+  font-size: 0.9rem;
+  font-style: italic;
 }
 
 .languages-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .language-item {
-  font-size: 0.95rem;
-  color: #2d3748;
+  font-size: 0.9rem;
+  color: #000000;
 }
 
 .language-item strong {
-  color: #1a1a1a;
+  color: #000000;
+  font-weight: 700;
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
-  padding: 1rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  margin: 0;
+  min-height: 70px;
+}
+
+.modal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.modal-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-btn:active {
+  transform: translateY(0);
+}
+
+.modal-btn svg {
+  flex-shrink: 0;
+}
+
+.modal-btn-secondary {
+  background: #ffffff;
+  color: #4b5563;
+  border: 2px solid #d1d5db;
+}
+
+.modal-btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.modal-btn-primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+.modal-btn-primary:hover {
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 
 @media (max-width: 768px) {
