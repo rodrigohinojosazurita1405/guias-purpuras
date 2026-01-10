@@ -286,33 +286,56 @@
 
           <!-- Content -->
           <div class="modal-content">
-            <p class="warning-text">
-              <strong>Esta acción es permanente y no se puede deshacer.</strong>
-            </p>
-            <p class="warning-description">Al eliminar tu cuenta:</p>
-            <ul class="warning-list">
-              <li>Se eliminarán todos tus datos personales</li>
-              <li v-if="authStore.user?.role === 'company'">Se eliminarán todas tus publicaciones de trabajo</li>
-              <li v-if="authStore.user?.role === 'applicant'">Se eliminarán tus postulaciones y CVs</li>
-              <li>Perderás acceso inmediato a la plataforma</li>
-              <li>No podrás recuperar tu cuenta ni tus datos</li>
-            </ul>
+            <!-- Advertencia si la cuenta es muy reciente -->
+            <div v-if="!canDeleteAccount" class="account-too-recent-warning">
+              <div class="warning-icon">
+                <va-icon name="schedule" size="large" />
+              </div>
+              <h4 class="warning-title">Cuenta muy reciente</h4>
+              <p class="warning-message">
+                Tu cuenta fue creada hace <strong>{{ daysSinceCreation }} días</strong>.
+              </p>
+              <p class="warning-message">
+                Por razones de seguridad, debes esperar <strong>{{ daysRemaining }} días más</strong> antes de poder eliminar tu cuenta.
+              </p>
+              <p class="warning-reason">
+                Esta medida previene la creación y eliminación masiva de cuentas.
+              </p>
+            </div>
 
-            <!-- Checkbox de Confirmación -->
-            <div class="confirmation-checkbox">
-              <label class="checkbox-label">
-                <input type="checkbox" v-model="deleteConfirmed" class="checkbox-input" />
-                <span class="checkbox-text">
-                  Entiendo que esta acción es permanente y deseo eliminar mi cuenta
-                </span>
-              </label>
+            <!-- Contenido normal si puede eliminar -->
+            <div v-else>
+              <p class="warning-text">
+                <strong>Esta acción es permanente y no se puede deshacer.</strong>
+              </p>
+              <p class="warning-description">Al eliminar tu cuenta:</p>
+              <ul class="warning-list">
+                <li>Se eliminarán todos tus datos personales</li>
+                <li v-if="authStore.user?.role === 'company'">Se eliminarán todas tus publicaciones de trabajo</li>
+                <li v-if="authStore.user?.role === 'applicant'">Se eliminarán tus postulaciones y CVs</li>
+                <li>Perderás acceso inmediato a la plataforma</li>
+                <li>No podrás recuperar tu cuenta ni tus datos</li>
+              </ul>
+
+              <!-- Checkbox de Confirmación -->
+              <div class="confirmation-checkbox">
+                <label class="checkbox-label">
+                  <input type="checkbox" v-model="deleteConfirmed" class="checkbox-input" />
+                  <span class="checkbox-text">
+                    Entiendo que esta acción es permanente y deseo eliminar mi cuenta
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
 
           <!-- Actions -->
           <div class="modal-actions">
-            <button @click="closeDeleteModal" class="btn-cancel">Cancelar</button>
+            <button @click="closeDeleteModal" class="btn-cancel">
+              {{ canDeleteAccount ? 'Cancelar' : 'Entendido' }}
+            </button>
             <button
+              v-if="canDeleteAccount"
               @click="confirmDeleteAccount"
               class="btn-delete"
               :disabled="!deleteConfirmed"
@@ -366,6 +389,9 @@ const passwordForm = ref({
 // Delete Account Modal
 const showDeleteModal = ref(false)
 const deleteConfirmed = ref(false)
+const canDeleteAccount = ref(true)
+const daysRemaining = ref(0)
+const daysSinceCreation = ref(0)
 
 // ========== LIFECYCLE ==========
 onMounted(() => {
@@ -578,8 +604,38 @@ const handleChangePassword = async () => {
 }
 
 // Delete Account Handlers
-const handleDeleteAccount = () => {
+const handleDeleteAccount = async () => {
   showMenu.value = false
+
+  // Verificar elegibilidad antes de abrir el modal
+  try {
+    const accessToken = authStore.accessToken || localStorage.getItem('access_token')
+
+    const response = await fetch('/api/auth/check-delete-eligibility', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    const data = await response.json()
+
+    if (response.ok && data.success) {
+      canDeleteAccount.value = data.can_delete
+      daysRemaining.value = data.days_remaining
+      daysSinceCreation.value = data.days_since_creation
+
+      console.log('🔍 Verificación de elegibilidad:', {
+        canDelete: data.can_delete,
+        daysRemaining: data.days_remaining,
+        daysSince: data.days_since_creation
+      })
+    }
+  } catch (error) {
+    console.error('Error verificando elegibilidad:', error)
+  }
+
   showDeleteModal.value = true
   deleteConfirmed.value = false
 }
@@ -622,7 +678,20 @@ const confirmDeleteAccount = async () => {
         window.location.href = '/'
       }, 1500)
     } else {
-      notify({ message: data.message || 'Error al eliminar la cuenta', color: 'danger', duration: 4000 })
+      // Manejar caso específico de cuenta muy reciente
+      if (data.days_remaining !== undefined) {
+        notify({
+          message: `Tu cuenta es muy reciente. Debes esperar ${data.days_remaining} días más para eliminarla.`,
+          color: 'warning',
+          duration: 5000
+        })
+        // Actualizar el modal con la información actualizada
+        canDeleteAccount.value = false
+        daysRemaining.value = data.days_remaining
+        daysSinceCreation.value = data.days_since_creation
+      } else {
+        notify({ message: data.message || 'Error al eliminar la cuenta', color: 'danger', duration: 4000 })
+      }
     }
   } catch (error) {
     console.error('Error eliminando cuenta:', error)
@@ -1432,6 +1501,70 @@ const handleLogout = () => {
 
 .delete-account-modal .modal-content {
   padding: 2rem;
+}
+
+/* Account Too Recent Warning */
+.account-too-recent-warning {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.account-too-recent-warning .warning-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  animation: clockPulse 2s ease-in-out infinite;
+}
+
+@keyframes clockPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 15px rgba(251, 191, 36, 0);
+  }
+}
+
+.account-too-recent-warning .warning-icon .va-icon {
+  color: #F59E0B;
+  font-size: 2.5rem;
+}
+
+.account-too-recent-warning .warning-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #92400E;
+  margin: 0 0 1rem 0;
+}
+
+.account-too-recent-warning .warning-message {
+  font-size: 1rem;
+  color: #78350F;
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.account-too-recent-warning .warning-message strong {
+  color: #B45309;
+  font-weight: 700;
+}
+
+.account-too-recent-warning .warning-reason {
+  font-size: 0.9rem;
+  color: #92400E;
+  margin: 1.5rem 0 0.5rem 0;
+  padding: 1rem;
+  background: #FFFBEB;
+  border-radius: 8px;
+  border-left: 4px solid #F59E0B;
+  font-style: italic;
 }
 
 .warning-text {

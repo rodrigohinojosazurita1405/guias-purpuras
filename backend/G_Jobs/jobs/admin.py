@@ -886,17 +886,16 @@ class JobAdmin(admin.ModelAdmin):
             if form.is_valid():
                 months_ago = int(form.cleaned_data['months_ago'])
 
-                # Calcular fecha límite (no eliminar mes actual ni anterior)
+                # Calcular fecha límite (no eliminar mes actual)
                 today = datetime.now()
                 current_month = today.replace(day=1)
-                previous_month = current_month - relativedelta(months=1)
                 cutoff_date = current_month - relativedelta(months=months_ago)
 
-                # Validación: No permitir eliminar mes actual ni anterior
-                if cutoff_date >= previous_month:
+                # Validación: No permitir eliminar mes actual
+                if cutoff_date >= current_month:
                     self.message_user(
                         request,
-                        '⚠️ Error: No se puede eliminar el mes actual ni el anterior por seguridad.',
+                        '⚠️ Error: No se puede eliminar el mes actual por seguridad.',
                         messages.ERROR
                     )
                     return None
@@ -956,22 +955,42 @@ class JobAdmin(admin.ModelAdmin):
                                         proofOfPayment__startswith=f'payment_proofs/{year_folder}/{month_folder}/'
                                     ).update(proofOfPayment='')
 
+                        # Eliminar carpetas de años que quedaron vacías
+                        for year_folder in os.listdir(base_dir):
+                            year_path = os.path.join(base_dir, year_folder)
+                            if os.path.isdir(year_path) and year_folder.isdigit():
+                                # Si la carpeta del año está vacía, eliminarla
+                                if not os.listdir(year_path):
+                                    os.rmdir(year_path)
+                                    print(f'🗑️ Carpeta de año vacía eliminada: {year_folder}')
+
                         # Convertir bytes a MB
                         space_freed_mb = space_freed / (1024 * 1024)
 
-                        # Registrar en logs
+                        # Registrar en logs de auditoría
                         from G_Jobs.audit.models import AuditLog
+                        from django.contrib.contenttypes.models import ContentType
+
+                        job_content_type = ContentType.objects.get_for_model(Job)
                         AuditLog.objects.create(
                             user=request.user,
-                            action='delete_payment_proofs',
-                            model_name='Job',
-                            details={
+                            user_email=request.user.email,
+                            user_role=getattr(request.user, 'role', 'admin'),
+                            content_type=job_content_type,
+                            object_id='bulk_delete',
+                            object_repr='Eliminación masiva de comprobantes de pago',
+                            action='delete',
+                            action_description=f'Eliminación de comprobantes antiguos: {deleted_files_count} archivos, {round(space_freed_mb, 2)} MB. Meses: {", ".join(deleted_folders)}',
+                            changes={
                                 'months_ago': months_ago,
                                 'deleted_folders': deleted_folders,
                                 'files_deleted': deleted_files_count,
                                 'space_freed_mb': round(space_freed_mb, 2)
                             },
-                            ip_address=request.META.get('REMOTE_ADDR', '')
+                            ip_address=request.META.get('REMOTE_ADDR', ''),
+                            user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                            session_key=request.session.session_key or '',
+                            severity='warning'
                         )
 
                         self.message_user(
@@ -1011,6 +1030,7 @@ class JobAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
             'preview_data': preview_data,
             'current_month': today.strftime('%B %Y'),
+            'selected_jobs': queryset,  # Agregar queryset para mantener selección
         }
         return render(request, 'admin/delete_payment_proofs_form.html', context)
 

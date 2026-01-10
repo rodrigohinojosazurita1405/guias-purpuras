@@ -10,6 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from auth_api.models import CustomUser
 from auth_api.decorators import token_required
+from G_Jobs.audit.models import AuditLog
 
 
 @require_http_methods(["POST"])
@@ -789,6 +790,26 @@ def delete_account(request):
                 'message': 'No tienes permiso para eliminar esta cuenta'
             }, status=403)
 
+        # Verificar que han pasado al menos 30 días desde la creación de la cuenta
+        from datetime import datetime, timedelta
+        from django.utils import timezone
+
+        account_age = timezone.now() - user.date_joined
+        days_since_creation = account_age.days
+
+        print(f'🗑️ [DELETE ACCOUNT] Días desde creación: {days_since_creation}')
+
+        if days_since_creation < 30:
+            days_remaining = 30 - days_since_creation
+            print(f'❌ [DELETE ACCOUNT] Cuenta muy reciente - faltan {days_remaining} días')
+            return JsonResponse({
+                'success': False,
+                'message': f'No puedes eliminar tu cuenta aún. Deben pasar al menos 30 días desde su creación.',
+                'days_remaining': days_remaining,
+                'days_since_creation': days_since_creation,
+                'can_delete': False
+            }, status=403)
+
         user_role = user.role
         print(f'🗑️ [DELETE ACCOUNT] Rol: {user_role}')
 
@@ -838,6 +859,17 @@ def delete_account(request):
             deleted_stats['profiles'] += 1
             print(f'🗑️ [DELETE ACCOUNT] UserProfile eliminado')
 
+        # REGISTRAR EN AUDITORÍA antes de eliminar el usuario
+        AuditLog.log_action(
+            user=user,
+            obj=user,
+            action='delete',
+            description=f'Usuario {user_role} eliminó su cuenta permanentemente. Estadísticas: {deleted_stats}',
+            severity='critical',
+            request=request
+        )
+        print(f'📝 [DELETE ACCOUNT] Acción registrada en auditoría')
+
         # FINALMENTE: Eliminar el usuario de CustomUser
         user.delete()
         print(f'✅ [DELETE ACCOUNT] Usuario eliminado exitosamente: {email}')
@@ -863,4 +895,47 @@ def delete_account(request):
         return JsonResponse({
             'success': False,
             'message': f'Error al eliminar cuenta: {str(e)}'
+        }, status=500)
+
+
+@token_required
+@csrf_exempt
+@require_http_methods(["GET"])
+def check_delete_eligibility(request):
+    """
+    Endpoint para verificar si el usuario puede eliminar su cuenta
+    GET /api/auth/check-delete-eligibility
+
+    Retorna:
+    - can_delete: True si han pasado 30 días, False si no
+    - days_since_creation: Días desde que se creó la cuenta
+    - days_remaining: Días que faltan para poder eliminar (si aplica)
+    """
+    try:
+        user = request.user
+
+        from datetime import datetime, timedelta
+        from django.utils import timezone
+
+        account_age = timezone.now() - user.date_joined
+        days_since_creation = account_age.days
+
+        can_delete = days_since_creation >= 30
+        days_remaining = max(0, 30 - days_since_creation) if not can_delete else 0
+
+        print(f'✅ [CHECK DELETE] Usuario: {user.email} - Días: {days_since_creation} - Puede eliminar: {can_delete}')
+
+        return JsonResponse({
+            'success': True,
+            'can_delete': can_delete,
+            'days_since_creation': days_since_creation,
+            'days_remaining': days_remaining,
+            'account_created': user.date_joined.isoformat()
+        }, status=200)
+
+    except Exception as e:
+        print(f'❌ [CHECK DELETE] Error: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
         }, status=500)

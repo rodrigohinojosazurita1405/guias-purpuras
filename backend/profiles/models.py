@@ -141,11 +141,30 @@ class UserProfile(models.Model):
     def save(self, *args, **kwargs):
         """Sobrescribe save() para comprimir foto de perfil antes de guardar"""
 
-        # Comprimir foto de perfil si existe
+        # Solo comprimir si es una foto NUEVA (no una referencia existente)
         if self.profilePhoto:
+            # Verificar si el perfil ya existe en la BD
+            if self.pk:
+                try:
+                    # Obtener el perfil anterior de la BD
+                    old_profile = UserProfile.objects.get(pk=self.pk)
+
+                    # Si la foto NO cambió, no hacer nada (evita re-comprimir)
+                    if old_profile.profilePhoto and old_profile.profilePhoto.name == self.profilePhoto.name:
+                        # La foto es la misma, no comprimir
+                        print(f'ℹ️  Foto sin cambios, se omite compresión: {self.profilePhoto.name}')
+                        super().save(*args, **kwargs)
+                        return
+                except UserProfile.DoesNotExist:
+                    # Perfil nuevo, continuar con compresión
+                    pass
+
+            # Si llegamos aquí, es una foto NUEVA o el perfil es nuevo
+            # Comprimir la foto
             compressed_photo = self.compress_profile_photo()
             if compressed_photo:
                 self.profilePhoto = compressed_photo
+                print(f'✅ Foto comprimida y guardada: {self.profilePhoto.name}')
 
         super().save(*args, **kwargs)
 
